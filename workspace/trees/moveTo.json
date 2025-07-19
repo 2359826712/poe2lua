@@ -1,0 +1,37 @@
+{
+  "name": "moveTo",
+  "root": {
+    "id": 1,
+    "name": "Sequence",
+    "desc": "Path_Move",
+    "children": [
+      {
+        "id": 2,
+        "name": "Get_UI_Info",
+        "desc": "获取信息"
+      },
+      {
+        "id": 3,
+        "name": "Get_Info",
+        "desc": "获取信息"
+      },
+      {
+        "id": 4,
+        "name": "Is_Arrive",
+        "desc": "是否到点"
+      },
+      {
+        "id": 5,
+        "name": "GET_Path",
+        "desc": "获取路径"
+      },
+      {
+        "id": 6,
+        "name": "Move_To_Target_Point",
+        "desc": "移动至目标点"
+      }
+    ]
+  },
+  "export": true,
+  "desc": ""
+}

@@ -4,13 +4,45 @@ local behavior_tree = require 'behavior3.behavior_tree'
 local bret = require 'behavior3.behavior_ret'
 -- 加载基础节点类型
 local base_nodes = require 'behavior3.sample_process'
-
+local my_game_info = require 'my_game_info'
+local script_path = debug.getinfo(1, "S").source:sub(2)
+local path = script_path:gsub("/", "\\")
+local script_dir = path:match("(.*\\)")
+print("当前脚本目录:", script_dir)
+local json_path = script_dir .. "config.json"
+local user_info_path = script_dir .. "config.ini"
 -- 自定义节点实现
 local custom_nodes = {
     -- 获取用户配置信息
     Get_User_Config_Info = {
         run = function(node, env)
             print("获取用户配置信息...")
+            local config = env.poe2_api.load_config(json_path)
+            local user_info = env.poe2_api.load_ini(user_info_path)["UserInfo"]
+            -- 玩法優先級
+            local map_priority = config["刷圖設置"]["玩法優先級"]
+            local map_sorted_items_sort = env.poe2_api.sort_map_by_key(map_priority)
+            if map_priority['是否開啟'] then
+                env.sorted_map = map_sorted_items_sort
+            else
+                env.sorted_map = nil
+            end
+
+
+            -- # 碑牌順序
+            local play_priority = config["刷圖設置"]["碑牌優先級"]
+            local sorted_keys = env.poe2_api.sort_map_by_key(play_priority)
+            local result = {}
+            for _, key in ipairs(sorted_keys) do
+                if my_game_info.map_type[key] then
+                    table.insert(result, my_game_info.map_type[key])
+                end
+            end         
+            env.user_config = config
+            env.user_info = user_info
+            env.not_use_map = config['刷圖設置']["異界地圖"]["不打地圖詞綴"]
+            env.stone_order = result
+            env.is_insert_stone = play_priority["是否開啟"]
             return bret.SUCCESS
         end
     },
@@ -39,730 +71,130 @@ local custom_nodes = {
         end
     },
 
-    -- 获取信息
-    Get_Info = {
+    -- 获取UI信息
+    Get_UI_Info = {
         run = function(node, env)
-            print("获取游戏信息...")
-            local size = Actors:Update()
-            if size > 0 then
-                print("发现对象数量: " .. size .. "\n")
-                env.range_info = size
-            end
+            print("获取UI信息...1")
+            -- local player_info = api_GetLocalPlayer()
+
+            -- for i = 1, 5 do
+            --     print(i)
+            --     api_Sleep(1000)
+            -- end
+            point = api_HasObstacleBetween(361,588)
+            print(tostring(point))
+            print(point)
+            print(type(point))
+            env.poe2_api.printTable(point)
+            -- local UI_info = api_GetUiElements()
+            -- bag_info = api_Getinventorys(1,0)
+            -- for k,v in pairs(bag_info) do
+            --     if v.baseType_utf8 ~= nil then
+            --         print(k .. v.name_utf8)
+            --         print(k .. v.baseType_utf8)
+            --         print(k .. v.obj)
+            --         suf = api_GetObjectSuffix(v.obj)
+            --         print(suf)
+            --         env.poe2_api.printTable(suf)
+            --     end
+            -- end
+
+            -- local info = api_GetTeleportationPoint()
+            -- print(info)
+            -- for k,v in pairs(info) do
+            --     -- if v.name_utf8 ~= nil then
+            --     print(v.name_utf8)
+            --     -- end
+            -- end
+            -- env.poe2_api.printTable(info)
+            -- print("获取UI信息...2")
+
             return bret.SUCCESS
         end
     },
 
-    -- 清除聊天信息
+    -- 获取信息
+    Get_Info = {
+        run = function(node, env)
+            print("获取游戏信息...")
+            local player_info = api_GetLocalPlayer()
+            env.player_info = player_info
+
+            local size = Actors:Update()
+            local range_info = {}
+            if size > 0 then
+                print(size .. "\n")
+                local sum = 0;
+                for i = 0, size - 1, 1 do
+                    sum = sum + 1
+                    -- print("index:" .. i .. " " .. Actors[i].path_name_utf8)
+                    table.insert(range_info, Actors[i])
+                end
+
+                env.range_info = range_info
+                a = env.poe2_api.is_have_mos(env.range_info,env.player_info)
+                print(a)
+            else
+                print("未发现周围对象\n")
+                return
+            end
+
+            -- local range_item_info = WorldItems:Update()
+            -- if range_item_info > 0 then
+            --     print("装备数量: " .. range_item_info .. "\n")
+            --     env.range_item_info = range_item_info
+            -- else
+            --     print("未发现周围对象\n")
+            --     return
+            -- end
+
+            local player_info = api_GetLocalPlayer()
+            env.player_info = player_info
+
+            -- api_GetMinimapActorInfo() - 获取小地图周围对象信息
+            local current_map_info_copy = api_GetMinimapActorInfo()
+            env.current_map_info_copy = current_map_info_copy
+
+            return bret.SUCCESS
+        end
+    },
+
+    -- 清理
     Clear = {
-        name = "清除聊天信息",
-        last_move_time = 0,
-        move_interval = math.random(1, 2),  -- 随机间隔初始化
-        time = 0,
-        bool = false,
-        
-        run = function(self, env)
-            local current_time = os.time()
-            if self.time == 0 then
-                self.time = current_time
-            end
-            
-            local player_info = env.player_info
-            if not player_info then
-                return bret.RUNNING
-            end
-            
-            local current_map_info_copy = env.current_map_info_copy or {}
-            
-            -- Find MapDevice in current map
-            local map_device = nil
-            for _, item in ipairs(current_map_info_copy) do
-                if item.name_utf8 == "MapDevice" then
-                    map_device = item
-                    break
-                end
-            end
-            
-            -- Check if in town or hideout with MapDevice
-            if not string.find(player_info.current_map_name_utf8, "town") and 
-            (not my_game_info.hideout[player_info.current_map_name_utf8] or not map_device) then
-                self.bool = false
-                env.poe2_api.infos_time(current_time, self.name)
-                return bret.SUCCESS
-            end
-            
-            if not self.bool and player_info.life ~= 0 and not env.poe2_api.click_text_UI_by_time("respawn_at_checkpoint_button") then
-                if not env.poe2_api.find_text("/clear", 0) then
-                    sleep(1)
-                    env.poe2_api.click_keyboard("enter")
-                    sleep(0.5)
-                    env.poe2_api.paste_text("/clear")
-                    sleep(0.5)
-                    env.poe2_api.click_keyboard("enter")
-                    sleep(0.5)
-                    self.bool = true
-                    env.poe2_api.infos_time(current_time, self.name)
-                    return bret.RUNNING
-                end
-                
-                self.time = current_time
-            end
-            
-            env.poe2_api.infos_time(current_time, self.name)
+        run = function(node, env)
+            print("执行清理...")
             return bret.SUCCESS
         end
     },
 
     -- 休息控制
     RestController = {
-        name = "休息控制",
-        is_initialized = false,
-        is_resting = false,
-        next_state_change_time = 0,
-        last_update_time = 0,
-        work_duration = 0,
-        rest_duration = 0,
-        is_open = false,
-        is_kill_game = false,
-        
-        init = function(self, env)
-            -- 初始化计时器
-            local config = env.user_config["全局設置"]["刷图通用設置"]["定時休息"] or {}
-            
-            -- 工作时间配置
-            local base_work = config["運行時間"] or 1  -- 默认1小时
-            local work_random_range = config["工作時間隨機範圍"] or 0.1
-            self.work_duration = math.floor(base_work * (1 + math.random() * work_random_range * 2 - work_random_range) * 3600)
-            
-            -- 休息时间配置
-            local base_rest = config["休息時間"] or (10/60)  -- 默认10分钟
-            local rest_random_range = config["休息時間隨機範圍"]  or 0.1
-            self.rest_duration = math.floor(base_rest * (1 + math.random() * rest_random_range * 2 - rest_random_range) * 3600)
-            
-            -- 功能开关
-            self.is_open = config["是否開啟"]  or false
-            self.is_kill_game = config["休息时是否关闭游戏"] or false
-            
-            -- 初始化状态
-            self.is_resting = false
-            self.next_state_change_time = os.time() + self.work_duration
-            self.last_update_time = os.time()
-            self.is_initialized = true
-            
-            env.feedback_message = string.format("开始工作周期，将在 %d 分钟后休息", self.work_duration/60)
-            return bret.RUNNING
-        end,
-        
-        handle_state_transition = function(self, env, current_time)
-            self.is_resting = not self.is_resting
-            local duration = self.is_resting and self.rest_duration or self.work_duration
-            self.next_state_change_time = current_time + duration
-            
-            -- 更新环境状态
-            env.take_rest = self.is_resting
-            
-            if self.is_resting then
-                if not my_game_info.hideout[env.player_info.current_map_name_utf8] then
-                    env.need_ReturnToTown = true
-                    return bret.SUCCESS
-                end
-                
-                -- 进入休息状态
-                if self.is_kill_game then
-                    env.error_kill = true
-                end
-                self:perform_rest_actions(env)
-                env.feedback_message = string.format("工作时间到，开始休息 (%d分钟)", self.rest_duration/60)
-                return bret.RUNNING
-            else
-                -- 返回工作状态
-                env.error_kill = false
-                env.feedback_message = string.format("休息结束，开始工作 (%d分钟)", self.work_duration/60)
-                self.is_initialized = false
-                return bret.SUCCESS
-            end
-        end,
-        
-        update_status = function(self, env, current_time)
-            local time_remaining = math.max(0, self.next_state_change_time - current_time)
-            
-            if self.is_resting then
-                if not my_game_info.hideout[env.player_info.current_map_name_utf8] then
-                    env.need_ReturnToTown = true
-                    return bret.SUCCESS
-                end
-                
-                -- 休息状态更新（每分钟）
-                self.last_update_time = current_time
-                local mins = math.floor(time_remaining / 60)
-                local secs = math.floor(time_remaining % 60)
-                print(string.format("休息中... 剩余时间: %d分%d秒", mins, secs))
-                env.take_rest = true
-                
-                local UI_info = nil
-                if not (poe2_api.find_text("回到角色選擇畫面", UI_info) or 
-                    poe2_api.click_text_UI("exit_to_character_selection", UI_info)) and
-                    poe2_api.click_text_UI("life_orb", UI_info) and
-                    poe2_api.click_text_UI("mana_orb", UI_info) then
-                    poe2_api.click_keyboard("esc")
-                end
-                sleep(1)
-                return bret.RUNNING
-            else
-                -- 工作状态更新（每5分钟）
-                self.last_update_time = current_time
-                local mins = math.floor(time_remaining / 60)
-                local secs = math.floor(time_remaining % 60)
-                print(string.format("工作中... 距离休息还有: %d分%d秒", mins, secs))
-                env.take_rest = false
-                return bret.SUCCESS
-            end
-        end,
-        
-        perform_rest_actions = function(self, env)
-            -- 执行休息相关操作
-            local success, err = pcall(function()
-                local UI_info = nil
-                if not (poe2_api.find_text("回到角色選擇畫面", UI_info) or 
-                    env.poe2_api.click_text_UI("exit_to_character_selection", UI_info)) then
-                    if env.poe2_api.click_text_UI("life_orb", UI_info) and
-                    env.poe2_api.click_text_UI("mana_orb", UI_info) then
-                        env.poe2_api.click_keyboard("esc")
-                    end
-                end
-                sleep(1)
-            end)
-            
-            if not success then
-                env.feedback_message = "执行休息操作时出错: " .. tostring(err)
-            end
-        end,
-        
-        run = function(self, env)
-            if not self.is_initialized then
-                return self:init(env)
-            end
-            
-            if not self.is_open then
-                return bret.SUCCESS
-            end
-            
-            local current_time = os.time()
-            
-            -- 状态切换检查
-            if current_time >= self.next_state_change_time then
-                return self:handle_state_transition(env, current_time)
-            end
-                
-            -- 状态更新
-            return self:update_status(env, current_time)
+        run = function(node, env)
+            print("执行休息控制...")
+            return bret.SUCCESS
         end
     },
 
     -- 小撤退
     SmallRetreat = {
-        name = "执行小撤退",
-        last_action_time = 0,  -- 记录上次操作时间
-        action_interval = 2,   -- 操作间隔时间
-        error_kill_start_time = nil,  -- 超时计时器
-        
-        reset_states = function(self, env)
-            -- 统一状态重置方法
-            local current_time = os.time()
-            env.last_exception_time = 0
-            env.last_exp_check = current_time
-            env.last_exp_value = env.player_info.currentExperience
-            -- logger.debug("已重置所有监控状态")
-        end,
-        
-        run = function(self, env)
-            local current_time = os.time()
-            local esc_click = env.esc_click
-
-            -- 超时判断（10次点击约15秒）
-            if self.error_kill_start_time and (current_time - self.error_kill_start_time) > 30 then
-                env.poe2_api.api_print("小退超时")
-                env.error_kill = true
-                self.error_kill_start_time = nil  -- 重置计时器
-                env.need_SmallRetreat = false
-                env.poe2_api.infos_time(current_time, self.name)
-                return bret.RUNNING
-            else
-                env.error_kill = false
-            end
-
-            if env.need_SmallRetreat then
-                local success, err = pcall(function()
-                    env.path_list = nil
-                    if current_time - self.last_action_time >= self.action_interval then
-                        -- 点击返回
-                        if env.poe2_api.find_text("回到角色選擇畫面", nil, 2) then
-                            if not self.error_kill_start_time then
-                                self.error_kill_start_time = current_time  -- 开始计时
-                            end
-                            sleep(6)
-                            env.poe2_api.infos_time(current_time, self.name)
-                            return bret.RUNNING
-                        
-                        elseif poe2_api.click_text_UI("exit_to_character_selection", nil, 2) then
-                            if not self.error_kill_start_time then
-                                self.error_kill_start_time = current_time
-                            end
-                            sleep(6)
-                            env.poe2_api.infos_time(current_time, self.name)
-                            return bret.RUNNING
-                        end
-                        -- 打开选项菜单
-                        if not (poe2_api.find_text("回到角色選擇畫面", nil) or 
-                            env.poe2_api.click_text_UI("exit_to_character_selection", nil)) and
-                            env.poe2_api.click_text_UI("life_orb", nil) and
-                            env.poe2_api.click_text_UI("mana_orb", nil) then
-                            if not self.error_kill_start_time then
-                                self.error_kill_start_time = current_time
-                            end
-                            env.poe2_api.click_keyboard("esc")
-                            self.last_action_time = current_time + 2
-                            env.poe2_api.infos_time(current_time, self.name)
-                            return bret.RUNNING
-                        end
-
-                        -- 成功执行后重置超时计时器
-                        self.error_kill_start_time = nil
-                        env.last_exp_check = current_time
-                        env.last_exception_time = 0
-                        env.need_SmallRetreat = false
-                        self:reset_states(env)
-                        env.poe2_api.infos_time(current_time, self.name)
-                        return bret.RUNNING
-                    else
-                        env.poe2_api.infos_time(current_time, self.name)
-                        return bret.RUNNING  -- 仍在运行状态，等待间隔
-                    end
-                end)
-                
-                if not success then
-                    self.error_kill_start_time = nil  -- 异常时重置计时器
-                    env.need_SmallRetreat = false
-                    env.poe2_api.infos_time(current_time, self.name)
-                    return bret.FAILURE
-                end
-            else
-                self.error_kill_start_time = nil  -- 不需要小退时重置计时器
-                env.poe2_api.infos_time(current_time, self.name)
-                return bret.SUCCESS
-            end
+        run = function(node, env)
+            print("执行小撤退...")
+            return bret.SUCCESS
         end
     },
 
     -- 返回城镇
     ReturnToTown = {
-        name = "返回城镇",
-        timeout = 20,  -- 超时时间（秒）
-        current_time = nil,  -- 行为开始时间
-        
-        reset_states = function(self, env)
-            -- 统一状态重置方法
-            local current_time = os.time()
-            env.last_exception_time_move = 0
-            env.last_exp_check_move = current_time
-            env.last_exp_value_move = env.player_info.currentExperience
-            -- logger.debug("已重置所有经验监控状态")
-        end,
-        
-        spcify_monsters = function(self, range_info)
-            if range_info then
-                for _, monster in ipairs(range_info) do
-                    if monster.name_utf8 == '巨蛇女王．瑪娜莎' and monster.life > 0 then
-                        return true
-                    end
-                end
-            end
-            return false
-        end,
-        
-        run = function(self, env)
-            local current_time = os.time()
-            local player_info = env.player_info
-            local range_info = env.range_info
-            local find_path_failure = env.find_path_failure or 0
-            
-            -- 初始化时间
-            if not self.current_time then
-                self.current_time = current_time
-            end
-            
-            -- 检查是否超时
-            if (current_time - self.current_time) > self.timeout then
-                env.need_ReturnToTown = false
-                env.need_SmallRetreat = true
-                env.poe2_api.infos_time(current_time, self.name)
-                return bret.FAILURE
-            end
-            
-            if my_game_info.hideout[player_info.current_map_name_utf8] then
-                env.need_ReturnToTown = false
-                env.find_path_failure = 0
-            end
-            
-            if env.need_ReturnToTown or find_path_failure > 10 then
-                env.path_list = nil
-                if find_path_failure > 10 then
-                    env.is_map_complete = true
-                end
-                
-                local success, status = pcall(function()
-                    if env.poe2_api.find_text("你無法在遊戲暫停時使用該道具。", nil, 0, 0) then
-                        env.poe2_api.click_keyboard("space")
-                        sleep(0.5)
-                        if not env.poe2_api.find_text("/clear", 0) then
-                            env.poe2_api.click_keyboard("enter")
-                            sleep(0.5)
-                            env.poe2_api.paste_text("/clear")
-                            sleep(0.5)
-                            env.poe2_api.click_keyboard("enter")
-                            sleep(1)
-                            env.poe2_api.infos_time(current_time, self.name)
-                            return bret.RUNNING
-                        end
-                    end
-                    
-                    if env.poe2_api.find_text("恩賜之物", nil, 0, 0) then
-                        env.poe2_api.find_text("恩賜之物", nil, 0, 0, 2, 272)
-                        env.poe2_api.infos_time(current_time, self.name)
-                        return bret.RUNNING
-                    end
-                    
-                    if player_info.isInBossBattle then
-                        env.need_ReturnToTown = false
-                        env.need_SmallRetreat = true
-                        env.poe2_api.infos_time(current_time, self.name)
-                        return bret.RUNNING
-                    end
-                    
-                    if env.poe2_api.is_have_mos(range_info, player_info) or self:spcify_monsters(range_info) then
-                        env.poe2_api.infos_time(current_time, self.name)
-                        return bret.SUCCESS
-                    end
-                    
-                    if not string.find(player_info.current_map_name_utf8, "town") and not my_game_info.hideout[player_info.current_map_name_utf8] then
-                        if env.poe2_api.find_text("傳送", 0, 700, 40, 830) then
-                            env.poe2_api.click_keyboard("space")
-                            env.poe2_api.infos_time(current_time, self.name)
-                            return bret.RUNNING
-                        end
-                        
-                        for _, k in ipairs(range_info) do
-                            if k.name_utf8 ~= '' and k.type == 5 and my_game_info.hideout_CH[k.name_utf8] then
-                                if env.poe2_api.point_distance(k.grid_x, k.grid_y, player_info) < 25 then
-                                    if not env.poe2_api.find_text(k.name_utf8, nil, 0, 0, 2) then
-                                        env.poe2_api.af_api.api_click_move(k.grid_x, k.grid_y, k.world_z-100, 1)
-                                    end
-                                    env.poe2_api.infos_time(current_time, self.name)
-                                    return bret.RUNNING
-                                end
-                            end
-                        end
-                        
-                        -- 点击传送
-                        env.poe2_api.af_api.api_click_move(player_info.grid_x, player_info.grid_y, player_info.world_z, 3)
-                        sleep(0.5)
-                        env.poe2_api.natural_move(1230, 815, 25, 25)
-                        sleep(0.2)
-                        env.poe2_api.af_api.api_LeftClick()
-                        sleep(1)
-                        env.poe2_api.infos_time(current_time, self.name)
-                        return bret.RUNNING
-                    else
-                        local x, y = env.poe2_api.af_api.api_FindRandomWalkablePosition(player_info.grid_x, player_info.grid_y, 50)
-                        if x and y then
-                            env.poe2_api.af_api.api_click_move(x, y, player_info.world_z - 70, 2)
-                        end
-                        
-                        -- 仅在完全回城后重置状态
-                        if string.find(player_info.current_map_name_utf8, "town") or my_game_info.hideout[player_info.current_map_name_utf8] then
-                            env.last_exp_check = os.time()
-                            env.last_exception_time = 0
-                            env.need_ReturnToTown = false
-                            self:reset_states(env)
-                            env.poe2_api.infos_time(current_time, self.name)
-                            return bret.SUCCESS
-                        end
-                        
-                        env.poe2_api.infos_time(current_time, self.name)
-                        return bret.RUNNING
-                    end
-                end)
-                
-                if not success then
-                    env.poe2_api.infos_time(current_time, self.name)
-                    return bret.RUNNING
-                else
-                    return status
-                end
-            else
-                env.poe2_api.infos_time(current_time, self.name)
-                return bret.SUCCESS
-            end
+        run = function(node, env)
+            print("返回城镇...")
+            return bret.SUCCESS
         end
     },
 
     -- 检查长时间经验加成
     Check_LongTime_EXP_Add = {
-        name = "检查长时间经验加成",
-        last_check = 0,  -- 节流控制变量
-        last_alt_press_time = 0,
-        movement_threshold = 15,  -- 移动阈值（像素）
-        
-        reset_states_exp = function(self, env)
-            -- 统一状态重置方法
-            local current_time = os.time()
-            local current = env.player_info
-            env.last_exception_time = 0
-            env.last_exp_check = current_time
-            env.last_exp_value = env.player_info.currentExperience
-            env.last_position = {current.grid_x, current.grid_y}
-            -- logger.debug("已重置所有经验监控状态")
-        end,
-        
-        reset_states_move = function(self, env)
-            -- 统一状态重置方法
-            local current_time = os.time()
-            local current = env.player_info
-            env.last_exception_time_move = 0
-            env.last_exp_check_move = current_time
-            env.last_exp_value_move = env.player_info.currentExperience
-            env.last_position = {current.grid_x, current.grid_y}
-            -- logger.debug("已重置所有经验监控状态")
-        end,
-        
-        _check_stagnant_movement = function(self, env)
-            -- 检查是否处于停滞移动状态
-            local current = env.player_info
-            local last_pos = env.last_position or {0, 0}
-            local distance = env.poe2_api.point_distance(last_pos[1], last_pos[2], current)
-            -- 更新位置记录
-            env.last_position = {current.grid_x, current.grid_y}
-            return distance < self.movement_threshold
-        end,
-        
-        _check_feature_enabled = function(self, config)
-            -- 检查至少有一个異常處理功能启用
-            -- 经验相关功能
-            local exp_town_enabled = config["全局設置"]["異常處理"]["沒有經驗回城"]["是否開啟"] or false
-            local exp_retreat_enabled = config["全局設置"]["異常處理"]["沒有經驗小退"]["是否開啟"] or false
-            
-            -- 移动相关功能
-            local move_town_enabled = config["全局設置"]["異常處理"]["不動回城"]["是否開啟"] or false
-            local move_retreat_enabled = config["全局設置"]["異常處理"]["不動小退"]["是否開啟"] or false
-            
-            -- 任一功能启用即为true
-            return exp_town_enabled or exp_retreat_enabled or move_town_enabled or move_retreat_enabled
-        end,
-        
-        get_range = function(self, range_info, player_info)
-            if range_info then
-                local range = env.poe2_api.get_sorted_list1(range_info)
-                for _, i in ipairs(range) do
-                    if i.name_utf8 and 
-                    (i.name_utf8 == "甕" or i.name_utf8 == "壺" or i.name_utf8 == "屍體" or 
-                        i.name_utf8 == "巢穴" or i.name_utf8 == "籃子" or i.name_utf8 == "小雕像" or
-                        i.name_utf8 == "石塊" or i.name_utf8 == "鬆動碎石" or i.name_utf8 == "瓶子" or
-                        i.name_utf8 == "盒子" or i.name_utf8 == "腐爛木材" or i.name_utf8 == "保險箱") and
-                    i.isActive and i.is_selectable and 
-                    env.poe2_api.point_distance(i.grid_x, i.grid_y, player_info) <= 20 and
-                    i.grid_x and i.grid_y then
-                        return i
-                    end
-                end
-            end
-            return false
-        end,
-        
-        run = function(self, env)
-            local current_time = os.time()
-            local take_rest = env.take_rest or false
-            local buy_items = env.buy_items or false
-            
-            -- 节流控制
-            if current_time - self.last_check < 0.5 then
-                env.poe2_api.infos_time(current_time, self.name)
-                return bret.SUCCESS
-            end
-            self.last_check = current_time
-            
-            local player = env.player_info
-            if not player then
-                env.poe2_api.infos_time(current_time, self.name)
-                return bret.SUCCESS
-            end
-            
-            local config = env.user_config or {}
-            if take_rest then
-                -- logger.info("正在休息，跳过异常处理")
-                return bret.SUCCESS
-            end
-            
-            -- 检查移动状态
-            local is_moving = self:_check_stagnant_movement(env)
-            
-            -- 获取配置
-            local no_exp_to_town = config["全局設置"]["異常處理"]["沒有經驗回城"]["是否開啟"] or false
-            local no_exp_to_town_time = (config["全局設置"]["異常處理"]["沒有經驗回城"]["閾值"] or 0) * 60
-            local no_exp_to_change = config["全局設置"]["異常處理"]["沒有經驗小退"]["是否開啟"] or false
-            local no_exp_to_change_time = (config["全局設置"]["異常處理"]["沒有經驗小退"]["閾值"] or 0) * 60
-            
-            local no_move_to_town = config["全局設置"]["異常處理"]["不動回城"]["是否開啟"] or false
-            local no_move_to_town_time = (config["全局設置"]["異常處理"]["不動回城"]["閾值"] or 0) * 60
-            local no_move_to_change = config["全局設置"]["異常處理"]["不動小退"]["是否開啟"] or false
-            local no_move_to_change_time = (config["全局設置"]["異常處理"]["不動小退"]["閾值"] or 0) * 60
-            
-            -- 经验增长时重置状态
-            if player.currentExperience ~= env.last_exp_value then
-                self:reset_states_exp(env)
-            end
-            
-            if not is_moving then
-                self:reset_states_move(env)
-            end
-            
-            -- 计算真实停滞时间
-            local real_stagnation_time = current_time - (env.last_exp_check or 0)
-            local real_stagnation_time_move = current_time - (env.last_exp_check_move or 0)
-            
-            -- 定期按alt键
-            if current_time - self.last_alt_press_time >= 20 then
-                env.poe2_api.click_keyboard("alt")
-                env.poe2_api.af_api.api_KeyUp("alt")
-                env.poe2_api.af_api.api_KeyUp("alt")
-                sleep(0.1)
-                self.last_alt_press_time = current_time
-            end
-            
-            local map_strenght = env.strengthened_map_obj
-            local space_time = 8
-            local return_town = env.return_town or false
-            
-            if my_game_info.hideout[player.current_map_name_utf8] then
-                if env.poe2_api.find_text("世界地圖", nil, 0) then
-                    return bret.SUCCESS
-                end
-                space_time = 60
-            elseif map_strenght then
-                space_time = 120
-            elseif return_town then
-                space_time = 15
-            elseif buy_items then
-                space_time = 30
-            end
-            
-            -- 移动检查
-            if is_moving and real_stagnation_time_move then
-                env.poe2_api.api_print(string.format("未移动时间：%.2f秒", real_stagnation_time_move))
-                if real_stagnation_time_move > 6 then
-                    env.mouse_check = true
-                else
-                    env.mouse_check = false
-                end
-            end
-            
-            -- 处理长时间未移动
-            if is_moving and real_stagnation_time_move > space_time then
-                if not env.need_SmallRetreat and not env.need_ReturnToTown and not take_rest then
-                    env.end_point = nil
-                    env.target_point = nil
-                    env.path_list = nil
-                    env.is_arrive_end = true
-                    
-                    if env.poe2_api.find_text("繼續遊戲", nil, 0, 0, 2) then
-                        env.poe2_api.infos_time(current_time, self.name)
-                        return bret.SUCCESS
-                    end
-                    
-                    if env.poe2_api.find_text("恩賜之物", nil, 0, 0) then
-                        env.poe2_api.click_position(1570, 57)
-                        env.poe2_api.infos_time(current_time, self.name)
-                        return bret.SUCCESS
-                    end
-                    
-                    local player_info = env.poe2_api.af_api.api_GetLocalPlayer()
-                    local range_info = env.poe2_api.af_api.api_getRangeActors()
-                    env.poe2_api.click_keyboard('space')
-                    
-                    if range_info and player_info then
-                        local target = self:get_range(range_info, player_info)
-                        if target then
-                            env.poe2_api.af_api.api_click_move(target.grid_x, target.grid_y, player_info.world_z, 1)
-                            sleep(0.1)
-                            env.poe2_api.find_text(target.name_utf8, nil, 0, 0, 2)
-                            sleep(0.3)
-                        end
-                        
-                        local x, y = env.poe2_api.af_api.api_FindRandomWalkablePosition(player_info.grid_x, player_info.grid_y, 50)
-                        if x and y then
-                            env.poe2_api.af_api.api_click_move(x, y, player_info.world_z - 70, 2)
-                            sleep(0.3)
-                            env.poe2_api.click_keyboard('space')
-                            sleep(0.1)
-                        end
-                    end
-                    
-                    if my_game_info.hideout[player.current_map_name_utf8] then
-                        local x, y = env.poe2_api.af_api.api_FindRandomWalkablePosition(player_info.grid_x, player_info.grid_y, 50)
-                        if x and y then
-                            env.poe2_api.af_api.api_click_move(x, y, player_info.world_z - 70, 2)
-                            sleep(0.5)
-                            env.poe2_api.click_keyboard('space')
-                            sleep(0.5)
-                            env.poe2_api.click_keyboard('space')
-                        end
-                    end
-                end
-            end
-            
-            -- 功能未启用时直接返回
-            if not self:_check_feature_enabled(config) then
-                env.poe2_api.infos_time(current_time, self.name)
-                return bret.SUCCESS
-            end
-            
-            -- 初始化首次检查
-            if env.last_exp_check == 0 then
-                env.last_exp_value = player.currentExperience
-                env.last_exp_check = current_time
-                env.poe2_api.infos_time(current_time, self.name)
-                return bret.SUCCESS
-            end
-            
-            -- 检查触发条件
-            local trigger_town = no_exp_to_town and real_stagnation_time >= no_exp_to_town_time
-            local trigger_retreat = no_exp_to_change and real_stagnation_time >= no_exp_to_change_time
-            local trigger_town_move = no_move_to_town and real_stagnation_time_move >= no_move_to_town_time
-            local trigger_retreat_move = no_move_to_change and real_stagnation_time_move >= no_move_to_change_time
-            
-            -- 处理触发事件
-            if trigger_town or trigger_retreat or trigger_town_move or trigger_retreat_move then
-                if real_stagnation_time > no_exp_to_change_time then
-                    env.is_map_complete = true
-                    env.need_SmallRetreat = true
-                    env.poe2_api.infos_time(current_time, self.name)
-                    return bret.SUCCESS
-                end
-                
-                if (trigger_town and no_exp_to_town) or (trigger_town_move and no_move_to_town) then
-                    env.is_map_complete = true
-                    if not my_game_info.hideout[player.current_map_name_utf8] then
-                        env.need_ReturnToTown = true
-                    end
-                    env.poe2_api.infos_time(current_time, self.name)
-                    return bret.SUCCESS
-                elseif (trigger_retreat and no_exp_to_change) or (trigger_retreat_move and no_move_to_change) then
-                    env.is_map_complete = true
-                    env.need_SmallRetreat = true
-                    env.poe2_api.infos_time(current_time, self.name)
-                    return bret.SUCCESS
-                end
-            end
-            
-            env.poe2_api.infos_time(current_time, self.name)
+        run = function(node, env)
+            print("检查长时间经验加成...")
             return bret.SUCCESS
         end
     },
@@ -809,215 +241,16 @@ local custom_nodes = {
 
     -- 设置基础技能
     Set_Base_Skill = {
-        name = "设置基础技能",
-        bool = false,
-        
-        skill_location = function(self, env, skill_name, skill_pos, selectable_skills)
-            if not selectable_skills then
-                return false
-            end
-            -- 获取指定位置
-            local point = my_game_info.skill_pos[skill_pos]
-            
-            -- 将所有 text_utf8 属性的值存储在一个集合中
-            local skill_names = {}
-            for _, skill_control in ipairs(selectable_skills) do
-                if skill_control.text_utf8 then
-                    skill_names[skill_control.text_utf8] = true
-                end
-            end
-            
-            -- 检查 skill_name 是否在集合中
-            if not skill_names[skill_name] then
-                return false
-            end
-            
-            -- 遍历所有可选择的技能控件
-            for _, skill_control in ipairs(selectable_skills) do
-                if skill_name == skill_control.text_utf8 then
-                    -- 计算中间位置
-                    local center_x = (skill_control.left + skill_control.right) / 2
-                    local center_y = (skill_control.top + skill_control.bottom) / 2
-                    
-                    -- 检查位置是否在指定范围内
-                    if point[1] - 5 < center_x and center_x < point[1] + 5 and 
-                    point[2] - 5 < center_y and center_y < point[2] + 5 then
-                        return true
-                    end
-                end
-            end
-            
-            return false
-        end,
-        
-        get_move_skill = function(self, env, selectable_skills)
-            if not self:skill_location(env, "", "MIDDLE", selectable_skills) then
-                return false
-            end
-            return true
-        end,
-        
-        set_pos = function(self, env, skill_name, rom_x, rom_y, selectable_skills)
-            if not selectable_skills then
-                return false
-            end
-            for _, k in ipairs(selectable_skills) do
-                if 1104 <= k.left and k.left <= 1597 and k.bottom <= 770 and skill_name == k.text_utf8 then
-                    local center_x = (k.left + k.right) / 2 + rom_x
-                    local center_y = (k.top + k.bottom) / 2 + rom_y
-                    env.poe2_api.natural_move(math.floor(center_x), math.floor(center_y))
-                    env.poe2_api.af_api.api_LeftClick()
-                    sleep(0.5)
-                    return true
-                end
-            end
-            return false
-        end,
-        
-        cancel_left_skill = function(self, env, selectable_skills)
-            if not selectable_skills then
-                return false
-            end
-            for _, k in ipairs(selectable_skills) do
-                if 1277 <= k.left and k.left <= 1280 and k.top > 793 and k.bottom <= 831 and k.right < 1315 then
-                    return true
-                end
-            end
-            return false
-        end,
-        
-        run = function(self, env)
-            local start_time = os.time()
-            local mouse_check = env.mouse_check or false
-            
-            if not mouse_check then
-                return bret.SUCCESS
-            end
-            
-            if not (env.poe2_api.click_text_UI("life_orb", nil) or env.poe2_api.click_text_UI("resume_game", nil) or env.poe2_api.find_text("清單", nil, 0, 0, 400)) then
-                return bret.RUNNING
-            end
-            
-            local selectable_skills = api_GetSelectableSkillControls()
-            local allskill_info = api_GetAllSkill()
-            local skill_slots = api_GetSkillSlots()
-            
-            if not selectable_skills then
-                env.poe2_api.api_print("获取可选技能技能控件信息失败")
-                return bret.RUNNING
-            end
-            if not allskill_info then
-                env.poe2_api.api_print("获取全部技能信息失败")
-                return bret.RUNNING
-            end
-            if not skill_slots then
-                env.poe2_api.api_print("获取快捷栏技能信息失败")
-                return bret.RUNNING
-            end
-            
-            local bool = self:cancel_left_skill(env, selectable_skills)
-            local bool1 = self:get_move_skill(env, selectable_skills)
-            
-            if not bool1 then
-                if env.poe2_api.find_text("繼續遊戲", nil, 0, 0, 2) then
-                    env.poe2_api.infos_time(start_time, self.name)
-                    return bret.RUNNING
-                end
-                if not self:set_pos(env, "", 0, 0, selectable_skills) then
-                    local point = my_game_info.skill_pos["MIDDLE"]
-                    env.poe2_api.natural_move(math.floor(point[1]), math.floor(point[2]))
-                    env.poe2_api.af_api.api_LeftClick()
-                    sleep(0.5)
-                end
-                return bret.RUNNING
-            end
-            
-            if bool then
-                if env.poe2_api.find_text("繼續遊戲", nil, 0, 0, 2) then
-                    env.poe2_api.infos_time(start_time, self.name)
-                    return bret.RUNNING
-                end
-                if not self:set_pos(env, '', 50, 0, selectable_skills) then
-                    local point = my_game_info.skill_pos["P"]
-                    env.poe2_api.natural_move(math.floor(point[1]), math.floor(point[2]))
-                    env.poe2_api.af_api.api_LeftClick()
-                    sleep(0.5)
-                end
-                return bret.RUNNING
-            end
-            
+        run = function(node, env)
+            print("设置基础技能...")
             return bret.SUCCESS
         end
     },
 
     -- 使用任务道具
     Use_Task_Props = {
-        name = "使用任務道具",
-        
-        is_props = function(self, bag)
-            for _, item in ipairs(bag) do
-                if item.baseType_utf8 and string.find(item.baseType_utf8, "知識之書") and item.category == "QuestItem" then
-                    return item
-                end
-            end
-            
-            for _, item in ipairs(bag) do
-                if item.baseType_utf8 and string.find(item.baseType_utf8, "知識之結晶核心") and item.category == "QuestItem" then
-                    return item
-                end
-            end
-            
-            return false
-        end,
-        
-        run = function(self, env)
-            local current_time = os.time()
-            local bag = env.bag_info or {}
-            local player_info = env.player_info
-            local current_map_info_copy = env.current_map_info_copy or {}
-            
-            if not player_info then
-                env.poe2_api.infos_time(current_time, self.name)
-                return bret.RUNNING
-            end
-            
-            -- Find MapDevice in current map
-            local map_device = nil
-            for _, item in ipairs(current_map_info_copy) do
-                if item.name_utf8 == "MapDevice" then
-                    map_device = item
-                    break
-                end
-            end
-            
-            -- Check if in town or hideout with MapDevice
-            if not string.find(player_info.current_map_name_utf8, "town") and 
-            (not my_game_info.hideout[player_info.current_map_name_utf8] or not map_device) then
-                env.poe2_api.infos_time(current_time, self.name)
-                return bret.SUCCESS
-            end
-            
-            -- Check for quest items
-            local props = self:is_props(bag)
-            if props then
-                -- Open inventory if not visible
-                if not env.poe2_api.find_text(nil, "背包", 1000, 32, 1600, 81) then
-                    env.poe2_api.click_keyboard("i")
-                    sleep(1)
-                    env.poe2_api.infos_time(current_time, self.name)
-                    return bret.RUNNING
-                end
-                
-                -- Calculate center position and right click
-                local point = env.poe2_api.get_center_position(
-                    {props.start_x, props.start_y},
-                    {props.end_x, props.end_y}
-                )
-                env.poe2_api.right_click(point[1], point[2])
-                env.poe2_api.infos_time(current_time, self.name)
-                return bret.RUNNING
-            end
-            
+        run = function(node, env)
+            print("使用任务道具...")
             return bret.SUCCESS
         end
     },
@@ -1174,268 +407,11 @@ local custom_nodes = {
         end
     },
 
-    -- 城外鉴定
+    -- 鉴定指定装备
     Identify_designated_equipment = {
-        name = "城外鉴定",
-        
-        convert_key = function(self, key)
-            -- 根据输入的中文或英文关键字返回对应的翻译
-            return my_game_info.type_conversion[key] or 
-                (function()
-                    for k, v in pairs(my_game_info.type_conversion) do
-                        if v == key then return k end
-                    end
-                    return nil
-                end)()
-        end,
-        
-        convert_config_type = function(self, config_type_dict)
-            -- 将配置字典中的中文类型键转换为对应的英文类型键
-            if not config_type_dict then return {} end
-            
-            local converted_dict = {}
-            for chinese_type, info_list in pairs(config_type_dict) do
-                local english_type = my_game_info.type_conversion[chinese_type]
-                if english_type then
-                    -- 处理内嵌'類型'字段
-                    if type(info_list) == "table" and info_list['類型'] then
-                        if type(info_list['類型']) == "table" then
-                            -- 处理数组中的每个元素
-                            local converted_types = {}
-                            for _, t in ipairs(info_list['類型']) do
-                                table.insert(converted_types, my_game_info.type_conversion[t] or t)
-                            end
-                            info_list['類型'] = converted_types
-                        else
-                            -- 处理单个值
-                            info_list['類型'] = {my_game_info.type_conversion[info_list['類型']] or info_list['類型']}
-                        end
-                    end
-                    converted_dict[english_type] = info_list
-                else
-                    poe2_api.api_print("警告: 未找到类型 '"..chinese_type.."' 的英文转换")
-                end
-            end
-            return converted_dict
-        end,
-        
-        get_matched_config = function(self, bag, config_type)
-            -- 智能获取匹配的配置
-            for _, item_config in pairs(config_type) do
-                for _, item in ipairs(item_config) do
-                    if type(item) == "table" then
-                        local item_type = item['類型']
-                        
-                        -- 处理类型匹配
-                        if type(item_type) == "table" and #item_type > 0 then
-                            if item_type[1] ~= self:convert_key(bag.category) then
-                                goto continue
-                            end
-                        elseif type(item_type) == "string" then
-                            if item_type ~= self:convert_key(bag.category) then
-                                goto continue
-                            end
-                        end
-                        
-                        -- 检查基础类型名
-                        if bag.baseType_utf8 ~= item['基礎類型名'] and item['基礎類型名'] ~= '全部物品' then
-                            goto continue
-                        end
-                        
-                        -- 检查颜色条件
-                        if item['白裝'] and bag.color == 0 then
-                            goto continue
-                        end
-                        if not ((item['藍裝'] and bag.color == 1) or
-                            (item['黃裝'] and bag.color == 2) or
-                            (item['暗金'] and bag.color == 3)) then
-                            goto continue
-                        end
-                        
-                        -- 检查名称匹配
-                        if item['名稱'] then
-                            if item['名稱'] == bag.name_utf8 then
-                                return item
-                            end
-                        else
-                            -- 检查词缀
-                            if item['物品詞綴'] then
-                                local affix_dict = item['物品詞綴']
-                                if type(affix_dict) == "table" then
-                                    for _, v in pairs(affix_dict) do
-                                        if type(v) == "table" and v['詞綴'] then
-                                            return item
-                                        end
-                                    end
-                                end
-                            end
-                        end
-                        
-                        -- 基础类型名匹配
-                        if item['基礎類型名'] == bag.baseType_utf8 or item['基礎類型名'] == '全部物品' then
-                            return item
-                        end
-                    end
-                    ::continue::
-                end
-            end
-            return nil
-        end,
-        
-        need_appraisal = function(self, bag_info, config_name, config_type)
-            if not bag_info then return false end
-            
-            local items_to_identify = {}
-            
-            for _, bag in ipairs(bag_info) do
-                -- 基础条件：未鉴定、未污染、不在排除列表
-                if not (bag.not_identified and 
-                    not my_game_info.not_need_identify[bag.category]) then
-                    goto continue
-                end
-                
-                -- 特殊类别直接加入鉴定列表
-                if bag.category == "Map" or bag.category == "TowerAugmentation" then
-                    table.insert(items_to_identify, bag)
-                    goto continue
-                end
-                
-                -- 获取匹配的配置
-                local matched_config = self:get_matched_config(bag, config_type)
-                
-                -- 检查物品詞綴配置
-                if matched_config and matched_config['物品詞綴'] then
-                    local affix_dict = matched_config['物品詞綴']
-                    if type(affix_dict) == "table" then
-                        for _, value in pairs(affix_dict) do
-                            if type(value) == "table" and value['詞綴'] then
-                                table.insert(items_to_identify, bag)
-                                goto continue
-                            end
-                        end
-                    end
-                end
-                
-                ::continue::
-            end
-            
-            if #items_to_identify > 0 then
-                return items_to_identify
-            end
-            return false
-        end,
-        
-        use_items = function(self, bag_info, click)
-            if not bag_info then return false end
-            
-            for _, actor in ipairs(bag_info) do
-                if actor.baseType_utf8 == "知識卷軸" then
-                    if click == 1 then
-                        -- 计算中心坐标
-                        local start_cell = {actor.start_x, actor.start_y}
-                        local end_cell = {actor.end_x, actor.end_y}
-                        local center_position = poe2_api.get_center_position(start_cell, end_cell)
-                        
-                        if not poe2_api.find_text(nil, "背包", 1000, 32, 1600, 81) then
-                            poe2_api.click_keyboard("i")
-                            sleep(500)
-                        end
-                        
-                        poe2_api.natural_move(center_position[1], center_position[2])
-                        sleep(500)
-                        poe2_api.af_api.api_RightClick()
-                        sleep(500)
-                    end
-                    return true
-                end
-            end
-            return false
-        end,
-        
-        run = function(self, env)
-            local current_time = os.time()
-            
-            local bag_info = env.bag_info
-            local range_info = env.range_info
-            local player_info = env.player_info
-            local attack_dis_map = env.map_level_dis
-            local stuck_monsters = env.stuck_monsters
-            local not_attack_mos = env.not_attack_mos
-            local config = env.user_config or {}
-            
-            local config_name = config['物品過濾索引']['按名称'] or {}
-            local config_type = config['物品過濾索引']['按类型'] or {}
-            
-            -- 转换配置类型
-            config_type = self:convert_config_type(config_type)
-            
-            if poe2_api.find_text(nil, "繼續遊戲", 0, 0, 2) then
-                poe2_api.infos_time(current_time, self.name)
-                return bret.RUNNING
-            end
-            
-            -- 判断是否需要鉴定
-            local items_to_identify = self:need_appraisal(bag_info, config_name, config_type)
-            if not items_to_identify then
-                poe2_api.infos_time(current_time, self.name)
-                return bret.SUCCESS
-            end
-            
-            if player_info.isInDangerArea then
-                poe2_api.infos_time(current_time, self.name)
-                return bret.SUCCESS
-            end
-            
-            if poe2_api.is_have_mos(range_info, player_info, attack_dis_map, stuck_monsters, not_attack_mos) then
-                poe2_api.infos_time(current_time, self.name)
-                return bret.SUCCESS
-            end
-            
-            -- 使用鉴定卷轴
-            if not self:use_items(bag_info) or 
-            (poe2_api.is_have_mos(range_info, player_info) and 
-                (my_game_info.hideout_CH[player_info.current_map_name_utf8] or 
-                string.find(player_info.current_map_name_utf8, "town"))) then
-                poe2_api.infos_time(current_time, self.name)
-                return bret.SUCCESS
-            end
-            
-            -- 获取背包信息并鉴定物品
-            bag_info = poe2_api.af_api.api_Getinventorys(1)
-            if bag_info then
-                items_to_identify = self:need_appraisal(bag_info, config_name, config_type)
-                if not items_to_identify then
-                    poe2_api.infos_time(current_time, self.name)
-                    return bret.SUCCESS
-                end
-                
-                if self:use_items(bag_info, 1) then
-                    for _, items in ipairs(bag_info) do
-                        for _, k in ipairs(items_to_identify) do
-                            if items.obj == k.obj then
-                                if not poe2_api.find_text(nil, "背包", 1000, 32, 1600, 81) then
-                                    poe2_api.click_keyboard("i")
-                                    sleep(500)
-                                end
-                                
-                                local start_cell = {items.start_x, items.start_y}
-                                local end_cell = {items.end_x, items.end_y}
-                                local center_position = poe2_api.get_center_position(start_cell, end_cell)
-                                
-                                poe2_api.natural_move(center_position[1], center_position[2])
-                                sleep(200)
-                                poe2_api.af_api.api_LeftClick()
-                                sleep(200)
-                                poe2_api.infos_time(current_time, self.name)
-                                return bret.RUNNING
-                            end
-                        end
-                    end
-                end
-            else
-                poe2_api.infos_time(current_time, self.name)
-                return bret.SUCCESS
-            end
+        run = function(node, env)
+            print("鉴定指定装备...")
+            return bret.SUCCESS
         end
     },
 
@@ -1544,6 +520,14 @@ local custom_nodes = {
                     return bret.RUNNING
                 end
             end
+            return bret.SUCCESS
+        end
+    },
+
+    -- 检查是否需要攻击
+    Check_Is_Need_Attack = {
+        run = function(node, env)
+            print("检查是否需要攻击...")
             return bret.SUCCESS
         end
     },
@@ -2075,52 +1059,39 @@ local custom_nodes = {
     Is_Arrive = {
         run = function(node, env)
             print("检查是否到达目标点(Is_Arrive)...")
-            local current_time = os.time()
-
-            local is_arrive_end_dis = 15 -- 默认值
-            print("1111111111111111111111")
-            print("player_info:"..player_info)
-            print("1111111111111111111111")
             local player_info = env.player_info
-            print("player_info:"..player_info)
-            if player_info.life ~= 0 then
+            local is_arrive_end_dis = 15 -- 默认值
+
+            if player_info.life == 0 then
                 env.end_point = nil
                 env.run_point = nil
                 env.is_arrive_end = false
                 env.target_point = {}
-                -- return bret.FAIL
-                print("正在前往目标点...111222")
-                return bret.RUNNING
+                return bret.FAIL
+                -- print("正在前往目标点...111222")
+                -- return bret.RUNNING
             end
             
             -- 检查空路径
             if env.empty_path then
                 env.is_arrive_end = true
                 env.empty_path = false
-                -- return bret.SUCCESS
-                print("正在前往目标点...111111")
-                return bret.RUNNING
+                return bret.SUCCESS
+                -- print("正在前往目标点...111111")
+                -- return bret.RUNNING
             end
-            print("333333333333333333")
+            
             -- 检查是否到达终点
             local point = env.end_point
             local path_list = env.path_list
-            if point and
-                env.poe2_api.point_distance(point[1], point[2], player_info) <
-                is_arrive_end_dis and
-                env.poe2_api.af_api.api_HasObstacleBetween(point[1], point[2]) then
+            if point and ( env.poe2_api.point_distance(point[1], point[2], player_info) < is_arrive_end_dis ) then
                 env.is_arrive_end = true
                 env.end_point = nil
                 env.run_point = nil
-                blackboard.current_time = nil
-                -- return bret.FAIL
-                print("正在前往目标点...222222")
-                return bret.RUNNING
+                return bret.FAIL
             else
                 env.is_arrive_end = false
-                -- return bret.SUCCESS
-                print("正在前往目标点...33333")
-                return bret.RUNNING
+                return bret.SUCCESS
             end
         end
     },
@@ -2132,25 +1103,25 @@ local custom_nodes = {
             self.failure_count = 0 -- 路径计算失败计数器
         end,
 
-        run = function(self, node, env)
+        run = function(node, env)
             print("获取路径...")
-            local current_time = os.time()
             local player_info = env.player_info
             local range_info = env.range_info
+            
 
             -- 辅助函数：检测祭坛
-            local function get_altar(range_info)
-                for _, entity in ipairs(range_info) do
-                    if entity.path_name_utf8 ==
-                        "Metadata/Terrain/Leagues/Ritual/RitualRuneInteractable" and
-                        entity.stateMachineList.current_state == 2 and
-                        entity.stateMachineList.interaction_enabled == 0 then
-                        return entity
-                    end
-                end
-                return nil
-            end
-
+            -- local function get_altar(range_info)
+            --     for _, entity in ipairs(range_info) do
+            --         if entity.path_name_utf8 ==
+            --             "Metadata/Terrain/Leagues/Ritual/RitualRuneInteractable" and
+            --             entity.stateMachineList.current_state == 2 and
+            --             entity.stateMachineList.interaction_enabled == 0 then
+            --             return entity
+            --         end
+            --     end
+            --     return nil
+            -- end
+            
             -- 检查终点是否存在
             local point = env.end_point
             if not point then
@@ -2159,10 +1130,11 @@ local custom_nodes = {
             end
 
             -- 寻找最近可达点
-            point = {
-                env.poe2_api.af_api.FindNearestReachablePoint(point[1],
-                                                              point[2], 50, 0)
-            }
+            print("坐标：" .. point[1] .. "," .. point[2])
+            print("人物坐标" .. player_info.grid_x .. "," .. player_info.grid_y)
+            -- point = api_FindRandomWalkablePosition(player_info.grid_x,player_info.grid_y, 50)
+            -- point = api_FindNearestReachablePoint(player_info.grid_x,player_info.grid_y, 50, 0)
+            -- print("api_FindNearestReachablePoint:" .. point.x .. "," .. point.y)
 
             -- 如果已有路径，使用下一个路径点
             local path_list = env.path_list
@@ -2173,39 +1145,41 @@ local custom_nodes = {
             end
 
             -- 计算新路径
-            local start_x, start_y = env.poe2_api.af_api
-                                         .FindNearestReachablePoint(
-                                         player_info.grid_x, player_info.grid_y,
-                                         50, 0)
+            -- local start_x, start_y = env.poe2_api.af_api.FindNearestReachablePoint(player_info.grid_x, player_info.grid_y,50, 0)
 
-            local result = env.poe2_api.af_api.api_findPath(start_x, start_y,
-                                                            point[1], point[2])
+            -- local result = api_FindPath(start_x, start_y,point[1], point[2])
 
+            -- print("人物坐标" .. player_info.grid_x .. "," .. player_info.grid_y)
+            -- api_ClickMove(player_info.grid_x, player_info.grid_y,player_info.world_z,1)
+            -- print("目标坐标" .. point.x .. "," .. point.y)
+            
+
+            local result = api_FindPath(player_info.grid_x, player_info.grid_y, point[1], point[2])
+            
             if result then
                 -- 处理路径结果
                 result = env.poe2_api.extract_coordinates(result, 15)
                 table.remove(result, 1) -- 移除起点
-
+                print("路径点数: " .. #result)
                 env.path_list = result
+
                 env.target_point = {result[1].x, result[1].y}
                 print("[GET_Path] 路径计算成功，点数: " .. #result)
                 return bret.SUCCESS
             else
                 -- 路径计算失败处理
-                local altar = get_altar(range_info)
-                if altar then
-                    if env.poe2_api.point_distance(altar.grid_x, altar.grid_y,
-                                                   player_info) > 110 then
-                        env.poe2_api.af_api.api_RestoreOriginalMap()
-                    end
-                else
-                    env.poe2_api.af_api.api_RestoreOriginalMap()
-                end
+                -- local altar = get_altar(range_info)
+                -- if altar then
+                --     if env.poe2_api.point_distance(altar.grid_x, altar.grid_y,player_info) > 110 then
+                --         env.poe2_api.af_api.api_RestoreOriginalMap()
+                --     end
+                -- else
+                --     env.poe2_api.af_api.api_RestoreOriginalMap()
+                -- end
 
                 self.failure_count = self.failure_count + 1
                 env.find_path_failure = self.failure_count
-                print("[GET_Path] 错误：找不到路径 (失败次数: " ..
-                          self.failure_count .. ")")
+                print("[GET_Path] 错误：找不到路径 (失败次数: " ..self.failure_count .. ")")
                 return bret.FAILURE
             end
         end
@@ -2229,22 +1203,22 @@ local custom_nodes = {
             self.last_point = nil
         end,
 
-        run = function(self, node, env)
+        run = function(node, env)
             print("移动到目标点...")
-            local current_time = os.time()
-
             local point = env.target_point
             if not point then return bret.SUCCESS end
-
             local player_info = env.player_info
             local range_info = env.range_info
             local path_list = env.path_list
-
+            
             -- 检查终点是否变化
             local end_point = env.end_point
+            print("移动到目标点4444444...")
+            print(self.last_point)
             if not self.last_point and end_point then
                 self.last_point = end_point
             end
+            print("55352314...")
 
             if self.last_point and end_point and path_list then
                 local last_path_point = path_list[#path_list]
@@ -2277,10 +1251,7 @@ local custom_nodes = {
                     end
 
                     -- 调用移动API
-                    if not env.poe2_api.af_api.api_click_move(point[1],
-                                                              point[2],
-                                                              player_info.world_z,
-                                                              3) then
+                    if not api_ClickMove(point[1],point[2],player_info.world_z,3) then
                         env.end_point = nil
                         env.run_point = nil
                         env.path_list = nil
@@ -2293,12 +1264,12 @@ local custom_nodes = {
             end
 
             -- 检查特殊点位
-            if env.poe2_api.find_text("Checkpoints") then
-                env.poe2_api.click_keyboard('space')
-                env.poe2_api.click_keyboard('space')
-                table.remove(env.path_list, 1)
-                return bret.RUNNING
-            end
+            -- if env.poe2_api.find_text("Checkpoints") then
+            --     env.poe2_api.click_keyboard('space')
+            --     env.poe2_api.click_keyboard('space')
+            --     table.remove(env.path_list, 1)
+            --     return bret.RUNNING
+            -- end
 
             -- 检查是否到达目标点
             if point then
@@ -2326,12 +1297,13 @@ for k, v in pairs(custom_nodes) do all_nodes[k] = v end
 -- 注册自定义节点
 local behavior_node = require 'behavior3.behavior_node'
 behavior_node.process(all_nodes)
-print(UI_info)
+
 -- 创建行为树环境
 local env_params = {
     poe2_api = require("poe2api"), -- 注入模块
     -- 可以在这里添加需要的环境变量
-    user_config = parser, -- 用户配置
+    user_config = nil, -- 用户配置
+    user_info = nil, -- 用户信息
     user_map = nil, -- 地图
     player_class = nil, -- 職業
     player_spec = nil, -- 专精
@@ -2357,7 +1329,7 @@ local env_params = {
     check_all_points = false, -- 是否检查所有点，初始值为False
     path_list = {}, -- 存储路径列表，初始值为空列表
     empty_path = false, -- 路径是否为空，初始值为False
-    -- boss_name = my_game_info.boss_name,  -- 当前boss名称，初始值为None
+    boss_name = my_game_info.boss_name,  -- 当前boss名称，初始值为None
     map_name = nil, -- 当前地图名称，初始值为None
     interaction_object = nil, -- 交互对象，初始值为None
     item_move = false, -- 物品是否移动，初始值为False
@@ -2380,7 +1352,7 @@ local env_params = {
     no_item_wear = false,
     my_role = nil,
     is_set = false,
-    end_point = nil,
+    end_point = {636,1214},
     teleport_area = nil,
     teleport = nil,
     follow_role = nil,
@@ -2574,12 +1546,11 @@ function otherworld_bt.create(config, my_game_info)
     local env = env_params
     env.user_config = config
     env.user_map = my_game_info
-    local bt = behavior_tree.new("otherworld", env_params)
+    local bt = behavior_tree.new("moveTo", env_params)
     return bt
 end
 
-
-local function sleep(n)
+function sleep(n)
     if n > 0 then
         os.execute("ping -n " .. tonumber(n + 1) .. " localhost > NUL")
     end
@@ -2588,7 +1559,7 @@ end
 -- 运行行为树
 function otherworld_bt.run(bt)
     print("\n=== 游戏Tick开始 ===")
-    local i = 0
+    i = 0
     while true do
         print("\n=== 游戏Tick", i, "===")
         bt.run()
