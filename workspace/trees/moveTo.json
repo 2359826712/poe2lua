@@ -2,19 +2,13 @@
   "name": "moveTo",
   "root": {
     "id": 1,
-    "name": "ReactiveSequence",
-    "desc": "强制刷新的移动控制",
-    "properties": {
-      "force_restart": true
-    },
+    "name": "Sequence",
+    "desc": "Path_Move",
     "children": [
       {
         "id": 2,
         "name": "Get_UI_Info",
-        "desc": "强制刷新的UI信息获取",
-        "properties": {
-          "skip_cache": true
-        }
+        "desc": "获取信息"
       },
       {
         "id": 3,

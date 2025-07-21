@@ -2,5 +2,6 @@
     "Lua.diagnostics.disable": [
         "undefined-global",
         "lowercase-global"
-    ]
+    ],
+    "bitoAI.codeCompletion.enableAutoCompletion": false
 }
