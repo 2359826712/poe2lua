@@ -70,21 +70,22 @@ local custom_nodes = {
             return bret.SUCCESS
         end
     },
+
     -- 获取UI信息
     Get_UI_Info = {
         run = function(node, env)
-            print("获取UI信息...1")
+            print("获取UI信息...")
             -- local player_info = api_GetLocalPlayer()
 
             -- for i = 1, 5 do
             --     print(i)
             --     api_Sleep(1000)
             -- end
-            point = api_HasObstacleBetween(361,588)
-            print(tostring(point))
-            print(point)
-            print(type(point))
-            env.poe2_api.printTable(point)
+            -- point = api_HasObstacleBetween(361,588)
+            -- print(tostring(point))
+            -- print(point)
+            -- print(type(point))
+            -- env.poe2_api.printTable(point)
             -- local UI_info = api_GetUiElements()
             -- bag_info = api_Getinventorys(1,0)
             -- for k,v in pairs(bag_info) do
@@ -111,6 +112,7 @@ local custom_nodes = {
             return bret.SUCCESS
         end
     },
+
     -- 获取信息
     Get_Info = {
         run = function(node, env)
@@ -146,9 +148,6 @@ local custom_nodes = {
             --     return
             -- end
 
-            local player_info = api_GetLocalPlayer()
-            env.player_info = player_info
-
             -- api_GetMinimapActorInfo() - 获取小地图周围对象信息
             local current_map_info_copy = api_GetMinimapActorInfo()
             env.current_map_info_copy = current_map_info_copy
@@ -156,7 +155,6 @@ local custom_nodes = {
             return bret.SUCCESS
         end
     },
-
     -- 清除聊天信息
     Clear = {
         name = "清除聊天信息",
@@ -916,82 +914,77 @@ local custom_nodes = {
     Set_Base_Skill = {
         name = "设置基础技能",
         bool = false,
-        
-        skill_location = function(self, env, skill_name, skill_pos, selectable_skills)
-            if not selectable_skills then
-                return false
-            end
-            -- 获取指定位置
-            local point = my_game_info.skill_pos[skill_pos]
-            
-            -- 将所有 text_utf8 属性的值存储在一个集合中
-            local skill_names = {}
-            for _, skill_control in ipairs(selectable_skills) do
-                if skill_control.text_utf8 then
-                    skill_names[skill_control.text_utf8] = true
+        run = function(self, env)
+            skill_location = function(skill_name, skill_pos, selectable_skills)
+                if not selectable_skills then
+                    return false
                 end
-            end
-            
-            -- 检查 skill_name 是否在集合中
-            if not skill_names[skill_name] then
+                -- 获取指定位置
+                local point = my_game_info.skill_pos[skill_pos]
+                -- 将所有 text_utf8 属性的值存储在一个集合中
+                local skill_names = {}
+                for _, skill_control in ipairs(selectable_skills) do
+                    if skill_control.text_utf8 then
+                        skill_names[skill_control.text_utf8] = true
+                    end
+                end
+                
+                -- 检查 skill_name 是否在集合中
+                if not skill_names[skill_name] then
+                    return false
+                end
+                
+                -- 遍历所有可选择的技能控件
+                for _, skill_control in ipairs(selectable_skills) do
+                    if skill_name == skill_control.text_utf8 then
+                        -- 计算中间位置
+                        local center_x = (skill_control.left + skill_control.right) / 2
+                        local center_y = (skill_control.top + skill_control.bottom) / 2
+                        
+                        -- 检查位置是否在指定范围内
+                        if point[1] - 5 < center_x and center_x < point[1] + 5 and 
+                        point[2] - 5 < center_y and center_y < point[2] + 5 then
+                            return true
+                        end
+                    end
+                end
                 return false
             end
+            get_move_skill = function(selectable_skills)
+                if not skill_location("", "MIDDLE", selectable_skills) then
+                    return false
+                end
+                return true
+            end
             
-            -- 遍历所有可选择的技能控件
-            for _, skill_control in ipairs(selectable_skills) do
-                if skill_name == skill_control.text_utf8 then
-                    -- 计算中间位置
-                    local center_x = (skill_control.left + skill_control.right) / 2
-                    local center_y = (skill_control.top + skill_control.bottom) / 2
-                    
-                    -- 检查位置是否在指定范围内
-                    if point[1] - 5 < center_x and center_x < point[1] + 5 and 
-                    point[2] - 5 < center_y and center_y < point[2] + 5 then
+            set_pos = function(skill_name, rom_x, rom_y, selectable_skills)
+                if not selectable_skills then
+                    return false
+                end
+                for _, k in ipairs(selectable_skills) do
+                    if 1104 <= k.left and k.left <= 1597 and k.bottom <= 770 and skill_name == k.text_utf8 then
+                        local center_x = (k.left + k.right) / 2 + rom_x
+                        local center_y = (k.top + k.bottom) / 2 + rom_y
+                        env.poe2_api.natural_move(math.floor(center_x), math.floor(center_y))
+                        env.poe2_api.af_api.api_LeftClick()
+                        sleep(0.5)
                         return true
                     end
                 end
+                return false
             end
             
-            return false
-        end,
-        
-        get_move_skill = function(self, env, selectable_skills)
-            if not self:skill_location(env, "", "MIDDLE", selectable_skills) then
-                return false
-            end
-            return true
-        end,
-        
-        set_pos = function(self, env, skill_name, rom_x, rom_y, selectable_skills)
-            if not selectable_skills then
-                return false
-            end
-            for _, k in ipairs(selectable_skills) do
-                if 1104 <= k.left and k.left <= 1597 and k.bottom <= 770 and skill_name == k.text_utf8 then
-                    local center_x = (k.left + k.right) / 2 + rom_x
-                    local center_y = (k.top + k.bottom) / 2 + rom_y
-                    env.poe2_api.natural_move(math.floor(center_x), math.floor(center_y))
-                    env.poe2_api.af_api.api_LeftClick()
-                    sleep(0.5)
-                    return true
+            cancel_left_skill = function(selectable_skills)
+                if not selectable_skills then
+                    return false
                 end
-            end
-            return false
-        end,
-        
-        cancel_left_skill = function(self, env, selectable_skills)
-            if not selectable_skills then
+                for _, k in ipairs(selectable_skills) do
+                    if 1277 <= k.left and k.left <= 1280 and k.top > 793 and k.bottom <= 831 and k.right < 1315 then
+                        return true
+                    end
+                end
                 return false
             end
-            for _, k in ipairs(selectable_skills) do
-                if 1277 <= k.left and k.left <= 1280 and k.top > 793 and k.bottom <= 831 and k.right < 1315 then
-                    return true
-                end
-            end
-            return false
-        end,
-        
-        run = function(self, env)
             local start_time = os.time()
             local mouse_check = env.mouse_check or false
             
@@ -999,9 +992,9 @@ local custom_nodes = {
                 return bret.SUCCESS
             end
             
-            if not (env.poe2_api.click_text_UI("life_orb", nil) or env.poe2_api.click_text_UI("resume_game", nil) or env.poe2_api.find_text("清單", nil, 0, 0, 400)) then
-                return bret.RUNNING
-            end
+            -- if not (env.poe2_api.click_text_UI("life_orb", nil) or env.poe2_api.click_text_UI("resume_game", nil) or env.poe2_api.find_text("清單", nil, 0, 0, 400)) then
+            --     return bret.RUNNING
+            -- end
             
             local selectable_skills = api_GetSelectableSkillControls()
             local allskill_info = api_GetAllSkill()
@@ -1019,16 +1012,14 @@ local custom_nodes = {
                 env.poe2_api.api_print("获取快捷栏技能信息失败")
                 return bret.RUNNING
             end
-            
-            local bool = self:cancel_left_skill(env, selectable_skills)
-            local bool1 = self:get_move_skill(env, selectable_skills)
-            
+            local bool =cancel_left_skill( selectable_skills)
+            local bool1 = get_move_skill(selectable_skills)
             if not bool1 then
-                if env.poe2_api.find_text("繼續遊戲", nil, 0, 0, 2) then
-                    env.poe2_api.infos_time(start_time, self.name)
-                    return bret.RUNNING
-                end
-                if not self:set_pos(env, "", 0, 0, selectable_skills) then
+                -- if env.poe2_api.find_text("繼續遊戲", nil, 0, 0, 2) then
+                --     env.poe2_api.infos_time(start_time, self.name)
+                --     return bret.RUNNING
+                -- end
+                if not set_pos("", 0, 0, selectable_skills) then
                     local point = my_game_info.skill_pos["MIDDLE"]
                     env.poe2_api.natural_move(math.floor(point[1]), math.floor(point[2]))
                     env.poe2_api.af_api.api_LeftClick()
@@ -1042,7 +1033,7 @@ local custom_nodes = {
                     env.poe2_api.infos_time(start_time, self.name)
                     return bret.RUNNING
                 end
-                if not self:set_pos(env, '', 50, 0, selectable_skills) then
+                if not set_pos('', 50, 0, selectable_skills) then
                     local point = my_game_info.skill_pos["P"]
                     env.poe2_api.natural_move(math.floor(point[1]), math.floor(point[2]))
                     env.poe2_api.af_api.api_LeftClick()
@@ -2313,48 +2304,57 @@ local custom_nodes = {
         end
     },
 
-    -- 移动到目标点
     Move_To_Target_Point = {
-        initialize = function(self)
-            self.last_move_time = os.time()
-            self.move_interval = math.random() * 0.1 + 0.1 -- 随机间隔0.1~0.2秒
-            self.timeout = 3 -- 超时时间
-            self.current_time = nil
-            self.action_state = {
-                random_delay = {last = 0, duration = 0.1},
-                timeout_click = {active = false, start = 0}
-            }
-            self.last_action_time = 0
-            self.action_interval = 1.5
-            self.last_space_time = 0
-            self.last_space_time1 = 0
-            self.last_point = nil
-        end,
-
-        run = function(node, env)
+        run = function(self, env)
+            -- 初始化逻辑直接放在 run 函数开头
+            if not self.last_move_time then
+                print("初始化 Move_To_Target_Point 节点...")
+                self.last_move_time = os.time()
+                self.move_interval = math.random() * 0.1 + 0.1  -- 随机间隔 0.1~0.2 秒
+                self.timeout = 3  -- 超时时间
+                self.action_state = {
+                    random_delay = {last = 0, duration = 0.1},
+                    timeout_click = {active = false, start = 0}
+                }
+                self.last_action_time = 0
+                self.action_interval = 1.5
+                self.last_space_time = 0
+                self.last_space_time1 = 0
+                self.last_point = nil
+                return bret.RUNNING  -- 初始化后返回 RUNNING，等待下一帧继续执行
+            end
+    
+            -- 正常执行移动逻辑
             print("移动到目标点...")
             local point = env.target_point
-            if not point then return bret.SUCCESS end
+            if not point then 
+                print("[Move_To_Target_Point] 错误：未设置目标点")
+                return bret.SUCCESS
+            end
+    
             local player_info = env.player_info
-            local range_info = env.range_info
-            local path_list = env.path_list
+            if not player_info then
+                print("[Move_To_Target_Point] 错误：未设置玩家信息")
+                return bret.FAILURE
+            end
+    
+            -- 获取当前时间
+            self.current_time = os.time()
             
             -- 检查终点是否变化
             local end_point = env.end_point
-            print("移动到目标点4444444...")
-            print(self.last_point)
             if not self.last_point and end_point then
+                print("设置last_point")
                 self.last_point = end_point
             end
-            print("55352314...")
-
-            if self.last_point and end_point and path_list then
-                local last_path_point = path_list[#path_list]
-                local dis = env.poe2_api.point_distance(self.last_point[1],
-                                                        self.last_point[2], {
-                    x = end_point[1],
-                    y = end_point[2]
-                })
+            print("11111111")
+            -- 如果终点变化超过阈值，重置路径
+            if self.last_point and end_point and env.path_list then
+                local last_path_point = env.path_list[#env.path_list]
+                local dis = env.poe2_api.point_distance(
+                    self.last_point[1], self.last_point[2],
+                    {end_point[1], end_point[2]}
+                )
                 if dis > 25 then
                     self.last_point = end_point
                     env.path_list = nil
@@ -2363,31 +2363,37 @@ local custom_nodes = {
                     return bret.RUNNING
                 end
             end
-
-            -- 执行移动
-            if current_time - self.last_move_time >= self.move_interval then
-                if point and current_time - self.action_state.random_delay.last >=
-                    self.action_state.random_delay.duration then
-                    local dis = env.poe2_api.point_distance(point[1], point[2],
-                                                            player_info)
-
+            
+            print("22222222")
+            -- 执行移动（按时间间隔）
+            print(self.current_time)
+            print(self.last_move_time)
+            print(self.move_interval)
+            print(#env.path_list)
+            print("33333333")
+            print(tostring(self.current_time - self.last_move_time >= self.move_interval))
+            if self.current_time - self.last_move_time >= self.move_interval then
+                print("移动22223...")
+                if point then
+                    local dis = env.poe2_api.point_distance(point[1], point[2], player_info)
                     if dis > 70 then
                         env.path_list = nil
                         env.target_point = {}
                         env.is_arrive_end = true
                         return bret.RUNNING
                     end
-
-                    -- 调用移动API
-                    if not api_ClickMove(point[1],point[2],player_info.world_z,3) then
-                        env.end_point = nil
-                        env.run_point = nil
-                        env.path_list = nil
-                        env.target_point = {}
-                        return bret.RUNNING
-                    end
-
-                    self.last_move_time = current_time
+    
+                    -- 调用移动 API
+                    api_ClickMove(point[1], point[2], player_info.world_z, 1)
+                    -- if not api_ClickMove(point[1], point[2], player_info.world_z, 3) then
+                    --     env.end_point = nil
+                    --     env.run_point = nil
+                    --     env.path_list = nil
+                    --     env.target_point = {}
+                    --     return bret.RUNNING
+                    -- end
+    
+                    self.last_move_time = self.current_time
                 end
             end
 
@@ -2398,21 +2404,20 @@ local custom_nodes = {
             --     table.remove(env.path_list, 1)
             --     return bret.RUNNING
             -- end
-
+    
             -- 检查是否到达目标点
             if point then
-                local dis = env.poe2_api.point_distance(point[1], point[2],
-                                                        player_info)
+                local dis = env.poe2_api.point_distance(point[1], point[2], player_info)
+                print("距离：" .. dis)
                 if dis < 20 then
                     if env.path_list and #env.path_list > 0 then
-                        env.target_point = {
-                            env.path_list[1].x, env.path_list[1].y
-                        }
+                        env.target_point = {env.path_list[1].x, env.path_list[1].y}
                         table.remove(env.path_list, 1)
                     end
                     return bret.SUCCESS
                 end
             end
+    
             return bret.RUNNING
         end
     }
@@ -2655,7 +2660,7 @@ local env_params = {
     map_recorded = false, -- 地图状态记录
     warehouse_type = nil, -- 仓库类型（滴注）
     formula_list = nil, -- 配方列表（滴注）
-    mouse_check = false, -- 检查鼠标技能
+    mouse_check = true, -- 检查鼠标技能
     click_grid_pos = false, -- 补丁视角处理
     current_pair_index = 0, -- 初始化当前兑换索引
     last_execution_time = 0, -- 初始化当前兌換時間
@@ -2668,31 +2673,30 @@ local env_params = {
 local otherworld_bt = {}
 
 -- 创建行为树
-function otherworld_bt.create(config, my_game_info)
+function otherworld_bt.create()
     -- 直接使用已定义的 env_params，并更新配置
     local env = env_params
-    env.user_config = config
-    env.user_map = my_game_info
     local bt = behavior_tree.new("moveTo", env_params)
     return bt
 end
 
-
-local function sleep(n)
+function sleep(n)
     if n > 0 then
         os.execute("ping -n " .. tonumber(n + 1) .. " localhost > NUL")
     end
 end
 
 -- 运行行为树
-function otherworld_bt.run(bt)
+function otherworld_bt.run()
     print("\n=== 游戏Tick开始 ===")
-    local i = 0
+    i = 0
+    bt = otherworld_bt.create()
     while true do
         print("\n=== 游戏Tick", i, "===")
+        bt:interrupt()
         bt.run()
         -- 模拟延迟
-        sleep(0.5)
+        -- sleep(0.5)
         i = i + 1
     end
 end
