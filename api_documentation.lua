@@ -3,188 +3,232 @@
 -- 所有函数均通过 api_ 前缀调用
 
 -- 时间控制
--- api_Sleep(ms) - 延迟执行指定毫秒数 ok
---   @param ms 延迟的毫秒数
+-- api_Sleep(ms) - 延迟执行指定毫秒数
+--   @param ms 延迟的毫秒数（非负整数）
 --   @return nil
 
 -- api_GetTickCount64() - 获取系统启动后的毫秒时间戳
---   @return number 毫秒时间戳
+--   @return number 毫秒级时间戳（64位整数）
+
 
 -- 玩家与环境
--- api_GetLocalPlayer() - 获取本地玩家信息 ok
---   @return table 包含玩家属性的表格
+-- api_GetLocalPlayer() - 获取本地玩家信息
+--   @return table 包含玩家属性的表格，字段可能包括：
+--     {
+--       world_x, world_y, world_z = 坐标信息,
+--       life, max_life = 生命值相关,
+--       mana, max_mana = 魔力值相关,
+--       level = 玩家等级,
+--       isMoving = 是否移动中（boolean）
+--     }
 
--- api_GetMinimapActorInfo() - 获取小地图周围对象信息  ok
---   @return table 包含周围对象的表格
+-- api_GetMinimapActorInfo() - 获取小地图周围对象信息
+--   @return table 包含周围对象的表格数组，每个元素可能包含：
+--     { id, name, world_x, world_y, type, is_friendly }
 
--- api_GetUiElements() - 获取UI元素
---   @return table 包含UI元素的表格
+-- api_GetUiElements() - 获取UI元素信息
+--   @return table 包含UI元素的表格数组，每个元素可能包含：
+--     { name, x, y, width, height, is_visible }
+
 
 -- 移动控制
--- api_ClickMove(x, y, world_z, mode) - 点击移动到指定坐标 ok
---   @param x 游戏坐标X
---   @param y 游戏坐标Y
---   @param world_z 高度
---   @param mode 移动模式
+-- api_ClickMove(x, y, world_z, mode) - 点击移动到指定坐标
+--   @param x 游戏世界X坐标（浮点型）
+--   @param y 游戏世界Y坐标（浮点型）
+--   @param world_z 游戏世界高度坐标（浮点型）
+--   @param mode 移动模式：
+--     1=移动+左键点击, 2=移动+右键点击,
+--     3=移动+左键按下, 4=移动+左键释放,
+--     5=移动+右键按下, 6=移动+右键释放
 --   @return nil
 
--- api_FindPath(start_x, start_y, end_x, end_y) - 查找从起点到终点的路径  no
---   @param start_x 起点X
---   @param start_y 起点Y
---   @param end_x 终点X
---   @param end_y 终点Y
---   @return table 路径点数组
+-- api_FindPath(start_x, start_y, end_x, end_y) - 查找两点间路径
+--   @param start_x 起点X坐标（浮点型）
+--   @param start_y 起点Y坐标（浮点型）
+--   @param end_x 终点X坐标（浮点型）
+--   @param end_y 终点Y坐标（浮点型）
+--   @return table 路径点数组，每个元素为 {x, y}
 
--- api_FindRandomWalkablePosition(x, y, radius) - 返回半径内随机可行走坐标 ok
---   @param x 中心X坐标
---   @param y 中心Y坐标
---   @param radius 半径范围
---   @return table 坐标点
+-- api_FindRandomWalkablePosition(x, y, radius) - 获取半径内随机可行走坐标
+--   @param x 中心X坐标（浮点型）
+--   @param y 中心Y坐标（浮点型）
+--   @param radius 搜索半径（非负整数）
+--   @return table 坐标点 {x, y}
 
--- api_FindNearestReachablePoint(dx, dy, radius, mode) - 返回距离该点最近的可到达点 no
---   @param dx 目标X坐标
---   @param dy 目标Y坐标
---   @param radius 搜索半径
---   @param mode 模式(0:代表以dx,dy为中心，离dx,dy最近的点 1：代表 以dx,dy 为中心，离自身玩家最近的点)
---   @return table 坐标点
+-- api_FindNearestReachablePoint(dx, dy, radius, mode) - 查找最近可到达点
+--   @param dx 目标X坐标（浮点型）
+--   @param dy 目标Y坐标（浮点型）
+--   @param radius 搜索半径（非负整数）
+--   @param mode 模式：
+--     0=以(dx, dy)为中心，找离目标最近的点,
+--     1=以(dx, dy)为中心，找离玩家最近的点
+--   @return table 坐标点 {x, y}
 
--- api_GetSafeAreaLocation() - 获得一个安全位置 ok
---   @return table 安全坐标点
+-- api_GetSafeAreaLocation() - 获取一个安全位置
+--   @return table 安全坐标点 {x, y, z}
 
--- api_GetSafeAreaLocationNoMonsters(range) - 获得指定范围内无怪物的安全位置  ok
---   @param range 搜索范围
---   @return table 安全坐标点
+-- api_GetSafeAreaLocationNoMonsters(range) - 获取指定范围内无怪物的安全位置
+--   @param range 搜索范围（非负整数）
+--   @return table 安全坐标点 {x, y, z}
+
 
 -- 物品与技能
--- api_Getinventorys(index, type) - 获取背包物品 ok
---   @param index 背包索引
---   @param type 物品类型
---   @return table 物品数组
+-- api_Getinventorys(index, type) - 获取背包物品
+--   @param index 背包索引（从0开始的整数）
+--   @param type 物品类型（整数，0=全部类型）
+--   @return table 物品数组，每个元素可能包含：
+--     { id, name, quality, stackCount, is_usable }
 
--- api_GetSkillSlots() - 获取技能槽信息 ok
---   @return table 技能槽数组
+-- api_GetSkillSlots() - 获取技能槽信息
+--   @return table 技能槽数组，每个元素可能包含：
+--     { slot_id, skill_id, cooldown, is_ready }
 
--- api_GetSelectableSkillControls() - 获取可选技能控件  ok
---   @return table 可选技能控件数组
+-- api_GetSelectableSkillControls() - 获取可选技能控件
+--   @return table 可选技能控件数组，每个元素可能包含：
+--     { control_id, skill_name, hotkey }
 
--- api_GetAllSkill() - 获取所有技能 ok
---   @return table 所有技能数组
+-- api_GetAllSkill() - 获取所有技能
+--   @return table 所有技能数组，每个元素可能包含：
+--     { id, name, level, mana_cost, description }
 
--- api_GetObjectSuffix(obj) - 根据物品对象获取词缀 no
---   @param obj 物品对象
---   @return table 词缀数组
+-- api_GetObjectSuffix(obj) - 根据物品对象获取词缀
+--   @param obj 物品对象（通过其他API获取的物品引用）
+--   @return table 词缀数组，每个元素为字符串（如 "+5% 暴击率"）
+
 
 -- 地图与导航
--- api_GetTeleportationPoint() - 获取传送点信息  ok
---   @return table 传送点数组
+-- api_GetTeleportationPoint() - 获取传送点信息
+--   @return table 传送点数组，每个元素可能包含：
+--     { id, name, x, y, is_unlocked }
 
--- api_GetNextCirclePosition(bossX, bossY, playerX, playerY, radius, angleStep, direction) - 获取下一个绕圈位置 no
---   @param bossX 首领X坐标
---   @param bossY 首领Y坐标
---   @param playerX 玩家X坐标
---   @param playerY 玩家Y坐标
---   @param radius 绕圈半径
---   @param angleStep 角度步长
---   @param direction 方向(1顺时针,-1逆时针)
---   @return table 坐标点
+-- api_GetNextCirclePosition(bossX, bossY, playerX, playerY, radius, angleStep, direction) - 获取下一个绕圈位置
+--   @param bossX 首领X坐标（浮点型）
+--   @param bossY 首领Y坐标（浮点型）
+--   @param playerX 玩家当前X坐标（浮点型）
+--   @param playerY 玩家当前Y坐标（浮点型）
+--   @param radius 绕圈半径（非负浮点数）
+--   @param angleStep 角度步长（正整数，单位：度）
+--   @param direction 方向（0=顺时针，1=逆时针）
+--   @return table 坐标点 {x, y}
 
--- api_GetUnexploredArea(radius) - 获取未探索的区域 ok
---   @param radius 搜索半径
---   @return table 坐标点
+-- api_GetUnexploredArea(radius) - 获取未探索的区域
+--   @param radius 搜索半径（非负整数）
+--   @return table 未探索区域坐标点 {x, y}
 
 -- api_UpdateMapInfo() - 刷新地图信息
 --   @return nil
 
 -- api_UpdateMapObstacles(range) - 更新地图障碍点
---   @param range 范围
+--   @param range 更新范围（非负整数）
 --   @return nil
 
--- api_RestoreOriginalMap() - 恢复原始地图
+-- api_RestoreOriginalMap() - 恢复原始地图数据
 --   @return nil
 
--- api_GetCalculateCircleGridPoints(grid_x, grid_y, radius, gridWidth) - 获取圆形范围内均匀分布的网格点 ok
---   @param grid_x 中心X坐标
---   @param grid_y 中心Y坐标
---   @param radius 半径
---   @param gridWidth 网格宽度
---   @return table 坐标点数组
+-- api_GetCalculateCircleGridPoints(grid_x, grid_y, radius, gridWidth) - 获取圆形范围内均匀分布的网格点
+--   @param grid_x 中心网格X坐标（整数）
+--   @param grid_y 中心网格Y坐标（整数）
+--   @param radius 圆形半径（网格数，非负整数）
+--   @param gridWidth 单个网格宽度（浮点型）
+--   @return table 坐标点数组，每个元素为 {x, y}
+
 
 -- 任务与队伍
 -- api_GetQuestList(index) - 获取任务列表
---   @param index 任务索引
---   @return table 任务数组
+--   @param index 任务索引（0=所有任务，1=主线，2=支线）
+--   @return table 任务数组，每个元素可能包含：
+--     { id, title, progress, is_completed, rewards }
 
 -- api_GetTeamInfo() - 获取队伍信息
---   @return table 队伍成员数组
+--   @return table 队伍成员数组，每个元素可能包含：
+--     { player_id, name, level, class, is_leader }
+
 
 -- 高级功能
--- api_GetcurrentEndgameNodePoints() - 获得当前异界地图位置 只有一个坐标
---   @return number, number X坐标, Y坐标
+-- api_GetcurrentEndgameNodePoints() - 获取当前异界地图位置
+--   @return number, number X坐标和Y坐标（浮点型）
 
--- api_HasObstacleBetween(grid_x, grid_y) - 射线检测两点之间是否有障碍物  ok
---   @param grid_x 目标点X坐标
---   @param grid_y 目标点Y坐标
---   @return boolean true表示无障碍物
+-- api_HasObstacleBetween(grid_x, grid_y) - 检测两点间是否有障碍物
+--   @param grid_x 目标点X坐标（网格坐标，整数）
+--   @param grid_y 目标点Y坐标（网格坐标，整数）
+--   @return boolean true=无障碍物，false=有障碍物
 
--- api_InitGameWindow() - 初始化游戏窗口
+-- api_InitGameWindow() - 初始化游戏窗口（获取句柄、尺寸等）
 --   @return nil
 
--- api_GetSacrificeItems() - 获得祭祀物品列表  缺少 最大祭祀数量 ,  完成祭祀数量 ，刷新次数 ， 当前刷新次数 ， 剩余贡礼
---   @return table 祭祀物品数组
+-- api_GetSacrificeItems() - 获取祭祀物品列表及状态
+--   @return table 祭祀数据表格：
+--     {
+--       items = 祭祀物品数组（每个元素包含id, name, quality等）,
+--       maxCount = 单次最大可完成数量,
+--       finishedCount = 已完成数量,
+--       leftGifts = 剩余奖励次数,
+--       refreshCost = 刷新消耗,
+--       MaxRefreshCount = 最大刷新次数,
+--       CurrentRefreshCount = 当前已刷新次数
+--     }
 
 -- api_AddMonitoringSkills(type, path_name, radius) - 增加技能监测
---   @param type 监测类型
---   @param path_name 路径名称
---   @param radius 监测半径
+--   @param type 监测类型（整数，0=范围监测，1=目标监测）
+--   @param path_name 技能路径名称（字符串）
+--   @param radius 监测半径（非负整数）
+--   @return nil
+
+-- api_InitExplorationArea() - 更新探索地图数据
+--   @return nil
+
+-- api_EndgameNodeMove(position_x, position_y) - 异界地图节点移动
+--   @param position_x 目标X坐标（整数）
+--   @param position_y 目标Y坐标（整数）
+--   @return nil
+
+-- api_GetRepositoryPages(type) - 获取仓库页数组
+--   @param type 仓库类型（0=普通，1=特殊，2=通货）
+--   @return table 仓库页数组，每个元素为整数（页码）
+
+-- api_GetCurrencyExchangeList(grid_x, grid_y) - 获取通货兑换列表
+--   @param grid_x 兑换NPC的X坐标（网格坐标）
+--   @param grid_y 兑换NPC的Y坐标（网格坐标）
+--   @return table 通货兑换数组，每个元素包含兑换比例信息
+
+-- api_EnumProcess(name) - 枚举指定名称的进程
+--   @param name 进程名称（字符串，如"Game.exe"，为空则枚举所有）
+--   @return table 进程ID数组（整数）
+
+-- api_FindWindowByProcess(class_name, title, process_name, Pid) - 通过进程信息查找窗口句柄
+--   @param class_name 窗口类名（字符串，nil=不限制）
+--   @param title 窗口标题（字符串，nil=不限制）
+--   @param process_name 进程名（字符串，nil=不限制）
+--   @param Pid 进程ID（整数，0=不限制）
+--   @return number 窗口句柄（0=未找到）
+
+-- api_ClickScreen(ScreenX, ScreenY, mode) - 点击屏幕指定位置
+--   @param ScreenX 屏幕X坐标（像素，整数）
+--   @param ScreenY 屏幕Y坐标（像素，整数）
+--   @param mode 点击模式：
+--     1=左键点击, 2=右键点击, 3=左键按下,
+--     4=左键释放, 5=右键按下, 6=右键释放
+--   @return nil
+
+-- api_Keyboard(keyCode, action) - 模拟键盘操作
+--   @param keyCode 虚拟键码（整数，如0x41=A键，0x20=空格键）
+--   @param action 操作类型：
+--     0=按下, 1=抬起, 2=按下并抬起
 --   @return nil
 
 -- api_InitExplorationArea() - 更新探索地图
 --   @return nil
 
--- api_EndgameNodeMove(position_x, position_y) - 异界地图节点移动  no
---   @param position_x X坐标
---   @param position_y Y坐标
+-- api_EndgameNodeMove(position_x, position_y) - 异界地图节点移动
+--   @param position_x X坐标（整数）
+--   @param position_y Y坐标（整数）
 --   @return nil
 
--- api_GetRepositoryPages(type) - 获取仓库页数组  no
---   @param type 仓库类型
---   @return table 仓库页数组
+-- api_GetRepositoryPages(type) - 获取仓库页数组
+--   @param type 0代表倉庫，1代表工會倉庫
+--   @return table 仓库页数组（每个元素为页码整数）
 
--- api_GetCurrencyExchangeList(grid_x, grid_y) - 获得通货兑换数组  py版本不需要传入坐标
---   @param grid_x X坐标
---   @param grid_y Y坐标
---   @return table 通货兑换数组    
-
-
--- api_EnumProcess(name) - 枚举进程
---   @return table 进程id数组    
-
-
--- api_FindWindowByProcess(class_name, title , process_name , Pid) - 通过进程查找窗口句柄
---   @param class_name      窗口类名
---   @param title           窗口标题
---   @param process_name    进程名
---   @param Pid             进程id
---   @return number 窗口句柄    
-
-
--- api_GetCurrencyExchangeList(grid_x, grid_y) - 获得通货兑换数组
---   @param grid_x X坐标
---   @param grid_y Y坐标
---   @return table 通货兑换数组    
-
-
--- api_EnumProcess(name) - 枚举进程
---   @return table 进程id数组    
-
-
--- api_FindWindowByProcess(class_name, title , process_name , Pid) - 获得通货兑换数组
---   @param class_name      窗口类名
---   @param title           窗口标题
---   @param process_name    进程名
---   @param Pid             进程id
---   @return number 窗口句柄    
-
-
-
-
+-- api_GetCurrencyExchangeList(grid_x, grid_y) - 获取通货兑换列表
+--   @param grid_x 兑换点X坐标（网格坐标）
+--   @param grid_y 兑换点Y坐标（网格坐标）
+--   @return table 通货兑换数组，每个元素包含兑换规则
