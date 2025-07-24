@@ -43,7 +43,7 @@ _M.find_text = function(params)
     -- 设置默认值
     local defaults = {
         text = "",
-        UI_info = nil,
+        UI_info = {},
         click = 0,
         min_x = 450,
         min_y = 0,
@@ -412,13 +412,13 @@ end
 _M.is_have_mos = function(args)
     -- 参数默认值与校验
     local params = {
-        mos = nil,
-        player_info = nil,
+        mos = {},
+        player_info = {},
         dis = 180,
-        not_sight = nil,
-        stuck_monsters = nil,
-        not_attack_mos = nil,
-        is_active = nil
+        not_sight = false,
+        stuck_monsters = {},
+        not_attack_mos = {},
+        is_active = true
     }
     
     -- 合并传入参数
@@ -456,7 +456,7 @@ _M.is_have_mos = function(args)
             local should_attack = true
             
             -- 1. 检查卡住状态 (哈希查找O(1))
-            if should_attack and params.stuck_monsters and params.stuck_monsters[monster.id] then
+            if should_attack and next(params.stuck_monsters) and params.stuck_monsters[monster.id] then
                 should_attack = false
             end
 
@@ -502,14 +502,181 @@ _M.is_have_mos_boss = function(mos, boss_list)
     return false
 end
 
+-- 敵對死亡目標對象（返回最近對象）
+--- 查找最近的死亡敌对怪物目标
+-- @param args 参数表，包含以下字段：
+--   mos: 怪物列表
+--   player_info: 玩家信息(必须包含grid_x/grid_y坐标)
+--   dis: 搜索距离(默认180)
+--   not_sight: 是否检查视野(0=检查,1=不检查)
+-- @return table|nil 返回符合条件的最近怪物对象，未找到返回nil
+-- @note 会过滤神殿类怪物和配置表中不攻击的怪物
+_M.enemy_death_target_object=function(args)
+    local params={
+        mos={}, -- 怪物列表
+        player_info={}, -- 玩家信息
+        dis = 180, -- 搜索距离
+        not_sight= 0 -- 是否检查视野
+    }
+    -- 合并传入参数和默认值
+    for k, v in pairs(args) do
+        params[k] = v
+    end
+    -- 参数有效性检查
+    if not params.mos or not params.player_info then
+        return nil
+    end
 
+    -- 确保玩家坐标有效
+    if not params.player_info.grid_x or not params.player_info.grid_y then
+        return nil
+    end
+
+    -- 预计算距离平方
+    local dis_sq = params.dis * params.dis
+    local check_sight = params.not_sight == 1
+    
+    local nearest_monster = nil
+    local min_distance_sq = math.huge
+    for _, monster in ipairs(params.mos) do
+        -- 检查坐标有效性
+        if not monster.grid_x or not monster.grid_y then
+            goto continue
+        end
+        -- 基础条件检查
+        if not (monster.name_utf8 
+               and monster.life == 0 
+               and not monster.is_friendly 
+               and monster.isActive 
+               and monster.type == 1) then
+            goto continue
+        end
+        -- 名称过滤
+        if my_game_info.not_attact_mons_CN_name[monster.name_utf8] 
+           or string.find(monster.name_utf8, "神殿") then
+            goto continue
+        end
+
+        -- 距离计算
+        local dx = monster.grid_x - player_info.grid_x
+        local dy = monster.grid_y - player_info.grid_y
+        local distance_sq = dx*dx + dy*dy
+        -- 超出搜索范围
+        if distance_sq > dis_sq then
+            goto continue
+        end
+
+        -- 视野检查
+        if monster.hasLineOfSight then
+            -- 更新最近目标
+            if distance_sq < min_distance_sq then
+                min_distance_sq = distance_sq
+                nearest_monster = monster
+            end
+        end
+
+        ::continue::
+    end
+
+    return nearest_monster
+end
+-- 友方目標對象
+--- 查找符合条件的友好目标对象
+-- @param args 参数表，包含以下字段：
+--   mos: 怪物列表
+--   player_info: 玩家信息
+--   valid_monsters: 可用怪物列表(可选)
+--   dis: 搜索距离(默认180)
+--   not_sight: 是否检查视野(默认0)
+--   find_farthest: 是否查找最远目标(默认false)
+-- @return 返回符合条件的友好目标对象，若无则返回nil
+_M.friendly_target_object=function(args)
+    local params={
+        mos={}, -- 怪物列表
+        player_info={}, -- 玩家信息
+        valid_monsters={}, -- 可用怪物列表
+        dis = 180, -- 搜索距离
+        not_sight= 0, -- 是否检查视野
+        find_farthest = false -- 是否查找最远目标
+    }
+    -- 合并传入参数和默认值
+    for k, v in pairs(args) do
+        params[k] = v
+    end
+    
+    -- 参数有效性检查
+    if not params.mos or not params.player_info then
+        return nil
+    end
+
+    -- 确保玩家坐标有效
+    if not params.player_info.grid_x or not params.player_info.grid_y then
+        return nil
+    end
+
+    -- 预计算距离平方
+    local dis_sq = params.dis * params.dis
+    
+    local target_friendly = nil
+    -- 根据查找模式初始化距离比较值
+    local compare_distance_sq = params.find_farthest and -math.huge or math.huge
+
+    for _, unit in ipairs(params.mos) do
+        -- 检查坐标有效性
+        
+        if not unit.grid_x or not unit.grid_y then
+            goto continue
+        end
+        
+        -- 排除玩家自身（如果启用）
+        if unit.name_utf8 and unit.name_utf8 == params.player_info.name_utf8 then
+            goto continue
+        end
+        
+        -- 基础条件检查
+        if not (unit.name_utf8 and unit.is_friendly) then
+            goto continue
+        end
+        -- 名称过滤
+        if my_game_info.not_attact_mons_CN_name[unit.name_utf8] or 
+           string.find(unit.name_utf8, "神殿") then
+            goto continue
+        end
+        -- 距离计算（使用valid_monsters或player_info作为基准点）
+        local base
+        if params.valid_monsters and next(params.valid_monsters) then
+            base = params.valid_monsters
+        else
+            base = params.player_info
+        end
+        
+        local dx = unit.grid_x - base.grid_x
+        local dy = unit.grid_y - base.grid_y
+        local distance_sq = dx*dx + dy*dy
+        -- 超出搜索范围
+        if distance_sq > dis_sq then
+            goto continue
+        end
+
+        -- 根据查找模式更新目标
+        if (params.find_farthest and distance_sq > compare_distance_sq) or 
+           (not params.find_farthest and distance_sq < compare_distance_sq) then
+            compare_distance_sq = distance_sq
+            target_friendly = unit
+        end
+
+        ::continue::
+    end
+
+    return target_friendly
+end
 
 --- 模拟键盘按键操作
 -- @param click_str string 按键字符串（如"A", "Enter"等）
 -- @param[opt] click_type number 按键类型：0=单击, 1=按下, 2=抬起
 _M.click_keyboard=function(click_str, click_type)
     -- 参数默认值处理
-    click_type = click_type or 2  -- 0=按下, 1=抬起, 2=按下并抬起
+    click_type = click_type or 0  
     local key_code = my_game_info.ascii_dict[click_str:lower()]
     if click_type == 0 then
         api_Keyboard(key_code,2)
@@ -543,7 +710,10 @@ _M.ctrl_right_click = function(x, y)
         _M.click_keyboard('ctrl',2)  -- 使用正确的按键代码
     end
 end
-
+-- 日志打印
+_M.print_log = function(text)
+    print(text)
+end
 -- 其他可能用到的API
 _M.get_current_time = function()
     return os.time()
