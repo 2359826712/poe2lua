@@ -2405,7 +2405,7 @@ _M.click_text_UI = function(options)
                local x = (value.left + value.right) / 2
                local y = (value.top + value.bottom) / 2
                if config.click == 1 then
-                   api_ClickScreen(x, y,1)
+                   api_ClickScreen(_M.toExactInt(x), _M.toExactInt(y),1)
                end
                -- _M.print_log(456)
                if config.ret_data then
@@ -2643,4 +2643,53 @@ _M.process_void_maps = function(map_cfg)
         ['怪物过滤'] = monster_filter_configs
     }
 end
+
+-- # 获取祭祀物品中心点
+_M.get_center_position_altar=function(start_cell, end_cell)
+    -- 检查输入是否为表（Lua 中无元组，用表代替）
+    if not (type(start_cell) == "table" and type(end_cell) == "table") then
+        error("start_cell and end_cell 必须是表")
+    end
+
+    local start_row, start_col = start_cell[1], start_cell[2]
+    local end_row, end_col = end_cell[1], end_cell[2]
+    -- 计算中心位置为起始和结束格子的平均位置
+    local center_x = 255 + ((start_row + end_row) / 2) * CELL_WIDTH
+    local center_y = 222 + ((start_col + end_col) / 2) * CELL_HEIGHT
+    -- 四舍五入
+    return {math.floor(center_x + 0.5), math.floor(center_y + 0.5)}
+end
+
+-- # 快速点击祭祀物品
+_M.ctrl_left_click_altar_items = function(target_name, bag_info, click)
+    click = click or 0  -- 默认值为 0
+
+    if bag_info and #bag_info > 0 then
+        for _, actor in ipairs(bag_info) do
+            if actor.baseType_utf8 and (actor.baseType_utf8 == target_name or actor.obj == target_name) then
+                -- 计算中心坐标
+                local start_cell = {actor.start_x, actor.start_y}
+                local end_cell = {actor.end_x, actor.end_y}
+                local center_position = _M.get_center_position_altar(start_cell, end_cell)
+
+                if click == 1 then
+                    _M.right_click(center_position[1], center_position[2])  -- Lua 索引从 1 开始
+                    return true
+                elseif click == 2 then
+                    api_ClickScreen(_M.toExactInt(center_position[1]), _M.toExactInt(center_position[2]),0)
+                    api_Sleep(200)  -- 单位是毫秒
+                    api_ClickScreen(_M.toExactInt(center_position[1]), _M.toExactInt(center_position[2]),1) -- 使用 click 方法模拟左键点击
+                    return true
+                else
+                    _M.ctrl_left_click(center_position[1], center_position[2])
+                    return true  -- 找到后退出
+                end
+            end
+        end
+    else
+        _M.dbgp("没有找到任何对象")
+        return false
+    end
+end
+
 return _M

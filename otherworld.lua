@@ -1723,7 +1723,7 @@ local custom_nodes = {
                     pages = api_GetRepositoryPages(1)
                 end
             else
-                poe2_api.api_print("【倉庫類型】 错误！")
+                poe2_api.print_log("【倉庫類型】 错误！")
                 return bret.FAILURE
             end
             
@@ -2151,7 +2151,7 @@ local custom_nodes = {
                     end
                     converted_dict[english_type] = info_list
                 else
-                    poe2_api.api_print("警告: 未找到类型 '"..chinese_type.."' 的英文转换")
+                    poe2_api.print_log("警告: 未找到类型 '"..chinese_type.."' 的英文转换")
                 end
             end
             return converted_dict
@@ -2385,14 +2385,243 @@ local custom_nodes = {
         end
     },
 
-    -- 商店祭祀物品
+    -- 祭坛购买
     Shop_Sacrifice_Items = {
         run = function(self, env)
-            poe2_api.print_log("访问商店祭祀物品...")
-            return bret.SUCCESS
+            poe2_api.print_log("祭祀購買...")
+            if not self.init then
+                self.init = true
+                self.deferred_items = {}
+            end
+            local player_info = env.player_info
+            local user_config = env.user_config
+            local UI_info  = env.UI_info
+            local _get_valid_items = function(all_items, tribute)
+                self.deferred_items = {}
+                if not all_items or #all_items == 0 then
+                    return {}, {}, 0, {}, {}, {}
+                end
+            
+                local ritual_config = user_config['刷圖設置']['祭祀購買']
+                if not ritual_config then
+                    return {}, {}, 0, {}, {}, {}
+                end
+            
+                -- 创建优先级字典，确保顺序与 ritual_config 一致
+                local priority_dict = {}
+                for idx, item in ipairs(ritual_config) do
+                    priority_dict[item] = idx
+                end
+            
+                -- 初始化物品分组
+                local item_groups = {}
+                for _, item_name in ipairs(ritual_config) do
+                    item_groups[item_name] = {}
+                end
+            
+                -- 分类物品
+                local not_appeared_items = {}
+                for _, item in ipairs(all_items) do
+                    if item.baseType_utf8 and item_groups[item.baseType_utf8] then
+                        table.insert(item_groups[item.baseType_utf8], item)
+                    elseif item.baseType_utf8 == '隱藏道具' then
+                        table.insert(not_appeared_items, item)
+                    end
+                end
+            
+                -- 按优先级排序物品
+                local all_config_items = {}
+                local all_config_items_no_price = {}
+            
+                -- 遍历 ritual_config 的顺序
+                for _, item_name in ipairs(ritual_config) do
+                    if item_groups[item_name] and #item_groups[item_name] > 0 then
+                        -- 按价格排序（优先选择价格低的）
+                        table.sort(item_groups[item_name], function(a, b)
+                            local a_cost = a.totalDeferredConsumption or math.huge
+                            local b_cost = b.totalDeferredConsumption or math.huge
+                            if a_cost == b_cost then
+                                -- 价格相同，则按 tribute（贡品值）排序
+                                return (b.tribute or math.huge) < (a.tribute or math.huge)
+                            else
+                                return a_cost < b_cost
+                            end
+                        end)
+            
+                        -- 添加到 all_config_items
+                        for _, item in ipairs(item_groups[item_name]) do
+                            local condition1 = not item.totalDeferredConsumption or item.totalDeferredConsumption < tribute
+                            local condition2 = not item.tribute or item.tribute < tribute
+                            if condition1 or condition2 then
+                                table.insert(all_config_items, item)
+                            end
+                        end
+            
+                        -- 添加到 all_config_items_no_price
+                        for _, item in ipairs(item_groups[item_name]) do
+                            if not item.tribute or (60000 > item.tribute and item.tribute > tribute) then
+                                table.insert(all_config_items_no_price, item)
+                            end
+                        end
+                    end
+                end
+            
+                -- 打印所有存在的配置物品（按 ritual_config 顺序）
+                local mapped_items = {}
+                for _, item_name in ipairs(ritual_config) do
+                    if item_groups[item_name] and #item_groups[item_name] > 0 then
+                        table.insert(mapped_items, item_name)
+                    end
+                end
+                poe2_api.print_log("所有存在的配置物品: " .. table.concat(mapped_items, ", "))
+            
+                return all_config_items, all_config_items_no_price, not_appeared_items
+            end
+            if not poe2_api.click_text_UI({text = "ritual_open_shop_button" , ui_info = UI_info }) then
+                return bret.SUCCESS
+            end
+            
+            local SacrificeItems = api_GetSacrificeItems()
+            if not (0 < SacrificeItems.maxCount and SacrificeItems.maxCount < 10) or not (0 < SacrificeItems.finishedCount and SacrificeItems.finishedCount < 10) or #SacrificeItems.items == 0 then
+                if poe2_api.click_text_UI({text = "ritual_open_shop_button" , ui_info = UI_info ,click = 1 }) then
+                    api_Sleep(500)
+                    return bret.RUNNING
+                end
+                return bret.SUCCESS
+            end
+            
+            local all_items, all_items_no_price, not_appeared_items = _get_valid_items(SacrificeItems.items, SacrificeItems.leftGifts)
+            
+            if SacrificeItems.MaxRefreshCount == SacrificeItems.CurrentRefreshCount and #all_items == 0 then
+                env.buy_items =  false
+                env.have_ritual = false
+                env.not_more_ritual = false
+                if poe2_api.find_text({text = "恩賜之物" , UI_info = UI_info }) then
+                    poe2_api.find_text({text = "恩賜之物" , UI_info = UI_info, min_x = 0 , add_x = 272})
+                    return bret.SUCCESS
+                end
+                return bret.SUCCESS
+            end
+            
+            poe2_api.print_log("祭坛总数:", SacrificeItems.maxCount, " 已完成数量:", SacrificeItems.finishedCount, " 当前贡礼:", SacrificeItems.leftGifts)
+            poe2_api.print_log("祭坛可刷新总数:", SacrificeItems.MaxRefreshCount, " 祭坛已刷新数:", SacrificeItems.CurrentRefreshCount)
+            
+            local life = player_info.remainingPortalCount
+            poe2_api.print_log("剩余重生机会:", life, "次")
+            
+            if #all_items == 0 then
+                poe2_api.print_log("没有可购买物品或者暂缓物品")
+                if SacrificeItems.leftGifts > SacrificeItems.refreshCost and SacrificeItems.MaxRefreshCount > SacrificeItems.CurrentRefreshCount and #not_appeared_items == 0 then
+                    if not poe2_api.find_text({text = "恩賜之物" , UI_info = UI_info, min_x = 0}) then
+                        env.buy_items = true
+                        poe2_api.click_text_UI({text ="ritual_open_shop_button", ui_info = UI_info, click = 1})
+                        api_Sleep(2000)
+                        return bret.RUNNING
+                    end
+                    poe2_api.print_log("第" .. SacrificeItems.CurrentRefreshCount .. "次刷新贡礼")
+                    poe2_api.find_text({text = "恩賜之物" , UI_info = UI_info, click = 2 ,min_x = 0 , add_x = 203, add_y = 53})
+                    api_Sleep(2000)
+                    return bret.RUNNING
+                end
+                
+                if poe2_api.find_text({text ="恩賜之物", UI_info = UI_info}) then
+                    poe2_api.find_text({text = "恩賜之物" , UI_info = UI_info, min_x = 0 , add_x = 272})
+                    env.buy_items =  false
+                    return bret.SUCCESS
+                end
+                
+                env.buy_items =  false
+                return bret.SUCCESS
+            end
+            
+            if SacrificeItems.finishedCount < SacrificeItems.maxCount and #all_items_no_price > 0 and life >= 2 then
+                env.have_ritual = true
+                env.buy_items =  false
+                if poe2_api.find_text({text ="恩賜之物", UI_info = UI_info}) then
+                    poe2_api.find_text({text = "恩賜之物" , UI_info = UI_info, min_x = 0 , add_x = 272})
+                    env.buy_items =  false
+                end
+                return bret.SUCCESS
+            else
+                env.have_ritual = false
+            end
+            env.buy_items =  true
+            if not poe2_api.find_text({text ="恩賜之物", UI_info = UI_info}) then
+                poe2_api.click_text_UI({text ="ritual_open_shop_button", ui_info = UI_info, click = 1})
+                api_Sleep(1000)
+                return bret.RUNNING
+            end
+            
+            -- Buy affordable items
+            local function buy_affordable(item)
+                if not poe2_api.find_text({text = "暫緩道具", UI_info = UI_info}) then
+                    poe2_api.find_text({text ="取消", UI_info = UI_info, click = 2})
+                    api_Sleep(1000)
+                    return bret.RUNNING
+                end
+                
+                poe2_api.print_log("正在购买 " .. item.baseType_utf8)
+                if poe2_api.ctrl_left_click_altar_items(item.obj, all_items) then
+                    api_Sleep(500)
+                end
+            end
+            local function refresh_UI()
+                UI_info = {}
+                local size =  UiElements:Update()
+                -- poe2_api.print_log(size .. "\n")
+                if size > 0 then
+                    local sum = 0;
+                    for i = 0, size - 1, 1 do
+                        sum = sum + 1
+                        table.insert(UI_info, UiElements[i])
+                    end
+                else
+                    poe2_api.print_log("未发现UI信息\n")
+                    api_Sleep(4000)
+                    return bret.RUNNING
+                end
+                env.UI_info = UI_info
+            end
+            -- Defer items
+            local function deferred(item)
+                if poe2_api.find_text({text = "暫緩道具", UI_info = UI_info}) then
+                    poe2_api.find_text({text = "暫緩道具", UI_info = UI_info, click = 2})
+                    api_Sleep(1000)
+                    return bret.RUNNING
+                end
+                
+                if poe2_api.find_text({text = "確認", UI_info = UI_info}) then
+                    poe2_api.find_text({text = "恩賜之物" , UI_info = UI_info ,click = 2 , min_x = 0 , add_x = 272})
+                    api_Sleep(500)
+                    return bret.RUNNING
+                end
+                
+                poe2_api.print_log("暫緩 " .. item.baseType_utf8)
+                if poe2_api.ctrl_left_click_altar_items(item.obj, all_items, 2) then
+                    api_Sleep(500)
+                end
+                refresh_UI()
+                poe2_api.find_text({text = "確認", UI_info = UI_info, click = 2})
+            end
+            
+            if #all_items > 0 then
+                for _, item in ipairs(all_items) do
+                    SacrificeItems = api_GetSacrificeItems()
+                    if item.tribute < SacrificeItems.leftGifts then
+                        buy_affordable(item)
+                        api_Sleep(500)
+                        return bret.RUNNING
+                    else
+                        deferred(item)
+                        api_Sleep(500)
+                        return bret.RUNNING
+                    end
+                end
+            end
+            
+            return bret.RUNNING
         end
     },
-
     -- 游戏保险箱
     Gameplay_Safe_Box = {
         run = function(self, env)
@@ -5086,7 +5315,7 @@ local otherworld_bt = {}
 function otherworld_bt.create()
     -- 直接使用已定义的 env_params，并更新配置
     
-    local bt = behavior_tree.new("Dizhu", env_params)
+    local bt = behavior_tree.new("shop", env_params)
     -- local bt = behavior_tree.new("gongji", env_params)
     -- local bt = behavior_tree.new("moveTo", env_params)
     return bt

@@ -3,10 +3,8 @@ api_Log("清除 otherworld 模块的缓存")
 package.loaded['otherworld'] = nil
 local otherworld = require 'otherworld'
 
-
 -- 创建行为树
 local bt = otherworld.create()
-
 -- -- 运行行为树
 -- api_Log("开始运行行为树...")
 i = 0
