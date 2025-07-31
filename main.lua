@@ -1,33 +1,30 @@
 package.path = package.path .. ';./path/to/module/?.lua'
+
+-- 每次加载时清除 otherworld 模块的缓存
 api_Log("清除 otherworld 模块的缓存")
 package.loaded['otherworld'] = nil
+
 local otherworld = require 'otherworld'
 
 -- 创建行为树
 local bt = otherworld.create()
--- -- 运行行为树
--- api_Log("开始运行行为树...")
+
 i = 0
 while true do
     i = i + 1
-    -- api_Log("\n=== 游戏Tick", i, "===")
+    
+    -- 记录开始时间（毫秒）
+    local start_time = api_GetTickCount64()  -- 转换为 ms
+    
     bt:interrupt()  -- 清空节点栈和YIELD标记
     bt:run()
-    -- api_Sleep(1000)
+    
+    -- 计算当前 Tick 耗时（毫秒）
+    local elapsed_ms = (api_GetTickCount64()) - start_time
+    api_Log(string.format("Tick %d | 耗时: %.2f ms", i, elapsed_ms))
+    api_Log(string.format("-------------------------------------------------------------------------------------------------------------"))
+    -- 可选：控制打印频率（如每 N 次打印一次）
+    -- if i % 10 == 0 then
+    --     api_Log(string.format("Tick %d | 耗时: %.2f ms", i, elapsed_ms))
+    -- end
 end
--- otherworld.run(bt)
-
--- local size =  WorldItems:Update()
--- api_Log(size .. "\n")
--- if size > 0 then
---     api_Log(size .. "\n")
---     local sum = 0;
---     for i = 0, size - 1, 1 do
---         sum = sum + 1
---         api_Log("index:" .. i .. " " .. WorldItems[i].name_utf8)
---         -- api_Log("index:" .. i .. " " .. WorldItems[i].baseType_utf8)
---     end
-
---     api_Log("sum:" .. sum .. "\n")
-
--- end

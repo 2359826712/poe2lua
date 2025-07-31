@@ -37,15 +37,12 @@
 --   @param y 游戏世界Y坐标（浮点型）
 --   @param world_z 游戏世界高度坐标（浮点型）
 --   @param mode 移动模式：
---       1. 鼠标移动+左键点击（按下+释放）
---       2. 鼠标移动+右键点击（按下+释放）
---       3. 鼠标移动+左键按下
---       4. 鼠标移动+左键释放
---       5. 鼠标移动+右键按下
---       6. 鼠标移动+右键释放
---       7. 鼠标移动+中键点击（按下+释放）
---       8. 鼠标移动+中键按下
---       9. 鼠标移动+中键释放
+--     0=只移动
+--     1=移动+左键点击, 2=移动+右键点击,
+--     3=移动+左键按下, 4=移动+左键释放,
+--     5=移动+右键按下, 6=移动+右键释放 ,
+--     7=移动+中键点击, 8=移动+中键按下 ,
+--     9=移动+中键释放
 --   @return nil
 
 -- api_FindPath(start_x, start_y, end_x, end_y) - 查找两点间路径
@@ -238,3 +235,50 @@
 --   @param grid_x 兑换点X坐标（网格坐标）
 --   @param grid_y 兑换点Y坐标（网格坐标）
 --   @return table 通货兑换数组，每个元素包含兑换规则
+
+
+-- api_CheckMapStatus() - 查询地图状态
+--   @return table 地图状态
+--   { isCompleted, monsterCount} isCompleted代表该地图是否完成，monsterCount代表当前怪物剩余数量
+
+
+-- api_GetEndgameMapNodes() - 获取 endgame map nodes information
+
+
+-- 功能：获取终章地图所有节点的详细信息
+-- 返回值：包含所有节点数据的数组（索引从1开始）[{ui_obj,name_cn_utf8...}]
+
+
+-- 每个节点包含的字段：
+-- - ui_obj: 节点UI对象引用
+-- - name_cn_utf8: 节点中文名称（UTF8编码）
+-- - name_utf8: 节点名称（UTF8编码）
+-- - type_name_utf8: 节点类型名称（UTF8编码）
+-- - isMapAccessible: 是否可访问（布尔值）
+-- - window_client_x: 窗口客户端X坐标
+-- - window_client_y: 窗口客户端Y坐标
+-- - index_x: 索引X坐标
+-- - index_y: 索引Y坐标
+-- - position_x: 位置X坐标
+-- - position_y: 位置Y坐标
+-- - nodeStatus: 节点状态（数值）
+-- - isCompleted: 是否已完成（布尔值）
+-- - monumentUnlockCount: 纪念碑解锁数量
+-- - requiredMapLevel: 所需地图等级
+-- - mapPlayModes: 游戏模式数组（索引从1开始）
+
+
+-- ---------------------------- 全局数组类型 ----------------------------
+-- Actors 周围对象数组
+-- Actors:GetStateMachineList() 获取状态数组
+-- 返回值:map表{k:v}
+
+
+-- Actors:GetObjectMagicProperties() 获取魔法属性数组
+-- 返回值:字符串数组{"",""...}
+
+
+-- WorldItems 地面物品数组
+
+
+-- UiElements UI数组

@@ -1,0 +1,165 @@
+{
+  "name": "Dizhu",
+  "root": {
+    "id": 1,
+    "name": "Sequence",
+    "children": [
+      {
+        "id": 2,
+        "name": "Get_User_Config_Info",
+        "desc": "获取用户配置信息"
+      },
+      {
+        "id": 3,
+        "name": "Get_UI_Info"
+      },
+      {
+        "id": 4,
+        "name": "Get_Info",
+        "desc": "获取信息"
+      },
+      {
+        "id": 5,
+        "name": "Selector",
+        "desc": "drip_infusion",
+        "children": [
+          {
+            "id": 6,
+            "name": "need_to_instill",
+            "desc": "是否要滴注"
+          },
+          {
+            "id": 7,
+            "name": "Sequence",
+            "desc": "check_item",
+            "children": [
+              {
+                "id": 8,
+                "name": "check_bag",
+                "desc": "检查背包物品"
+              },
+              {
+                "id": 9,
+                "name": "Sequence",
+                "desc": "open_and_out",
+                "children": [
+                  {
+                    "id": 10,
+                    "name": "Selector",
+                    "desc": "cangku",
+                    "children": [
+                      {
+                        "id": 11,
+                        "name": "Open_Warehouse",
+                        "desc": "仓库页是否已打开"
+                      },
+                      {
+                        "id": 12,
+                        "name": "Sequence",
+                        "desc": "Interactive",
+                        "children": [
+                          {
+                            "id": 13,
+                            "name": "Game_Block",
+                            "desc": "清理遮挡"
+                          },
+                          {
+                            "id": 14,
+                            "name": "Selector",
+                            "desc": "move_to_object",
+                            "children": [
+                              {
+                                "id": 15,
+                                "name": "Click_Item_Text",
+                                "desc": "点击交互"
+                              },
+                              {
+                                "id": 16,
+                                "name": "Sequence",
+                                "desc": "Path_Move",
+                                "children": [
+                                  {
+                                    "id": 17,
+                                    "name": "Game_Block",
+                                    "desc": "清除遮挡"
+                                  },
+                                  {
+                                    "id": 18,
+                                    "name": "Is_Arrive",
+                                    "desc": "是否到点"
+                                  },
+                                  {
+                                    "id": 19,
+                                    "name": "GET_Path"
+                                  },
+                                  {
+                                    "id": 20,
+                                    "name": "Move_To_Target_Point",
+                                    "desc": "移动至目标点"
+                                  }
+                                ]
+                              }
+                            ]
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "id": 21,
+                    "name": "Warehouse_pickup_items",
+                    "desc": "仓库取物品"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "id": 22,
+            "name": "is_bag_page",
+            "desc": "是否已打开背包"
+          },
+          {
+            "id": 23,
+            "name": "res_item",
+            "desc": "重置页面物品"
+          },
+          {
+            "id": 24,
+            "name": "Sequence",
+            "desc": "dizhu_page",
+            "children": [
+              {
+                "id": 25,
+                "name": "Check_the_drip_page",
+                "desc": "是否已打开滴注页面"
+              },
+              {
+                "id": 26,
+                "name": "open_drip_page",
+                "desc": "打开滴注页面"
+              }
+            ]
+          },
+          {
+            "id": 27,
+            "name": "Sequence",
+            "desc": "place",
+            "children": [
+              {
+                "id": 28,
+                "name": "place_key"
+              },
+              {
+                "id": 29,
+                "name": "place_refining"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "export": true,
+  "desc": ""
+}

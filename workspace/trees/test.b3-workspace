@@ -1,0 +1,44 @@
+{
+  "files": [
+    {
+      "path": "attack_target 1.json",
+      "desc": ""
+    },
+    {
+      "path": "attack_target.json",
+      "desc": ""
+    },
+    {
+      "path": "Dizhu.json",
+      "desc": ""
+    },
+    {
+      "path": "hero.json",
+      "desc": "英雄测试AI"
+    },
+    {
+      "path": "monster.json",
+      "desc": "怪物测试AI"
+    },
+    {
+      "path": "moveTo.json",
+      "desc": ""
+    },
+    {
+      "path": "otherworld.json",
+      "desc": ""
+    },
+    {
+      "path": "out_id.json",
+      "desc": ""
+    },
+    {
+      "path": "out_id1.json",
+      "desc": ""
+    },
+    {
+      "path": "take_map.json",
+      "desc": ""
+    }
+  ]
+}

@@ -1,0 +1,123 @@
+{
+  "name": "gongji",
+  "root": {
+    "id": 1,
+    "name": "Sequence",
+    "desc": "攻击",
+    "children": [
+      {
+        "id": 2,
+        "name": "Get_User_Config_Info"
+      },
+      {
+        "id": 3,
+        "name": "Get_UI_Info"
+      },
+      {
+        "id": 4,
+        "name": "Get_Info"
+      },
+      {
+        "id": 5,
+        "name": "Check_Is_Need_Attack",
+        "desc": "检查是否需要攻击"
+      },
+      {
+        "id": 6,
+        "name": "Game_Block",
+        "desc": "清除遮挡"
+      },
+      {
+        "id": 7,
+        "name": "DodgeAction",
+        "desc": "躲避技能"
+      },
+      {
+        "id": 8,
+        "name": "Sequence",
+        "children": [
+          {
+            "id": 9,
+            "name": "Selector",
+            "desc": "attack_move",
+            "children": [
+              {
+                "id": 10,
+                "name": "ReleaseSkillAction",
+                "desc": "释放技能"
+              },
+              {
+                "id": 11,
+                "name": "Sequence",
+                "desc": "Path_Move",
+                "children": [
+                  {
+                    "id": 12,
+                    "name": "Game_Block",
+                    "desc": "清除遮挡"
+                  },
+                  {
+                    "id": 13,
+                    "name": "Is_Arrive",
+                    "desc": "是否到点"
+                  },
+                  {
+                    "id": 14,
+                    "name": "GET_Path",
+                    "desc": "获取路径"
+                  },
+                  {
+                    "id": 15,
+                    "name": "Move_To_Target_Point",
+                    "desc": "移动至目标点"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "id": 16,
+            "name": "Selector",
+            "desc": "rare_mos_move",
+            "children": [
+              {
+                "id": 17,
+                "name": "Find_Monster",
+                "desc": "找精英怪"
+              },
+              {
+                "id": 18,
+                "name": "Sequence",
+                "desc": "Path_Move",
+                "children": [
+                  {
+                    "id": 19,
+                    "name": "Game_Block",
+                    "desc": "清除遮挡"
+                  },
+                  {
+                    "id": 20,
+                    "name": "Is_Arrive",
+                    "desc": "是否到点"
+                  },
+                  {
+                    "id": 21,
+                    "name": "GET_Path",
+                    "desc": "获取路径"
+                  },
+                  {
+                    "id": 22,
+                    "name": "Move_To_Target_Point",
+                    "desc": "移动至目标点"
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "export": true,
+  "desc": ""
+}

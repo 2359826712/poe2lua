@@ -1,90 +1,93 @@
-# 行为树框架 for Lua
-机缘巧合，近几年的工作一直有涉及到游戏AI这块，网上常见的行为树+黑板似乎不太能满足复杂策划需求，也不太可能让策划自己去配置这种行为树。因此，我对行为树的黑板进行了小改造，让行为树更像一个代码编辑器，我们程序提供为数不多的行为节点，让策划通过编辑行为树来实现他们想要的逻辑，这对于游戏程序员来说也算是一种解放吧。
+# POE2Lua
 
-## 基本概念
-#### 节点数据结构
-```lua
-{
-    name = 'find_enemy',        -- 节点名称
-    desc = '查找敌人'，          -- 说明
-    args = {w = 100, h = 50},   -- 常量配置
-    input = {'var1', 'var2'},   -- 输入变量
-    output = {'target'},        -- 输出变量
-    children = {}               -- 子节点
-}
+glpat-n6FT23YkVActxCjy1Mt1
+
+## Getting started
+
+To make it easy for you to get started with GitLab, here's a list of recommended next steps.
+
+Already a pro? Just edit this README.md and make it your own. Want to make it easy? [Use the template at the bottom](#editing-this-readme)!
+
+## Add your files
+
+- [ ] [Create](https://docs.gitlab.com/ee/user/project/repository/web_editor.html#create-a-file) or [upload](https://docs.gitlab.com/ee/user/project/repository/web_editor.html#upload-a-file) files
+- [ ] [Add files using the command line](https://docs.gitlab.com/ee/gitlab-basics/add-file.html#add-a-file-using-the-command-line) or push an existing Git repository with the following command:
+
 ```
-#### 常量
-通常是固定值，比如范围，类型之类的
-#### 输入/输出变量
-因为节点之间都有相互的影响，比如这个节点可能会用到上一个节点所产生的数据，所以大多数行为树设计者都提供一个数据结构来记录行为树的运行状态，称之为“黑板”。
-
-我偷换了个概念，把节点当成一个function来执行，如上面一个节点定义的input={'var1', 'var2'}意思是在执行节点前从黑板里把var1和var2这两个变量取出来，作为参数传进去，在节点执行完后把结果返回，写到target这个变量上。整个过程就像下面这段伪代码：
-```lua
-function find_enemy(var1, var2)
-    local w, h = args.w, args.h
-    // do find enemy in range w, h
-    ...
-    return target
-end
-```
-上面这个节点执行完，黑板上target这个变量就写上了查找到的目标，而后面的节点就可以使用target这个变量作为input了。
-```lua
-{
-    name = 'attack',
-    desc = '攻击敌人',
-    args = {skill = 101},
-    input = {'target'},
-}
-```
-#### 状态返回
-+ SUCCESS 成功
-+ FAIL 失败
-+ RUNNING 正在运行
-
-## 复合节点
-+ Parallel 并行执行, 执行所有子节点并反回true
-+ Sequence 顺序执行，执行所有子节点直到返回false
-+ Selector 选择执行，执行所有子节点直到返回true
-
-## 装饰节点
-+ Not 取反
-+ AlwaysSuccess
-+ AlwaysFail
-
-## 行为节点
-+ Wait 等待一段时间后继续执行
-+ MoveToTarget 移动到目标
-+ GetHp 获取生命值
-+ Attack 攻击目标
-
-## API
-+ new 创建新的行为树对象
-+ run 执行一次tick
-+ set_var 设置变量
-+ get_var 获取变量
-
-## Running状态
-做行为树始终绕不开一个问题，就是running状态，如果一套行为树方案没有running状态，那它只能用来做决策树，而不能做持续动作。要想实现running状态，关键是如何用上一次运行的节点恢复起来。行为树的节点调用很像程序的调用栈，其实对复合节点稍做改造即可实现：
-+ 只要是有任意子节点返回的是RUNNING, 立即返回RUNNING。
-+ 运行节点前把节点压入栈，如果该节点返回RUNNING，则中断执行，等待下次tick唤醒，如果返回的是SUCCESS或FAIL，则出栈，继续往下执行。
-![](readme/running.png)
-
-## 编辑器
-我用阿里的g6图形库开发了一个通用的行为树编辑器，并用electron打包成exe版本，目前还比较简陋，感兴趣的同学可以关注一下 [behavior3editor](https://github.com/zhandouxiaojiji/behavior3editor)
-![](readme/editor.png)
-
-## 运行测试用例
-+ 导出节点定义
-```
-lua export_node.lua
-```
-+ 运行测试
-```
-lua test.lua
+cd existing_repo
+git remote add origin http://192.168.2.16/WeeklyRich/poe2lua.git
+git branch -M main
+git push -uf origin main
 ```
 
-## 调试方案
-我以前的做法是，把每一tick所有的节点执行结果都发给编辑器然后在编辑器上展示，非常详细，但实际应用却很鸡肋，太多冗余的数据让人眼花缭乱。我目前的做法是在编辑行为树的时候，把需要调试的节点打上标志，当行为树运行到这个节点的时候，打印这个节点相关的日志，比如时间/帧数，执行结果，及所有变量的值。
+## Integrate with your tools
 
-## About
-这套方案我已经在好几个项目中使用过，动作，卡牌，MOBA，MMO类都有，提供三四十种节点，基本上策划可以自己配置出一套很复杂的AI，当然还可以使用在技能系统之类的，需要更直观的逻辑表现的系统。这仅仅是一种思路，各位路过的大神，有啥建议或看法，欢迎Issue。
+- [ ] [Set up project integrations](http://192.168.2.16/WeeklyRich/poe2lua/-/settings/integrations)
+
+## Collaborate with your team
+
+- [ ] [Invite team members and collaborators](https://docs.gitlab.com/ee/user/project/members/)
+- [ ] [Create a new merge request](https://docs.gitlab.com/ee/user/project/merge_requests/creating_merge_requests.html)
+- [ ] [Automatically close issues from merge requests](https://docs.gitlab.com/ee/user/project/issues/managing_issues.html#closing-issues-automatically)
+- [ ] [Enable merge request approvals](https://docs.gitlab.com/ee/user/project/merge_requests/approvals/)
+- [ ] [Set auto-merge](https://docs.gitlab.com/ee/user/project/merge_requests/merge_when_pipeline_succeeds.html)
+
+## Test and Deploy
+
+Use the built-in continuous integration in GitLab.
+
+- [ ] [Get started with GitLab CI/CD](https://docs.gitlab.com/ee/ci/quick_start/index.html)
+- [ ] [Analyze your code for known vulnerabilities with Static Application Security Testing (SAST)](https://docs.gitlab.com/ee/user/application_security/sast/)
+- [ ] [Deploy to Kubernetes, Amazon EC2, or Amazon ECS using Auto Deploy](https://docs.gitlab.com/ee/topics/autodevops/requirements.html)
+- [ ] [Use pull-based deployments for improved Kubernetes management](https://docs.gitlab.com/ee/user/clusters/agent/)
+- [ ] [Set up protected environments](https://docs.gitlab.com/ee/ci/environments/protected_environments.html)
+
+***
+
+# Editing this README
+
+When you're ready to make this README your own, just edit this file and use the handy template below (or feel free to structure it however you want - this is just a starting point!). Thanks to [makeareadme.com](https://www.makeareadme.com/) for this template.
+
+## Suggestions for a good README
+
+Every project is different, so consider which of these sections apply to yours. The sections used in the template are suggestions for most open source projects. Also keep in mind that while a README can be too long and detailed, too long is better than too short. If you think your README is too long, consider utilizing another form of documentation rather than cutting out information.
+
+## Name
+Choose a self-explaining name for your project.
+
+## Description
+Let people know what your project can do specifically. Provide context and add a link to any reference visitors might be unfamiliar with. A list of Features or a Background subsection can also be added here. If there are alternatives to your project, this is a good place to list differentiating factors.
+
+## Badges
+On some READMEs, you may see small images that convey metadata, such as whether or not all the tests are passing for the project. You can use Shields to add some to your README. Many services also have instructions for adding a badge.
+
+## Visuals
+Depending on what you are making, it can be a good idea to include screenshots or even a video (you'll frequently see GIFs rather than actual videos). Tools like ttygif can help, but check out Asciinema for a more sophisticated method.
+
+## Installation
+Within a particular ecosystem, there may be a common way of installing things, such as using Yarn, NuGet, or Homebrew. However, consider the possibility that whoever is reading your README is a novice and would like more guidance. Listing specific steps helps remove ambiguity and gets people to using your project as quickly as possible. If it only runs in a specific context like a particular programming language version or operating system or has dependencies that have to be installed manually, also add a Requirements subsection.
+
+## Usage
+Use examples liberally, and show the expected output if you can. It's helpful to have inline the smallest example of usage that you can demonstrate, while providing links to more sophisticated examples if they are too long to reasonably include in the README.
+
+## Support
+Tell people where they can go to for help. It can be any combination of an issue tracker, a chat room, an email address, etc.
+
+## Roadmap
+If you have ideas for releases in the future, it is a good idea to list them in the README.
+
+## Contributing
+State if you are open to contributions and what your requirements are for accepting them.
+
+For people who want to make changes to your project, it's helpful to have some documentation on how to get started. Perhaps there is a script that they should run or some environment variables that they need to set. Make these steps explicit. These instructions could also be useful to your future self.
+
+You can also document commands to lint the code or run tests. These steps help to ensure high code quality and reduce the likelihood that the changes inadvertently break something. Having instructions for running tests is especially helpful if it requires external setup, such as starting a Selenium server for testing in a browser.
+
+## Authors and acknowledgment
+Show your appreciation to those who have contributed to the project.
+
+## License
+For open source projects, say how it is licensed.
+
+## Project status
+If you have run out of energy or time for your project, put a note at the top of the README saying that development has slowed down or stopped completely. Someone may choose to fork your project or volunteer to step in as a maintainer or owner, allowing your project to keep going. You can also make an explicit request for maintainers.

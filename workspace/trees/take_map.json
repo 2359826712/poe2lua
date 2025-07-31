@@ -1,0 +1,115 @@
+{
+  "name": "take_map",
+  "root": {
+    "id": 1,
+    "name": "Sequence",
+    "children": [
+      {
+        "id": 2,
+        "name": "Get_User_Config_Info",
+        "debug": true
+      },
+      {
+        "id": 3,
+        "name": "Get_UI_Info"
+      },
+      {
+        "id": 4,
+        "name": "Get_Info"
+      },
+      {
+        "id": 5,
+        "name": "Join_Game_Otherworld"
+      },
+      {
+        "id": 6,
+        "name": "Selector",
+        "desc": "take_map",
+        "children": [
+          {
+            "id": 7,
+            "name": "Is_Need_Take_Map",
+            "desc": "是否需要拿地图"
+          },
+          {
+            "id": 8,
+            "name": "Selector",
+            "desc": "take_map_from_store",
+            "children": [
+              {
+                "id": 9,
+                "name": "Take_Map",
+                "desc": "取地图"
+              },
+              {
+                "id": 10,
+                "name": "Selector",
+                "desc": "open_warehouse",
+                "children": [
+                  {
+                    "id": 11,
+                    "name": "Open_Warehouse",
+                    "desc": "仓库页是否打开"
+                  },
+                  {
+                    "id": 12,
+                    "name": "Sequence",
+                    "desc": "Interactive",
+                    "children": [
+                      {
+                        "id": 13,
+                        "name": "Game_Block",
+                        "desc": "清理遮挡"
+                      },
+                      {
+                        "id": 14,
+                        "name": "Selector",
+                        "desc": "move_to_object",
+                        "children": [
+                          {
+                            "id": 15,
+                            "name": "Click_Item_Text",
+                            "desc": "点击交互"
+                          },
+                          {
+                            "id": 16,
+                            "name": "Sequence",
+                            "desc": "Path_Move",
+                            "children": [
+                              {
+                                "id": 17,
+                                "name": "Game_Block",
+                                "desc": "清除遮挡"
+                              },
+                              {
+                                "id": 18,
+                                "name": "Is_Arrive",
+                                "desc": "是否到点"
+                              },
+                              {
+                                "id": 19,
+                                "name": "GET_Path",
+                                "desc": "获取路径"
+                              },
+                              {
+                                "id": 20,
+                                "name": "Move_To_Target_Point",
+                                "desc": "移动至目标点"
+                              }
+                            ]
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "export": true,
+  "desc": ""
+}

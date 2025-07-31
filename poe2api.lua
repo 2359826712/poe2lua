@@ -12,7 +12,7 @@ local START_Y_STORE = 102
 
 _M.point_distance = function(x, y, ac)
     -- 检查 x, y 是否为有效数字
-    if type(x) ~= "number" or type(y) ~= "number" then
+    if type(x) ~= "number" or type(y) ~= "number" or type(x) == 0 or type(y) == 0 then
         return nil -- 或者返回 nil，取决于你的需求
     end
 
@@ -40,23 +40,12 @@ _M.point_distance = function(x, y, ac)
     return distance or nil -- 确保返回值有效
 end
 
--- 查找文本函数
---- 在指定区域内查找文本并执行点击操作
--- @param params 参数表，包含以下可选字段：
---   text: 要查找的文本内容
---   UI_info: UI元素信息表
---   click: 点击类型(0不点击,1左键,2右键,3长按,4Ctrl+左键,5Ctrl+右键)
---   min_x, min_y, max_x, max_y: 搜索区域坐标范围
---   add_x, add_y: 点击位置偏移量
---   match: 匹配模式(0精确匹配,2模糊匹配)
---   threshold: 匹配阈值(默认0.8)
---   position: 返回位置信息(0不返回,1返回矩形坐标,2返回完整元素,3返回中心点坐标)
--- @return 根据position参数返回不同结果，默认返回操作是否成功
+-- 查找文本
 _M.find_text = function(params)
     -- 设置默认值
     local defaults = {
         text = "",
-        UI_info = nil,
+        refresh = false,
         click = 0,
         min_x = 450,
         min_y = 0,
@@ -68,42 +57,67 @@ _M.find_text = function(params)
         threshold = 0.8,
         position = 0,
         sorted = false,
+        UI_info = nil
     }
-    -- 合并 params
-    for k, v in pairs(params) do
-        defaults[k] = v
-    end
-    if (not defaults.UI_info) or #defaults.UI_info == 0 then
-        _M.dbgp("find_text没有找到UI信息")
+    -- 合并传入参数和默认值
+    for k, v in pairs(params) do defaults[k] = v end
+
+    -- 参数验证
+    if type(defaults.text) ~= "string" and type(defaults.text) ~= "table" then
+        error("find_text: text参数必须是字符串或表格")
         return false
+    end
+    
+    if defaults.refresh or not defaults.UI_info then
+        _M.print_log("defaults.refresh\n")
+        UiElements:Update()
+        if #UiElements < 1 then
+            _M.dbg("未发现UI信息\n")
+        end
+        defaults.UI_info = UiElements
     end
 
     if defaults.UI_info then
         if defaults.sorted then
             -- _M.dbgp("paixvvvvvvvv")
             local text_list = {}
-            for _, actor in ipairs(defaults and defaults.UI_info or {}) do
+            for _, actor in ipairs(defaults.UI_info) do
                 if actor.text_utf8 ~= nil and actor.text_utf8 ~= "" then
                     -- _M.dbgp(actor.text_utf8)
                     if defaults.min_x <= actor.left and actor.left <=
                         defaults.max_x and defaults.min_y <= actor.top and
                         actor.top <= defaults.max_y then
                         if defaults.match == 2 then
-                            for _, v in ipairs(defaults.text) do
-                                if string.find(actor.text_utf8, v) then
+                            if type(defaults.text) == "table" then
+                                for _, v in ipairs(defaults.text) do
+                                    if string.find(actor.text_utf8, v) then
+                                        table.insert(text_list, actor)
+                                    end
+                                end
+                            else
+                                if string.find(actor.text_utf8, defaults.text) then
                                     table.insert(text_list, actor)
                                 end
                             end
+                            
                         else
-                            for _, v in ipairs(defaults.text) do
-                                if v == text then
+                            if type(defaults.text) == "table" then
+                                for _, v in ipairs(defaults.text) do
+                                    if v == actor.text_utf8 then
+                                        table.insert(text_list, actor)
+                                    end
+                                end
+                            else
+                                if defaults.text == actor.text_utf8 then
                                     table.insert(text_list, actor)
                                 end
                             end
+                            
                         end
                     end
                 end
             end
+
 
             local function target_distance(actor)
                 -- 计算与玩家的距离
@@ -113,31 +127,46 @@ _M.find_text = function(params)
                 return distance
             end
 
+
             if text_list and #text_list > 0 then
                 table.sort(text_list, function(a, b)
                     return target_distance(a) < target_distance(b)
                 end)
 
+
                 local center_x = (text_list[1].left + text_list[1].right) / 2
                 local center_y = (text_list[1].top + text_list[1].bottom) / 2
                 local x, y = center_x, center_y
 
-                if click == 1 then
+
+                if defaults.click == 1 then
                     api_ClickScreen(math.floor(x + defaults.add_x),
                                     math.floor(y + defaults.add_y), 0)
-                elseif click == 2 then
+                elseif defaults.click == 2 then
                     api_ClickScreen(math.floor(x + defaults.add_x),
                                     math.floor(y + defaults.add_y), 0)
                     api_Sleep(200)
                     api_ClickScreen(math.floor(x + defaults.add_x),
                                     math.floor(y + defaults.add_y), 1)
+                elseif defaults.click == 3 then
+                    local hold_time = 8
+                    api_ClickScreen(math.floor(x + defaults.add_x),
+                                    math.floor(y + defaults.add_y), 3)
+                    api_Sleep(hold_time * 1000)
+                    api_ClickScreen(math.floor(x + defaults.add_x),
+                                    math.floor(y + defaults.add_y), 4)
+                elseif defaults.click == 4 then
+                    _M.ctrl_left_click(math.floor(x + defaults.add_x),
+                                        math.floor(y + defaults.add_y))
+                elseif defaults.click == 5 then
+                    _M.ctrl_right_click(math.floor(x + defaults.add_x),
+                                        math.floor(y + defaults.add_y))
                 end
 
                 return true -- 找到符合条件的 actor，返回成功
             end
-
         else
-            for _, actor in ipairs(defaults and defaults.UI_info or {}) do
+            for _, actor in ipairs(defaults.UI_info) do
                 if defaults.min_x <= actor.left and actor.left <= defaults.max_x and
                     defaults.min_y <= actor.top and actor.top <= defaults.max_y then
                     local shouldProcess = true
@@ -159,6 +188,7 @@ _M.find_text = function(params)
                     end
                     if defaults.match == 2 then
                         if type(defaults.text) ~= "string" then
+
                             if not text_data(actor.text_utf8) then
                                 shouldProcess = false
                             end
@@ -184,6 +214,10 @@ _M.find_text = function(params)
                         local center_y = (actor.top + actor.bottom) / 2
                         local x, y = center_x, center_y
 
+                        if defaults.text == "XV" then
+                            _M.dbgp(actor.text_utf8)
+                        end
+                        
                         if defaults.click == 1 then
                             api_ClickScreen(math.floor(x + defaults.add_x),
                                             math.floor(y + defaults.add_y), 0)
@@ -249,44 +283,6 @@ _M.extract_coordinates = function(vec2_array, step)
     table.insert(result, vec2_array[#vec2_array])
 
     return result
-end
-
---- 打印 table 内容（递归处理嵌套 table）
--- @param tbl 要打印的 table
--- @param indent 缩进（可选，用于格式化嵌套 table）
-_M.printTable = function(tbl, indentLevel, visited)
-    indentLevel = indentLevel or 0
-    local indent = string.rep("  ", indentLevel)
-    visited = visited or {} -- 用于检测循环引用
-
-    if type(tbl) ~= "table" then
-        _M.dbgp(indent .. "Value is not a table: " .. tostring(tbl))
-        return
-    end
-
-    if next(tbl) == nil then -- 检查空表
-        _M.dbgp(indent .. "{}  -- empty table")
-        return
-    end
-
-    visited[tbl] = true
-    _M.dbgp(indent .. "{")
-
-    for k, v in pairs(tbl) do
-        local keyStr = "[" .. tostring(k) .. "] = "
-        if type(v) == "table" then
-            if visited[v] then
-                _M.dbgp(indent .. "  " .. keyStr .. "<cycle reference>")
-            else
-                _M.dbgp(indent .. "  " .. keyStr)
-                _M.dbgp(v, indentLevel + 1, visited)
-            end
-        else
-            _M.dbgp(indent .. "  " .. keyStr .. tostring(v))
-        end
-    end
-
-    _M.dbgp(indent .. "}")
 end
 
 -- 读取json文件
@@ -480,7 +476,7 @@ _M.exec_cmd = function(cmd)
 end
 
 -- 安全转为整数（带空值处理）
-_M.toExactInt = function(value, default)
+_M.toInt = function(value, default)
     -- 默认值处理（如果传入default参数）
     if value == nil then
         return default or 0  -- 可自定义默认值
@@ -524,30 +520,28 @@ end
 --- 检查是否存在符合条件的怪物
 _M.is_have_mos = function(params)
     -- 参数默认值与校验
-    mos = params.mos or {}
+    range_info = params.range_info or nil
     player_info = params.player_info
     dis = params.dis or 180
-    not_sight = params.not_sight or 0
+    not_sight = params.not_sight or false
     stuck_monsters = params.stuck_monsters or nil
     not_attack_mos = params.not_attack_mos or nil
     is_active = params.is_active == nil and true or is_active
 
     -- 快速失败检查
-    if not params.mos or not params.player_info then 
-        return false 
+    if not range_info then 
+        params.range_info = Actors:Update()
     end
     
-    -- 预处理常量
-    local check_sight = params.not_sight == 1
 
     -- 怪物检查主逻辑
-    for _, monster in ipairs(params.mos) do
+    for _, monster in ipairs(params.range_info) do
         -- 快速跳过不符合基本条件的怪物
         if monster.type ~= 1 or                  -- 类型检查
         not monster.is_selectable or          -- 可选性检查
         monster.is_friendly or                -- 友方检查
         monster.life <= 0 or                  -- 生命值检查
-        not monster.name_utf8 or              -- 名称检查
+        monster.name_utf8 == "" or              -- 名称检查
         _M.table_contains(my_game_info.not_attact_mons_CN_name,monster.name_utf8) or
         _M.table_contains(my_game_info.not_attact_mons_path_name,monster.name_utf8)then  -- 路径名检查
             goto continue
@@ -563,7 +557,7 @@ _M.is_have_mos = function(params)
         end
 
         -- 检查不攻击的怪物
-        _M.print_log("检查不攻击的怪物")
+        -- _M.print_log("检查不攻击的怪物")
         if params.not_attack_mos then
             if _M.table_contains(params.not_attack_mos,monster.rarity) then
                 goto continue
@@ -579,7 +573,7 @@ _M.is_have_mos = function(params)
         local distance = _M.point_distance(monster.grid_x, monster.grid_y, player_info)
         if distance and distance <= dis then
             -- 检查视野
-            if not check_sight or monster.hasLineOfSight then
+            if not params.not_sight and monster.hasLineOfSight then
                 return true
             end
         end
@@ -609,14 +603,14 @@ _M.table_contains = function(a, b)
 end
 
 -- 是否有Boss
-_M.is_have_mos_boss = function(mos, boss_list)
-    if not mos or not boss_list then return false end
+_M.is_have_mos_boss = function(range_info, boss_list)
+    if not boss_list then return false end
 
     BOSS_WHITELIST = {'多里亞尼'}
     MOB_BLACKLIST = {"惡魔", '複製體', "隱形", "複製之躰"}
     rarity_list = {2, 3}
 
-    for _, monster in ipairs(mos) do
+    for _, monster in ipairs(range_info) do
         if monster.is_selectable and not monster.is_friendly and monster.life >
             0 and monster.name_utf8 and
             (monster.rarity == 2 or monster.rarity == 3) then
@@ -667,7 +661,7 @@ _M.right_click = function(x, y)
     end
 end
 
--- 获取背包物品中心点（Lua优化版）
+-- 获取背包物品中心点
 _M.get_center_position = function(start_cell, end_cell)
     -- 参数验证（Lua中使用table代替tuple）
     if not (type(start_cell) == "table" and #start_cell == 2 and
@@ -690,10 +684,10 @@ _M.get_center_position = function(start_cell, end_cell)
     local center_y = START_Y + (start_col + end_col) * 0.5 * CELL_HEIGHT
 
     -- 四舍五入（Lua标准实现）
-    return math.floor(center_x + 0.5), math.floor(center_y + 0.5)
+    return {math.floor(center_x + 0.5), math.floor(center_y + 0.5)}
 end
 
--- 获取仓库物品中心点（改进版）
+-- 获取仓库物品中心点
 _M.get_center_position_store = function(start_cell, end_cell)
     -- 更健壮的参数检查（Lua中实际使用table而非tuple）
     if not (type(start_cell) == "table" and #start_cell == 2 and
@@ -736,16 +730,16 @@ _M.ctrl_left_click_store_items = function(target_name, store_info, click_type)
                 return false
             end
 
-            local center_x, center_y = _M.get_center_position_store(
+            local center = _M.get_center_position_store(
                 {actor.start_x, actor.start_y},
                 {actor.end_x, actor.end_y}
             )
 
             -- 支持左键/右键点击
             if click_type == 1 then  
-                _M.right_click(center_x, center_y)
+                _M.right_click(center[1], center[2])
             else
-                _M.ctrl_left_click(center_x, center_y)
+                _M.ctrl_left_click(center[1], center[2])
             end
 
             return true
@@ -800,6 +794,40 @@ _M.dbgp = function(...)
     -- print(formattedText)
 end
 
+-- 时间调试
+_M.time_p = function(...)
+    local args = {...}
+    local parts = {}
+
+    -- 把每个参数转成字符串（模拟 print 的行为）
+    for i, v in ipairs(args) do parts[i] = tostring(v) end
+
+    -- 用制表符（\t）连接多个参数，并加上换行符（\n）
+    local formattedText = table.concat(parts, "\t") .. "\n"
+
+    -- 调用 api_Log（假设它只接受一个字符串参数）
+    api_Log(formattedText)
+    -- api_Sleep(1000000)
+    -- print(formattedText)
+end
+
+-- 技能调试
+_M.skp = function(...)
+    local args = {...}
+    local parts = {}
+
+    -- 把每个参数转成字符串（模拟 print 的行为）
+    for i, v in ipairs(args) do parts[i] = tostring(v) end
+
+    -- 用制表符（\t）连接多个参数，并加上换行符（\n）
+    local formattedText = table.concat(parts, "\t") .. "\n"
+
+    -- 调用 api_Log（假设它只接受一个字符串参数）
+    -- api_Log(formattedText)
+    -- api_Sleep(1000000)
+    -- print(formattedText)
+end
+
 -- 友方目標對象
 --- 查找符合条件的友好目标对象
 -- @param args 参数表，包含以下字段：
@@ -848,7 +876,7 @@ _M.friendly_target_object = function(args)
         if not (unit.name_utf8 and unit.is_friendly) then goto continue end
 
         -- 名称过滤
-        if my_game_info.not_attact_mons_CN_name[unit.name_utf8] or
+        if _M.table_contains(my_game_info.not_attact_mons_CN_name,unit.name_utf8) or
             string.find(unit.name_utf8, "神殿") then goto continue end
 
         -- 距离计算（使用valid_monsters或player_info作为基准点）
@@ -914,7 +942,7 @@ _M.enemy_death_target_object = function(args)
             goto continue
         end
         -- 名称过滤
-        if my_game_info.not_attact_mons_CN_name[monster.name_utf8] or
+        if _M.table_contains(my_game_info.not_attact_mons_CN_name,monster.name_utf8) or
             string.find(monster.name_utf8, "神殿") then goto continue end
 
         -- 距离计算
@@ -945,11 +973,11 @@ end
 -- @note 监视器对象包含以下方法:
 --   parse_count(text): 解析文本中的怪物数量
 --   check_and_act(game_controls): 检查并执行动作
-_M.monster_monitor = function(threshold, game_controls)
+_M.monster_monitor = function(threshold)
     threshold = threshold or 40
     local pattern = "剩餘 (%d+) 隻怪物"
 
-    for _, control in ipairs(game_controls) do
+    for _, control in ipairs(UiElements) do
         if control.text_utf8 then
             local text = control.text_utf8 and
                              control.text_utf8:match("^%s*(.-)%s*$") or ""
@@ -957,7 +985,10 @@ _M.monster_monitor = function(threshold, game_controls)
             count = tonumber(count)
 
             if count and count <= threshold then
-                return int(count) <= threshold
+                if count == 0 then
+                    return true
+                end
+                return _M.toInt(count) <= threshold
             end
         end
     end
@@ -1346,18 +1377,18 @@ _M.ctrl_left_click_bag_items = function(target_name, bag_info, click_type, match
             end
 
             -- 计算点击位置
-            local center_x, center_y = _M.get_center_position(
+            local center = _M.get_center_position(
                 {actor.start_x, actor.start_y},
                 {actor.end_x, actor.end_y}
             )
 
             -- 点击类型分派
             if click_type == 1 then
-                _M.right_click(center_x, center_y)
+                _M.right_click(center[1], center[2])
             elseif click_type == 3 then
-                _M.ctrl_right_click(center_x, center_y)
+                _M.ctrl_right_click(center[1], center[2])
             else
-                _M.ctrl_left_click(center_x, center_y)
+                _M.ctrl_left_click(center[1], center[2])
             end
 
             return true
@@ -1586,7 +1617,7 @@ _M.select_best_map_key = function(params)
             ["魔法怪物"] = 1.8,
             ["稀有怪物"] = 1.6,
             ["怪物群數量"] = 1.2,
-            ["瘋癲"] = 5.0
+            ["瘋癲"] = 10.0
         }
 
         -- 处理疯癫词条
@@ -1878,7 +1909,7 @@ _M.select_best_map_key = function(params)
         local center_y = start_y + (((start_col + end_col) / 2) * h)
 
         -- 四舍五入
-        return math.floor(center_x + 0.5), math.floor(center_y + 0.5)
+        return {math.floor(center_x + 0.5), math.floor(center_y + 0.5)}
     end
 
     -- 执行选择
@@ -1905,6 +1936,7 @@ _M.select_best_map_key = function(params)
                 _M.return_more_map(best_key.obj or nil, inventory, START_X, START_Y)
                 return _M.extract_key_level(best_key.baseType_utf8 or "未知")
             end
+
             _M.ctrl_left_click_bag_items(best_key.obj or nil, inventory)
             return _M.extract_key_level(best_key.baseType_utf8 or "未知")
         end
@@ -1958,9 +1990,9 @@ _M.filter_item = function(item, suffixes, config_list)
 
         if config["基礎類型名"] ~= "全部物品" and
             not _M.table_contains(config["基礎類型名"], item.baseType_utf8) then
-            _M.dbgp(string.format(
-                             "→ 跳过：基础类型不匹配（需要：%s）",
-                             table.concat(config["基礎類型名"], ",")))
+            -- _M.dbgp(string.format(
+            --                  "→ 跳过：基础类型不匹配（需要：%s）",
+            --                  _M.table_contains(config["基礎類型名"], ",")))
             goto continue -- 名称不匹配则跳过此配置
         else
             _M.dbgp("√ 基础类型匹配通过")
@@ -1989,7 +2021,7 @@ _M.filter_item = function(item, suffixes, config_list)
         if config_type ~= "" then
             local item_type = type(config_type) == "table" and config_type[1] or
                                   config_type
-            if item.category ~= my_game_info.type_conversion[item_type] then
+            if item.category_utf8 ~= my_game_info.type_conversion[item_type] then
                 _M.dbgp(string.format(
                                  "→ 跳过：物品类型不匹配（需要：%s）",
                                  item_type))
@@ -2020,16 +2052,18 @@ _M.filter_item = function(item, suffixes, config_list)
             else
                 local min_level = item_config["min"]
                 local max_level = item_config["max"]
-                if (item.DemandLevel or 0) < min_level or
-                    (item.DemandLevel or 0) > max_level then
-                    _M.dbgp(string.format(
-                                     "→ 跳过：等级超出范围（需要：%d-%d，当前：%d）",
-                                     min_level, max_level, item.DemandLevel or 0))
-                    goto continue
-                else
-                    _M.dbgp(string.format(
-                                     "√ 等级范围匹配通过（需要：%d-%d）",
-                                     min_level, max_level))
+                if min_level and max_level then
+                    if (item.DemandLevel or 0) < min_level or
+                        (item.DemandLevel or 0) > max_level then
+                        _M.dbgp(string.format(
+                                        "→ 跳过：等级超出范围（需要：%d-%d，当前：%d）",
+                                        min_level, max_level, item.DemandLevel or 0))
+                        goto continue
+                    else
+                        _M.dbgp(string.format(
+                                        "√ 等级范围匹配通过（需要：%d-%d）",
+                                        min_level, max_level))
+                    end
                 end
             end
         end
@@ -2039,57 +2073,140 @@ _M.filter_item = function(item, suffixes, config_list)
         local check_yes = false
         if next(affix_rules) ~= nil then
             _M.dbgp("开始检查词缀规则...")
-            local all_rules_passed = true
+            
+            -- 遍历所有词缀规则
             for rule_name, rule_config in pairs(affix_rules) do
                 if type(rule_config) ~= "table" then
-                    _M.dbgp(string.format("→ 跳过无效规则：%s",
-                                               rule_name))
-                    goto rule_continue -- 跳过无效规则
+                    _M.dbgp(string.format("→ 跳过无效规则：%s", rule_name))
+                    goto rule_continue
                 end
+                
+                -- 检查是否全部包含模式
+                local require_all = rule_config["是否全部包含"] or false
+                local affix_list = rule_config["詞綴"] or {}
 
-                -- 检查"詞綴"字段
-                local affix_field = rule_config["詞綴"]
-
-                if affix_field == nil then
-                    _M.dbgp(string.format("→ 规则 %s 无词缀字段",
-                                               rule_name))
-                    goto rule_continue -- 没有"詞綴"字段则跳过
-                elseif type(affix_field) == "boolean" then
-                    _M.dbgp(string.format("→ 规则 %s 为布尔值",
-                                               rule_name))
-                    goto rule_continue -- 布尔值跳过
-                elseif not (next(affix_field) ~= nil) then -- 空列表/字符串/字典等
-                    _M.dbgp(string.format("→ 规则 %s 词缀为空",
-                                               rule_name))
+                if type(affix_list) ~= "table" or #affix_list == 0 then
+                    _M.dbgp(string.format("→ 规则 %s 无有效词缀列表", rule_name))
                     goto rule_continue
                 end
 
-                -- 对每个规则单独检查
-                _M.dbgp(string.format("检查规则：%s", rule_name))
-                if not _M.match_item_suffixes(suffixes,
-                                              {[rule_name] = rule_config}) then
-                    _M.dbgp(string.format("→ 规则 %s 不匹配",
-                                               rule_name))
-                    all_rules_passed = false
-                    goto rule_continue -- 该规则不满足则继续匹配下个规则
+                _M.dbgp(string.format("检查规则：%s (模式：%s)", 
+                    rule_name, require_all and "全部包含" or "任一包含"))
+
+                local matched_affixes = 0
+
+                -- 检查每个要求的词缀
+                _M.dbgp("开始检查词缀列表，共 " .. #affix_list .. " 个需要匹配的词缀")
+                for i, required_affix in ipairs(affix_list) do
+                    _M.dbgp(string.format("\n[词缀匹配 %d/%d] 开始检查需求词缀: %s", i, #affix_list, required_affix.name))
+                    _M.dbgp(string.format("需求值: value1=%s, value2=%s, value3=%s", 
+                        tostring(required_affix.value1), 
+                        tostring(required_affix.value2), 
+                        tostring(required_affix.value3)))
+                    
+                    local found = false
+                    
+                    -- 在物品词缀中查找匹配
+                    _M.dbgp("开始遍历物品词缀(后缀)，共 " .. #suffixes .. " 个后缀")
+                    for j, item_affix in ipairs(suffixes) do
+                        _M.dbgp(string.format("[物品词缀 %d/%d] 检查: %s", j, #suffixes, item_affix.name_utf8))
+                        _M.dbgp(string.format("当前词缀值: value1=%s, value2=%s, value3=%s", 
+                            item_affix.value_list[1] and tostring(item_affix.value_list[1]) or "nil",
+                            item_affix.value_list[2] and tostring(item_affix.value_list[2]) or "nil",
+                            item_affix.value_list[3] and tostring(item_affix.value_list[3]) or "nil"))
+                        
+                        if item_affix.name_utf8 == required_affix.name then
+                            _M.dbgp("√ 名称匹配成功: " .. required_affix.name)
+                            local match = true
+                            
+                            -- 检查 value1
+                            if item_affix.value_list[1] then
+                                _M.dbgp(string.format("检查value1: 需求=%s, 实际=%s", 
+                                    tostring(required_affix.value1), 
+                                    item_affix.value_list[1] and tostring(item_affix.value_list[1]) or "nil"))
+                                
+                                if not item_affix.value_list[1] or item_affix.value_list[1] < required_affix.value1 then
+                                    match = false
+                                    _M.dbgp("× value1 不满足条件")
+                                else
+                                    _M.dbgp("√ value1 满足条件")
+                                end
+                            end
+                            
+                            -- 检查 value2
+                            if match and item_affix.value_list[2] then
+                                _M.dbgp(string.format("检查value2: 需求=%s, 实际=%s", 
+                                    tostring(required_affix.value2), 
+                                    item_affix.value_list[2] and tostring(item_affix.value_list[2]) or "nil"))
+                                
+                                if not item_affix.value_list[2] or item_affix.value_list[2] < required_affix.value2 then
+                                    match = false
+                                    _M.dbgp("× value2 不满足条件")
+                                else
+                                    _M.dbgp("√ value2 满足条件")
+                                end
+                            end
+                            
+                            -- 检查 value3
+                            if match and item_affix.value_list[3] then
+                                _M.dbgp(string.format("检查value3: 需求=%s, 实际=%s", 
+                                    tostring(required_affix.value3), 
+                                    item_affix.value_list[3] and tostring(item_affix.value_list[3]) or "nil"))
+                                
+                                if not item_affix.value_list[3] or item_affix.value_list[3] < required_affix.value3 then
+                                    match = false
+                                    _M.dbgp("× value3 不满足条件")
+                                else
+                                    _M.dbgp("√ value3 满足条件")
+                                end
+                            end
+                            
+                            if match then
+                                found = true
+                                _M.dbgp("√√ 当前词缀完全匹配需求!")
+                                break  -- 找到匹配，跳出当前词缀检查
+                            else
+                                _M.dbgp("→ 当前词缀部分条件不匹配，继续检查下一个词缀")
+                            end
+                        else
+                            _M.dbgp("× 名称不匹配: " .. item_affix.name_utf8 .. " != " .. required_affix.name)
+                        end
+                    end
+                    
+                    -- 更新匹配计数
+                    if found then
+                        matched_affixes = matched_affixes + 1
+                        _M.dbgp(string.format("当前匹配计数: %d/%d", matched_affixes, #affix_list))
+                    else
+                        _M.dbgp("× 未找到匹配的词缀: " .. required_affix.name)
+                    end
+                    
+                    -- 如果是 "任一包含" 模式，且已经匹配到一个词缀，可以提前结束
+                    if not require_all and matched_affixes > 0 then
+                        _M.dbgp("√ 满足'任一包含'模式，已找到至少一个匹配词缀，提前结束检查")
+                        break
+                    end
                 end
 
-                if _M.match_item_suffixes(suffixes, {[rule_name] = rule_config}) then
-                    _M.dbgp(string.format(
-                                     "√ 规则 %s 匹配成功，直接返回",
-                                     rule_name))
-                    return true -- 任一规则满足则跳过当前配置
-                end
+                -- 检查匹配结果
+                _M.dbgp("\n最终匹配结果检查:")
+                _M.dbgp(string.format("匹配模式: %s", require_all and "必须全部匹配" or "任一匹配"))
+                _M.dbgp(string.format("实际匹配数: %d/%d", matched_affixes, #affix_list))
 
+                if (require_all and matched_affixes == #affix_list) or 
+                (not require_all and matched_affixes > 0) then
+                    _M.dbgp(string.format("√√√ 规则 %s 匹配成功", rule_name))
+                    check_yes = true
+                else
+                    _M.dbgp(string.format("××× 规则 %s 不匹配", rule_name))
+                end
+                
                 ::rule_continue::
             end
-
-            if not all_rules_passed then
-                _M.dbgp("→ 部分词缀规则不匹配")
+            
+            if not check_yes then
+                _M.dbgp("→ 所有词缀规则均不匹配")
                 goto continue
-            else
-                _M.dbgp("√ 所有词缀规则匹配通过")
-                check_yes = true
             end
         end
 
@@ -2296,6 +2413,8 @@ _M.match_item_suffixes = function(item_suffixes, config_suffixes, not_item)
         end
 
         -- 检查物品词缀是否匹配
+        _M.dbgp("\n正在检查以下词缀:")
+        _M.dbgp(_M.printTable(item_affixes))
         for _, affix_pair in ipairs(item_affixes) do
             local item_affix = affix_pair[1]
             local item_value = affix_pair[2]
@@ -2363,7 +2482,6 @@ end
 
 --- 点击指定文本的UI元素
 -- @param text string 要查找的UI文本内容
--- @param ui_info table UI元素信息表
 -- @param click number 是否执行点击操作(1=点击,0=不点击)
 -- @param min_x number 搜索区域最小X坐标(默认0)
 -- @param min_y number 搜索区域最小Y坐标(默认0)
@@ -2374,47 +2492,43 @@ _M.click_text_UI = function(options)
     -- 默认参数
     local config = {
        text = options.text or "",          -- 必填
-       ui_info = options.ui_info or {},    -- 必填
        click = options.click or 0,         -- 可选，默认 0
        min_x = options.min_x or 0,         -- 可选，默认 0
        min_y = options.min_y or 0,         -- 可选，默认 0
        max_x = options.max_x or 1600,      -- 可选，默认 1600
        max_y = options.max_y or 900,       -- 可选，默认 900
        index = options.index or 0,         -- 可选，默认 0
-       ret_data = options.ret_data or false -- 可选，默认 false
+       ret_data = options.ret_data or false, -- 可选，默认 false
+       refresh = false,
+       UI_info = nil
    }
-   local ui_info = nil
-   if config.index ~= 0 then
-       local UI_info = {}
-       local size =  UiElements:Update()
-       if size > 0 then
-           local sum = 0;
-           for i = 0, size - 1, 1 do
-               sum = sum + 1
-               table.insert(UI_info, UiElements[i])
-           end
-       end
-       ui_info = UI_info
-   else
-       ui_info = config.ui_info
-   end
-   if ui_info and next(ui_info) then
-       for _, value in ipairs(ui_info) do
-           -- _M.print_log(value.name_utf8)
-           if value.name_utf8 == config.text then
-               local x = (value.left + value.right) / 2
-               local y = (value.top + value.bottom) / 2
-               if config.click == 1 then
-                   api_ClickScreen(_M.toExactInt(x), _M.toExactInt(y),1)
-               end
-               -- _M.print_log(456)
-               if config.ret_data then
-                   return value
-               end
-               return true
-           end
-       end
-   end
+   
+    if config.refresh or not config.UI_info then
+        UiElements:Update()
+        if #UiElements < 1 then
+            _M.dbgp("not UI_Info")
+            return false
+        end
+        config.UI_info = UiElements
+    end
+
+    if config.UI_info then
+        for _, value in ipairs(config.UI_info) do
+            -- _M.print_log(value.name_utf8)
+            if value.name_utf8 == config.text then
+                local x = (value.left + value.right) / 2
+                local y = (value.top + value.bottom) / 2
+                if config.click == 1 then
+                    api_ClickScreen(_M.toInt(x), _M.toInt(y),1)
+                end
+                -- _M.print_log(456)
+                if config.ret_data then
+                    return value
+                end
+                return true
+            end
+        end
+    end
    return false
 end
 
@@ -2430,7 +2544,9 @@ _M.get_items_config_info = function(config)
         if v['藍裝'] then table.insert(v['颜色'], 1) end
         if v['黃裝'] then table.insert(v['颜色'], 2) end
         if v['暗金'] then table.insert(v['颜色'], 3) end
-        v["等級"] = _M.parse_level(v["等級"])
+        if type(v["等級"]) == "string" then
+            v["等級"] = _M.parse_level(v["等級"])
+        end
         
         table.insert(processed_configs, v)
     end
@@ -2462,20 +2578,80 @@ _M.parse_level = function(level_str)
 end
 
 
--- 其他可能用到的API
-_M.get_current_time = function() return os.time() end
+-- 公开接口：打印table
+_M.printTable = function(tbl, title)
+    -- 私有函数：实际执行table打印
+    local function _dump(value, indent, visited, output_fn)
+        indent = indent or 0
+        visited = visited or {}
+        output_fn = output_fn or _M.dbgp
+        
+        -- 处理非table值
+        if type(value) ~= "table" then
+            if type(value) == "string" then
+                return string.format("%q", value)
+            else
+                return tostring(value)
+            end
+        end
+        
+        -- 检查循环引用
+        if visited[value] then
+            return "<循环引用>"
+        end
+        visited[value] = true
+        
+        -- 准备结果缓冲区
+        local result = {}
+        local spaces = string.rep("  ", indent)
+        table.insert(result, "{\n")
+        
+        -- 先处理数组部分（保证顺序）
+        for i = 1, #value do
+            table.insert(result, spaces.."  [")
+            table.insert(result, tostring(i))
+            table.insert(result, "] = ")
+            table.insert(result, _dump(value[i], indent + 1, visited, output_fn))
+            table.insert(result, ",\n")
+        end
+        
+        -- 再处理非数组部分
+        for k, v in pairs(value) do
+            -- 跳过已处理的数组部分
+            if type(k) ~= "number" or k < 1 or k > #value or math.floor(k) ~= k then
+                table.insert(result, spaces.."  ")
+                
+                -- 处理key的格式
+                if type(k) == "string" and string.match(k, "^[%a_][%a%d_]*$") then
+                    table.insert(result, k.." = ")
+                else
+                    table.insert(result, "[")
+                    table.insert(result, _dump(k, indent + 1, visited, output_fn))
+                    table.insert(result, "] = ")
+                end
+                
+                -- 处理value
+                table.insert(result, _dump(v, indent + 1, visited, output_fn))
+                table.insert(result, ",\n")
+            end
+        end
+        
+        table.insert(result, spaces.."}")
+        return table.concat(result)
+    end
+    title = title or "TABLE DUMP"
+    _M.dbgp(title..":\n".._dump(tbl, 0))
+end
 
 -- 获取范围内的所有文本/指定文本
 -- @param params 参数表，包含以下可选字段：
 --   text: 要查找的文本内容
---   UI_info: UI元素信息表
 --   min_x, min_y, max_x, max_y: 搜索区域坐标范围
 --   index: 调节是否查找文本
 -- @return 根据index参数返回不同结果，默认返回所有文本
 _M.get_game_control_by_rect = function(data)
     local config = {
         text = data.text or "",          -- 必填
-        ui_info = data.ui_info or {},    -- 必填
         min_x = data.min_x or 0,         -- 可选，默认 0
         min_y = data.min_y or 0,         -- 可选，默认 0
         max_x = data.max_x or 1600,      -- 可选，默认 1600
@@ -2483,7 +2659,7 @@ _M.get_game_control_by_rect = function(data)
         index = data.index or 0,         -- 可选，默认 0
     }
     local text_list = {}
-    for _, v in ipairs(config.ui_info) do
+    for _, v in ipairs(UiElements) do
         if v.left >= config.min_x and v.top >= config.min_y and v.right <= config.max_x and v.bottom <= config.max_y then
             if config.index ~= 0 and config.text and config.text ~= "" then
                 if v.name_utf8 == config.text or v.text_utf8 == config.text then
@@ -2495,6 +2671,116 @@ _M.get_game_control_by_rect = function(data)
         end
     end
     return text_list
+end
+
+
+-- 根据位置查找文本
+_M.find_text_position = function(params)
+    -- 设置默认参数
+    local defaults = {
+        min_x = 450,
+        min_y = 0,
+        max_x = 1595,
+        max_y = 900,
+        num = 0,
+        text = nil,
+        all_text = 0,
+        click_times = 0,
+        lens = 4,
+        match_text = nil,
+        refresh = false,
+        UI_info = nil
+    }
+    
+    -- 合并传入参数和默认值
+    for k, v in pairs(params) do defaults[k] = v end
+
+    if defaults.refresh or not defaults.UI_info then
+        UiElements:Update()
+        if #UiElements < 1 then
+            _M.dbg("未发现UI信息\n")
+        end
+        defaults.UI_info = UiElements
+    end
+    
+    local match_count = 0
+    local matched_texts = {}  -- 存储所有匹配的文本
+    local matchs_object = {}  -- 存储所有匹配的文本对象
+    
+    for _, actor in ipairs(defaults.UI_info) do
+        if not actor.text_utf8 or actor.text_utf8 == "" then
+            goto continue
+        end
+
+        -- 检查文本长度
+        if defaults.lens > 0 and string.len(actor.text_utf8) < defaults.lens then
+            goto continue
+        end
+        
+        -- 检查坐标范围
+        if defaults.min_x <= actor.left and actor.left <= defaults.max_x and
+           defaults.min_y <= actor.top and actor.top <= defaults.max_y and 
+           defaults.min_x <= actor.right and actor.right <= defaults.max_x then
+            
+            if defaults.num == 1 then
+                if defaults.text and actor.text_utf8 ~= defaults.text then
+                    goto continue
+                end
+                match_count = match_count + 1
+                table.insert(matched_texts, actor.text_utf8)
+                table.insert(matchs_object, actor)
+            else
+                if defaults.match_text then
+                    if string.find(actor.text_utf8, defaults.match_text) then
+                        return actor.text_utf8
+                    else
+                        return false
+                    end
+                end
+                -- 非1的情况返回第一个匹配项
+                return actor.text_utf8
+            end
+        end
+        
+        ::continue::
+    end
+    
+    -- 处理点击操作
+    if defaults.click_times > 0 and #matchs_object > 0 then
+        for i = 1, defaults.click_times do
+            if i > match_count then
+                return false
+            end
+            local center_x = (matchs_object[i].left + matchs_object[i].right) / 2
+            local center_y = (matchs_object[i].top + matchs_object[i].bottom) / 2
+            local x, y = center_x, center_y
+            _M.ctrl_left_click(math.floor(x - 10), math.floor(y - 10))
+            api_Sleep(1000)
+        end
+        return true
+    end
+    
+    -- 处理num=1的情况
+    if defaults.num == 1 then
+        if match_count > 0 then
+            _M.dbgp(string.format("找到 %d 个匹配项: %s", match_count, 
+                                 table.concat(matched_texts, ", ")))
+            return match_count
+        end
+        return 0  -- 返回0表示没找到
+    end
+    
+    -- 处理all_text=1的情况
+    if defaults.all_text == 1 then
+        if match_count > 0 then
+            _M.dbgp(string.format("找到 %d 个匹配项: %s", match_count, 
+                                 table.concat(matched_texts, ", ")))
+            return matched_texts
+        end
+        return 0  -- 返回0表示没找到
+    end
+    
+    return false  -- 默认返回false
 end
 
 --- 检查物品是否存在于指定的物品栏中
@@ -2513,14 +2799,12 @@ _M.check_item_in_inventory = function(item_name, inventory)
     return false
 end
 
-
 --- 处理异界地图配置，构建索引并整合相关数据
--- @function process_void_maps
 -- @param map_cfg table 包含异界地图配置的表
 -- @return void 无返回值，直接修改输入的map_cfg表
 _M.process_void_maps = function(map_cfg)
     -- 构建异界地图索引，包含涂油设置和使用通货数据
-    local void_maps = map_cfg['異界地圖']['地圖鑰匙']
+    local void_maps = map_cfg['地圖鑰匙']
     local tier_index = {}
     local config_index = {}
     local oil_configs = {}
@@ -2651,6 +2935,7 @@ _M.get_center_position_altar=function(start_cell, end_cell)
         error("start_cell and end_cell 必须是表")
     end
 
+
     local start_row, start_col = start_cell[1], start_cell[2]
     local end_row, end_col = end_cell[1], end_cell[2]
     -- 计算中心位置为起始和结束格子的平均位置
@@ -2672,13 +2957,14 @@ _M.ctrl_left_click_altar_items = function(target_name, bag_info, click)
                 local end_cell = {actor.end_x, actor.end_y}
                 local center_position = _M.get_center_position_altar(start_cell, end_cell)
 
+
                 if click == 1 then
                     _M.right_click(center_position[1], center_position[2])  -- Lua 索引从 1 开始
                     return true
                 elseif click == 2 then
-                    api_ClickScreen(_M.toExactInt(center_position[1]), _M.toExactInt(center_position[2]),0)
+                    api_ClickScreen(_M.toInt(center_position[1]), _M.toInt(center_position[2]),0)
                     api_Sleep(200)  -- 单位是毫秒
-                    api_ClickScreen(_M.toExactInt(center_position[1]), _M.toExactInt(center_position[2]),1) -- 使用 click 方法模拟左键点击
+                    api_ClickScreen(_M.toInt(center_position[1]), _M.toInt(center_position[2]),1) -- 使用 click 方法模拟左键点击
                     return true
                 else
                     _M.ctrl_left_click(center_position[1], center_position[2])
@@ -2691,5 +2977,268 @@ _M.ctrl_left_click_altar_items = function(target_name, bag_info, click)
         return false
     end
 end
+
+-- 根据距离玩家位置排序对象列表
+-- @param items 要排序的对象列表
+-- @param player_info 玩家信息(可选)
+-- @return 排序后的列表或nil(如果输入无效)
+_M.get_sorted_list = function(player_info)
+
+    -- 获取玩家位置信息
+    local player = player_info
+    if not player then
+        _M.dbgp("错误: 无法获取玩家位置信息")
+        return nil
+    end
+
+    local player_x, player_y = player.grid_x, player.grid_y
+    _M.dbgp(string.format("排序基准点 - X:%.2f, Y:%.2f", player_x, player_y))
+
+    -- 创建排序副本(避免修改原表)
+    local sorted_items = {}
+    for i, v in ipairs(Actors) do
+        sorted_items[i] = v
+    end
+
+    -- 定义排序函数(按距离平方排序)
+    local function sort_by_distance(a, b)
+        if not a.grid_x or not a.grid_y or not b.grid_x or not b.grid_y then
+            _M.dbgp("警告: 对象缺少坐标信息")
+            return false
+        end
+
+        local dist_a = (a.grid_x - player_x)^2 + (a.grid_y - player_y)^2
+        local dist_b = (b.grid_x - player_x)^2 + (b.grid_y - player_y)^2
+        
+        return dist_a < dist_b
+    end
+
+    -- 执行排序
+    table.sort(sorted_items, sort_by_distance)
+    return sorted_items
+end
+
+-- 查找地图中的对象
+_M.check_in_map = function(current_map_info, interactive_object)
+    if not current_map_info then
+        return nil
+    end
+    for _, k in ipairs(current_map_info) do
+        if k.name_utf8 == interactive_object and k.flagStatus == 0 and k.flagStatus1 == 1 and k.grid_x ~= 0 and k.grid_y ~= 0 then
+            return k
+        end
+    end
+    return nil
+end
+
+-- 查找范围内的对象
+_M.check_in_range = function(interactive_object, object)
+    for _, k in ipairs(Actors) do
+        if object then
+            if k.name_utf8 == object or k.path_name_utf8 == object then
+                return k
+            end
+        end
+        if interactive_object == "MapDevice" then
+            if k.name_utf8 == "黃金製圖儀" or k.name_utf8 == "地圖裝置" then
+                return k
+            end
+        end
+        if (k.name_utf8 == interactive_object or k.path_name_utf8 == interactive_object) and k.grid_x ~= 0 and k.grid_y ~= 0 then
+            return k
+        end
+    end
+    return nil
+end
+
+-- 检查背包是否有未鉴定物品
+-- 返回未鉴定物品的名称列表
+_M.items_not_identified = function(bag_info)
+    local not_identified_items = {}  -- 存储未鉴定物品的数组
+    
+    if not bag_info then
+        return false
+    end
+    
+    for _, item in ipairs(bag_info) do
+        if item.baseType_utf8 and item.not_identified and not _M.table_contains(my_game_info.not_need_identify, item.category_utf8) then
+            table.insert(not_identified_items, item.baseType_utf8)  -- 添加未鉴定物品名称到数组
+        end
+    end
+    
+    return not_identified_items  -- 返回未鉴定物品名称列表
+end
+
+-- 获取空格位置（动态参数版本）
+-- 参数表 fields:
+--   width: 物品宽（必须）
+--   height: 物品高（必须）
+--   w: 容器排(默认5)
+--   h: 容器列(默认12)
+--   click: 是否点击(默认0)
+--   gox: 容器左上角坐标x(默认1059)
+--   goy: 容器左上角坐标y(默认492)
+--   grid_x: 格子宽(默认43.81)
+--   grid_y: 格子高(默认43.81)
+--   index: 背包查询参数(默认1)
+--   info: 可选背包信息(默认nil)
+_M.get_space_point = function(params)
+    -- 参数校验和默认值设置
+    assert(params.width and params.height, "必须提供width和height参数")
+    
+    local width = params.width
+    local height = params.height
+    local w = params.w or 5
+    local h = params.h or 12
+    local click = params.click or 0
+    local gox = params.gox or 1059
+    local goy = params.goy or 492
+    local grid_x = params.grid_x or 43.81
+    local grid_y = params.grid_y or 43.81
+    local index = params.index or 1
+    local info = params.info or nil
+     
+    -- 初始化背包网格
+    local backpack = {}
+    for i = 1, w do
+        backpack[i] = {}
+        for j = 1, h do
+            backpack[i][j] = false
+        end
+    end
+    
+    -- 检查是否可以放置物品
+    local function can_place_item(backpack, item_top_left, item_bottom_right)
+        for i = item_top_left[1], item_bottom_right[1] - 1 do
+            for j = item_top_left[2], item_bottom_right[2] - 1 do
+                if backpack[j + 1][i + 1] then  -- Lua数组从1开始
+                    return false
+                end
+            end
+        end
+        return true
+    end
+    
+    -- 放置物品到背包
+    local function place_item(backpack, item_top_left, item_bottom_right)
+        if can_place_item(backpack, item_top_left, item_bottom_right) then
+            local occupied_coords = {}
+            for i = item_top_left[2], item_bottom_right[2] - 1 do
+                for j = item_top_left[1], item_bottom_right[1] - 1 do
+                    backpack[i + 1][j + 1] = true
+                    table.insert(occupied_coords, {j, i})  -- 记录坐标(x,y)
+                end
+            end
+            return occupied_coords
+        end
+        return nil
+    end
+    
+    -- 查找严格符合指定宽度和高度的空格位置
+    local function find_space_for_item_strict(backpack, width, height)
+        for i = 1, #backpack - height + 1 do
+            for j = 1, #backpack[1] - width + 1 do
+                local item_top_left = {j - 1, i - 1}  -- 转换为0-based坐标
+                local item_bottom_right = {j - 1 + width, i - 1 + height}
+                
+                -- 检查这个区域是否完全空闲
+                local can_place = true
+                for x = item_top_left[2], item_bottom_right[2] - 1 do
+                    for y = item_top_left[1], item_bottom_right[1] - 1 do
+                        if backpack[x + 1][y + 1] then
+                            can_place = false
+                            break
+                        end
+                    end
+                    if not can_place then break end
+                end
+                
+                if can_place then
+                    return place_item(backpack, item_top_left, item_bottom_right)
+                end
+            end
+        end
+        return nil
+    end
+    
+    -- 计算中心点坐标
+    local function calculate_center(occupied_coords, grid_origin, grid_size)
+        if not occupied_coords or #occupied_coords == 0 then
+            return nil
+        end
+        
+        local min_x = occupied_coords[1][1]
+        local max_x = occupied_coords[1][1]
+        local min_y = occupied_coords[1][2]
+        local max_y = occupied_coords[1][2]
+        
+        for _, coord in ipairs(occupied_coords) do
+            min_x = math.min(min_x, coord[1])
+            max_x = math.max(max_x, coord[1])
+            min_y = math.min(min_y, coord[2])
+            max_y = math.max(max_y, coord[2])
+        end
+        
+        -- 计算中心点坐标
+        local center_x = grid_origin[1] + (max_x + 1 - min_x) / 2 * grid_size[1]
+        local center_y = grid_origin[2] + (max_y + 1 - min_y) / 2 * grid_size[2]
+        
+        return {center_x, center_y}
+    end
+    
+    -- 获取背包物品信息并标记已占用位置 
+    local inventorys = nil
+    if info and next(info) then
+        inventorys = info
+    else
+        inventorys = api_Getinventorys(index,0)
+    end
+    if inventorys then
+        for _, item in ipairs(inventorys) do
+            local top_left = {item.start_x, item.start_y}
+            local bottom_right = {item.end_x, item.end_y}
+            place_item(backpack, top_left, bottom_right)
+        end
+    end
+    
+    -- 查找空格位置
+    local result = find_space_for_item_strict(backpack, width, height)
+    if not result then
+        return false
+    end
+    
+    -- 计算并返回中心点坐标
+    local a = result[1][1]
+    local b = result[1][2]
+    local grid_origin = {result[1][1] * grid_x + gox, result[1][2] * grid_y + goy}
+    -- local grid_origin = {gox, goy}
+    local grid_size = {grid_x, grid_y}
+    local point = calculate_center(result, grid_origin, grid_size)
+    
+    if click == 1 then
+        api_ClickScreen(_M.toInt(point[1]), _M.toInt(point[2]),1) -- 0.5秒
+        return true
+    else
+        return point
+    end
+end
+
+-- 坐标点击
+_M.click_position = function(x, y, click)
+    if x and y then
+        api_ClickScreen(_M.toInt(x), _M.toInt(y), 0)
+        api_Sleep(300)
+        if click == 1 then
+            _M.ctrl_left_click(x, y)
+        elseif click == 2 then
+            _M.ctrl_right_click(x, y)
+        else
+            api_ClickScreen(_M.toInt(x), _M.toInt(y), 1)
+        end
+    end
+end
+
+-- 其他可能用到的API
+_M.get_current_time = function() return api_GetTickCount64() end
 
 return _M
