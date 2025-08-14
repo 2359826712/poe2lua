@@ -22,7 +22,7 @@ local trees = {}
 local mt = {}
 mt.__index = mt
 function mt:init(name, path)
-    path = path or './workspace/trees/'
+    path = path or './script/trees/'
 
     self.name = name
     self.tick = 0
