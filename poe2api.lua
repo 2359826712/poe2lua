@@ -1660,7 +1660,7 @@ _M.select_best_map_key = function(params)
     local function calculate_score_utf8(categories, numbers)
         -- _M.dbgp("开始UTF-8评分计算...")
         -- 空词条直接返回0分
-        if not (categories['瘋癲'][1] or categories['其他'][1] or
+        if not (categories['譫妄'][1] or categories['其他'][1] or
             categories['不打'][1] or categories['无效'][1]) then
             -- _M.dbgp("UTF-8无有效词条，评分=0")
             return 0
@@ -1679,11 +1679,11 @@ _M.select_best_map_key = function(params)
             ["魔法怪物"] = 1.8,
             ["稀有怪物"] = 1.6,
             ["怪物群數量"] = 1.2,
-            ["瘋癲"] = 10.0
+            ["譫妄"] = 10.0
         }
 
         -- 处理疯癫词条
-        for _, suffix in ipairs(categories['瘋癲']) do
+        for _, suffix in ipairs(categories['譫妄']) do
             -- _M.dbgp(string.format("UTF-8疯癫词条: %s, 权重=5.0",
             --                            suffix))
             score = score + 50 -- 疯癫词条固定加分
@@ -1869,7 +1869,7 @@ _M.select_best_map_key = function(params)
 
         -- trashest模式处理
         if trashest and
-            not (categories['瘋癲'][1] or categories['其他'][1] or
+            not (categories['譫妄'][1] or categories['其他'][1] or
                 categories['不打'][1]) then
             -- _M.dbgp("trashest模式选择无词缀钥匙")
             best_key = item
@@ -2717,9 +2717,10 @@ _M.get_game_control_by_rect = function(data)
         max_x = data.max_x or 1600,      -- 可选，默认 1600
         max_y = data.max_y or 900,       -- 可选，默认 900
         index = data.index or 0,         -- 可选，默认 0，
-        UI_info = data.UI_info or nil,
+        UI_info = data.UI_info,
     }
     local text_list = {}
+    _M.printTable(data.UI_info)
     if not config.UI_info then
         _M.dbgp("未发现游戏界面！")
     end

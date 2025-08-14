@@ -2145,6 +2145,15 @@ local custom_nodes = {
                     end
                     return false
                 end
+                -- 获取背包地图数量
+                local function map_index()
+                    local number = get_map_number()
+                    if number and #number >= 4 then
+                        return true
+                    end
+                    return false
+                    
+                end
                 
                 -- 获取背包中不打等级的地图钥匙
                 local function get_map_not_level()
@@ -2294,6 +2303,10 @@ local custom_nodes = {
                                                 end    
                                             end   
                                         end
+                                        if not map_index() then
+                                            poe2_api.dbgp("6")
+                                            break
+                                        end
                                         local crazy = get_map_not_crazy()
                                         if crazy then
                                             env.store_item = {crazy,i,0}
@@ -2362,6 +2375,9 @@ local custom_nodes = {
                                                     return true
                                                 end    
                                             end   
+                                        end
+                                        if not map_index() then
+                                            break
                                         end
                                         local crazy = get_map_not_crazy()
                                         if crazy then
@@ -3003,66 +3019,6 @@ local custom_nodes = {
                 api_Sleep(500)
                 return bret.RUNNING
             end
-        end
-    },
-
-    -- 城镇任务接收
-    Interactive_Npc_In_Town = {
-        run = function(self, env)
-            poe2_api.print_log("[Interactive_Npc_In_Town]城镇交互-任务")
-            poe2_api.dbgp("[Interactive_Npc_In_Town]开始处理城镇任务")
-            
-            local npc_obj = nil
-        end
-    },
-
-    -- 城镇任务npc是否存在
-    The_interactive_object_exist = {
-        run = function(self, env)
-            poe2_api.print_log("[The_interactive_object_exist]城镇任务npc是否存在")
-            poe2_api.dbgp("[The_interactive_object_exist]城镇任务npc是否存在")
-            
-            local npc_obj = nil
-        end
-    },
-
-    -- npc交互
-    Interactive_Npc ={
-        run = function(self, env)
-            poe2_api.print_log("[Interactive_Npc]城镇npc交互")
-            poe2_api.dbgp("[Interactive_Npc]城镇npc交互")
-            
-            local npc_obj = nil
-        end
-    },
-
-    -- 检查是否为大号
-    Check_Role = {
-        run = function(self, env)
-            poe2_api.print_log("[Check_Role]检查是否为大号")
-            poe2_api.dbgp("[Check_Role]检查是否为大号")
-            
-            local npc_obj = nil
-        end
-    },
-
-    -- 大号查询本地任务信息
-    Query_Current_Task_Information_Local = {
-        run = function(self, env)
-            poe2_api.print_log("[Query_Current_Task_Information_Local]大号查询本地任务信息")
-            poe2_api.dbgp("[Query_Current_Task_Information_Local]大号查询本地任务信息")
-            
-            local npc_obj = nil
-        end
-    },
-
-    -- 小号查询任务信息
-    Query_Current_Task_Information = {
-        run = function(self, env)
-            poe2_api.print_log("[Query_Current_Task_Information]小号查询任务信息")
-            poe2_api.dbgp("[Query_Current_Task_Information]小号查询任务信息")
-            
-            local npc_obj = nil
         end
     },
 

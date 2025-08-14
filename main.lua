@@ -1,13 +1,13 @@
 package.path = package.path .. ';./path/to/module/?.lua'
 
 -- 每次加载时清除 otherworld 模块的缓存
-api_Log("清除 otherworld 模块的缓存")
-package.loaded['otherworld'] = nil
+api_Log("清除 plot 模块的缓存")
+package.loaded['plot'] = nil
 
-local otherworld = require 'otherworld'
+local plot = require 'plot'
 
 -- 创建行为树
-local bt = otherworld.create()
+local bt = plot.create()
 
 i = 0
 while true do
