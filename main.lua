@@ -4,7 +4,7 @@ package.path = package.path .. ';./path/to/module/?.lua'
 api_Log("清除 plot 模块的缓存")
 package.loaded['plot'] = nil
 
-local plot = require 'plot'
+local plot = require 'script/plot'
 
 -- 创建行为树
 local bt = plot.create()

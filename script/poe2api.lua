@@ -1,7 +1,7 @@
 local _M = {} -- 主接口表
 local json = require 'json'
-local my_game_info = require 'my_game_info'
-local main_task = require 'main_task'
+local my_game_info = require 'script/my_game_info'
+
 
 local CELL_WIDTH = 43.81  -- 每个格子宽度
 local CELL_HEIGHT = 43.81  -- 每个格子高度
@@ -123,7 +123,7 @@ _M.find_text = function(params)
         if click_type == 1 then
             api_ClickScreen(final_x, final_y, 0)
         elseif click_type == 2 then
-            -- api_ClickScreen(final_x, final_y, 0)
+            api_ClickScreen(final_x, final_y, 0)
             api_Sleep(100)
             api_ClickScreen(final_x, final_y, 1)
             api_Sleep(100)
@@ -145,6 +145,7 @@ _M.find_text = function(params)
 
     -- 处理排序模式
     if defaults.sorted then
+        -- _M.dbgp("进入排序模式\n")
         local text_list = {}
         
         for _, actor in ipairs(defaults.UI_info) do
@@ -157,6 +158,8 @@ _M.find_text = function(params)
                 end
             end
         end
+
+        -- _M.printTable(text_list)
 
         if #text_list > 0 then
             -- 计算与屏幕中心(800,450)的距离并排序
@@ -606,6 +609,8 @@ end
 _M.ctrl_left_click = function(x, y)
     if x and y then
         _M.click_keyboard('ctrl', 1) -- 使用正确的按键代码
+        api_Sleep(200)
+        api_ClickScreen(math.floor(x), math.floor(y), 0) -- 使用click方法模拟右键点击
         api_Sleep(200) -- 0.1秒 = 100毫秒
         api_ClickScreen(math.floor(x), math.floor(y), 1) -- 使用click方法模拟左键点击
         api_Sleep(200)
@@ -1110,7 +1115,7 @@ _M.get_map = function(params)
         if _M.table_contains(map_data.mapPlayModes, "腐化聖域") then
             -- _M.dbgp("[DEBUG] 地图包含腐化聖域模式")
             local map_level = _M.select_best_map_key({
-                bag_info = bag_info,
+                inventory = bag_info,
                 key_level_threshold = key_level_threshold,
                 not_use_map = not_use_map,
                 priority_map = priority_map,
@@ -1309,16 +1314,16 @@ _M.get_map = function(params)
         end
 
         if #valid_maps > 0 then
-            -- _M.dbgp(string.format(  "[DEBUG] 阶段 %d 找到 %d 个有效地图", i + 1, #valid_maps))
+            _M.dbgp(string.format(  "[DEBUG] 阶段 %d 找到 %d 个有效地图", i + 1, #valid_maps))
             -- 按总分降序排序
             table.sort(valid_maps, function(a, b)
                 return a.score > b.score
             end)
 
             -- 打印前3个最佳地图
-            for j = 1, math.min(3, #valid_maps) do
-                -- _M.dbgp(string.format("[DEBUG] 排名 %d: %s (得分: %d)", j, valid_maps[j].map.name_cn_utf8 or "未知", valid_maps[j].score))
-            end
+            -- for j = 1, math.min(3, #valid_maps) do
+            --     _M.dbgp(string.format("[DEBUG] 排名 %d: %s (得分: %d)", j, valid_maps[j].map.name_cn_utf8 or "未知", valid_maps[j].score))
+            -- end
 
             -- _M.dbgp(string.format("[DEBUG] 选择最佳地图: %s", valid_maps[1].map.name_cn_utf8 or "未知"))
             return valid_maps[1].map
@@ -1465,7 +1470,7 @@ end
 -- 选择最优地图钥匙
 _M.select_best_map_key = function(params)
     -- 解析参数表
-    local inventory = params.inventory or {}
+    local inventory = params.inventory
     local click = params.click or 0
     local key_level_threshold = params.key_level_threshold
     local type = params.type or 0
@@ -1482,6 +1487,7 @@ _M.select_best_map_key = function(params)
     local START_Y = params.START_Y or 0
     local color = params.color or 0
     local vall = params.vall or false
+    local instill = params.instill or false
 
     -- _M.dbgp("===== 开始选择最优地图钥匙 (UTF-8优化版) =====")
     -- _M.dbgp(string.format(
@@ -1876,6 +1882,15 @@ _M.select_best_map_key = function(params)
             break
         end
 
+        -- instill模式处理
+        -- if instill and
+        --     not (categories['譫妄'][1] or categories['其他'][1] or
+        --         categories['不打'][1]) 
+        --     -- _M.dbgp("trashest模式选择无词缀钥匙")
+        --     best_key = item
+        --     break
+        -- end
+
         -- 提取数值
         local numbers = {}
         if suffixes and #suffixes > 0 then
@@ -2009,6 +2024,83 @@ _M.select_best_map_key = function(params)
     end
 
     return best_key
+end
+
+_M.get_center_position_map_page = function(start_cell, end_cell, START_X, START_Y)
+    _M.dbgp(string.format("计算中心坐标 | 起始格子: (%d,%d) 结束格子: (%d,%d)\n", 
+        start_cell[1], start_cell[2], end_cell[1], end_cell[2]))
+    
+    -- 参数类型检查 (Lua中没有直接的tuple类型检查，改为检查table)
+    if type(start_cell) ~= "table" or type(end_cell) ~= "table" then
+        error("start_cell and end_cell must be tables")
+    end
+
+    local start_row, start_col = start_cell[1], start_cell[2]
+    local end_row, end_col = end_cell[1], end_cell[2]
+
+    -- 计算中心位置为起始和结束格子的平均位置
+    local center_x = START_X + ((start_row + end_row) / 2) * CELL_WIDTH
+    local center_y = START_Y + ((start_col + end_col) / 2) * CELL_HEIGHT
+
+    -- _M.dbgp(string.format("计算过程 | X: %d + ((%d+%d)/2)*%d = %.1f\n", 
+    --     START_X, start_row, end_row, self.CELL_WIDTH, center_x))
+    -- _M.dbgp(string.format("计算过程 | Y: %d + ((%d+%d)/2)*%d = %.1f\n", 
+    --     START_Y, start_col, end_col, self.CELL_HEIGHT, center_y))
+
+    -- 四舍五入
+    local rounded_x = math.floor(center_x + 0.5)
+    local rounded_y = math.floor(center_y + 0.5)
+    
+    -- _M.dbgp(string.format("最终坐标 (四舍五入): (%d, %d)\n", rounded_x, rounded_y))
+    return rounded_x, rounded_y
+end
+
+_M.return_more_map = function(target_name, store_info, START_X, START_Y, click)
+    click = click or 0  -- 默认点击次数为0
+    
+    -- _M.dbgp(string.format("\n开始查找目标：%s (点击模式：%d)\n", target_name, click))
+    -- _M.dbgp(string.format("基准坐标: (%d, %d)\n", START_X, START_Y))
+    
+    if store_info and #store_info > 0 then
+        _M.dbgp(string.format("待检查物品数量：%d\n", #store_info))
+        
+        for i, actor in ipairs(store_info) do
+            -- _M.dbgp(string.format("\n检查物品 #%d:", i))
+            -- _M.dbgp(string.format("  baseType=%s", actor.baseType_utf8 or "nil"))
+            -- _M.dbgp(string.format("  obj=%s", actor.obj or "nil"))
+            -- _M.dbgp(string.format("  位置: (%d,%d)-(%d,%d)", 
+            --     actor.start_x, actor.start_y, actor.end_x, actor.end_y))
+            
+            if actor.baseType_utf8 and (actor.baseType_utf8 == target_name or actor.obj == target_name) then
+                -- 计算中心坐标
+                local start_cell = {actor.start_x, actor.start_y}
+                local end_cell = {actor.end_x, actor.end_y}
+                
+                -- _M.dbgp("\n√ 匹配成功！开始计算中心坐标...")
+                local center_x, center_y = _M.get_center_position_map_page(start_cell, end_cell, START_X, START_Y)
+                
+                -- 根据点击模式执行操作
+                if click == 1 then
+                    -- _M.dbgp("执行右键点击操作")
+                    _M.right_click(center_x, center_y)
+                else
+                    -- _M.dbgp("执行Ctrl+左键点击操作")
+                    _M.ctrl_left_click(center_x, center_y)
+                end
+                
+                -- _M.dbgp("操作完成，返回true\n")
+                return true  -- 找到后退出
+            else
+                _M.dbgp("× 不匹配目标条件")
+            end
+        end
+    else
+        -- _M.dbgp("警告：store_info为空或无效\n")
+        _M.dbgp("没有找到任何对象")
+    end
+    
+    _M.dbgp("未找到目标对象，返回false\n")
+    return false
 end
 
 -- 粘贴输入文本
@@ -2717,13 +2809,21 @@ _M.get_game_control_by_rect = function(data)
         max_x = data.max_x or 1600,      -- 可选，默认 1600
         max_y = data.max_y or 900,       -- 可选，默认 900
         index = data.index or 0,         -- 可选，默认 0，
-        UI_info = data.UI_info,
+        UI_info = data.UI_info or nil,
+        refresh = data.refresh or false,
     }
     local text_list = {}
-    _M.printTable(data.UI_info)
-    if not config.UI_info then
-        _M.dbgp("未发现游戏界面！")
+    -- 如果需要刷新或没有UI信息，则更新UI信息
+    if config.refresh or not config.UI_info then
+        _M.dbgp("defaults.refresh\n")
+        _M.dbgp("defaults.text -->", config.text)
+        config.UI_info = UiElements:Update()
+        if not config.UI_info or #config.UI_info < 1 then
+            _M.dbgp("未发现UI信息\n")
+            return false
+        end
     end
+    
     for _, v in ipairs(config.UI_info) do
         if v.left >= config.min_x and v.top >= config.min_y and v.right <= config.max_x and v.bottom <= config.max_y then
             if config.index ~= 0 and config.text and config.text ~= "" then
@@ -3145,6 +3245,7 @@ end
 --   grid_y: 格子高(默认43.81)
 --   index: 背包查询参数(默认1)
 --   info: 可选背包信息(默认nil)
+--   ret_number: false: 返回空间数量(默认fasle)
 _M.get_space_point = function(params)
     -- 参数校验和默认值设置
     assert(params.width and params.height, "必须提供width和height参数")
@@ -3160,6 +3261,7 @@ _M.get_space_point = function(params)
     local grid_y = params.grid_y or 43.81
     local index = params.index or 1
     local info = params.info or nil
+    local ret_number = params.ret_number or false
      
     -- 初始化背包网格
     local backpack = {}
@@ -3223,6 +3325,19 @@ _M.get_space_point = function(params)
         end
         return nil
     end
+
+    -- 返回空闲空间数量
+    local function get_space_count(backpack)
+        local count = 0
+        for i = 1, w do
+            for j = 1, h do
+                if not backpack[i][j] then
+                    count = count + 1
+                end
+            end
+        end
+        return count
+    end
     
     -- 计算中心点坐标
     local function calculate_center(occupied_coords, grid_origin, grid_size)
@@ -3263,6 +3378,12 @@ _M.get_space_point = function(params)
             place_item(backpack, top_left, bottom_right)
         end
     end
+
+    if ret_number then
+       local count =  get_space_count(backpack)
+       return count
+    end
+
     
     -- 查找空格位置
     local result = find_space_for_item_strict(backpack, width, height)
@@ -3639,71 +3760,21 @@ _M.get_point_distance = function(x1, y1, x2, y2)
     return distance
 end
 
--- 获取队伍信息
-_M.get_team_info = function(team_info ,config ,player_info, index)
-    local team_members = team_info
-    local captain = config["組隊設置"]["隊長名"]
-    local leader = config["組隊設置"]["大號名"]
-
-    local my_profession = '未知' -- 初始化您的職業为未知
-    if player_info and team_members then
-        for role, name in pairs(team_members) do
-            if player_info.name_utf8 and name == player_info.name_utf8 then
-                my_profession = role
-                break
-            end
-        end
+-- 深度拷贝
+_M.deepCopy = function(tbl)
+    if type(tbl) ~= "table" then return tbl end
+    local copy = {}
+    for k, v in pairs(tbl) do
+        copy[k] = deepCopy(v)
     end
-    if index == 0 then
-        return captain , leader , my_profession
-    elseif index == 2 then
-        return my_profession
-    elseif index == 3 then
-        return leader
-    elseif index == 4 then
-        return captain
-    elseif index == 5 then
-        -- 获取小號信息，排除线路、队长和大号
-        local small_accounts_values = {}
-        for role, name in pairs(team_members) do
-            if role ~= '隊長名' and role ~= '大號名' then
-                table.insert(small_accounts_values, name)
-            end
-        end
-        return small_accounts_values  -- 返回小號值列表
-    elseif index == 6 then
-        -- 获取小號信息，排除线路和大号
-        local small_accounts_values = {}
-        for role, name in pairs(team_members) do
-            if role ~= '大號名' then
-                table.insert(small_accounts_values, name)
-            end
-        end
-        return small_accounts_values  -- 返回小號值列表
-    end
+    return copy
 end
-        
-        
 
--- 查询本地任务信息
-_M.get_task_info = function(tasks_data,text)
-    if tasks_data[text] then
-        local task_data = tasks_data[text]
-        return {
-            task_name = text,
-            map_name = task_data.map_name or nil,
-            interaction_object = task_data.interaction_object or nil,
-            boss_name = task_data.Boss or nil,
-            grid_x = task_data.grid_x or nil,
-            grid_y = task_data.grid_y or nil,
-            special_map_point = task_data.special_map_point or nil,
-            interaction_object_map_name = task_data.interaction_object_map_name or nil,
-            index = task_data.index  -- 仅在需要时计算索引
-        }
-    end
-    
-    return nil
-    
+-- 随机点击屏幕
+_M.random_click = function(x, y, w, h)
+    local x1 = x + math.random(0, w)
+    local y1 = y + math.random(0, h)
+    api_ClickScreen(x1, y1, 1)
 end
 
 -- 其他可能用到的API

@@ -6,14 +6,16 @@ local behavior_tree = require 'behavior3.behavior_tree'
 local bret = require 'behavior3.behavior_ret'
 -- 加载基础节点类型
 local base_nodes = require 'behavior3.sample_process'
-local my_game_info = require 'my_game_info'
-local main_task = require 'main_task'
+local my_game_info = require 'script/my_game_info'
+local main_task = require 'script/main_task'
+
 local script_path = debug.getinfo(1, "S").source:sub(2)
 local path = script_path:gsub("/", "\\")
-local script_dir = path:match("(.*\\)")
+local script_dir = path:match("(.*\\)(.*)\\")
 local json_path = script_dir .. "config.json"
 local user_info_path = script_dir .. "config.ini"
-local poe2_api = require "poe2api"
+
+local poe2_api = require "script/poe2api"
 api_Log("清除 poe2api 模块的缓存")
 package.loaded['poe2api'] = nil
 -- 自定义节点实现
@@ -2145,15 +2147,6 @@ local custom_nodes = {
                     end
                     return false
                 end
-                -- 获取背包地图数量
-                local function map_index()
-                    local number = get_map_number()
-                    if number and #number >= 4 then
-                        return true
-                    end
-                    return false
-                    
-                end
                 
                 -- 获取背包中不打等级的地图钥匙
                 local function get_map_not_level()
@@ -2303,10 +2296,6 @@ local custom_nodes = {
                                                 end    
                                             end   
                                         end
-                                        if not map_index() then
-                                            poe2_api.dbgp("6")
-                                            break
-                                        end
                                         local crazy = get_map_not_crazy()
                                         if crazy then
                                             env.store_item = {crazy,i,0}
@@ -2375,9 +2364,6 @@ local custom_nodes = {
                                                     return true
                                                 end    
                                             end   
-                                        end
-                                        if not map_index() then
-                                            break
                                         end
                                         local crazy = get_map_not_crazy()
                                         if crazy then
@@ -3019,6 +3005,134 @@ local custom_nodes = {
                 api_Sleep(500)
                 return bret.RUNNING
             end
+        end
+    },
+
+    -- 城镇任务接收
+    Interactive_Npc_In_Town = {
+        run = function(self, env)
+            poe2_api.print_log("[Interactive_Npc_In_Town]城镇交互-任务")
+            poe2_api.dbgp("[Interactive_Npc_In_Town]开始处理城镇任务")
+            local range_info = env.range_info
+            local team_info = env.team_info
+            local user_config = env.user_config
+            local player_info = env.player_info
+            if not string.find(player_info.current_map_name_utf8 , "own") then
+                poe2_api.dbgp("[The_interactive_object_exist]不在城镇,不进行任何操作")
+                return bret.FAIL
+            end
+            local function is_have_active_npc(ranges)
+                if ranges then
+                    for _, m in pairs(ranges) do
+                        if m.name_utf8 and m.hasTasksToAccept then
+                            return m
+                        end
+                    end
+                end
+                return false
+            end
+
+            if string.find(player_info.current_map_name_utf8 , "own") and poe2_api.get_team_info(team_info, user_config, player_info,2 ) ~= "大號名" then
+                if poe2_api.find_text({UI_info = env.UI_info, text = "背包", min_x = 0}) then
+                    poe2_api.click_keyboard("space")
+                    return bret.RUNNING
+                end
+                local npc_names = is_active_npc(range_info)
+                if npc_names and not string.find(name.name_utf8, '沙漠') then
+                    env.npc_names = npc_names
+                    return bret.SUCCESS
+                end
+            end
+        end
+    },
+
+    -- 城镇任务npc是否存在
+    The_interactive_object_exist = {
+        run = function(self, env)
+            poe2_api.print_log("[The_interactive_object_exist]城镇任务npc是否存在")
+            poe2_api.dbgp("[The_interactive_object_exist]城镇任务npc是否存在")
+            if self.last_click_time == nil then
+                poe2_api.dbgp("[The_interactive_object_exist]初始化")
+                self.last_click_time = 0
+                self.click_cooldown = 1
+            end
+            local npc_names = env.npc_names
+            local player_info = env.player_info
+            local text = {"追尋巨獸的蹤跡"}
+            if npc_names and string.find(player_info.current_map_name_utf8, "town") then
+                local distance = poe2_api.point_distance(npc_names.grid_x, npc_names.grid_y, player_info)
+                env.interaction_object = npc_names.name_utf8
+                local point = api_FindNearestReachablePoint(npc_names.grid_x, npc_names.grid_y,15,0)
+                if distance <= 25 then
+                    if poe2_api.find_text({UI_info = env.UI_info, text = npc_names.name_utf8}) then
+                        if self.last_click_time ==0 then
+                            self.last_click_time = api_GetTickCount64()
+                        end
+                        if api_GetTickCount64() - self.last_click_time > self.click_cooldown then
+                            for _,t in ipairs(text) do
+                                if poe2_api.find_text({UI_info = env.UI_info, text = t}) then
+                                    poe2_api.find_text({UI_info = env.UI_info, text = t, click = 2})
+                                end
+                            end
+                            poe2_api.find_text({UI_info = env.UI_info, text = "再會", click = 2})
+                            poe2_api.find_text({UI_info = env.UI_info, text = npc_names.name_utf8, click = 2})
+                            self.last_click_time = 0
+                        end
+                        return bret.RUNNING
+                    end
+                end
+                env.end_point = {point.x,point.y}
+                return bret.SUCCESS
+            end
+            return bret.FAIL
+        end
+    },
+
+    -- npc交互
+    Interactive_Npc ={
+        run = function(self, env)
+            poe2_api.print_log("[Interactive_Npc]城镇npc交互")
+            poe2_api.dbgp("[Interactive_Npc]城镇npc交互")
+            if self.last_click_time == nil then
+                poe2_api.dbgp("[Interactive_Npc]初始化")
+                self.last_click_time = 0
+                self.click_cooldown = 1
+            end
+            local interaction_object = env.interaction_object
+            local player_info = env.player_info
+            if string.find(player_info.current_map_name_utf8, "town") and not interaction_object then
+                
+            return bret.RUNNING
+        end
+    },
+
+    -- 检查是否为大号
+    Check_Role = {
+        run = function(self, env)
+            poe2_api.print_log("[Check_Role]检查是否为大号")
+            poe2_api.dbgp("[Check_Role]检查是否为大号")
+            
+            return bret.SUCCESS
+        end
+    },
+
+    -- 大号查询本地任务信息
+    Query_Current_Task_Information_Local = {
+        run = function(self, env)
+            poe2_api.print_log("[Query_Current_Task_Information_Local]大号查询本地任务信息")
+            poe2_api.dbgp("[Query_Current_Task_Information_Local]大号查询本地任务信息")
+            
+            return bret.SUCCESS
+        end
+    },
+
+    -- 小号查询任务信息
+    Query_Current_Task_Information = {
+        run = function(self, env)
+            poe2_api.print_log("[Query_Current_Task_Information]小号查询任务信息")
+            poe2_api.dbgp("[Query_Current_Task_Information]小号查询任务信息")
+            
+            return bret.SUCCESS
         end
     },
 
@@ -4029,6 +4143,7 @@ local env_params = {
     relife_stuck_monsters = {}, --复活队友跳怪
     map_result = nil, --小地图路径
     tasks_data = main_task.tasks_data, --任务列表
+    npc_names = nil, --NPC名稱
 
     warehouse_type_interactive = nil,  -- 仓库类型交互（个仓/公仓/nil）
     hwrd_time = 0, -- 获取窗口句柄间隔

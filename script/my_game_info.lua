@@ -217,7 +217,7 @@ local my_game_info = {
         "MapSunTemple_NoBoss", -- # 太阳神殿
         "MapSunTemple", -- # 太阳神殿 有Boss
         "MapBloomingField", -- # 盛放田野 有Boss
-        -- # "MapVaalFoundry", --# 瓦尔铸造厂 有Boss
+        "MapVaalFoundry", --# 瓦尔铸造厂 有Boss
         -- # "MapAugury", --# 预兆 有Boss
         -- # "MapAugury_NoBoss", --# 预兆
         "MapNecropolis", -- # 魔影墓场 有Boss
