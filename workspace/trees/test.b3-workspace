@@ -5,6 +5,14 @@
       "desc": ""
     },
     {
+      "path": "attack_target 2.json",
+      "desc": ""
+    },
+    {
+      "path": "attack_target copy.json",
+      "desc": ""
+    },
+    {
       "path": "attack_target.json",
       "desc": ""
     },
@@ -13,8 +21,16 @@
       "desc": ""
     },
     {
+      "path": "gongji.json",
+      "desc": ""
+    },
+    {
       "path": "hero.json",
       "desc": "英雄测试AI"
+    },
+    {
+      "path": "main_story_map.json",
+      "desc": ""
     },
     {
       "path": "monster.json",
@@ -29,11 +45,27 @@
       "desc": ""
     },
     {
+      "path": "out_id_1.json",
+      "desc": ""
+    },
+    {
       "path": "out_id.json",
       "desc": ""
     },
     {
       "path": "out_id1.json",
+      "desc": ""
+    },
+    {
+      "path": "shop.json",
+      "desc": ""
+    },
+    {
+      "path": "story_complete.json",
+      "desc": ""
+    },
+    {
+      "path": "story.json",
       "desc": ""
     },
     {

@@ -1,0 +1,855 @@
+{
+  "name": "main_story_map",
+  "root": {
+    "id": 1,
+    "name": "Sequence",
+    "children": [
+      {
+        "id": 2,
+        "name": "Get_User_Config_Info",
+        "desc": "获取用户配置信息"
+      },
+      {
+        "id": 3,
+        "name": "Selector",
+        "desc": "main_join",
+        "children": [
+          {
+            "id": 4,
+            "name": "Join_Game_Otherworld",
+            "desc": "异界进入游戏"
+          },
+          {
+            "id": 5,
+            "name": "Selector",
+            "desc": "launch_game",
+            "children": [
+              {
+                "id": 6,
+                "name": "Official_Join_Game",
+                "desc": "官服加入游戏"
+              },
+              {
+                "id": 7,
+                "name": "Launch_Game_Steam",
+                "desc": "steam加入游戏"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": 8,
+        "name": "Get_Info",
+        "desc": "获取信息"
+      },
+      {
+        "id": 9,
+        "name": "Selector",
+        "desc": "Teleport_Story",
+        "children": [
+          {
+            "id": 10,
+            "name": "Otherworld_Is_Need_Teleport",
+            "desc": "是否在目标地区"
+          },
+          {
+            "id": 11,
+            "name": "Otherworld_Click_Map_To_Area_Teleport"
+          },
+          {
+            "id": 12,
+            "name": "Selector",
+            "desc": "stackableCurrency_interactive",
+            "children": [
+              {
+                "id": 13,
+                "name": "Is_Interactive",
+                "desc": "是否需要交互"
+              },
+              {
+                "id": 14,
+                "name": "Sequence",
+                "desc": "Interactive",
+                "children": [
+                  {
+                    "id": 15,
+                    "name": "Game_Block",
+                    "desc": "清理遮挡"
+                  },
+                  {
+                    "id": 16,
+                    "name": "Selector",
+                    "desc": "move_to_object",
+                    "children": [
+                      {
+                        "id": 17,
+                        "name": "Click_Item_Text",
+                        "desc": "点击交互"
+                      },
+                      {
+                        "id": 18,
+                        "name": "Sequence",
+                        "desc": "Path_Move",
+                        "children": [
+                          {
+                            "id": 19,
+                            "name": "Game_Block",
+                            "desc": "清除遮挡"
+                          },
+                          {
+                            "id": 20,
+                            "name": "Is_Arrive",
+                            "desc": "是否到点"
+                          },
+                          {
+                            "id": 21,
+                            "name": "GET_Path",
+                            "desc": "获取路径"
+                          },
+                          {
+                            "id": 22,
+                            "name": "Move_To_Target_Point",
+                            "desc": "移动至目标点"
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": 23,
+        "name": "RestController",
+        "desc": "休息控制器"
+      },
+      {
+        "id": 24,
+        "name": "Is_Deth_Otherworld",
+        "desc": "死亡处理"
+      },
+      {
+        "id": 25,
+        "name": "SmallRetreat",
+        "desc": "小退"
+      },
+      {
+        "id": 26,
+        "name": "ReturnToTown",
+        "desc": "回城"
+      },
+      {
+        "id": 27,
+        "name": "Check_LongTime_EXP_Add",
+        "desc": "检查经验增长"
+      },
+      {
+        "id": 28,
+        "name": "Sequence",
+        "desc": "exception_main",
+        "children": [
+          {
+            "id": 29,
+            "name": "CheckLowHpMp_Otherworld",
+            "desc": "血蓝检查"
+          },
+          {
+            "id": 30,
+            "name": "Selector",
+            "desc": "lowhpmp_move",
+            "children": [
+              {
+                "id": 31,
+                "name": "Escape"
+              },
+              {
+                "id": 32,
+                "name": "Sequence",
+                "desc": "Path_Move",
+                "children": [
+                  {
+                    "id": 33,
+                    "name": "Game_Block",
+                    "desc": "清除遮挡"
+                  },
+                  {
+                    "id": 34,
+                    "name": "Is_Arrive",
+                    "desc": "是否到点"
+                  },
+                  {
+                    "id": 35,
+                    "name": "GET_Path",
+                    "desc": "获取路径"
+                  },
+                  {
+                    "id": 36,
+                    "name": "Move_To_Target_Point",
+                    "desc": "移动至目标点"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "id": 37,
+            "name": "Not_Main_Page_Otherworld"
+          }
+        ]
+      },
+      {
+        "id": 38,
+        "name": "Set_Base_Skill",
+        "desc": "设置基础技能"
+      },
+      {
+        "id": 39,
+        "name": "Sequence",
+        "desc": "Identify",
+        "children": [
+          {
+            "id": 40,
+            "name": "Dialogue_Appraisal_NPC",
+            "desc": "对话NPC"
+          },
+          {
+            "id": 41,
+            "name": "Sequence",
+            "desc": "Interactive",
+            "children": [
+              {
+                "id": 42,
+                "name": "Game_Block",
+                "desc": "清理遮挡"
+              },
+              {
+                "id": 43,
+                "name": "Selector",
+                "desc": "move_to_object",
+                "children": [
+                  {
+                    "id": 44,
+                    "name": "Click_Item_Text",
+                    "desc": "点击交互"
+                  },
+                  {
+                    "id": 45,
+                    "name": "Sequence",
+                    "desc": "Path_Move",
+                    "children": [
+                      {
+                        "id": 46,
+                        "name": "Game_Block",
+                        "desc": "清除遮挡"
+                      },
+                      {
+                        "id": 47,
+                        "name": "Is_Arrive",
+                        "desc": "是否到点"
+                      },
+                      {
+                        "id": 48,
+                        "name": "GET_Path",
+                        "desc": "获取路径"
+                      },
+                      {
+                        "id": 49,
+                        "name": "Move_To_Target_Point",
+                        "desc": "移动至目标点"
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": 50,
+        "name": "Sequence",
+        "desc": "Conflate",
+        "children": [
+          {
+            "id": 51,
+            "name": "is_need_identify",
+            "desc": "是否需要合成"
+          },
+          {
+            "id": 52,
+            "name": "Selector",
+            "desc": "conf",
+            "children": [
+              {
+                "id": 53,
+                "name": "Sequence",
+                "desc": "open_page",
+                "children": [
+                  {
+                    "id": 54,
+                    "name": "Synthesis_Interface",
+                    "desc": "打开合成界面"
+                  },
+                  {
+                    "id": 55,
+                    "name": "Sequence",
+                    "desc": "Interactive",
+                    "children": [
+                      {
+                        "id": 56,
+                        "name": "Game_Block",
+                        "desc": "清理遮挡"
+                      },
+                      {
+                        "id": 57,
+                        "name": "Selector",
+                        "desc": "move_to_object",
+                        "children": [
+                          {
+                            "id": 58,
+                            "name": "Click_Item_Text",
+                            "desc": "点击交互"
+                          },
+                          {
+                            "id": 59,
+                            "name": "Sequence",
+                            "desc": "Path_Move",
+                            "children": [
+                              {
+                                "id": 60,
+                                "name": "Game_Block",
+                                "desc": "清除遮挡"
+                              },
+                              {
+                                "id": 61,
+                                "name": "Is_Arrive",
+                                "desc": "是否到点"
+                              },
+                              {
+                                "id": 62,
+                                "name": "GET_Path",
+                                "desc": "获取路径"
+                              },
+                              {
+                                "id": 63,
+                                "name": "Move_To_Target_Point",
+                                "desc": "移动至目标点"
+                              }
+                            ]
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "id": 64,
+                "name": "Click_On_The_Item_To_Synthesize",
+                "desc": "点击物品合成"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": 65,
+        "name": "Sequence",
+        "desc": "Store_items",
+        "children": [
+          {
+            "id": 66,
+            "name": "Selector",
+            "desc": "move",
+            "children": [
+              {
+                "id": 67,
+                "name": "Is_Arrive_Point",
+                "desc": "是否需要移动"
+              },
+              {
+                "id": 68,
+                "name": "Sequence",
+                "desc": "Interactive",
+                "children": [
+                  {
+                    "id": 69,
+                    "name": "Game_Block",
+                    "desc": "清理遮挡"
+                  },
+                  {
+                    "id": 70,
+                    "name": "Selector",
+                    "desc": "move_to_object",
+                    "children": [
+                      {
+                        "id": 71,
+                        "name": "Click_Item_Text",
+                        "desc": "点击交互"
+                      },
+                      {
+                        "id": 72,
+                        "name": "Sequence",
+                        "desc": "Path_Move",
+                        "children": [
+                          {
+                            "id": 73,
+                            "name": "Game_Block",
+                            "desc": "清除遮挡"
+                          },
+                          {
+                            "id": 74,
+                            "name": "Is_Arrive",
+                            "desc": "是否到点"
+                          },
+                          {
+                            "id": 75,
+                            "name": "GET_Path",
+                            "desc": "获取路径"
+                          },
+                          {
+                            "id": 76,
+                            "name": "Move_To_Target_Point",
+                            "desc": "移动至目标点"
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "id": 77,
+            "name": "Store_Items",
+            "desc": "存储"
+          }
+        ]
+      },
+      {
+        "id": 78,
+        "name": "StackableCurrency_Discard",
+        "desc": "丢弃"
+      },
+      {
+        "id": 79,
+        "name": "Selector",
+        "desc": "Pick_Up",
+        "children": [
+          {
+            "id": 80,
+            "name": "Is_Pick_UP",
+            "desc": "是否需要拾取"
+          },
+          {
+            "id": 81,
+            "name": "Sequence",
+            "desc": "Interactive",
+            "children": [
+              {
+                "id": 82,
+                "name": "Game_Block",
+                "desc": "清理遮挡"
+              },
+              {
+                "id": 83,
+                "name": "Selector",
+                "desc": "move_to_object",
+                "children": [
+                  {
+                    "id": 84,
+                    "name": "Click_Item_Text",
+                    "desc": "点击交互"
+                  },
+                  {
+                    "id": 85,
+                    "name": "Sequence",
+                    "desc": "Path_Move",
+                    "children": [
+                      {
+                        "id": 86,
+                        "name": "Game_Block",
+                        "desc": "清除遮挡"
+                      },
+                      {
+                        "id": 87,
+                        "name": "Is_Arrive",
+                        "desc": "是否到点"
+                      },
+                      {
+                        "id": 88,
+                        "name": "GET_Path",
+                        "desc": "获取路径"
+                      },
+                      {
+                        "id": 89,
+                        "name": "Move_To_Target_Point",
+                        "desc": "移动至目标点"
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": 90,
+        "name": "Identify_designated_equipment",
+        "desc": "城外鉴定"
+      },
+      {
+        "id": 91,
+        "name": "Gameplay_Safe_Box"
+      },
+      {
+        "id": 92,
+        "name": "Selector",
+        "desc": "stackableCurrency_interactive",
+        "children": [
+          {
+            "id": 93,
+            "name": "Is_Interactive",
+            "desc": "是否需要交互"
+          },
+          {
+            "id": 94,
+            "name": "Sequence",
+            "desc": "Interactive",
+            "children": [
+              {
+                "id": 95,
+                "name": "Game_Block",
+                "desc": "清理遮挡"
+              },
+              {
+                "id": 96,
+                "name": "Selector",
+                "desc": "move_to_object",
+                "children": [
+                  {
+                    "id": 97,
+                    "name": "Click_Item_Text",
+                    "desc": "点击交互"
+                  },
+                  {
+                    "id": 98,
+                    "name": "Sequence",
+                    "desc": "Path_Move",
+                    "children": [
+                      {
+                        "id": 99,
+                        "name": "Game_Block",
+                        "desc": "清除遮挡"
+                      },
+                      {
+                        "id": 100,
+                        "name": "Is_Arrive",
+                        "desc": "是否到点"
+                      },
+                      {
+                        "id": 101,
+                        "name": "GET_Path",
+                        "desc": "获取路径"
+                      },
+                      {
+                        "id": 102,
+                        "name": "Move_To_Target_Point",
+                        "desc": "移动至目标点"
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": 103,
+        "name": "Clear",
+        "desc": "清屏"
+      },
+      {
+        "id": 104,
+        "name": "Selector",
+        "desc": "attack_otherworld",
+        "children": [
+          {
+            "id": 105,
+            "name": "Sequence",
+            "desc": "Attack",
+            "children": [
+              {
+                "id": 106,
+                "name": "Game_Block",
+                "desc": "清除遮挡"
+              },
+              {
+                "id": 107,
+                "name": "DodgeAction",
+                "desc": "躲避技能"
+              },
+              {
+                "id": 108,
+                "name": "Sequence",
+                "children": [
+                  {
+                    "id": 109,
+                    "name": "Selector",
+                    "desc": "attack_move",
+                    "children": [
+                      {
+                        "id": 110,
+                        "name": "ReleaseSkillAction",
+                        "desc": "释放技能"
+                      },
+                      {
+                        "id": 111,
+                        "name": "Sequence",
+                        "desc": "Path_Move",
+                        "children": [
+                          {
+                            "id": 112,
+                            "name": "Game_Block",
+                            "desc": "清除遮挡"
+                          },
+                          {
+                            "id": 113,
+                            "name": "Is_Arrive",
+                            "desc": "是否到点"
+                          },
+                          {
+                            "id": 114,
+                            "name": "GET_Path",
+                            "desc": "获取路径"
+                          },
+                          {
+                            "id": 115,
+                            "name": "Move_To_Target_Point",
+                            "desc": "移动至目标点"
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "id": 116,
+                    "name": "Sequence",
+                    "desc": "rare_mos_move",
+                    "children": [
+                      {
+                        "id": 117,
+                        "name": "Find_Monster",
+                        "desc": "找精英怪"
+                      },
+                      {
+                        "id": 118,
+                        "name": "Sequence",
+                        "desc": "Path_Move",
+                        "children": [
+                          {
+                            "id": 119,
+                            "name": "Game_Block",
+                            "desc": "清除遮挡"
+                          },
+                          {
+                            "id": 120,
+                            "name": "Is_Arrive",
+                            "desc": "是否到点"
+                          },
+                          {
+                            "id": 121,
+                            "name": "GET_Path",
+                            "desc": "获取路径"
+                          },
+                          {
+                            "id": 122,
+                            "name": "Move_To_Target_Point",
+                            "desc": "移动至目标点"
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "id": 123,
+            "name": "Sequence",
+            "desc": "Area_Move",
+            "children": [
+              {
+                "id": 124,
+                "name": "Check_Target_Point"
+              },
+              {
+                "id": 125,
+                "name": "Sequence",
+                "desc": "Path_Move",
+                "children": [
+                  {
+                    "id": 126,
+                    "name": "Game_Block",
+                    "desc": "清除遮挡"
+                  },
+                  {
+                    "id": 127,
+                    "name": "Is_Arrive",
+                    "desc": "是否到点"
+                  },
+                  {
+                    "id": 128,
+                    "name": "GET_Path",
+                    "desc": "获取路径"
+                  },
+                  {
+                    "id": 129,
+                    "name": "Move_To_Target_Point",
+                    "desc": "移动至目标点"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "id": 130,
+            "name": "Selector",
+            "desc": "enter_the_otherworld",
+            "children": [
+              {
+                "id": 131,
+                "name": "Sequence",
+                "desc": "enter_map",
+                "children": [
+                  {
+                    "id": 132,
+                    "name": "Enter_Map",
+                    "desc": "点击进入"
+                  },
+                  {
+                    "id": 133,
+                    "name": "Sequence",
+                    "desc": "Path_Move",
+                    "children": [
+                      {
+                        "id": 134,
+                        "name": "Game_Block",
+                        "desc": "清除遮挡"
+                      },
+                      {
+                        "id": 135,
+                        "name": "Is_Arrive",
+                        "desc": "是否到点"
+                      },
+                      {
+                        "id": 136,
+                        "name": "GET_Path",
+                        "desc": "获取路径"
+                      },
+                      {
+                        "id": 137,
+                        "name": "Move_To_Target_Point",
+                        "desc": "移动至目标点"
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "id": 138,
+                "name": "Sequence",
+                "desc": "put_map_in_otherworld",
+                "children": [
+                  {
+                    "id": 139,
+                    "name": "Put_Map_In_Otherworld",
+                    "desc": "放置异界地图"
+                  },
+                  {
+                    "id": 140,
+                    "name": "Clear_All_Page",
+                    "desc": "清除所有页面"
+                  }
+                ]
+              },
+              {
+                "id": 141,
+                "name": "Sequence",
+                "desc": "open_the_Page",
+                "children": [
+                  {
+                    "id": 142,
+                    "name": "Open_The_Otherworld_Page",
+                    "desc": "打开异界地图页面"
+                  },
+                  {
+                    "id": 143,
+                    "name": "Sequence",
+                    "desc": "Interactive",
+                    "children": [
+                      {
+                        "id": 144,
+                        "name": "Game_Block",
+                        "desc": "清理遮挡"
+                      },
+                      {
+                        "id": 145,
+                        "name": "Selector",
+                        "desc": "move_to_object",
+                        "children": [
+                          {
+                            "id": 146,
+                            "name": "Click_Item_Text",
+                            "desc": "点击交互"
+                          },
+                          {
+                            "id": 147,
+                            "name": "Sequence",
+                            "desc": "Path_Move",
+                            "children": [
+                              {
+                                "id": 148,
+                                "name": "Game_Block",
+                                "desc": "清除遮挡"
+                              },
+                              {
+                                "id": 149,
+                                "name": "Is_Arrive",
+                                "desc": "是否到点"
+                              },
+                              {
+                                "id": 150,
+                                "name": "GET_Path",
+                                "desc": "获取路径"
+                              },
+                              {
+                                "id": 151,
+                                "name": "Is_Need_Exchange",
+                                "desc": "是否需要交换"
+                              }
+                            ]
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "export": true,
+  "desc": ""
+}

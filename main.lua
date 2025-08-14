@@ -18,13 +18,24 @@ while true do
     
     bt:interrupt()  -- 清空节点栈和YIELD标记
     bt:run()
+    -- a = Actors:Update()
+    -- api_Log(#a)
     
     -- 计算当前 Tick 耗时（毫秒）
+    -- local a = api_FindPath(793,250,611,378)
+    -- if a and next(a) then
+    --     api_Log("11111")
+    -- else
+    --     api_Log("22222")
+    -- end
+    -- 793,250} -> {611,378
     local elapsed_ms = (api_GetTickCount64()) - start_time
     api_Log(string.format("Tick %d | 耗时: %.2f ms", i, elapsed_ms))
     api_Log(string.format("-------------------------------------------------------------------------------------------------------------"))
+
     -- 可选：控制打印频率（如每 N 次打印一次）
     -- if i % 10 == 0 then
     --     api_Log(string.format("Tick %d | 耗时: %.2f ms", i, elapsed_ms))
+    --     api_Log(string.format("-------------------------------------------------------------------------------------------------------------"))
     -- end
 end

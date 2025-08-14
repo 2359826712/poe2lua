@@ -1,0 +1,162 @@
+{
+  "name": "story_complete",
+  "root": {
+    "id": 1,
+    "name": "Sequence",
+    "children": [
+      {
+        "id": 2,
+        "name": "Selector",
+        "children": [
+          {
+            "id": 3,
+            "name": "Is_Game_Windows"
+          },
+          {
+            "id": 4,
+            "name": "Selector",
+            "children": [
+              {
+                "id": 5,
+                "name": "Official_Join_Game"
+              },
+              {
+                "id": 6,
+                "name": "Launch_Game_Steam"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": 7,
+        "name": "Get_User_Config_Info"
+      },
+      {
+        "id": 8,
+        "name": "Join_Game"
+      },
+      {
+        "id": 9,
+        "name": "Get_Info",
+        "desc": "获取信息"
+      },
+      {
+        "id": 10,
+        "name": "RestController",
+        "desc": "休息控制"
+      },
+      {
+        "id": 11,
+        "name": "Is_Deth",
+        "desc": "是否死亡"
+      },
+      {
+        "id": 12,
+        "name": "CheckLowHpMp",
+        "desc": "是否低血蓝"
+      },
+      {
+        "id": 13,
+        "name": "Not_Main_Page",
+        "desc": "不在主页面"
+      },
+      {
+        "id": 14,
+        "name": "Clear",
+        "desc": "清除聊天信息"
+      },
+      {
+        "id": 15,
+        "name": "Use_Task_Props",
+        "desc": "使用任务道具"
+      },
+      {
+        "id": 16,
+        "name": "Set_Base_Skill",
+        "desc": "设置基础技能"
+      },
+      {
+        "id": 17,
+        "name": "Selector",
+        "desc": "Store_items",
+        "children": [
+          {
+            "id": 18,
+            "name": "Is_Store_Items"
+          },
+          {
+            "id": 19,
+            "name": "Selector",
+            "desc": "is",
+            "children": [
+              {
+                "id": 20,
+                "name": "Store_Items"
+              },
+              {
+                "id": 21,
+                "name": "Selector",
+                "children": [
+                  {
+                    "id": 22,
+                    "name": "Open_Warehouse",
+                    "desc": "仓库页是否已打开"
+                  },
+                  {
+                    "id": 23,
+                    "name": "Sequence",
+                    "desc": "Interactive",
+                    "children": [
+                      {
+                        "id": 24,
+                        "name": "Game_Block",
+                        "desc": "清理遮挡"
+                      },
+                      {
+                        "id": 25,
+                        "name": "Selector",
+                        "desc": "move_to_object",
+                        "children": [
+                          {
+                            "id": 26,
+                            "name": "Click_Item_Text",
+                            "desc": "点击交互"
+                          },
+                          {
+                            "id": 27,
+                            "name": "Sequence",
+                            "desc": "Path_Move",
+                            "children": [
+                              {
+                                "id": 28,
+                                "name": "Is_Arrive",
+                                "desc": "是否到点"
+                              },
+                              {
+                                "id": 29,
+                                "name": "GET_Path",
+                                "desc": "获取路径"
+                              },
+                              {
+                                "id": 30,
+                                "name": "Move_To_Target_Point",
+                                "desc": "移动至目标点"
+                              }
+                            ]
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "export": true,
+  "desc": ""
+}

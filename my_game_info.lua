@@ -201,6 +201,11 @@ local my_game_info = {
         "憎惡者．亞歐塔"
     },
 
+    game_region = {
+        "Dawn of the Hunt 聯盟",
+        "Standard 聯盟"
+    },
+
     trash_map = {
         "MapLeaguePortal", -- # 界域之门
         "MapVoidReliquary", -- # 宝库
@@ -234,7 +239,7 @@ local my_game_info = {
     not_attact_mons_CN_name = {
         "", "惡魔", "隱形", "視覺惡魔", "複製之躰", "複製體",
         "暴行雕像", "先祖戰士精魂", "骨牆", "潛伏之炎",
-        "複製體", "複製之體", "果息", "疾速地雷","動亂"
+        "複製體", "複製之體", "果息", "疾速地雷","動亂","核息"
     },
 
     space_path_name_list_round = {
@@ -808,6 +813,7 @@ local my_game_info = {
         "七大水域之都", "象牙盜匪", "石皇冠", "瓦爾的傳承",
         "部落復仇"
     },
+
     type_conversion = {
         ["單手錘"] = "One Hand Mace",
         ["雙手錘"] = "Two Hand Mace",
@@ -945,10 +951,7 @@ local my_game_info = {
                 {"奧格姆村", "G1_13_2"}, true, {{1010, 648}}
             },
             ["宅第壁壘"] = {{"宅第壁壘", "G1_14"}, true, {{1214, 552}}},
-            ["奧格姆宅第"] = {
-                {"奧格姆宅第", "G1_15"}, true, {{1156, 514}, {1204, 752}},
-                "奧格姆宅第"
-            }
+            ["奧格姆宅第"] = {{"奧格姆宅第", "G1_15"}, true, {{1156, 514}, {1204, 752}},"奧格姆宅第"}
         },
 
         ["第 2 章"] = {
@@ -1365,17 +1368,27 @@ local my_game_info = {
 
     -- # 符文
     Rune_CN = {
-        "Farrul's Rune of the Chase", "Farrul's Rune of Grace",
-        "Fenumus' Rune of Draining", "Fenumus' Rune of Spinning",
-        "Thane Grannell's Rune of Mastery",
-        "Courtesan Mannan's Rune of Cruelty", "The Greatwolf's Rune of Claws",
-        "Saqawal's Rune of Memory", "Saqawal's Rune of Erosion",
-        "Countess Seske's Rune of Archery", "Craiceann's Rune of Warding",
-        "Craiceann's Rune of Recovery", "The Greatwolf's Rune of Willpower",
-        "Saqawal's Rune of the Sky", "Hedgewitch Assandra's Rune of Wisdom",
-        "Thane Girt's Rune of Wildness", "Fenumus' Rune of Agony",
-        "Thane Leld's Rune of Spring", "Lady Hestra's Rune of Winter",
-        "Thane Myrk's Rune of Summer", "Farrul's Rune of the Hunt",
+        "費爾羅的追擊符文",
+        "費爾羅的優雅符文",
+        "費努姆斯的流失符文",
+        "費努姆斯的轉動符文",
+        "爵士格蘭內爾的專精符文",
+        "花魁蔓南的殘酷符文",
+        "巨狼之爪符文",
+        "薩卡瓦爾的記憶符文",
+        "薩卡瓦爾的侵蝕符文",
+        "伯爵夫人瑟絲可的箭術符文",
+        "庫雷席安的守護符文",
+        "庫雷席安的恢復符文",
+        "巨狼意志符文",
+        "薩卡瓦爾的天空符文",
+        "流浪女巫艾珊德菈的智慧符文",
+        "爵士格特的野性符文",
+        "費努姆斯的苦痛符文",
+        "爵士勒爾德的暖春符文",
+        "赫絲緹菈的寒冬符文",
+        "爵士邁爾克的盛夏符文",
+        "費爾羅的狩獵符文",
         "高階崇高符文", "高階迅捷符文", "高階奉獻符文",
         "高階領導符文", "高階決心符文", "決心符文",
         "低階決心符文", "高階嫻熟符文", "嫻熟符文",
@@ -1396,17 +1409,27 @@ local my_game_info = {
     -- # 補充
     -- #高階符文
     High_Rune_CN = {
-        "Farrul's Rune of the Chase", "Farrul's Rune of Grace",
-        "Fenumus' Rune of Draining", "Fenumus' Rune of Spinning",
-        "Thane Grannell's Rune of Mastery",
-        "Courtesan Mannan's Rune of Cruelty", "The Greatwolf's Rune of Claws",
-        "Saqawal's Rune of Memory", "Saqawal's Rune of Erosion",
-        "Countess Seske's Rune of Archery", "Craiceann's Rune of Warding",
-        "Craiceann's Rune of Recovery", "The Greatwolf's Rune of Willpower",
-        "Saqawal's Rune of the Sky", "Hedgewitch Assandra's Rune of Wisdom",
-        "Thane Girt's Rune of Wildness", "Fenumus' Rune of Agony",
-        "Thane Leld's Rune of Spring", "Lady Hestra's Rune of Winter",
-        "Thane Myrk's Rune of Summer", "Farrul's Rune of the Hunt",
+        "費爾羅的追擊符文",
+        "費爾羅的優雅符文",
+        "費努姆斯的流失符文",
+        "費努姆斯的轉動符文",
+        "爵士格蘭內爾的專精符文",
+        "花魁蔓南的殘酷符文",
+        "巨狼之爪符文",
+        "薩卡瓦爾的記憶符文",
+        "薩卡瓦爾的侵蝕符文",
+        "伯爵夫人瑟絲可的箭術符文",
+        "庫雷席安的守護符文",
+        "庫雷席安的恢復符文",
+        "巨狼意志符文",
+        "薩卡瓦爾的天空符文",
+        "流浪女巫艾珊德菈的智慧符文",
+        "爵士格特的野性符文",
+        "費努姆斯的苦痛符文",
+        "爵士勒爾德的暖春符文",
+        "赫絲緹菈的寒冬符文",
+        "爵士邁爾克的盛夏符文",
+        "費爾羅的狩獵符文",
         "高階崇高符文", "高階迅捷符文", "高階奉獻符文",
         "高階領導符文", "高階決心符文"
     },
@@ -1424,15 +1447,21 @@ local my_game_info = {
 
     -- # 靈魂核心
     SoulCore_CN = {
-        "Estazunti's Soul Core of Convalescence",
-        "Uromoti's Soul Core of Attenuation", "Tzamoto's Soul Core of Ferocity",
-        "Quipolatl's Soul Core of Flow", "Tacati's Soul Core of Affliction",
-        "Cholotl's Soul Core of War", "Citaqualotl's Soul Core of Foulness",
-        "Xipocado's Soul Core of Dominion", "Xopec's Soul Core of Power",
-        "Guatelitzi's Soul Core of Endurance", "Opiloti's Soul Core of Assault",
-        "Topotante's Soul Core of Dampening",
-        "Zalatl's Soul Core of Insulation",
-        "Hayoxi's Soul Core of Heatproofing", "Atmohua's Soul Core of Retreat",
+        "亞斯塔祖提的康復靈魂核心",
+        "烏洛莫提的消減靈魂核心",
+        "查莫托的狂暴靈魂核心",
+        "克特帕托的流動靈魂核心",
+        "提卡蒂的苦痛靈魂核心",
+        "裘洛托的戰爭靈魂核心",
+        "希特克拉多的腐壞靈魂核心",
+        "席波卡多的支配靈魂核心",
+        "柔派克的力量靈魂核心",
+        "瓜特利斯的的耐久靈魂核心",
+        "奧皮洛提的攻擊靈魂核心",
+        "托波譚提的阻挫靈魂核心",
+        "札拉提的絕緣靈魂核心",
+        "哈尤席的隔熱靈魂核心",
+        "艾特莫華的撤退靈魂核心",
         "艾斯卡巴靈魂核心", "智慧靈魂核心", "敏捷靈魂核心",
         "力量靈魂核心", "堤卡巴靈魂核心",
         "克特帕托靈魂核心", "柔派克靈魂核心",
@@ -1444,9 +1473,12 @@ local my_game_info = {
 
     -- # 魔符
     Sigil_CN = {
-        "Talisman of Grold", "Talisman of Sirrius", "Talisman of Ralakesh",
-        "Talisman of Egrin", "Talisman of Eeshta", "Talisman of Maxarius",
-        "Talisman of Thruldana", "狡兔魔符", "狐狸魔符", "公牛魔符",
+        "格羅德護符",
+        "席里斯護符",
+        "萊拉克許護符",
+        "埃格林護符","義許塔護符","馬薩里斯護符",
+        "特盧達納護符",
+        "狡兔魔符", "狐狸魔符", "公牛魔符",
         "夜梟魔符", "靈貓魔符", "野狼魔符", "蝮蛇魔符",
         "野豬魔符", "雄鹿魔符", "靈長魔符", "巨熊魔符"
     },

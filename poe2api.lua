@@ -1,7 +1,7 @@
 local _M = {} -- 主接口表
 local json = require 'json'
 local my_game_info = require 'my_game_info'
-
+local main_task = require 'main_task'
 
 local CELL_WIDTH = 43.81  -- 每个格子宽度
 local CELL_HEIGHT = 43.81  -- 每个格子高度
@@ -9,6 +9,10 @@ local START_X = 1059   -- 起始X坐标
 local START_Y = 492    -- 起始Y坐标
 local START_X_STORE = 12   -- 起始X坐标
 local START_Y_STORE = 102 
+local START_X_max = 15  -- 超大仓库 起始X坐标
+local START_Y_max = 100  -- 超大仓库 起始X坐标
+local CELL_WIDTH_max = 22  -- 超大仓库 每个格子宽度
+local CELL_HEIGHT_max = 22  -- 超大仓库 每个格子高度
 
 _M.point_distance = function(x, y, ac)
     -- 检查 x, y 是否为有效数字
@@ -24,8 +28,13 @@ _M.point_distance = function(x, y, ac)
     -- 确定玩家坐标
     local player_x, player_y
     if type(ac) == "table" then
-        player_x = ac[1] or 0 -- 如果 ac[1] 是 nil，默认 0
-        player_y = ac[2] or 0 -- 如果 ac[2] 是 nil，默认 0
+        if _M.countTableItems(ac) < 3 then
+            player_x = ac[1] or 0 -- 如果 ac[1] 是 nil，默认 0
+            player_y = ac[2] or 0 -- 如果 ac[2] 是 nil，默认 0
+        else
+            player_x = ac.grid_x or 0 -- 如果 grid_x 不存在，默认 0
+            player_y = ac.grid_y or 0 -- 如果 grid_y 不存在，默认 0
+        end
     else
         player_x = ac.grid_x or 0 -- 如果 grid_x 不存在，默认 0
         player_y = ac.grid_y or 0 -- 如果 grid_y 不存在，默认 0
@@ -59,6 +68,7 @@ _M.find_text = function(params)
         sorted = false,
         UI_info = nil
     }
+    
     -- 合并传入参数和默认值
     for k, v in pairs(params) do defaults[k] = v end
 
@@ -68,201 +78,141 @@ _M.find_text = function(params)
         return false
     end
     
+    -- 如果需要刷新或没有UI信息，则更新UI信息
     if defaults.refresh or not defaults.UI_info then
-        _M.print_log("defaults.refresh\n")
-        UiElements:Update()
-        if #UiElements < 1 then
-            _M.dbg("未发现UI信息\n")
+        _M.dbgp("defaults.refresh\n")
+        _M.dbgp("defaults.text -->", defaults.text)
+        defaults.UI_info = UiElements:Update()
+        if not defaults.UI_info or #defaults.UI_info < 1 then
+            _M.dbgp("未发现UI信息\n")
+            return false
         end
-        defaults.UI_info = UiElements
     end
 
-    if defaults.UI_info then
-        if defaults.sorted then
-            -- _M.dbgp("paixvvvvvvvv")
-            local text_list = {}
-            for _, actor in ipairs(defaults.UI_info) do
-                if actor.text_utf8 ~= nil and actor.text_utf8 ~= "" then
-                    -- _M.dbgp(actor.text_utf8)
-                    if defaults.min_x <= actor.left and actor.left <=
-                        defaults.max_x and defaults.min_y <= actor.top and
-                        actor.top <= defaults.max_y then
-                        if defaults.match == 2 then
-                            if type(defaults.text) == "table" then
-                                for _, v in ipairs(defaults.text) do
-                                    if string.find(actor.text_utf8, v) then
-                                        table.insert(text_list, actor)
-                                    end
-                                end
-                            else
-                                if string.find(actor.text_utf8, defaults.text) then
-                                    table.insert(text_list, actor)
-                                end
-                            end
-                            
-                        else
-                            if type(defaults.text) == "table" then
-                                for _, v in ipairs(defaults.text) do
-                                    if v == actor.text_utf8 then
-                                        table.insert(text_list, actor)
-                                    end
-                                end
-                            else
-                                if defaults.text == actor.text_utf8 then
-                                    table.insert(text_list, actor)
-                                end
-                            end
-                            
-                        end
-                    end
-                end
-            end
-
-
-            local function target_distance(actor)
-                -- 计算与玩家的距离
-                local distance = math.sqrt(
-                                     (actor.left - 800) ^ 2 + (actor.top - 450) ^
-                                         2)
-                return distance
-            end
-
-
-            if text_list and #text_list > 0 then
-                table.sort(text_list, function(a, b)
-                    return target_distance(a) < target_distance(b)
-                end)
-
-
-                local center_x = (text_list[1].left + text_list[1].right) / 2
-                local center_y = (text_list[1].top + text_list[1].bottom) / 2
-                local x, y = center_x, center_y
-
-
-                if defaults.click == 1 then
-                    api_ClickScreen(math.floor(x + defaults.add_x),
-                                    math.floor(y + defaults.add_y), 0)
-                elseif defaults.click == 2 then
-                    api_ClickScreen(math.floor(x + defaults.add_x),
-                                    math.floor(y + defaults.add_y), 0)
-                    api_Sleep(200)
-                    api_ClickScreen(math.floor(x + defaults.add_x),
-                                    math.floor(y + defaults.add_y), 1)
-                elseif defaults.click == 3 then
-                    local hold_time = 8
-                    api_ClickScreen(math.floor(x + defaults.add_x),
-                                    math.floor(y + defaults.add_y), 3)
-                    api_Sleep(hold_time * 1000)
-                    api_ClickScreen(math.floor(x + defaults.add_x),
-                                    math.floor(y + defaults.add_y), 4)
-                elseif defaults.click == 4 then
-                    _M.ctrl_left_click(math.floor(x + defaults.add_x),
-                                        math.floor(y + defaults.add_y))
-                elseif defaults.click == 5 then
-                    _M.ctrl_right_click(math.floor(x + defaults.add_x),
-                                        math.floor(y + defaults.add_y))
-                end
-
-                return true -- 找到符合条件的 actor，返回成功
-            end
-        else
-            for _, actor in ipairs(defaults.UI_info) do
-                if defaults.min_x <= actor.left and actor.left <= defaults.max_x and
-                    defaults.min_y <= actor.top and actor.top <= defaults.max_y then
-                    local shouldProcess = true
-                    local function text_data(text)
-                        if defaults.match == 2 then
-                            for _, v in ipairs(defaults.text) do
-                                if string.find(actor.text_utf8, v) then
-                                    return true
-                                end
-                            end
-                        else
-                            for _, v in ipairs(defaults.text) do
-                                if v == text then
-                                    return true
-                                end
-                            end
-                        end
-                        return false
-                    end
-                    if defaults.match == 2 then
-                        if type(defaults.text) ~= "string" then
-
-                            if not text_data(actor.text_utf8) then
-                                shouldProcess = false
-                            end
-                        else
-
-                            if not string.find(actor.text_utf8, defaults.text) then
-                                shouldProcess = false
-                            end
-                        end
-                    else
-                        if type(defaults.text) ~= "string" then
-                            if not text_data(actor.text_utf8) then
-                                shouldProcess = false
-                            end
-                        else
-                            if actor.text_utf8 ~= defaults.text then
-                                shouldProcess = false
-                            end
-                        end
-                    end
-                    if shouldProcess then
-                        local center_x = (actor.left + actor.right) / 2
-                        local center_y = (actor.top + actor.bottom) / 2
-                        local x, y = center_x, center_y
-
-                        if defaults.text == "XV" then
-                            _M.dbgp(actor.text_utf8)
-                        end
-                        
-                        if defaults.click == 1 then
-                            api_ClickScreen(math.floor(x + defaults.add_x),
-                                            math.floor(y + defaults.add_y), 0)
-                        elseif defaults.click == 2 then
-                            api_ClickScreen(math.floor(x + defaults.add_x),
-                                    math.floor(y + defaults.add_y), 0)
-                            api_Sleep(200)
-                            api_ClickScreen(math.floor(x + defaults.add_x),
-                                            math.floor(y + defaults.add_y), 1)
-                        elseif defaults.click == 3 then
-                            local hold_time = 8
-                            api_ClickScreen(math.floor(x + defaults.add_x),
-                                            math.floor(y + defaults.add_y), 3)
-                            api_Sleep(hold_time * 1000)
-                            api_ClickScreen(math.floor(x + defaults.add_x),
-                                            math.floor(y + defaults.add_y), 4)
-                        elseif defaults.click == 4 then
-                            _M.ctrl_left_click(math.floor(x + defaults.add_x),
-                                               math.floor(y + defaults.add_y))
-                        elseif defaults.click == 5 then
-                            _M.ctrl_right_click(math.floor(x + defaults.add_x),
-                                                math.floor(y + defaults.add_y))
-                        end
-
-                        if defaults.position == 1 then
-                            return {
-                                actor.left, actor.top, actor.right, actor.bottom
-                            }
-                        elseif defaults.position == 2 then
-                            return actor
-                        elseif defaults.position == 3 then
-                            return {
-                                math.floor(x + defaults.add_x),
-                                math.floor(y + defaults.add_y)
-                            }
-                        end
+    -- 辅助函数：检查文本匹配
+    local function is_text_match(text_to_check, target_texts, match_type)
+        if match_type == 2 then -- 部分匹配
+            if type(target_texts) == "table" then
+                for _, v in ipairs(target_texts) do
+                    if string.find(text_to_check, v) then
                         return true
                     end
                 end
+            else
+                return string.find(text_to_check, target_texts)
+            end
+        else -- 完全匹配
+            if type(target_texts) == "table" then
+                for _, v in ipairs(target_texts) do
+                    if v == text_to_check then
+                        return true
+                    end
+                end
+            else
+                return text_to_check == target_texts
             end
         end
         return false
-    else
+    end
+
+    -- 辅助函数：执行点击操作
+    local function perform_click(x, y, click_type, add_x, add_y)
+        local final_x = math.floor(x + add_x)
+        local final_y = math.floor(y + add_y)
+        
+        if click_type == 1 then
+            api_ClickScreen(final_x, final_y, 0)
+        elseif click_type == 2 then
+            -- api_ClickScreen(final_x, final_y, 0)
+            api_Sleep(100)
+            api_ClickScreen(final_x, final_y, 1)
+            api_Sleep(100)
+        elseif click_type == 3 then
+            local hold_time = 8
+            api_ClickScreen(final_x, final_y, 3)
+            api_Sleep(hold_time * 1000)
+            api_ClickScreen(final_x, final_y, 4)
+        elseif click_type == 4 then
+            _M.ctrl_left_click(final_x, final_y)
+        elseif click_type == 5 then
+            _M.ctrl_right_click(final_x, final_y)
+        elseif click_type == 6 then
+            api_Sleep(100)
+            api_ClickScreen(final_x, final_y, 2)
+            api_Sleep(100)
+        end
+    end
+
+    -- 处理排序模式
+    if defaults.sorted then
+        local text_list = {}
+        
+        for _, actor in ipairs(defaults.UI_info) do
+            if actor.text_utf8 and actor.text_utf8 ~= "" then
+                if defaults.min_x <= actor.left and actor.left <= defaults.max_x and 
+                   defaults.min_y <= actor.top and actor.top <= defaults.max_y then
+                    if is_text_match(actor.text_utf8, defaults.text, defaults.match) then
+                        table.insert(text_list, actor)
+                    end
+                end
+            end
+        end
+
+        if #text_list > 0 then
+            -- 计算与屏幕中心(800,450)的距离并排序
+            table.sort(text_list, function(a, b)
+                local a_center_x = (a.left + a.right) / 2
+                local a_center_y = (a.top + a.bottom) / 2
+                local b_center_x = (b.left + b.right) / 2
+                local b_center_y = (b.top + b.bottom) / 2
+
+                local dist_a = (a_center_x - 800)^2 + (a_center_y - 450)^2
+                local dist_b = (b_center_x - 800)^2 + (b_center_y - 450)^2
+                return dist_a < dist_b
+            end)
+
+            local center_x = (text_list[1].left + text_list[1].right) / 2
+            local center_y = (text_list[1].top + text_list[1].bottom) / 2
+            
+            if defaults.click > 0 then
+                perform_click(center_x, center_y, defaults.click, defaults.add_x, defaults.add_y)
+            end
+            
+            return true
+        end
+        
         return false
     end
+
+    -- 处理非排序模式
+    for _, actor in ipairs(defaults.UI_info) do
+        if defaults.min_x <= actor.left and actor.left <= defaults.max_x and
+           defaults.min_y <= actor.top and actor.top <= defaults.max_y then
+            
+            if actor.text_utf8 and is_text_match(actor.text_utf8, defaults.text, defaults.match) then
+                local center_x = (actor.left + actor.right) / 2
+                local center_y = (actor.top + actor.bottom) / 2
+                
+                if defaults.click > 0 then
+                    perform_click(center_x, center_y, defaults.click, defaults.add_x, defaults.add_y)
+                end
+                
+                if defaults.position == 1 then
+                    return {actor.left, actor.top, actor.right, actor.bottom}
+                elseif defaults.position == 2 then
+                    return actor
+                elseif defaults.position == 3 then
+                    return {
+                        math.floor(center_x + defaults.add_x),
+                        math.floor(center_y + defaults.add_y)
+                    }
+                end
+                return true
+            end
+        end
+    end
+
+    return false
 end
 
 -- 步长
@@ -469,10 +419,13 @@ end
 
 -- 启动steam或者终止steam/steamwebhelper进程
 _M.exec_cmd = function(cmd)
-    local handle = io.popen(cmd .. " 2>&1", "r") -- 合并 stderr 到 stdout
-    local output = handle:read("*a")
-    local success, exit_code = handle:close()
-    return exit_code or -1 -- 如果失败返回 -1
+    _M.dbgp(cmd)
+    -- local handle = io.popen(cmd .. " 2>&1", "r") -- 合并 stderr 到 stdout
+    -- local output = handle:read("*a")
+    -- local success, exit_code = handle:close()
+    os.execute(cmd)
+    
+    return 1 or -1 -- 如果失败返回 -1
 end
 
 -- 安全转为整数（带空值处理）
@@ -529,7 +482,8 @@ _M.is_have_mos = function(params)
     is_active = params.is_active == nil and true or is_active
 
     -- 快速失败检查
-    if not range_info then 
+    if not params.range_info then 
+        _M.dbgp("快速失败检查")
         params.range_info = Actors:Update()
     end
     
@@ -544,6 +498,10 @@ _M.is_have_mos = function(params)
         monster.name_utf8 == "" or              -- 名称检查
         _M.table_contains(my_game_info.not_attact_mons_CN_name,monster.name_utf8) or
         _M.table_contains(my_game_info.not_attact_mons_path_name,monster.name_utf8)then  -- 路径名检查
+            goto continue
+        end
+
+        if string.find(monster.path_name_utf8,"Metadata/Monsters/TormentedSpirits") then
             goto continue
         end
 
@@ -571,11 +529,16 @@ _M.is_have_mos = function(params)
 
         -- 计算距离
         local distance = _M.point_distance(monster.grid_x, monster.grid_y, player_info)
+        -- _M.dbgp("计算距离：",distance,"==============================",dis)
+        -- _M.print_log("计算距离：",distance)
         if distance and distance <= dis then
             -- 检查视野
-            if not params.not_sight and monster.hasLineOfSight then
+            if params.not_sight then
+                return true
+            elseif not params.not_sight and monster.hasLineOfSight then
                 return true
             end
+            
         end
         
         ::continue::
@@ -611,14 +574,11 @@ _M.is_have_mos_boss = function(range_info, boss_list)
     rarity_list = {2, 3}
 
     for _, monster in ipairs(range_info) do
-        if monster.is_selectable and not monster.is_friendly and monster.life >
-            0 and monster.name_utf8 and
-            (monster.rarity == 2 or monster.rarity == 3) then
+        if monster.is_selectable and not monster.is_friendly and monster.life > 0 and monster.name_utf8 and _M.table_contains(rarity_list, monster.rarity) then
             -- 通用Boss判断
-            if not _M.table_contains(monster.name_utf8, MOB_BLACKLIST) and
-                monster.isActive and
-                (_M.table_contains(monster.name_utf8, boss_list) or monster.life >
-                    0) then return true end
+            if not _M.table_contains(monster.name_utf8, MOB_BLACKLIST) and monster.isActive and (_M.table_contains(monster.name_utf8, boss_list) or monster.life >0) then
+                return true
+            end
         end
     end
     -- _M.dbgp("没有Boss")
@@ -629,6 +589,7 @@ end
 -- @param click_str string 按键字符串（如"A", "Enter"等）
 -- @param[opt] click_type number 按键类型：0=单击, 1=按下, 2=抬起
 _M.click_keyboard = function(click_str, click_type)
+    _M.dbgp("模拟键盘按键操作：", click_str, click_type)
     -- 参数默认值处理
     click_type = click_type or 0
     local key_code = my_game_info.ascii_dict[click_str:lower()]
@@ -645,9 +606,9 @@ end
 _M.ctrl_left_click = function(x, y)
     if x and y then
         _M.click_keyboard('ctrl', 1) -- 使用正确的按键代码
-        api_Sleep(100) -- 0.1秒 = 100毫秒
+        api_Sleep(200) -- 0.1秒 = 100毫秒
         api_ClickScreen(math.floor(x), math.floor(y), 1) -- 使用click方法模拟左键点击
-        api_Sleep(100)
+        api_Sleep(200)
         _M.click_keyboard('ctrl', 2) -- 使用正确的按键代码
     end
 end
@@ -765,49 +726,150 @@ end
 _M.print_log = function(...)
     local args = {...}
     local parts = {}
-
-    -- 把每个参数转成字符串（模拟 print 的行为）
-    for i, v in ipairs(args) do parts[i] = tostring(v) end
-
-    -- 用制表符（\t）连接多个参数，并加上换行符（\n）
+    table.insert(parts, "*print_log* ")
+    -- 处理每个参数
+    for i, v in ipairs(args) do
+        local vType = type(v)
+        local formatted
+        
+        if vType == "table" then
+            formatted = "{table} "..tostring(v)
+        elseif vType == "function" then
+            formatted = "{function} "..tostring(v)
+        elseif vType == "userdata" then
+            formatted = "{userdata} "..tostring(v)
+        elseif vType == "thread" then
+            formatted = "{thread} "..tostring(v)
+        else
+            formatted = tostring(v)
+        end
+        
+        table.insert(parts, formatted)
+    end
+    
+    -- 用制表符连接多个参数，并加上换行符
     local formattedText = table.concat(parts, "\t") .. "\n"
-
-    -- 调用 api_Log（假设它只接受一个字符串参数）
+    
+    -- 调用日志函数
     api_Log(formattedText)
+    -- 或者使用标准print
     -- print(formattedText)
 end
 
--- 调试打印(带时间)
+-- 简洁版调试打印函数（自动类型识别）
 _M.dbgp = function(...)
     local args = {...}
     local parts = {}
-
-    -- 把每个参数转成字符串（模拟 print 的行为）
-    for i, v in ipairs(args) do parts[i] = tostring(v) end
-
-    -- 用制表符（\t）连接多个参数，并加上换行符（\n）
+    table.insert(parts, "*dbgp* ")
+    -- 处理每个参数
+    for i, v in ipairs(args) do
+        local vType = type(v)
+        local formatted
+        
+        if vType == "table" then
+            formatted = "{table} "..tostring(v)
+        elseif vType == "function" then
+            formatted = "{function} "..tostring(v)
+        elseif vType == "userdata" then
+            formatted = "{userdata} "..tostring(v)
+        elseif vType == "thread" then
+            formatted = "{thread} "..tostring(v)
+        else
+            formatted = tostring(v)
+        end
+        
+        table.insert(parts, formatted)
+    end
+    
+    -- 用制表符连接多个参数，并加上换行符
     local formattedText = table.concat(parts, "\t") .. "\n"
-
-    -- 调用 api_Log（假设它只接受一个字符串参数）
+    
+    -- 调用日志函数
     api_Log(formattedText)
-    -- api_Sleep(1000000)
+    -- 或者使用标准print
+    -- print(formattedText)
+end
+_M.dbgp1 = function(...)
+    -- local args = {...}
+    -- local parts = {}
+    -- table.insert(parts, "*dbgp* ")
+    -- -- 处理每个参数
+    -- for i, v in ipairs(args) do
+    --     local vType = type(v)
+    --     local formatted
+        
+    --     if vType == "table" then
+    --         formatted = "{table} "..tostring(v)
+    --     elseif vType == "function" then
+    --         formatted = "{function} "..tostring(v)
+    --     elseif vType == "userdata" then
+    --         formatted = "{userdata} "..tostring(v)
+    --     elseif vType == "thread" then
+    --         formatted = "{thread} "..tostring(v)
+    --     else
+    --         formatted = tostring(v)
+    --     end
+        
+    --     table.insert(parts, formatted)
+    -- end
+    
+    -- -- 用制表符连接多个参数，并加上换行符
+    -- local formattedText = table.concat(parts, "\t") .. "\n"
+    
+    -- -- 调用日志函数
+    -- api_Log(formattedText)
+    -- 或者使用标准print
     -- print(formattedText)
 end
 
--- 时间调试
+-- 时间调试（内部阈值设为100毫秒）
 _M.time_p = function(...)
+    local threshold = 5  -- 内部设定的阈值（毫秒）
     local args = {...}
+    
+    -- 检查是否是耗时日志格式：倒数第二个参数包含"耗时 -->"且最后一个参数是数字
+    if #args >= 2 and 
+       type(args[#args]) == "number" and 
+       tostring(args[#args-1]):find("耗时 %-%->") then
+        
+        local elapsed = args[#args]  -- 获取耗时值
+        
+        -- 只有耗时超过阈值时才处理
+        if elapsed < threshold then
+            return  -- 不满足阈值条件，直接返回
+        end
+    end
+    
+    -- 以下是原有的日志处理逻辑
     local parts = {}
-
-    -- 把每个参数转成字符串（模拟 print 的行为）
-    for i, v in ipairs(args) do parts[i] = tostring(v) end
-
-    -- 用制表符（\t）连接多个参数，并加上换行符（\n）
+    table.insert(parts, "*time_p* ")
+    
+    -- 处理每个参数
+    for i, v in ipairs(args) do
+        local vType = type(v)
+        local formatted
+        
+        if vType == "table" then
+            formatted = "{table} "..tostring(v)
+        elseif vType == "function" then
+            formatted = "{function} "..tostring(v)
+        elseif vType == "userdata" then
+            formatted = "{userdata} "..tostring(v)
+        elseif vType == "thread" then
+            formatted = "{thread} "..tostring(v)
+        else
+            formatted = tostring(v)
+        end
+        
+        table.insert(parts, formatted)
+    end
+    
+    -- 用制表符连接多个参数，并加上换行符
     local formattedText = table.concat(parts, "\t") .. "\n"
-
-    -- 调用 api_Log（假设它只接受一个字符串参数）
+    
+    -- 调用日志函数
     api_Log(formattedText)
-    -- api_Sleep(1000000)
+    -- 或者使用标准print
     -- print(formattedText)
 end
 
@@ -973,11 +1035,11 @@ end
 -- @note 监视器对象包含以下方法:
 --   parse_count(text): 解析文本中的怪物数量
 --   check_and_act(game_controls): 检查并执行动作
-_M.monster_monitor = function(threshold)
+_M.monster_monitor = function(threshold, UI_Info)
     threshold = threshold or 40
     local pattern = "剩餘 (%d+) 隻怪物"
 
-    for _, control in ipairs(UiElements) do
+    for _, control in ipairs(UI_Info) do
         if control.text_utf8 then
             local text = control.text_utf8 and
                              control.text_utf8:match("^%s*(.-)%s*$") or ""
@@ -1480,7 +1542,7 @@ _M.select_best_map_key = function(params)
     local function categorize_suffixes_utf8(suffixes)
         -- _M.dbgp("开始UTF-8词缀分类...")
         local categories = {
-            ['瘋癲'] = {},
+            ['譫妄'] = {},
             ['其他'] = {},
             ['不打'] = {},
             ['无效'] = {}
@@ -1538,9 +1600,9 @@ _M.select_best_map_key = function(params)
             end
 
             -- UTF-8安全的疯癫词条检查
-            if string.find(processed_suffix, "瘋癲", 1, true) then
+            if string.find(processed_suffix, "譫妄", 1, true) then
                 -- _M.dbgp("发现UTF-8疯癫词条")
-                table.insert(categories['瘋癲'], cleaned_suffix)
+                table.insert(categories['譫妄'], cleaned_suffix)
                 goto continue
             end
 
@@ -2499,17 +2561,16 @@ _M.click_text_UI = function(options)
        max_y = options.max_y or 900,       -- 可选，默认 900
        index = options.index or 0,         -- 可选，默认 0
        ret_data = options.ret_data or false, -- 可选，默认 false
-       refresh = false,
-       UI_info = nil
+       refresh = options.refresh or false,
+       UI_info = options.UI_info or nil
    }
    
     if config.refresh or not config.UI_info then
-        UiElements:Update()
-        if #UiElements < 1 then
-            _M.dbgp("not UI_Info")
-            return false
+        _M.print_log("defaults.refresh\n")
+        config.UI_info = UiElements:Update()
+        if #config.UI_info < 1 then
+            _M.dbgp("未发现UI信息\n")
         end
-        config.UI_info = UiElements
     end
 
     if config.UI_info then
@@ -2576,7 +2637,6 @@ _M.parse_level = function(level_str)
     -- 其他情况（无效格式）
     return { type = "any", min = 0, max = 9999 }
 end
-
 
 -- 公开接口：打印table
 _M.printTable = function(tbl, title)
@@ -2656,10 +2716,14 @@ _M.get_game_control_by_rect = function(data)
         min_y = data.min_y or 0,         -- 可选，默认 0
         max_x = data.max_x or 1600,      -- 可选，默认 1600
         max_y = data.max_y or 900,       -- 可选，默认 900
-        index = data.index or 0,         -- 可选，默认 0
+        index = data.index or 0,         -- 可选，默认 0，
+        UI_info = data.UI_info or nil,
     }
     local text_list = {}
-    for _, v in ipairs(UiElements) do
+    if not config.UI_info then
+        _M.dbgp("未发现游戏界面！")
+    end
+    for _, v in ipairs(config.UI_info) do
         if v.left >= config.min_x and v.top >= config.min_y and v.right <= config.max_x and v.bottom <= config.max_y then
             if config.index ~= 0 and config.text and config.text ~= "" then
                 if v.name_utf8 == config.text or v.text_utf8 == config.text then
@@ -2696,11 +2760,10 @@ _M.find_text_position = function(params)
     for k, v in pairs(params) do defaults[k] = v end
 
     if defaults.refresh or not defaults.UI_info then
-        UiElements:Update()
-        if #UiElements < 1 then
-            _M.dbg("未发现UI信息\n")
+        defaults.UI_info = UiElements:Update()
+        if #defaults.UI_info < 1 then
+            _M.dbgp("未发现UI信息\n")
         end
-        defaults.UI_info = UiElements
     end
     
     local match_count = 0
@@ -2734,7 +2797,7 @@ _M.find_text_position = function(params)
                     if string.find(actor.text_utf8, defaults.match_text) then
                         return actor.text_utf8
                     else
-                        return false
+                        return nil
                     end
                 end
                 -- 非1的情况返回第一个匹配项
@@ -2982,21 +3045,20 @@ end
 -- @param items 要排序的对象列表
 -- @param player_info 玩家信息(可选)
 -- @return 排序后的列表或nil(如果输入无效)
-_M.get_sorted_list = function(player_info)
+_M.get_sorted_list = function(table1, player_info)
 
     -- 获取玩家位置信息
-    local player = player_info
-    if not player then
+    if not player_info then
         _M.dbgp("错误: 无法获取玩家位置信息")
         return nil
     end
 
-    local player_x, player_y = player.grid_x, player.grid_y
+    local player_x, player_y = player_info.grid_x, player_info.grid_y
     _M.dbgp(string.format("排序基准点 - X:%.2f, Y:%.2f", player_x, player_y))
 
     -- 创建排序副本(避免修改原表)
     local sorted_items = {}
-    for i, v in ipairs(Actors) do
+    for i, v in ipairs(table1) do
         sorted_items[i] = v
     end
 
@@ -3032,8 +3094,8 @@ _M.check_in_map = function(current_map_info, interactive_object)
 end
 
 -- 查找范围内的对象
-_M.check_in_range = function(interactive_object, object)
-    for _, k in ipairs(Actors) do
+_M.check_in_range = function(range_info, interactive_object, object)
+    for _, k in ipairs(range_info) do
         if object then
             if k.name_utf8 == object or k.path_name_utf8 == object then
                 return k
@@ -3236,6 +3298,411 @@ _M.click_position = function(x, y, click)
             api_ClickScreen(_M.toInt(x), _M.toInt(y), 1)
         end
     end
+end
+
+_M.format_map_data = function(config)
+    -- 将获取到的剧情地图数据格式化为 ['地图名称', '章节'] 格式的列表
+    local map_data = config['刷圖設置']['劇情地圖'] or {}  -- 获取剧情地图数据，默认为空表
+    
+    -- 获取地图名称和章节
+    local map_name = map_data['地圖名'] or ''
+    local chapter = map_data['章節'] or ''
+    
+    -- 处理章节格式
+    if chapter ~= '' then
+        if string.find(chapter, '^第') and string.find(chapter, '章$') then
+            -- 检查章节是否是中文大写数字
+            local chapter_num = string.match(chapter, '第(.-)章')
+            if tonumber(chapter_num) ~= nil then  -- 如果是阿拉伯数字（如"第1章"），保持不变
+                chapter = "第 " .. chapter_num .. " 章"
+            else  -- 如果是中文大写数字（如"第一章"），转换为 <red>{第一章}
+                chapter = "<red>{" .. chapter .. "}"
+            end
+        end
+    end
+    
+    -- 如果地图名称和章节都存在，添加到格式化列表中
+    if map_name ~= '' and chapter ~= '' then
+        return {chapter, map_name}
+    end
+    
+    return nil
+end
+
+
+_M.get_map_data = function(chapter, map_name)
+    --[[
+    根据章节名和地图名，返回对应的地图数据。
+    
+    参数:
+        chapter (str): 章节名，例如 "第1章" 或 "<red>{第一章}"。
+        map_name (str): 地图名，例如 "河岸" 或 "风沙沼泽"。
+    
+    返回:
+        list: 地图数据，格式为 [[UI名, 参数值], 有无传送点, [一层屏幕坐标, 二层屏幕坐标], 二层名]。
+            如果未找到，返回 nil。
+    ]]
+    
+    -- 假设 the_story_map 是用户提供的全局变量
+    local the_story_map = my_game_info.the_story_map
+    
+    -- 检查章节是否存在
+    if the_story_map[chapter] then
+        -- 检查地图是否存在
+        if the_story_map[chapter][map_name] then
+            return the_story_map[chapter][map_name]
+        end
+    end
+    
+    -- 如果未找到，返回 nil
+    return nil
+end
+
+
+-- 返回任务地图信息
+-- area (string/number): 要查询的任务区域标识符（键名）
+_M.task_area_list_data = function(area)
+    for k, data in pairs(my_game_info.task_area_list) do
+        if k == area then
+            return data
+        end
+    end
+    return nil
+end
+
+
+-- 返回周围对象距离
+-- name (string): 要查找的目标对象名称（UTF-8编码）
+-- actors (table): 包含周围对象信息的数组，每个元素应包含 name_utf8、grid_x 和 grid_y 字段
+-- player_info (table): 包含玩家位置信息的表，结构应与 _M.point_distance 函数要求的格式一致
+_M.check_pos_dis = function(name, actors, player_info)
+    if next(actors) then
+        for _,point in ipairs(actors) do
+            if point.name_utf8 == name then
+                distance = _M.point_distance(point.grid_x, point.grid_y, player_info)
+                return distance
+            end
+        end
+    end
+    return nil
+end
+
+
+-- 传送点是否开启
+-- area (string/number): 要查询的任务区域标识符（键名）
+-- waypoint (table): 传送点总表
+_M.Waypoint_is_open = function(area, waypoint)
+    for _,v in ipairs(waypoint) do
+        if v.name_utf8 == area and v.is_open == true then
+            return true
+        end
+    end
+    return false
+end
+
+-- 键值对计数
+_M.countTableItems = function(tbl)
+    local count = 0
+    for _ in pairs(tbl) do
+        count = count + 1
+    end
+    return count
+end
+
+-- 生成随机字符串
+_M.generate_random_string = function(length)
+    math.randomseed(os.time())
+    local letters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
+    local result = {}
+    for i = 1, length do
+        local random_index = math.random(1, #letters)
+        result[i] = letters:sub(random_index, random_index)
+    end
+    return table.concat(result)
+end
+
+-- 获取超大仓库物品中心点
+_M.get_center_position_store_max = function(start_cell, end_cell)
+    -- 参数校验
+    if not start_cell or not end_cell or 
+        type(start_cell) ~= "table" or type(end_cell) ~= "table" or
+        #start_cell < 2 or #end_cell < 2 then
+        return nil
+    end
+
+    local start_row, start_col = start_cell[1], start_cell[2]
+    local end_row, end_col = end_cell[1], end_cell[2]
+
+    -- 计算中心位置
+    local center_x = START_X_max + ((start_row + end_row) / 2) * CELL_WIDTH_max
+    local center_y = START_Y_max + ((start_col + end_col) / 2) * CELL_HEIGHT_max
+
+    -- 四舍五入
+    return {math.floor(center_x + 0.5), math.floor(center_y + 0.5)}
+end
+
+-- 获取地图钥匙等级
+_M.extract_level = function(text)
+    -- 从字符串中提取括号内的数字作为等级
+    -- 参数: text (string) - 包含等级信息的字符串，例如 "地圖鑰匙（階級 1）"
+    -- 返回: number 或 nil - 提取到的等级数字，如果未找到则返回 nil
+    
+    -- 使用 Lua 的字符串模式匹配
+    local level = text:match("階級%s*(%d+)")
+    if level then
+        return tonumber(level)  -- 转换为数字
+    end
+    return nil
+end
+
+-- 获取自定义物品类型
+_M.get_item_type = function(item)
+    local text = ""
+    if item.category_utf8 == "StackableCurrency" then
+        if item.baseType_utf8 and string.find(item.baseType_utf8,"精煉") then
+            text = "精煉"
+        elseif item.baseType_utf8 and string.find(item.baseType_utf8,"催化劑") then
+            text = "催化劑"
+        elseif item.baseType_utf8 and string.find(item.baseType_utf8,"精髓") then
+            text = "精髓"
+        else
+            text = "通貨"
+        end
+    end
+    if item.category_utf8 == "SoulCore" then
+        if item.baseType_utf8 and string.find(item.baseType_utf8,"符文") then
+            text = "符文"
+        elseif item.baseType_utf8 and string.find(item.baseType_utf8,"魔符") then
+            text = "魔符"
+        else
+            text = "靈魂核心"
+        end
+    end
+    return text
+end
+
+-- 判断是否不捡
+_M.is_do_without_pick_up = function(item, items_info)
+
+    local text = _M.get_item_type(item)
+    local item_key = ""
+    if text ~= "" then
+        item_key = text
+    else
+        for k, v in ipairs(my_game_info.type_conversion) do
+            if item.category_utf8 == v then
+                item_key = k
+                break
+            end
+        end
+    end
+    if item_key and item_key ~= "" then
+        local item_type_list = {}
+        for _, v in ipairs(items_info) do
+            if v['類型'] == item_key then
+                table.insert(item_type_list,v)
+            end
+        end
+        if item_type_list and next(item_type_list) then
+            local not_pick_up_item = nil
+            for _, v in ipairs(item_type_list) do
+                if v["不撿"] then
+                    if v['基礎類型名'] == "全部物品" or (v["名稱"] and v["名稱"] ~= "" and not item.not_identified and string.find(v['基礎類型名'],item.baseType_utf8) and string.find(v["名稱"],item.name_utf8)) or ((not v["名稱"] or v["名稱"] == "") and string.find(v['基礎類型名'],item.baseType_utf8)) then
+                        not_pick_up_item = v
+                        break
+                    end
+                end
+            end
+            if not_pick_up_item then
+                return true
+            end
+        end
+    end
+    return false
+end
+
+-- 物品過濾
+_M.match_item = function(item, cfg)
+    
+    -- _M.dbgp(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
+    -- _M.dbgp("item.category_utf8: "..item.category_utf8)
+    local text = _M.get_item_type(item)
+    -- _M.dbgp(type(cfg['類型'].."======================================"))
+    if text ~= "" and cfg['類型'] ~= text then
+        -- _M.dbgp("類型不匹配1")
+        return false
+    end
+    -- 类型匹配
+    -- _M.dbgp(type(cfg['類型']).."======================================")
+    -- _M.dbgp(cfg['類型'].."======================================")
+    -- _M.dbgp(my_game_info.type_conversion[cfg['類型']].."======================================")
+    if not cfg['類型'] or cfg['類型']=="" or item.category_utf8 ~= my_game_info.type_conversion[cfg['類型']] then
+        -- _M.dbgp("類型不匹配2")
+        return false
+    end
+    -- 名称匹配
+    if cfg['名稱模式'] == 'specific' then
+        local name = cfg["名稱"] or ""
+        if name and name ~= ""then
+            if not string.find(cfg['基礎類型名'],item.baseType_utf8) or not string.find(name,item.name_utf8) then
+                -- _M.dbgp("名稱不匹配1")
+                return false
+            end
+        end
+        if not cfg['基礎類型名'] or cfg['基礎類型名'] == "" or not string.find(cfg['基礎類型名'],item.baseType_utf8) then 
+            -- _M.dbgp("名稱不匹配2")
+            return false
+        end
+    end
+    -- 等级检查
+    local level = cfg["等級"]
+    local item_type = level.type
+    if item.category_utf8 == "Map" then
+        local map_level = _M.extract_level(item.baseType_utf8)
+        if item_type == "exact" then
+            local item_level = level.value
+            if map_level < item_level-3 then
+                -- _M.dbgp("地图精确等级不匹配1")
+                return false
+            end 
+        else
+            local min_level = level.min
+            local  max_level = level.max
+            if map_level < min_level or map_level > max_level then
+                -- _M.dbgp("地图等级不匹配1")
+                return false
+            end    
+        end
+    elseif _M.table_contains(item.category_utf8,{'UncutSkillGem', 'UncutReservationGem','UncutSupportGem'}) then 
+        if item_type == "exact" then
+            local item_level = level.value
+            if item.skillGemLevel < item_level or item.skillGemLevel > item_level then
+                -- _M.dbgp("宝石精确等级不匹配1")
+                return false
+            end
+        else
+            local min_level = level.min
+            local  max_level = level.max
+            if item.skillGemLevel < min_level or item.skillGemLevel > max_level then
+                -- _M.dbgp("宝石等级不匹配1")
+                return false
+            end    
+        end
+    else
+        if item_type == "exact" then
+            local item_level = level.value
+            if item.DemandLevel < item_level then
+                -- _M.dbgp("物品精确等级不匹配1")
+                return false
+            end 
+        else
+            local min_level = level.min
+            local  max_level = level.max
+            if item.DemandLevel < min_level or item.DemandLevel > max_level then
+                -- _M.dbgp("物品等级不匹配1")
+                return false
+            end    
+        end
+    end
+    -- 颜色检查
+    local color = item.color or -1
+    if not cfg['颜色'] or not next(cfg['颜色']) or not _M.table_contains(color,cfg['颜色']) then
+        -- _M.dbgp("颜色不匹配1")
+        return false
+    end
+    -- 通货排除
+    if item.category_utf8 == "StackableCurrency" and _M.table_contains(item.baseType_utf8,{'黃金',"金幣"}) then
+        return false
+    end
+    return true
+end
+
+-- 判断两点距离
+_M.get_point_distance = function(x1, y1, x2, y2)
+    local x_num = 0
+    local y_num = 0
+    
+    if (x1 > 0 and x2 > 0) or (x1 < 0 and x2 < 0) then
+        x_num = (x1 - x2) ^ 2
+    elseif (x1 > 0 and x2 < 0) or (x1 < 0 and x2 > 0) then
+        x_num = (x1 + x2) ^ 2
+    end
+
+    if (y1 > 0 and y2 > 0) or (y1 < 0 and y2 < 0) then
+        y_num = (y1 - y2) ^ 2
+    elseif (y1 > 0 and y2 < 0) or (y1 < 0 and y2 > 0) then
+        y_num = (y1 + y2) ^ 2
+    end
+
+    local distance = math.sqrt(x_num + y_num)
+    return distance
+end
+
+-- 获取队伍信息
+_M.get_team_info = function(team_info ,config ,player_info, index)
+    local team_members = team_info
+    local captain = config["組隊設置"]["隊長名"]
+    local leader = config["組隊設置"]["大號名"]
+
+    local my_profession = '未知' -- 初始化您的職業为未知
+    if player_info and team_members then
+        for role, name in pairs(team_members) do
+            if player_info.name_utf8 and name == player_info.name_utf8 then
+                my_profession = role
+                break
+            end
+        end
+    end
+    if index == 0 then
+        return captain , leader , my_profession
+    elseif index == 2 then
+        return my_profession
+    elseif index == 3 then
+        return leader
+    elseif index == 4 then
+        return captain
+    elseif index == 5 then
+        -- 获取小號信息，排除线路、队长和大号
+        local small_accounts_values = {}
+        for role, name in pairs(team_members) do
+            if role ~= '隊長名' and role ~= '大號名' then
+                table.insert(small_accounts_values, name)
+            end
+        end
+        return small_accounts_values  -- 返回小號值列表
+    elseif index == 6 then
+        -- 获取小號信息，排除线路和大号
+        local small_accounts_values = {}
+        for role, name in pairs(team_members) do
+            if role ~= '大號名' then
+                table.insert(small_accounts_values, name)
+            end
+        end
+        return small_accounts_values  -- 返回小號值列表
+    end
+end
+        
+        
+
+-- 查询本地任务信息
+_M.get_task_info = function(tasks_data,text)
+    if tasks_data[text] then
+        local task_data = tasks_data[text]
+        return {
+            task_name = text,
+            map_name = task_data.map_name or nil,
+            interaction_object = task_data.interaction_object or nil,
+            boss_name = task_data.Boss or nil,
+            grid_x = task_data.grid_x or nil,
+            grid_y = task_data.grid_y or nil,
+            special_map_point = task_data.special_map_point or nil,
+            interaction_object_map_name = task_data.interaction_object_map_name or nil,
+            index = task_data.index  -- 仅在需要时计算索引
+        }
+    end
+    
+    return nil
+    
 end
 
 -- 其他可能用到的API

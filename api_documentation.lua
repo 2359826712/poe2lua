@@ -282,3 +282,11 @@
 
 
 -- UiElements UI数组
+
+
+-- api_SetExplorationArea(radius)
+-- 设置探索区域
+-- radius: 探索范围
+
+
+-- api_UpdateMapObstacles
