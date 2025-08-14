@@ -3777,6 +3777,71 @@ _M.random_click = function(x, y, w, h)
     api_ClickScreen(x1, y1, 1)
 end
 
+-- 获取队伍信息
+_M.get_team_info = function(team_info ,config ,player_info, index)
+    local team_members = team_info
+    local captain = config["組隊設置"]["隊長名"]
+    local leader = config["組隊設置"]["大號名"]
+
+    local my_profession = '未知' -- 初始化您的職業为未知
+    if player_info and team_members then
+        for role, name in pairs(team_members) do
+            if player_info.name_utf8 and name == player_info.name_utf8 then
+                my_profession = role
+                break
+            end
+        end
+    end
+    if index == 0 then
+        return captain , leader , my_profession
+    elseif index == 2 then
+        return my_profession
+    elseif index == 3 then
+        return leader
+    elseif index == 4 then
+        return captain
+    elseif index == 5 then
+        -- 获取小號信息，排除线路、队长和大号
+        local small_accounts_values = {}
+        for role, name in pairs(team_members) do
+            if role ~= '隊長名' and role ~= '大號名' then
+                table.insert(small_accounts_values, name)
+            end
+        end
+        return small_accounts_values  -- 返回小號值列表
+    elseif index == 6 then
+        -- 获取小號信息，排除线路和大号
+        local small_accounts_values = {}
+        for role, name in pairs(team_members) do
+            if role ~= '大號名' then
+                table.insert(small_accounts_values, name)
+            end
+        end
+        return small_accounts_values  -- 返回小號值列表
+    end
+end
+        
+-- 查询本地任务信息
+_M.get_task_info = function(tasks_data,text)
+    if tasks_data[text] then
+        local task_data = tasks_data[text]
+        return {
+            task_name = text,
+            map_name = task_data.map_name or nil,
+            interaction_object = task_data.interaction_object or nil,
+            boss_name = task_data.Boss or nil,
+            grid_x = task_data.grid_x or nil,
+            grid_y = task_data.grid_y or nil,
+            special_map_point = task_data.special_map_point or nil,
+            interaction_object_map_name = task_data.interaction_object_map_name or nil,
+            index = task_data.index  -- 仅在需要时计算索引
+        }
+    end
+    
+    return nil
+    
+end
+
 -- 其他可能用到的API
 _M.get_current_time = function() return api_GetTickCount64() end
 
