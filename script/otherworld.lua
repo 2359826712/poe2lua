@@ -408,6 +408,16 @@ local custom_nodes = {
             if poe2_api.find_text({text = "伺服器關閉維修中，請稍後再試。",UI_info = env.UI_info,min_x = 0}) then
                 error("服务器维护中,已停止运行")
             end
+            if poe2_api.find_text({UI_info = env.UI_info,text = "此 IP 已被封鎖。有任何疑問請與客服中心聯繫。",min_x = 0}) then
+                poe2_api.find_text({text = "確定",UI_info = env.UI_info,min_x = 0,click = 2})
+                api_Sleep(1000)
+                return bret.RUNNING
+            end
+            if poe2_api.find_text({text = "Steam：未連接到 Steam",UI_info = env.UI_info}) then
+                poe2_api.find_text({text = "確定",UI_info = env.UI_info,min_x = 0,click = 2})
+                api_Sleep(1000)
+                return bret.RUNNING
+            end
             if poe2_api.find_text({text = "Your account has been banned by an administrator.",UI_info = env.UI_info}) then
                 error("封号!!!")
             end

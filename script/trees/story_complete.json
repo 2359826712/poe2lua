@@ -202,32 +202,33 @@
                     "desc": "移动至目标点"
                   }
                 ]
-              },
-              {
-                "id": 41,
-                "name": "Interactive_Npc"
               }
             ]
           },
           {
-            "id": 42,
+            "id": 41,
             "name": "Sequence",
             "children": [
               {
-                "id": 43,
+                "id": 42,
                 "name": "Check_Role"
               },
               {
-                "id": 44,
+                "id": 43,
                 "name": "Query_Current_Task_Information_Local"
               }
             ]
           },
           {
-            "id": 45,
+            "id": 44,
             "name": "Query_Current_Task_Information"
           }
         ]
+      },
+      {
+        "id": 45,
+        "name": "Check_LongTime_Not_Move",
+        "desc": "长时间未移动"
       }
     ]
   },
