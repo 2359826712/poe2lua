@@ -1852,7 +1852,7 @@ local custom_nodes = {
                 if self.respawn_wait_start == 0 then
                     self.respawn_wait_start = api_GetTickCount64()
                     return bret.RUNNING
-                elseif api_GetTickCount64() - self.respawn_wait_start < 2 then
+                elseif api_GetTickCount64() - self.respawn_wait_start < 2 *1000 then
                     return bret.RUNNING
                 else
                     self.respawn_wait_start = 0

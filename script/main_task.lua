@@ -1034,6 +1034,8 @@ local main_task= {
         ['戴斯哈尖塔']= {
             map_name= 'G2_9_2',
             Boss= {'玷汙者托爾．谷爾'},
+            interaction_object = {"ToGuive","卡洛翰的姐妹"},
+            interaction_object_map_name = {"TorGulActive"},
             index = 173
         },
         ['擊敗玷汙者托爾．谷爾']= {
@@ -1282,12 +1284,12 @@ local main_task= {
             interaction_object_map_name= {'ZicoatlBossActive'},
             index = 214
         },
-        ['與艾瓦對話']= {
-            map_name= 'G3_6_2',
-            interaction_object= {'艾瓦'},
-            interaction_object_map_name= {'艾瓦'},
-            index = 215
-        },
+        -- ['與艾瓦對話']= {
+        --     map_name= 'G3_6_2',
+        --     interaction_object= {'艾瓦'},
+        --     interaction_object_map_name= {'艾瓦'},
+        --     index = 215
+        -- },
         -- ['召喚艾瓦，尋求她的意見']= {
         --     map_name= 'C_G3_6_2',
         --     interaction_object= {'中型靈魂核心',' <questitem>{發電機}','門'},
@@ -1295,109 +1297,109 @@ local main_task= {
         ['在吉卡尼的聖域中尋找兩個中型靈魂核心，並用它們啟動兩個發電機']= {
             map_name= 'G3_6_2',
             interaction_object= {'中型靈魂核心',' <questitem>{發電機}','門','<questitem>{大型靈魂核心}'},
-            index = 216
+            index = 215
         },
         ['在機械迷城下層尋找兩個中型靈魂核心，並用它們啟動兩台發電機']= {
             map_name= 'G3_6_2',
             interaction_object= {'<questitem>{大型靈魂核心}','艾瓦','門'},
             interaction_object_map_name= {'艾瓦'},
-            index = 217
+            index = 216
         },
         ['取回艾瓦旁邊的大型靈魂核心']= {
             map_name= 'G3_6_2',
             interaction_object= {'中型靈魂核心', '<questitem>{發電機}','<questitem>{大型靈魂核心}','門'},
-            index = 218
+            index = 217
         },
         ['擊敗核心守衛．茲科亞特']= {
             map_name= 'G3_6_2',
-            Boss= '核心守衛．茲科亞特',
+            Boss= {'核心守衛．茲科亞特'},
             interaction_object= {'ZicBActive'},
             interaction_object_map_name= {'ZicoatlBossActive'},
-            index = 219
+            index = 218
         },
         ['拾取大型靈魂核心']= {
             map_name= 'G3_6_2',
-            Boss= '核心守衛．茲科亞特',
+            Boss= {'核心守衛．茲科亞特'},
             interaction_object= {'中型靈魂核心', '<questitem>{發電機}','門','<questitem>{大型靈魂核心}'},
             interaction_object_map_name= {'ZicoatlBossActive','ZicoatlBossInactive'},
-            index = 220
+            index = 219
         },
         ['返回感染荒地並啟動石陣祭壇']= {
             map_name= 'G3_2_1',
             interaction_object= {'石陣祭壇'},
-            index = 221
+            index = 220
         },
         ['瑪特蘭水道']= {
             map_name= 'G3_2_1',
             interaction_object= {'瑪特蘭水道'},
             interaction_object_map_name= {'G3_2_2'},
-            index = 222
+            index = 221
         },
         ['進入瑪特蘭水道並找出控制機關']= {
             map_name= 'G3_2_1',
             interaction_object= {'瑪特蘭水道'},
             interaction_object_map_name= {'G3_2_2'},
-            index = 223
+            index = 222
         },
         ['找出控制機關並啟用瑪特蘭水道，抽乾該區的水']= {
             map_name= 'G3_2_2',
             interaction_object= {'壓桿'},
-            index = 224
+            index = 223
         },
         ['找出控制機關並啟用水道，抽乾該區的水。']= {
             map_name= 'G3_town',
             grid_x= 419,
             grid_y= 330,
             interaction_object= {'艾瓦'},
-            index = 225
+            index = 224
         },
         ['進入淹沒之城並尋找阿戈拉']= {
             map_name= 'G3_8',
-            index = 226
+            index = 225
         },
         ['探索淹沒之城並尋找阿戈拉']= {
             map_name= 'G3_11',
-            index = 227
+            index = 226
         },
         ['淹沒之城']= {
             map_name= 'G3_8',
-            index = 228
+            index = 227
         },
         ['進入阿戈拉遺跡，並尋找一把鑰匙']= {
             map_name= 'G3_11',
-            index = 229
+            index = 228
         },
         ['污垢頂峰']= {
             map_name= 'G3_11',
-            Boss= '污垢女王',
-            index = 230
+            Boss= {'污垢女王'},
+            index = 229
         },
         ['探索阿戈拉遺跡，並尋找一把鑰匙']= {
             map_name= 'G3_11',
             interaction_object= {'污垢'},
-            Boss= '污垢女王',
+            Boss= {'污垢女王'},
             interaction_object_map_name= {'QueenOfFilthBossActive'},
-            index = 231
+            index = 230
         },
         ['擊敗污垢女王']= {
             map_name= 'G3_11',
-            Boss= '污垢女王',
+            Boss= {'污垢女王'},
             interaction_object= {'污垢'},
             interaction_object_map_name= {'QueenOfFilthBossActive'},
-            index = 232
+            index = 231
         },
         ['撿起神殿大門神像']= {
             map_name= 'G3_11',
             interaction_object_map_name= {'QueenOfFilthBossInactive'},
             interaction_object= {'神殿大門神像'},
-            index = 233
+            index = 232
         },
         ['帶著神殿大門神像回去找艾瓦']= {
             map_name= 'G3_town',
             grid_x= 458,
             grid_y= 324,
             interaction_object= {'艾瓦','科佩克'},
-            index = 234
+            index = 233
         },
         ['開啟前往科佩克神殿的大門']= {
             map_name= 'G3_town',
@@ -1405,7 +1407,7 @@ local main_task= {
             grid_y= 324,
             interaction_object= {'門','科佩克'},
             interaction_object_map_name= {'G3_12'},
-            index = 235
+            index = 234
         },
         ['從寶藏獵人營地下方進入科佩克神殿']= {
             map_name= 'G3_12',
@@ -1413,7 +1415,7 @@ local main_task= {
             grid_y= 324,
             interaction_object= {'科佩克'},
             interaction_object_map_name= {'G3_12'},
-            index = 236
+            index = 235
         },
         ['科佩克神殿']= {
             map_name= 'G3_12',
@@ -1421,42 +1423,43 @@ local main_task= {
             grid_y= 324,
             interaction_object= {'科佩克'},
             interaction_object_map_name= {'G3_12'},
-            index = 237
+            index = 236
         },
         ['探索科佩克神殿並尋找瓦爾的知識展覽室']= {
             map_name= 'G3_12',
-            Boss= '豔陽神聖主教．凱亞祖利',
+            Boss= {'豔陽神聖主教．凱亞祖利'},
+            interaction_object= {'召瓦尔','科佩克'},
+            interaction_object_map_name= {'KaazuliBossActive'},
+            index = 237
+        },
+        ['擊敗豔陽神聖主教．凱亞祖利']= {
+            map_name= 'G3_12',
+            Boss= {'豔陽神聖主教．凱亞祖利'},
             interaction_object= {'召瓦尔','科佩克'},
             interaction_object_map_name= {'KaazuliBossActive'},
             index = 238
         },
-        ['擊敗豔陽神聖主教．凱亞祖利']= {
-            map_name= 'G3_12',
-            Boss= '豔陽神聖主教．凱亞祖利',
-            interaction_object= {'召瓦尔','科佩克'},
-            interaction_object_map_name= {'KaazuliBossActive'},
-            index = 239
-        },
         ['搭乘電梯']= {
             map_name= 'G3_12',
-            Boss= '豔陽神聖主教．凱亞祖利',
+            Boss= {'豔陽神聖主教．凱亞祖利'},
             interaction_object= {'艾瓦','召喚艾瓦', '調查平台','高地神塔營地','科佩克'},
             interaction_object_map_name= {'KaazuliBossActive','KaazuliBossInactive'},
-            index = 240
+            index = 239
         },
         ['召喚艾瓦並告訴她發生什麼事']= {
             map_name= 'G3_12',
             interaction_object= {'召喚艾瓦','科佩克'},
-            Boss= '豔陽神聖主教．凱亞祖利',
+            Boss= {'豔陽神聖主教．凱亞祖利'},
             interaction_object_map_name= {'KaazuliBossInactive'},
+            index = 240
+        },
+        ['與艾瓦對話']= {
+            map_name= 'G3_12',
+            interaction_object= {'艾瓦', '調查平台','科佩克'},
+            Boss= {'豔陽神聖主教．凱亞祖利'},
+            interaction_object_map_name= {'艾瓦', 'KaazuliBossInactive'},
             index = 241
         },
-        -- ['與艾瓦對話']= {
-        --     map_name= 'C_G3_12',
-        --     interaction_object= {'艾瓦', '調查平台','科佩克'},
-        --     Boss= '豔陽神聖主教．凱亞祖利',
-        --     interaction_object_map_name= {'艾瓦', 'KaazuliBossInactive'},
-        -- },
         ['進入通道']= {
             map_name= 'G3_town',
             grid_x= 423,
@@ -1472,27 +1475,27 @@ local main_task= {
         ['回到過去，進入奧札爾']= {
             map_name= 'G3_14',
             interaction_object= {'奧札爾'},
-            Boss= '豔陽神聖主教．凱亞祖利',
+            Boss= {'豔陽神聖主教．凱亞祖利'},
             interaction_object_map_name= {'G3_14'},
             index = 244
         },
         ['在奧札爾尋找有關巨獸的情報']= {
             map_name= 'G3_14',
-            Boss= '邪魔毒蛇納普阿茲',
+            Boss= {'邪魔毒蛇納普阿茲'},
             interaction_object= {'奧爾'},
             interaction_object_map_name= {'ViperNapuatziBossActive'},
             index = 245
         },
         ['擊敗邪魔毒蛇納普阿茲']= {
             map_name= 'G3_14',
-            Boss= '邪魔毒蛇納普阿茲',
+            Boss= {'邪魔毒蛇納普阿茲'},
             interaction_object= {'奧爾'},
             interaction_object_map_name= {'ViperNapuatziBossActive'},
             index = 246
         },
         ['從多里亞尼手中拯救艾瓦']= {
             map_name= 'G3_14',
-            Boss= '邪魔毒蛇納普阿茲',
+            Boss= {'邪魔毒蛇納普阿茲'},
             interaction_object= {'阿戈拉'},
             interaction_object_map_name= {'G3_16'},
             index = 247
@@ -2644,6 +2647,8 @@ local main_task= {
         ['戴斯哈尖塔']= {
             map_name= 'C_G2_9_2_',
             Boss= {'玷汙者托爾．谷爾'},
+            interaction_object = {"ToGuive","卡洛翰的姐妹"},
+            interaction_object_map_name = {"TorGulActive"},
             index = 172
         },
         ['擊敗玷汙者托爾．谷爾']= {
@@ -2892,12 +2897,12 @@ local main_task= {
             interaction_object_map_name= {'ZicoatlBossActive'},
             index = 213
         },
-        ['與艾瓦對話']= {
-            map_name= 'C_G3_6_2',
-            interaction_object= {'艾瓦'},
-            interaction_object_map_name= {'艾瓦'},
-            index = 214
-        },
+        -- ['與艾瓦對話']= {
+        --     map_name= 'C_G3_6_2',
+        --     interaction_object= {'艾瓦'},
+        --     interaction_object_map_name= {'艾瓦'},
+        --     index = 214
+        -- },
         -- ['召喚艾瓦，尋求她的意見']= {
         --     map_name= 'C_G3_6_2',
         --     interaction_object= {'中型靈魂核心',' <questitem>{發電機}','門'},
@@ -2920,14 +2925,14 @@ local main_task= {
         },
         ['擊敗核心守衛．茲科亞特']= {
             map_name= 'C_G3_6_2',
-            Boss= '核心守衛．茲科亞特',
+            Boss= {'核心守衛．茲科亞特'},
             interaction_object= {'ZicBActive'},
             interaction_object_map_name= {'ZicoatlBossActive'},
             index = 218
         },
         ['拾取大型靈魂核心']= {
             map_name= 'C_G3_6_2',
-            Boss= '核心守衛．茲科亞特',
+            Boss= {'核心守衛．茲科亞特'},
             interaction_object= {'中型靈魂核心', '<questitem>{發電機}','門','<questitem>{大型靈魂核心}'},
             interaction_object_map_name= {'ZicoatlBossActive','ZicoatlBossInactive'},
             index = 219
@@ -2979,19 +2984,19 @@ local main_task= {
         },
         ['污垢頂峰']= {
             map_name= 'C_G3_11',
-            Boss= '污垢女王',
+            Boss= {'污垢女王'},
             index = 229
         },
         ['探索阿戈拉遺跡，並尋找一把鑰匙']= {
             map_name= 'C_G3_11',
             interaction_object= {'污垢'},
-            Boss= '污垢女王',
+            Boss= {'污垢女王'},
             interaction_object_map_name= {'QueenOfFilthBossActive'},
             index = 230
         },
         ['擊敗污垢女王']= {
             map_name= 'C_G3_11',
-            Boss= '污垢女王',
+            Boss= {'污垢女王'},
             interaction_object= {'污垢'},
             interaction_object_map_name= {'QueenOfFilthBossActive'},
             index = 231
@@ -3035,21 +3040,21 @@ local main_task= {
         },
         ['探索科佩克神殿並尋找瓦爾的知識展覽室']= {
             map_name= 'C_G3_12',
-            Boss= '豔陽神聖主教．凱亞祖利',
+            Boss= {'豔陽神聖主教．凱亞祖利'},
             interaction_object= {'召瓦尔','科佩克'},
             interaction_object_map_name= {'KaazuliBossActive'},
             index = 237
         },
         ['擊敗豔陽神聖主教．凱亞祖利']= {
             map_name= 'C_G3_12',
-            Boss= '豔陽神聖主教．凱亞祖利',
+            Boss= {'豔陽神聖主教．凱亞祖利'},
             interaction_object= {'召瓦尔','科佩克'},
             interaction_object_map_name= {'KaazuliBossActive'},
             index = 238
         },
         ['搭乘電梯']= {
             map_name= 'C_G3_12',
-            Boss= '豔陽神聖主教．凱亞祖利',
+            Boss= {'豔陽神聖主教．凱亞祖利'},
             interaction_object= {'艾瓦','召喚艾瓦', '調查平台','高地神塔營地','科佩克'},
             interaction_object_map_name= {'KaazuliBossActive','KaazuliBossInactive'},
             index = 239
@@ -3057,16 +3062,16 @@ local main_task= {
         ['召喚艾瓦並告訴她發生什麼事']= {
             map_name= 'C_G3_12',
             interaction_object= {'召喚艾瓦','科佩克'},
-            Boss= '豔陽神聖主教．凱亞祖利',
+            Boss= {'豔陽神聖主教．凱亞祖利'},
             interaction_object_map_name= {'KaazuliBossInactive'},
             index = 240
         },
-        -- ['與艾瓦對話']= {
-        --     map_name= 'C_G3_12',
-        --     interaction_object= {'艾瓦', '調查平台','科佩克'},
-        --     Boss= '豔陽神聖主教．凱亞祖利',
-        --     interaction_object_map_name= {'艾瓦', 'KaazuliBossInactive'},
-        -- },
+        ['與艾瓦對話']= {
+            map_name= 'C_G3_12',
+            interaction_object= {'艾瓦', '調查平台','科佩克'},
+            Boss= {'豔陽神聖主教．凱亞祖利'},
+            interaction_object_map_name= {'艾瓦', 'KaazuliBossInactive'},
+        },
         ['進入通道']= {
             map_name= 'C_G3_town',
             grid_x= 423,
@@ -3082,27 +3087,27 @@ local main_task= {
         ['回到過去，進入奧札爾']= {
             map_name= 'C_G3_14',
             interaction_object= {'奧札爾'},
-            Boss= '豔陽神聖主教．凱亞祖利',
+            Boss= {'豔陽神聖主教．凱亞祖利'},
             interaction_object_map_name= {'C_G3_14'},
             index = 243
         },
         ['在奧札爾尋找有關巨獸的情報']= {
             map_name= 'C_G3_14',
-            Boss= '邪魔毒蛇納普阿茲',
+            Boss= {'邪魔毒蛇納普阿茲'},
             interaction_object= {'奧爾'},
             interaction_object_map_name= {'ViperNapuatziBossActive'},
             index = 244
         },
         ['擊敗邪魔毒蛇納普阿茲']= {
             map_name= 'C_G3_14',
-            Boss= '邪魔毒蛇納普阿茲',
+            Boss= {'邪魔毒蛇納普阿茲'},
             interaction_object= {'奧爾'},
             interaction_object_map_name= {'ViperNapuatziBossActive'},
             index = 245
         },
         ['從多里亞尼手中拯救艾瓦']= {
             map_name= 'C_G3_14',
-            Boss= '邪魔毒蛇納普阿茲',
+            Boss= {'邪魔毒蛇納普阿茲'},
             interaction_object= {'阿戈拉'},
             interaction_object_map_name= {'C_G3_16_'},
             index = 246

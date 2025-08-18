@@ -3777,6 +3777,107 @@ _M.random_click = function(x, y, w, h)
     api_ClickScreen(x1, y1, 1)
 end
 
+-- 获取指定text的物品排序
+_M.get_sorted_obj = function(text, range_info, player_info)
+    -- 1. 检查玩家信息
+    if not player_info then
+        _M.dbgp("错误: 无法获取玩家位置信息")
+        return nil
+    end
+    
+    -- 2. 缓存玩家位置（有效期1秒）
+    local current_time = os.time()
+    if not _M._last_player_pos or current_time - (_M._last_pos_time or 0) > 1.0 then
+        _M._last_player_pos = {grid_x = player_info.grid_x, grid_y = player_info.grid_y}
+        _M._last_pos_time = current_time
+    end
+    local px, py = _M._last_player_pos.grid_x, _M._last_player_pos.grid_y
+    _M.dbgp(string.format("排序基准点 - X:%.2f, Y:%.2f", px, py))
+    
+    -- 3. 定义筛选函数
+    local function is_match(actor)
+        if type(text) == "string" then
+            return string.find(actor.name_utf8 or "", text) ~= nil
+        elseif type(text) == "table" then
+            for _, name in ipairs(text) do
+                if name == actor.name_utf8 then
+                    return true
+                end
+            end
+            return false
+        elseif type(text) == "number" then
+            return text == actor.type
+        end
+        return false
+    end
+    
+    -- 4. 单次遍历同时筛选和计算距离
+    local matched = {}
+    for _, actor in ipairs(range_info) do
+        if is_match(actor) and actor.grid_x and actor.grid_y then
+            local dx = actor.grid_x - px
+            local dy = actor.grid_y - py
+            table.insert(matched, {dist = dx*dx + dy*dy, actor = actor})
+        end
+    end
+    
+    -- 5. 优化排序（直接使用预计算的平方距离）
+    table.sort(matched, function(a, b)
+        return a.dist < b.dist
+    end)
+    
+    -- 提取排序后的actor列表
+    local result = {}
+    for _, item in ipairs(matched) do
+        table.insert(result, item.actor)
+    end
+    
+    return result
+end
+
+-- 根据距离判断周围boss
+_M.is_have_boss_distance = function(range_info,player_info,boss_list,dis)
+    dis = dis or 100  -- 默认距离100
+    
+    if not range_info or not boss_list or not player_info then
+        return false
+    end
+    
+    for _, monster in ipairs(range_info) do
+        -- 检查多里亞尼的特殊情况
+        if monster.name_utf8 == '多里亞尼' and monster.hasLineOfSight 
+           and monster.life > 0 and monster.stateMachineList 
+           and monster.stateMachineList['boss_life_bar'] == 0 then
+            return false
+        end
+        
+        -- 计算距离平方(优化性能，避免math.sqrt)
+        local dx = monster.grid_x - player_info.grid_x
+        local dy = monster.grid_y - player_info.grid_y
+        local distance_sq = dx*dx + dy*dy
+        local within_distance = distance_sq <= (dis * dis)
+        
+        -- 检查稀有度为3的怪物
+        if monster.name_utf8 ~= '' and monster.rarity == 3 
+           and monster.life > 0 and not monster.is_friendly 
+           and within_distance 
+           and not _M.table_contains(monster.name_utf8, {"惡魔", '複製體', "隱形", "複製之躰"})
+           and monster.isActive then
+            return true
+        end
+        
+        -- 检查boss列表中的怪物
+        if monster.name_utf8 ~= '' and _M.is_in_list(monster.name_utf8, boss_list)
+           and monster.life > 0 and not monster.is_friendly 
+           and within_distance and monster.hasLineOfSight
+           and not _M.table_contains(monster.name_utf8, {"惡魔", "隱形", "複製之躰", '複製體'})
+           and monster.isActive then
+            return true
+        end
+    end
+    return false
+end
+
 -- 获取队伍信息
 _M.get_team_info = function(team_info ,config ,player_info, index)
     local team_members = team_info
@@ -3822,6 +3923,9 @@ _M.get_team_info = function(team_info ,config ,player_info, index)
 end
         
 -- 查询本地任务信息
+--- @param tasks_data table 任务数据表，结构为 {[任务名] = {任务详情}}
+--- @param text string 要查询的任务名称
+--- @return table|nil 返回包含任务详细信息的表，结构为：
 _M.get_task_info = function(tasks_data,text)
     if tasks_data[text] then
         local task_data = tasks_data[text]
@@ -3838,8 +3942,7 @@ _M.get_task_info = function(tasks_data,text)
         }
     end
     
-    return nil
-    
+    return {}
 end
 
 -- 其他可能用到的API
