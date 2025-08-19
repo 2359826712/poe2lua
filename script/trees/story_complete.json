@@ -229,6 +229,159 @@
         "id": 45,
         "name": "Check_LongTime_Not_Move",
         "desc": "长时间未移动"
+      },
+      {
+        "id": 46,
+        "name": "Selector",
+        "desc": "ExceptionTeam",
+        "children": [
+          {
+            "id": 47,
+            "name": "Is_Exception_Team"
+          },
+          {
+            "id": 48,
+            "name": "Sequence",
+            "children": [
+              {
+                "id": 49,
+                "name": "Game_Block",
+                "desc": "清理遮挡"
+              },
+              {
+                "id": 50,
+                "name": "Selector",
+                "desc": "move",
+                "children": [
+                  {
+                    "id": 51,
+                    "name": "Is_move",
+                    "desc": "是否需要移动"
+                  },
+                  {
+                    "id": 52,
+                    "name": "Sequence",
+                    "desc": "Path_Move_Story",
+                    "children": [
+                      {
+                        "id": 53,
+                        "name": "Is_Arrive",
+                        "desc": "是否在终点"
+                      },
+                      {
+                        "id": 54,
+                        "name": "GET_Path",
+                        "desc": "计算路径"
+                      },
+                      {
+                        "id": 55,
+                        "name": "Move_To_Target_Point",
+                        "desc": "移动到指定地点"
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "id": 56,
+                "name": "Selector",
+                "desc": "attack",
+                "children": [
+                  {
+                    "id": 57,
+                    "name": "Is_Attack",
+                    "desc": "是否需要攻击"
+                  },
+                  {
+                    "id": 58,
+                    "name": "ReleaseSkillAction",
+                    "desc": "释放技能"
+                  },
+                  {
+                    "id": 59,
+                    "name": "Sequence",
+                    "desc": "Path_Move_Story",
+                    "children": [
+                      {
+                        "id": 60,
+                        "name": "Is_Arrive",
+                        "desc": "是否在终点"
+                      },
+                      {
+                        "id": 61,
+                        "name": "GET_Path",
+                        "desc": "计算路径"
+                      },
+                      {
+                        "id": 62,
+                        "name": "Move_To_Target_Point",
+                        "desc": "移动到指定地点"
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "id": 63,
+                "name": "Click",
+                "desc": "点击"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": 64,
+        "name": "Selector",
+        "desc": "拾取任务道具",
+        "children": [
+          {
+            "id": 65,
+            "name": "Is_Pick_Up_Task_Props"
+          },
+          {
+            "id": 66,
+            "name": "Sequence",
+            "children": [
+              {
+                "id": 67,
+                "name": "Traverse_and_check_equipment"
+              },
+              {
+                "id": 68,
+                "name": "Sequence",
+                "desc": "Path_Move_Story",
+                "children": [
+                  {
+                    "id": 69,
+                    "name": "Game_Block",
+                    "desc": "清理遮挡"
+                  },
+                  {
+                    "id": 70,
+                    "name": "Is_Arrive",
+                    "desc": "是否在终点"
+                  },
+                  {
+                    "id": 71,
+                    "name": "GET_Path",
+                    "desc": "计算路径"
+                  },
+                  {
+                    "id": 72,
+                    "name": "Move_To_Target_Point",
+                    "desc": "移动到指定地点"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "id": 73,
+            "name": "Pick__Up",
+            "desc": "拾取"
+          }
+        ]
       }
     ]
   },

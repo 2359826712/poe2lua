@@ -1,4 +1,5 @@
 package.path = package.path .. ';./path/to/module/?.lua'
+package.path = package.path .. ';lualib/?.lua'
 
 -- 每次加载时清除 otherworld 模块的缓存
 api_Log("清除 plot 模块的缓存")

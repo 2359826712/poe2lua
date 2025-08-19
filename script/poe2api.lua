@@ -1,6 +1,7 @@
 local _M = {} -- 主接口表
 local json = require 'json'
 local my_game_info = require 'script/my_game_info'
+local BD_data = require 'script/BD'
 
 
 local CELL_WIDTH = 43.81  -- 每个格子宽度
@@ -3644,8 +3645,8 @@ _M.is_do_without_pick_up = function(item, items_info)
 end
 
 -- 物品過濾
-_M.match_item = function(item, cfg)
-    
+_M.match_item = function(item, cfg, index)
+    local index = index or nil
     -- _M.dbgp(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
     -- _M.dbgp("item.category_utf8: "..item.category_utf8)
     local text = _M.get_item_type(item)
@@ -3704,11 +3705,24 @@ _M.match_item = function(item, cfg)
             end
         else
             local min_level = level.min
-            local  max_level = level.max
-            if item.skillGemLevel < min_level or item.skillGemLevel > max_level then
-                -- _M.dbgp("宝石等级不匹配1")
-                return false
-            end    
+            local max_level = level.max
+            if index then
+                if item.category == 'UncutSkillGem' then
+                    if item.skillGemLevel < 2 or item.skillGemLevel > max_level then
+                        return false
+                    end
+                else
+                    if item.skillGemLevel < min_level or item.skillGemLevel > max_level then
+                        -- _M.dbgp("宝石等级不匹配1")
+                        return false
+                    end 
+                end
+            else  
+                if item.skillGemLevel < min_level or item.skillGemLevel > max_level then
+                    -- _M.dbgp("宝石等级不匹配1")
+                    return false
+                end    
+            end
         end
     else
         if item_type == "exact" then
@@ -3944,6 +3958,97 @@ _M.get_task_info = function(tasks_data,text)
     
     return {}
 end
+
+-- 死循环长时间长按文本
+_M.while_click = function(UI_info,text ,mate, range_info,is_leader)
+    local time = api_GetTickCount64()  -- 点击计时器
+    local point = _M.find_text({UI_info = UI_info, text = text, min_x=0 ,click = 1,refresh = true,position = 3})
+    if not point or not next(point) then
+        return
+    end
+    api_ClickScreen(_M.toInt(point[1]) ,_M.toInt(point[2]), 3)
+    while true do
+        if _M.is_have_mos({range_info = range_info , player_info = mate ,dis = 100}) and is_leader then
+            break
+        end
+        if api_GetTickCount64() - time >= 30 * 1000 then
+            break
+        end
+        if not _M.find_text({UI_info = UI_info, text = text, min_x=0 ,refresh = true}) then
+            break
+        end
+    end
+    api_ClickScreen(_M.toInt(point[1]) ,_M.toInt(point[2]), 4)
+end
+
+-- 查询BD信息
+_M.get_BD_info = function(...)
+    local data = BD_data 
+    local args = {...}
+
+    if #args > 0 then
+        -- 动态访问任务数据
+        for _, arg in ipairs(args) do
+            if data[arg] then
+                data = data[arg]  -- 逐层访问
+            else
+                _M.dbgp("没有该层")
+                return nil  -- 如果某个参数不存在，返回 nil
+            end
+        end
+        return data  -- 返回最终访问到的数据
+    end
+    
+    return data
+    
+end
+
+-- 根据小队名返回文本位置
+_M.get_member_name_according = function(UI_info, text, min_x, min_y, max_x, max_y)
+    -- Default parameter values
+    min_x = min_x or 75
+    min_y = min_y or 0
+    max_x = max_x or 400
+    max_y = max_y or 666
+
+    if UI_info and #UI_info > 0 then
+        for _, actor in ipairs(UI_info) do
+            if min_x <= actor.left and actor.left <= max_x and 
+               min_y <= actor.top and actor.top <= max_y then
+                -- Calculate center position
+                local center_x = (actor.left + actor.right) / 2
+                local center_y = (actor.top + actor.bottom) / 2
+                return center_x, center_y  -- Return coordinates if found
+            end
+        end
+        return 0, 0  -- No matching actor found in the specified area
+    else
+        return 0, 0  -- No actors found at all
+    end
+end
+
+_M.move_towards = function(start, end_pos, speed)
+    local dx = end_pos[1] - start[1]
+    local dy = end_pos[2] - start[2]
+
+    local distance = math.sqrt(dx^2 + dy^2)
+
+    local dx_normalized, dy_normalized
+    if distance > 0 then
+        dx_normalized = dx / distance * speed
+        dy_normalized = dy / distance * speed
+    else
+        dx_normalized = 0
+        dy_normalized = 0
+    end
+    
+    -- Calculate new coordinates
+    local new_x = start[1] + dx_normalized
+    local new_y = start[2] + dy_normalized
+    
+    return {new_x, new_y}
+end
+
 
 -- 其他可能用到的API
 _M.get_current_time = function() return api_GetTickCount64() end

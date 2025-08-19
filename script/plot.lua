@@ -223,7 +223,7 @@ local custom_nodes = {
             local game_path = env.user_info["gamedir"]
             poe2_api.dbgp("game_path:" .. game_path)
             local process_name = string.find(game_path:lower(), "steam.exe") and "PathOfExileSteam.exe" or
-            "PathOfExile.exe"
+                "PathOfExile.exe"
             if not env.config_file then
                 -- 获取文档目录路径
                 env.documents_path = os.getenv('USERPROFILE') .. '\\Documents'
@@ -296,7 +296,7 @@ local custom_nodes = {
             local game_path = env.user_info["gamedir"]
             poe2_api.dbgp("game_path:" .. game_path)
             local process_name = string.find(game_path:lower(), "steam.exe") and "PathOfExileSteam.exe" or
-            "PathOfExile.exe"
+                "PathOfExile.exe"
 
 
             if env.time_out == 0 then
@@ -314,8 +314,11 @@ local custom_nodes = {
                 poe2_api.dbgp("is_set:", env.is_set)
                 poe2_api.dbgp("switching_lines:", env.switching_lines)
                 poe2_api.dbgp("find_test (to be logged in.):",
-                    poe2_api.find_text({ text = "This operation requires the account to be logged in.", UI_info = env
-                    .UI_info }))
+                    poe2_api.find_text({
+                        text = "This operation requires the account to be logged in.",
+                        UI_info = env
+                            .UI_info
+                    }))
                 poe2_api.dbgp("find_test (packet with pid):",
                     poe2_api.find_text({ text = "> 已斷線: Unable to deserialise packet with pid", UI_info = env.UI_info, min_x = 0 }))
                 env.is_game_exe = false
@@ -1057,13 +1060,13 @@ local custom_nodes = {
                 local base_work = tonumber(config["運行時間"]) or 60 -- 默认60分钟
                 local work_random_range = math.min(tonumber(config["工作時間隨機範圍"]) or 0.1, 0.3) -- 限制最大30%波动
                 self.work_duration_ms = math.floor(base_work * 60 * 1000 *
-                (1 + (math.random() * work_random_range * 2 - work_random_range)))
+                    (1 + (math.random() * work_random_range * 2 - work_random_range)))
 
                 -- 休息时间配置（单位：分钟→毫秒）
                 local base_rest = tonumber(config["休息時間"]) or 10 -- 默认10分钟
                 local rest_random_range = math.min(tonumber(config["休息時間隨機範圍"]) or 0.1, 0.3) -- 限制最大30%波动
                 self.rest_duration_ms = math.floor(base_rest * 60 * 1000 *
-                (1 + (math.random() * rest_random_range * 2 - rest_random_range)))
+                    (1 + (math.random() * rest_random_range * 2 - rest_random_range)))
 
                 -- 功能开关
                 self.is_open = config["是否開啟"] or false
@@ -1761,8 +1764,11 @@ local custom_nodes = {
                 end
                 local item = api_Getinventorys(0xd, 0)
                 if item and #item > 0 then
-                    local point = poe2_api.get_space_point({ width = item[1].end_x - item[1].start_x, height = item[1]
-                    .end_y - item[1].start_y })
+                    local point = poe2_api.get_space_point({
+                        width = item[1].end_x - item[1].start_x,
+                        height = item[1]
+                            .end_y - item[1].start_y
+                    })
                     if point then
                         if poe2_api.find_text({ UI_info = env.UI_info, text = "背包" }) then
                             api_ClickScreen(poe2_api.toInt(point[1]), poe2_api.toInt(point[2]), 1)
@@ -2105,7 +2111,7 @@ local custom_nodes = {
                 local store_bag2 = {}
                 for _, v in ipairs(bag) do
                     for _, item in ipairs(items_info) do
-                        if poe2_api.match_item(v, item) and not item["工會倉庫"] and not item["不撿"] then
+                        if poe2_api.match_item(v, item, 1) and not item["工會倉庫"] and not item["不撿"] then
                             local a = item_save_as1(v, item)
                             if a then
                                 if a == 1 then
@@ -2114,7 +2120,7 @@ local custom_nodes = {
                                 end
                             end
                             table.insert(store_bag1, v)
-                        elseif poe2_api.match_item(v, item) and item["工會倉庫"] and not item["不撿"] then
+                        elseif poe2_api.match_item(v, item, 1) and item["工會倉庫"] and not item["不撿"] then
                             local a = item_save_as1(v, item)
                             if a then
                                 if a == 2 then
@@ -2188,8 +2194,13 @@ local custom_nodes = {
                 -- 找不是疯癫的地图
                 local function get_map_not_crazy()
                     local map = get_map_number()
-                    local max_map = poe2_api.select_best_map_key({ inventory = bag, key_level_threshold = user_map, not_use_map =
-                    not_use_map, priority_map = priority_map })
+                    local max_map = poe2_api.select_best_map_key({
+                        inventory = bag,
+                        key_level_threshold = user_map,
+                        not_use_map =
+                            not_use_map,
+                        priority_map = priority_map
+                    })
                     if max_map then
                         local max_map_level = poe2_api.extract_level(max_map.baseType_utf8)
                         local is_oiled = nil
@@ -2264,15 +2275,21 @@ local custom_nodes = {
                     end
                     return false
                 end
-                local min_map = poe2_api.select_best_map_key({ inventory = bag, index = 1, no_categorize_suffixes = 1, min_level =
-                map_ys_level_min, trashest = true })
+                local min_map = poe2_api.select_best_map_key({
+                    inventory = bag,
+                    index = 1,
+                    no_categorize_suffixes = 1,
+                    min_level =
+                        map_ys_level_min,
+                    trashest = true
+                })
 
                 if unique_storage_pages and next(unique_storage_pages) then
                     for _, i in ipairs(unique_storage_pages) do
                         for _, b in ipairs(bag) do
                             -- poe2_api.dbgp("b.baseType_utf8:"..b.baseType_utf8)
                             for _, item in ipairs(items_info) do
-                                if poe2_api.match_item(b, item) and item["存倉頁名"] == i and not item["工會倉庫"] and not item["不撿"] then
+                                if poe2_api.match_item(b, item, 1) and item["存倉頁名"] == i and not item["工會倉庫"] and not item["不撿"] then
                                     if ((item["名稱"] and item["名稱"] ~= "" and item["名稱"] ~= "全部物品") or get_ct_config(item)) and b.not_identified then
                                         poe2_api.dbgp("1")
                                         break
@@ -2346,7 +2363,7 @@ local custom_nodes = {
                     for _, i in ipairs(public_warehouse_pages) do
                         for _, b in ipairs(bag) do
                             for _, item in ipairs(items_info) do
-                                if poe2_api.match_item(b, item) and item["存倉頁名"] == i and item["工會倉庫"] and not item["不撿"] then
+                                if poe2_api.match_item(b, item, 1) and item["存倉頁名"] == i and item["工會倉庫"] and not item["不撿"] then
                                     if ((item["名稱"] and item["名稱"] ~= "" and item["名稱"] ~= "全部物品") or get_ct_config(item)) and b.not_identified then
                                         break
                                     end
@@ -2497,7 +2514,7 @@ local custom_nodes = {
                             end
                         end
                         error("未配置购物祭祀物品：->" ..
-                        not_config_altar_item.name_utf8 .. "<-,物品类型为:->" .. item_key .. "<-,相关存储页请在物品配置中添加")
+                            not_config_altar_item.name_utf8 .. "<-,物品类型为:->" .. item_key .. "<-,相关存储页请在物品配置中添加")
                     end
                 end
                 env.exchange_status = false
@@ -2797,8 +2814,16 @@ local custom_nodes = {
                 if warehouse and next(warehouse) then
                     local w = store_item[1].end_x - store_item[1].start_x
                     local h = store_item[1].end_y - store_item[1].start_y
-                    local point = poe2_api.get_space_point({ width = w, height = h, w = 12, h = 12, gox = 14, goy = 99, info =
-                    warehouse })
+                    local point = poe2_api.get_space_point({
+                        width = w,
+                        height = h,
+                        w = 12,
+                        h = 12,
+                        gox = 14,
+                        goy = 99,
+                        info =
+                            warehouse
+                    })
                     if not point then
                         currency_exchange_is_opens = currency_exchange_is_opens["是否自動對換"] or false
                         if currency_exchange_is_opens then
@@ -2824,8 +2849,18 @@ local custom_nodes = {
                 if warehouse and next(warehouse) then
                     local w = store_item[1].end_x - store_item[1].start_x
                     local h = store_item[1].end_y - store_item[1].start_y
-                    local point = poe2_api.get_space_point({ width = w, height = h, w = 24, h = 24, gox = 15, goy = 100, grid_x = 22, grid_y = 22, info =
-                    warehouse })
+                    local point = poe2_api.get_space_point({
+                        width = w,
+                        height = h,
+                        w = 24,
+                        h = 24,
+                        gox = 15,
+                        goy = 100,
+                        grid_x = 22,
+                        grid_y = 22,
+                        info =
+                            warehouse
+                    })
                     if not point then
                         currency_exchange_is_opens = currency_exchange_is_opens["是否自動對換"] or false
                         if currency_exchange_is_opens then
@@ -3022,7 +3057,7 @@ local custom_nodes = {
     -- 城镇任务接收
     Interactive_Npc_In_Town = {
         run = function(self, env)
-            poe2_api.print_log("[Interactive_Npc_In_Town]城镇交互-任务")
+            poe2_api.print_log("城镇交互-任务")
             poe2_api.dbgp("[Interactive_Npc_In_Town]开始处理城镇任务")
             local range_info = env.range_info
             local team_info = env.team_info
@@ -3060,7 +3095,7 @@ local custom_nodes = {
     -- 城镇任务npc是否存在
     The_interactive_object_exist = {
         run = function(self, env)
-            poe2_api.print_log("[The_interactive_object_exist]城镇任务npc是否存在")
+            poe2_api.print_log("城镇任务npc是否存在")
             poe2_api.dbgp("[The_interactive_object_exist]城镇任务npc是否存在")
             if self.last_click_time == nil then
                 poe2_api.dbgp("[The_interactive_object_exist]初始化")
@@ -3102,7 +3137,7 @@ local custom_nodes = {
     -- 检查是否为大号
     Check_Role = {
         run = function(self, env)
-            poe2_api.print_log("[Check_Role]检查是否为大号")
+            poe2_api.print_log("检查是否为大号")
             poe2_api.dbgp("[Check_Role]检查是否为大号")
             local player_info = env.player_info
             local team_info = env.team_info
@@ -3117,7 +3152,7 @@ local custom_nodes = {
     -- 大号查询本地任务信息
     Query_Current_Task_Information_Local = {
         run = function(self, env)
-            poe2_api.print_log("[Query_Current_Task_Information_Local]大号查询本地任务信息")
+            poe2_api.print_log("大号查询本地任务信息")
             poe2_api.dbgp("[Query_Current_Task_Information_Local]大号查询本地任务信息")
             local team_info_data = env.team_info_data
             local task_name = env.task_name
@@ -3309,7 +3344,7 @@ local custom_nodes = {
     -- 小号查询任务信息
     Query_Current_Task_Information = {
         run = function(self, env)
-            poe2_api.print_log("[Query_Current_Task_Information]小号查询任务信息")
+            poe2_api.print_log("小号查询任务信息")
             poe2_api.dbgp("[Query_Current_Task_Information]小号查询任务信息")
             if self.raw_time == nil then
                 self.raw = {}
@@ -3348,7 +3383,7 @@ local custom_nodes = {
                 poe2_api.dbgp("[Query_Current_Task_Information]检测地图上是否存在物体：", name)
                 for _, item in ipairs(current_map_info) do
                     if item.name_utf8 == name and item.flagStatus1 == 1 then
-                        return { item } -- 直接返回第一个匹配项
+                        return  item  -- 直接返回第一个匹配项
                     end
                 end
                 return nil -- 无匹配时返回nil
@@ -3949,7 +3984,7 @@ local custom_nodes = {
     Is_Move = {
         run = function(self, env)
             poe2_api.dbgp("===[Is_Move]是否需要移动 ===")
-            poe2_api.print_log("[Is_Move]判断是否需要移动...")
+            poe2_api.print_log("判断是否需要移动...")
             local range_info = env.range_info
             local player_info = env.player_info
             local range_info_sorted = poe2_api.get_sorted_list(range_info, player_info)
@@ -4096,7 +4131,7 @@ local custom_nodes = {
     Is_Attack = {
         run = function(self, env)
             poe2_api.dbgp("[Is_Attack]判断是否攻击...")
-            poe2_api.print_log("[Is_Attack]判断是否攻击...")
+            poe2_api.print_log("判断是否攻击...")
             local relife_stuck_monsters = env.relife_stuck_monsters
             local range_info = env.range_info
             local player_info = env.player_info
@@ -4146,12 +4181,586 @@ local custom_nodes = {
         end
     },
 
+    -- 长按点击复活
     Click = {
         run = function(self, env)
             poe2_api.dbgp("点击复活")
             poe2_api.print_log("点击复活")
+            local relife_stuck_monsters = env.relife_stuck_monsters
+            local range_info = env.range_info
+            local player_info = env.player_info
+            local range_info_sorted = poe2_api.get_sorted_list(range_info, player_info)
+            local UI_info = env.UI_info
+            local user_config = env.user_config
+            local team_info = env.team_info
+            local mate = env.mate_info
+            local current_map_info = env.current_map_info
+            local function is_monster(range_info)
+                -- Iterate through each item in range_info
+                for _, i in ipairs(range_info) do
+                    if ((i.name_utf8 == "巨像．札爾瑪拉斯" or i.name_utf8 == "玷汙者托爾．谷爾" or i.name_utf8 == "巨型守衛者．瓦斯威德")
+                            and i.life > 0 and not i.is_friendly and i.isActive)
+                        or ((i.name_utf8 == '多里亞尼的凱旋' or i.name_utf8 == '崛起之王．賈嫚拉')
+                            and i.hasLineOfSight and i.isActive and i.life > 0)
+                        or (not i.is_friendly and i.life > 0
+                            and not poe2_api.table_contains(env.stuck_monsters, i.id)
+                            and not poe2_api.table_contains(my_game_info.not_attact_mons_CN_name, i.name_utf8)
+                            and i.isActive and i.type == 1)
+                        and not poe2_api.table_contains(relife_stuck_monsters, i.id) then
+                        return i
+                    end
+                end
+                return false
+            end
+            if env.stuck_monsters == nil then
+                env.stuck_monsters = {}
+            end
+            local monster = is_monster(range_info_sorted)
+            if monster then
+                distance = poe2_api.point_distance(monster.grid_x, monster.grid_y, player_info)
+            end
+            if monster and distance < 180 and poe2_api.get_team_info(team_info, user_config, player_info, 2) == "大號名" then
+                return bret.RUNNING
+            end
+            local life_time = env.life_time
+            if not life_time then
+                life_time = api_GetTickCount64()
+                env.life_time = life_time
+            end
+            local function count_gravestones(map_info)
+                if not map_info then
+                    return false
+                end
+                local count = 0
+                for _, obj in ipairs(map_info) do
+                    if obj.name_utf8 == "PlayerGravestone" then
+                        count = count + 1
+                    end
+                end
+                return count
+            end
+            local relife_time = api_GetTickCount64() - life_time
+            if relife_time > 90 * 1000 and poe2_api.get_team_info(team_info, user_config, player_info, 2) == "大號名" and count_gravestones(current_map_info) > 0 then
+                env.life_time = nil
+                env.is_timeout = true
+                return bret.RUNNING
+            end
+            if not poe2_api.find_text({ UI_info = UI_info, text = "復甦", min_x = 0 }) then
+                return bret.RUNNING
+            end
+            local is_leader = false
+            if poe2_api.get_team_info(team_info, user_config, player_info, 2) == "大號名" then
+                is_leader = true
+            end
+            poe2_api.while_click(UI_info, "復甦", mate, range_info, is_leader)
+            return bret.RUNNING
         end
     },
+
+    -- 是否拾取任务或BD
+    Is_Pick_Up_Task_Props = {
+        run = function(self, env)
+            poe2_api.print_log("是否拾取任务和BD")
+            poe2_api.dbgp("[Is_Pick_Up_Task_Props]是否拾取任务和BD")
+            local range_items = env.range_items
+            local player_info = env.player_info
+            local user_config = env.user_config
+            local user_new_item = poe2_api.get_BD_info(user_config["組隊設置"]["職業"], "装备信息")
+            local function is_items()
+                if range_items then
+                    for _, item in range_items do
+                        if player_info.current_map_name_utf8 == "G1_1" and user_new_item[item.category] and item.grid_x ~= 0 then
+                            local point = poe2_api.af_api.FindNearestReachablePoint(item.grid_x, item.grid_y, 20, 1)
+                            if not api_findPath(player_info.grid_x, player_info.grid_y, point.x, point.y) then
+                                return false
+                            end
+                            return true
+                        elseif poe2_api.table_contains(item.category, { 'QuestItem', "Active Skill Gem" }) and not poe2_api.table_contains(item.baseType_utf8, { "黃金", "金幣", "紅色蘑菇", "綠色蘑菇", "藍色蘑菇", "龍蜥最後通牒雕刻" }) and item.grid_x ~= 0 then
+                            local point = poe2_api.af_api.FindNearestReachablePoint(item.grid_x, item.grid_y, 20, 1)
+                            if not api_findPath(player_info.grid_x, player_info.grid_y, point.x, point.y) then
+                                return false
+                            end
+                            return true
+                        end
+                    end
+                    return false
+                end
+            end
+            if is_items() then
+                return bret.FAIL
+            else
+                env.item_name = nil
+                return bret.SUCCESS
+            end
+        end
+    },
+
+    -- 遍历周围装备
+    Traverse_and_check_equipment = {
+        run = function(self, env)
+            poe2_api.dbgp("[Traverse_and_check_equipment]遍历周围装备...")
+            poe2_api.print_log("遍历周围装备...")
+            local range_items = env.range_items
+            local player_info = env.player_info
+            local user_config = env.user_config
+            local user_new_item = poe2_api.get_BD_info(user_config["組隊設置"]["職業"], "装备信息")
+            local function processItem(item, player_info)
+                env.item_name = item.baseType_utf8
+                env.end_point = { item.grid_x, item.grid_y }
+
+                if poe2_api.point_distance(item.grid_x, item.grid_y, player_info) < 25 and
+                    api_HasObstacleBetween(item.grid_x, item.grid_y) then
+                    return bret.FAIL
+                end
+                return bret.SUCCESS
+            end
+            if range_items then
+                for _, item in range_items do
+                    if player_info.current_map_name_utf8 == "G1_1" and user_new_item[item.category] and item.grid_x ~= 0 then
+                        return processItem(item, player_info)
+                    elseif poe2_api.table_contains(item.category, { 'QuestItem', "Active Skill Gem" }) and not poe2_api.table_contains(item.baseType_utf8, { "黃金", "金幣", "紅色蘑菇", "綠色蘑菇", "藍色蘑菇", "龍蜥最後通牒雕刻" }) and item.grid_x ~= 0 then
+                        return processItem(item, player_info)
+                    end
+                end
+            end
+            return bret.RUNNING
+        end
+    },
+
+    -- 拾取周围装备
+    Pick_Up_Ground_Item = {
+        run = function(self, env)
+            poe2_api.print_log("拾取地上物品...")
+            poe2_api.dbgp("[Pick_Up_Ground_Item]拾取地上物品...")
+            local player_info = env.player_info
+            local UI_info = env.UI_info
+            local item_name = env.item_name
+            local bag_info = env.bag_info
+            local range_items = env.range_items
+
+            local function check_item_in_round(item_name, inventory)
+                if inventory then
+                    for _, item in ipairs(inventory) do
+                        if item.baseType_utf8 == item_name then
+                            return true -- 检查到物品，返回true
+                        end
+                    end
+                end
+                return false
+            end
+
+            if poe2_api.find_text({ UI_info = UI_info, text = "背包" }) then
+                poe2_api.click_keyboard("i")
+                poe2_api.dbgp("开背包2")
+            end
+            if range_items then
+                for _, item in range_items do
+                    if item.baseType_utf8 == item_name then
+                        if poe2_api.find_text({ UI_info = UI_info, text = item.baseType_utf8, sorted = true }) then
+                            poe2_api.find_text({ UI_info = UI_info, text = item.baseType_utf8, sorted = true, click = 2 })
+                        else
+                            api_ClickMove(poe2_api.toInt(item.grid_x), poe2_api.toInt(item.grid_y),
+                                poe2_api.toInt(player_info.world_z), 1)
+                        end
+                        api_Sleep(100)
+                    end
+                end
+            end
+            return bret.RUNNING
+        end
+    },
+
+    -- 需要两次传送
+    Need_Twice_Teleport = {
+        run = function(self, env)
+            poe2_api.dbgp("[Need_Twice_Teleport]需要两次传送...")
+            poe2_api.print_log("需要两次传送...")
+            local player_info = env.player_info
+            local task_area = env.map_name
+            local special_map_point = env.special_map_point
+            local interaction_object = env.interaction_object
+            local team_info = env.team_info
+            local user_config = env.user_config
+            local current_map_name = player_info.current_map_name_utf8
+            local my_profession = poe2_api.get_team_info(team_info, user_config, player_info, 2)
+
+            if string.find(player_info.current_map_name_utf8, "town") and special_map_point and not poe2_api.table_contains(my_profession, { "大號名", "未知" }) then
+                local task_area_name = poe2_api.task_area_list_data(task_area)[1][1]
+                if special_map_point and poe2_api.find_text({ UI_info = env.UI_info, text = interaction_object[1], min_x = 195, refresh = true }) then
+                    if poe2_api.find_text({ UI_info = env.UI_info, text = "快行" }) then
+                        poe2_api.click_keyboard("space")
+                    end
+                    poe2_api.find_text({ UI_info = env.UI_info, text = interaction_object[1], click = 2, min_x = 195, refresh = true })
+                    return bret.RUNNING
+                end
+                if special_map_point and not poe2_api.find_text({ UI_info = env.UI_info, text = interaction_object[1], min_x = 195, refresh = true }) then
+                    if string.find(player_info.current_map_name_utf8, "G2_town") then
+                        if not poe2_api.find_text({ UI_info = env.UI_info, text = "快行", refresh = true }) then
+                            if poe2_api.find_text({ UI_info = env.UI_info, text = "沙漠", min_y = 100, min_x = 195, max_x = 1185, max_y = 880, refresh = true }) then
+                                poe2_api.find_text({ UI_info = env.UI_info, text = "沙漠", click = 2, min_y = 100, min_x = 195, max_x = 1185, max_y = 880, refresh = true })
+                                env.end_point = nil
+                                env.empty_path = false
+                                return bret.RUNNING
+                            else
+                                env.end_point = { 547, 253 }
+                                return bret.SUCCESS
+                            end
+                        else
+                            api_ClickScreen(poe2_api.toInt(special_map_point[1]), poe2_api.toInt(special_map_point[2]), 0)
+                            api_Sleep(300)
+                            if poe2_api.find_text({ UI_info = env.UI_info, text = task_area_name, refresh = true }) then
+                                api_Sleep(300)
+                                poe2_api.click_keyboard("space")
+                                return bret.RUNNING
+                            end
+                            api_ClickScreen(poe2_api.toInt(special_map_point[1]), poe2_api.toInt(special_map_point[2]), 1)
+                            return bret.RUNNING
+                        end
+                    end
+                end
+            else
+                if poe2_api.find_text({ UI_info = env.UI_info, text = "快行" }) then
+                    poe2_api.click_keyboard("space")
+                end
+            end
+            return bret.FAIL
+        end
+    },
+
+    -- 點擊大號傳送
+    Click_Leader_To_Teleport = {
+        run = function(self, env)
+            poe2_api.print_log("點擊大號傳送...")
+            poe2_api.dbgp("[Click_Leader_To_Teleport]點擊大號傳送...")
+            local player_info = env.player_info
+            local actors = env.range_info
+            local user_config = env.user_config
+            local team_info = env.team_info
+            local task_area = env.map_name
+            local task_name = env.task_name
+            local team_info_data = env.team_info_data
+            local interaction_object = env.interaction_object
+            local UI_info = env.UI_info
+            local bag_info = env.bag_info
+            local special_map_point = env.special_map_point
+            local team_member_2 = poe2_api.get_team_info(team_info, user_config, player_info, 2)
+            local team_member_3 = poe2_api.get_team_info(team_info, user_config, player_info, 3)
+            local team_member_4 = poe2_api.get_team_info(team_info, user_config, player_info, 4)
+            local current_map = player_info.current_map_name_utf8
+            if self.time == nil then
+                poe2_api.dbgp("[Click_Leader_To_Teleport]初始化時間")
+                self.time = 0
+            end
+            local condition_met = (current_map == "C_G1_1" and string.find(task_area, "C")) or
+            (current_map ~= "G1_1" and not poe2_api.find_text({ UI_info = UI_info, text = "抵達皆伐" }))
+            if not condition_met then
+                poe2_api.dbgp("[Click_Leader_To_Teleport]在新手剧情")
+                return bret.SUCCESS
+            end
+            if poe2_api.table_contains(team_member_2, { "大號名", "未知" }) then
+                return bret.FAIL
+            end
+            if poe2_api.find_text({ UI_info = UI_info, text = "傳送", min_x = 0 }) then
+                poe2_api.find_text({ UI_info = UI_info, text = "傳送", min_x = 0, add_x = 215, click = 2 })
+                return bret.RUNNING
+            end
+            -- 获取队友位置
+            local function party_pos(name)
+                poe2_api.dbgp("[party_pos]获取队友位置:")
+                for _, member in ipairs(team_info_data) do
+                    if member["name_utf8"] == name then
+                        return member["current_map_name_utf8"]
+                    end
+                end
+                return nil
+            end
+
+            local function check_pos_dis(names)
+                poe2_api.dbgp("[check_pos_dis]获取队友位置距离:")
+                if not actors then
+                    return nil
+                end
+                local target = nil
+                for _, a in ipairs(actors) do
+                    if a.name_utf8 == names then
+                        target = a
+                        break
+                    end
+                end
+                if target then
+                    return poe2_api.point_distance(
+                        {
+                            target.grid_x,
+                            target.grid_y,
+                            player_info
+                        }
+                    )
+                else
+                    return nil
+                end
+            end
+
+            local function get_range_pos(name)
+                poe2_api.dbgp("[get_range_pos]获取周围位置:")
+                local range_info_sorted = poe2_api.get_sorted_list(actors, player_info)
+                for _, actor in ipairs(range_info_sorted) do
+                    if actor.name_utf8 == name then
+                        return { actor.grid_x, actor.grid_y }
+                    end
+                end
+                return nil
+            end
+
+            if poe2_api.table_contains(current_map, { "G1_12", "G3_7", "C_G3_7" }) then
+                local SPECIAL_SKULL_NAMES = { ['寶石花顱骨'] = true, ['寶石殼顱骨'] = true, ['傑洛特顱骨'] = true }
+                for _, i in ipairs(actors) do
+                    if SPECIAL_SKULL_NAMES[i.name_utf8] then
+                        return bret.RUNNING
+                    end
+                end
+            end
+            if not poe2_api.task_area_list_data(party_pos(team_member_3)) and string.find(current_map, "a") then
+                return bret.RUNNING
+            end
+            if poe2_api.table_contains(current_map, { "G3_12", "C_G3_12", "G2_4_3", "C_G2_4_3", "G1_15", "C_G1_15" }) then
+                local function check_role_path(names)
+                    poe2_api.dbgp("[check_role_path] 检查指定角色是否有可达路径")
+                    if not actors or #actors == 0 then -- 提前检查空值
+                        poe2_api.api_print("警告：未找到范围内的角色信息")
+                        return false
+                    end
+
+                    local point = api_FindNearestReachablePoint(player_info.grid_x, player_info.grid_y, 25, 0)
+
+                    -- 遍历所有actor检查是否有符合条件的
+                    for _, actor in ipairs(actors) do
+                        if actor.name_utf8 == names then
+                            local target = api_FindNearestReachablePoint(actor.grid_x, actor.grid_y, 25, 1)
+                            if api_findPath(point.x, point.y, target.x, target.y) then
+                                return true
+                            end
+                        end
+                    end
+
+                    return false
+                end
+                if not check_role_path(team_member_3) and check_pos_dis(team_member_3) and check_pos_dis(team_member_3) > 30 then
+                    if self.time == 0 then
+                        self.time = api_GetTickCount64()
+                    end
+                    if api_GetTickCount64() - self.time > 30 * 1000 then
+                        if string.find(current_map, "own") then
+                            self.time = 0
+                            return bret.SUCCESS
+                        end
+                        for _, name in ipairs(my_game_info.city_map) do
+                            poe2_api.find_text({ UI_info = UI_info, text = name, click = 2 })
+                            return bret.RUNNING
+                        end
+                        api_ClickScreen(1230, 815, 0)
+                        api_Sleep(500)
+                        api_ClickScreen(1230, 815, 1)
+                        return bret.RUNNING
+                    end
+                else
+                    self.time = 0
+                end
+            else
+                self.time = 0
+            end
+            if task_name == "返回城鎮並與瑟維交談" and string.find(task_area, "G3_town")
+                and (poe2_api.check_item_in_inventory("寶石殼顱骨", bag_info) or poe2_api.check_item_in_inventory("傑洛特顱骨", bag_info))
+                and poe2_api.check_item_in_inventory("尹娜杜克的幽暗長鋒", bag_info) then
+                for _, name in ipairs(my_game_info.city_map) do
+                    if string.find(current_map, "own") then
+                        return bret.SUCCESS
+                    end
+                    poe2_api.find_text({ UI_info = UI_info, text = name, click = 2 })
+                    return bret.RUNNING
+                end
+                api_ClickScreen(1230, 815, 0)
+                api_Sleep(500)
+                api_ClickScreen(1230, 815, 1)
+                return bret.RUNNING
+            end
+            if (string.find(current_map, "a") and special_map_point) or (string.find(current_map, "own") and task_area and current_map == task_area) then
+                return bret.SUCCESS
+            end
+            if not special_map_point and poe2_api.find_text({ UI_info = UI_info, text = "快行" }) then
+                poe2_api.click_keyboard("space")
+                return bret.RUNNING
+            end
+            if current_map == "C_G1_1" and check_pos_dis(team_member_3) == nil and not task_name and string.find(task_area, "C") then
+                if team_member_2 == "小號" then
+                    if not poe2_api.find_text({ UI_info = UI_info, text = "你確定要傳送至此玩家的位置？" }) then
+                        local x, y = poe2_api.get_member_name_according(UI_info, team_member_4)
+                        if y ~= 0 then
+                            local rand_x = 14 + math.random(-7, 7)
+                            local rand_y = y + 21 + math.random(-7, 7)
+                            api_ClickScreen(poe2_api.toInt(rand_x), poe2_api.toInt(rand_y), 0)
+                            api_Sleep(500)
+                            api_ClickScreen(poe2_api.toInt(rand_x), poe2_api.toInt(rand_y), 1)
+                        end
+                        return bret.RUNNING
+                    else
+                        api_ClickScreen(916, 467, 0)
+                        api_Sleep(500)
+                        api_ClickScreen(916, 467, 1)
+                        return bret.SUCCESS
+                    end
+                end
+                return bret.RUNNING
+            end
+            if poe2_api.table_contains(current_map, { "G3_1", "C_G3_1" }) and poe2_api.table_contains(task_area, { "G3_1", "C_G3_1" }) then
+                poe2_api.dbgp("检测到任务区域:G3_1")
+                return bret.SUCCESS
+            end
+            if poe2_api.table_contains(current_map, { "G3_2_2", "C_G3_2_2" }) and poe2_api.table_contains(task_area, { "G3_2_2", "C_G3_2_2" }) and
+                poe2_api.table_contains(party_pos(team_member_3), { "G3_2_2", "C_G3_2_2" }) then
+                poe2_api.dbgp("检测到任务区域:G3_2_2")
+                return bret.RUNNING
+            end
+            if current_map == "G3_town" and poe2_api.table_contains(task_area, { "G3_14", "G3_16", "G3_17", "C_G3_14", "C_G3_16_", "C_G3_17" }) or poe2_api.table_contains(task_name, { "回到過去，進入奧札爾", "穿過城鎮中的時空傳送門以移至殘忍難度" }) then
+                local point = get_range_pos("倉庫")
+                local waypoint_point = get_range_pos("傳送點")
+                local waypoint_pos = get_range_pos("崎點")
+                local distance_between = nil
+                if not waypoint_pos and not point then
+                    local a = poe2_api.get_point_distance(point[1], point[2], waypoint_point[1], waypoint_point[2])
+                    local b = poe2_api.point_distance(waypoint_point[1], waypoint_point[2], player_info)
+                    if a and b then
+                        if a < 120 and b < 50 then
+                            poe2_api.find_text({ UI_info = UI_info, text = "崎點", click = 2, min_x = 0 })
+                        else
+                            if poe2_api.table_contains(player_info.current_map_name_utf8, "town") then
+                                local towards_point = poe2_api.move_towards({ player_info.grid_x, player_info.grid_y },
+                                    waypoint_pos, 20)
+                                api_ClickMove(poe2_api.toInt(towards_point[1]), poe2_api.toInt(towards_point[2]),
+                                    poe2_api.toInt(player_info.world_z), 0)
+                                api_Sleep(100)
+                                poe2_api.click_keyboard("space")
+                            end
+                        end
+                        return bret.RUNNING
+                    end
+                elseif not waypoint_pos and point then
+                    local towards_point = poe2_api.move_towards({ player_info.grid_x, player_info.grid_y }, point, 20)
+                    api_ClickMove(poe2_api.toInt(towards_point[1]), poe2_api.toInt(towards_point[2]),
+                        poe2_api.toInt(player_info.world_z), 0)
+                    api_Sleep(100)
+                    poe2_api.click_keyboard("space")
+                    return bret.RUNNING
+                elseif waypoint_pos and not point then
+                    if waypoint_point then
+                        distance_between = poe2_api.get_point_distance(waypoint_point[1], waypoint_point[2],
+                            waypoint_pos[1], waypoint_pos[2])
+                        if not distance_between or (distance_between and distance_between > 100) then
+                            local towards_point = poe2_api.move_towards({ player_info.grid_x, player_info.grid_y },
+                                waypoint_pos, 20)
+                            api_ClickMove(poe2_api.toInt(towards_point[1]), poe2_api.toInt(towards_point[2]),
+                                poe2_api.toInt(player_info.world_z), 0)
+                            api_Sleep(100)
+                            poe2_api.click_keyboard("space")
+                            return bret.RUNNING
+                        end
+                    end
+                end
+            end
+            if poe2_api.table_contains(task_area, { "G3_14", "G3_16", "G3_17", "C_G3_14", "C_G3_16_", "C_G3_17", "G3_12", "C_G3_12" }) and not poe2_api.table_contains(party_pos(team_member_3), { "G3_town", "G3_14", "G3_16", "G3_17", "C_G3_town", "C_G3_14", "C_G3_16_", "C_G3_17", "G3_12", "C_G3_12" }) then
+                if check_pos_dis(team_member_3) == nil then
+                    if team_member_2 == "小號" then
+                        if not poe2_api.find_text({ UI_info = UI_info, text = "你確定要傳送至此玩家的位置？" }) then
+                            local x, y = poe2_api.get_member_name_according(UI_info, team_member_4)
+                            if y ~= 0 then
+                                local rand_x = 14 + math.random(-7, 7)
+                                local rand_y = y + 21 + math.random(-7, 7)
+                                api_ClickScreen(poe2_api.toInt(rand_x), poe2_api.toInt(rand_y), 0)
+                                api_Sleep(500)
+                                api_ClickScreen(poe2_api.toInt(rand_x), poe2_api.toInt(rand_y), 1)
+                            end
+                            return bret.RUNNING
+                        else
+                            api_ClickScreen(916, 467, 0)
+                            api_Sleep(500)
+                            api_ClickScreen(916, 467, 1)
+                            return bret.SUCCESS
+                        end
+                    end
+                    return bret.RUNNING
+                else
+                    return bret.SUCCESS
+                end
+            end
+            if string.find(current_map, "G3_12") and ((interaction_object and string.find(interaction_object, "召瓦尔") and check_pos_dis(team_member_3)) or (check_pos_dis("艾瓦") and check_pos_dis("艾瓦") < 25) or not check_pos_dis("競技場")) then
+                return bret.RUNNING
+            end
+            local count = 3
+            if poe2_api.find_text({ UI_info = UI_info, text = poe2_api.task_area_list_data(party_pos(team_member_3))[1][2] , min_x=0, min_y=0, max_x=195, max_y=590 }) then
+                for  i = 0, count - 1 do
+                    if not poe2_api.find_text({ UI_info = UI_info, text = "你確定要傳送至此玩家的位置？" }) then
+                        if poe2_api.find_text({UI_info=UI_info,text="快行"}) then
+                            poe2_api.click_keyboard("space")
+                            return bret.RUNNING
+                        end
+                        local x, y = poe2_api.get_member_name_according(UI_info, team_member_4)
+                        if y ~= 0 then
+                            local rand_x = 14 + math.random(-7, 7)
+                            local rand_y = y + 21 + math.random(-7, 7)
+                            api_ClickScreen(poe2_api.toInt(rand_x), poe2_api.toInt(rand_y), 0)
+                            api_Sleep(500)
+                            api_ClickScreen(poe2_api.toInt(rand_x), poe2_api.toInt(rand_y), 1)
+                        end
+                        return bret.RUNNING
+                    else
+                        api_ClickScreen(916, 467, 0)
+                        api_Sleep(500)
+                        api_ClickScreen(916, 467, 1)
+                        return bret.SUCCESS
+                    end
+                end
+                return bret.RUNNING
+            end
+
+            if check_pos_dis(team_member_3) and check_pos_dis(team_member_3) > 100 and poe2_api.table_contains(current_map,{"G1_15","G2_3","C_G1_15","C_G2_3"}) then
+                local function next_level()
+                    local entrance = get_range_pos("樓梯")
+                    local checkpoint_pos = get_range_pos("記錄點")
+                    -- 提前返回如果任一位置不存在
+                    if not entrance or not checkpoint_pos then
+                        return false
+                    end
+                    -- 直接返回距离计算结果
+                    local distance = poe2_api.get_point_distance(entrance[1], entrance[2], checkpoint_pos[1], checkpoint_pos[2]) or 0
+                    return distance < 80
+                end
+                if string.find(current_map, "G1_15") then
+                    local current_map_info = env.current_map_info
+                    local function mini_map_obj(name)
+                        poe2_api.dbgp("[Click_Leader_To_Teleport]检测地图上是否存在物体：", name)
+                        for _, item in ipairs(current_map_info) do
+                            if item.name_utf8 == name then
+                                return  item  -- 直接返回第一个匹配项
+                            end
+                        end
+                        return nil -- 无匹配时返回nil
+                    end
+                    if not mini_map_obj("GargoyleInactive") and mini_map_obj("Waypoint") then
+                        return bret.SUCCESS
+                    end
+                end
+                local louti = get_range_pos("樓梯")
+                if check_pos_dis("崛起之王．賈嫚拉") == nil and string.find(current_map,"G2_3") then
+                    return bret.SUCCESS
+                elseif poe2_api.find_text({ UI_info = UI_info, text = "樓梯", min_x = 0}) and poe2_api.find_text({ UI_info = UI_info, text = "記錄點", min_x = 0}) then
+                    return bret.SUCCESS
+                elseif not next_level() and louti then
+                    
+                end
+
+            end
+        end
+    },
+
 
     -- 清理遮挡页面
     Game_Block = {
@@ -4429,8 +5038,8 @@ local custom_nodes = {
 
                 local distance = poe2_api.point_distance(target_obj.grid_x, target_obj.grid_y, player_info)
                 poe2_api.dbgp("交互对象: " ..
-                target_obj.name_utf8 .. " | 位置: " .. target_obj.grid_x .. "," .. target_obj.grid_y .. " | 距离: " ..
-                distance)
+                    target_obj.name_utf8 .. " | 位置: " .. target_obj.grid_x .. "," .. target_obj.grid_y .. " | 距离: " ..
+                    distance)
 
                 if need_move(target_obj, 15) then
                     poe2_api.dbgp("移动交互对象")
@@ -4447,7 +5056,7 @@ local custom_nodes = {
                     local m_list = { "黃金製圖儀", "地圖裝置" }
                     api_Sleep(800)
                     local maps = check_in_range(
-                    'Metadata/Terrain/Missions/Hideouts/Objects/MapDeviceVariants/ZigguratMapDevice')
+                        'Metadata/Terrain/Missions/Hideouts/Objects/MapDeviceVariants/ZigguratMapDevice')
                     if poe2_api.find_text({ UI_info = env.UI_info, text = '地圖裝置', click = 2, refresh = true }) then
                         api_Sleep(100)
                         return bret.RUNNING
@@ -4485,8 +5094,8 @@ local custom_nodes = {
                 api_Sleep(100)
             else
                 poe2_api.dbgp1("交互对象: " ..
-                interactive_object.name_utf8 .. " | 位置: " .. interactive_object.grid_x .. "," ..
-                interactive_object.grid_y)
+                    interactive_object.name_utf8 .. " | 位置: " .. interactive_object.grid_x .. "," ..
+                    interactive_object.grid_y)
                 poe2_api.dbgp("xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx")
                 local a = poe2_api.point_distance(interactive_object.grid_x, interactive_object.grid_x, env.player_info)
                 poe2_api.dbgp("a:", a)
@@ -5053,7 +5662,7 @@ local env_params = {
     monster_info = nil,                -- 怪物信息
     range_info = nil,                  -- 周围对象信息信息
     bag_info = nil,                    -- 背包信息
-    range_item_info = nil,             -- 周围装备信息
+    range_items = nil,                 -- 周围装备信息
     shortcut_skill_info = nil,         -- 快捷栏技能信息
     allskill_info = nil,               -- 全部技能信息
     selectableskill_info = nil,        -- 可选技能技能控件信息

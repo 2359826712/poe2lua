@@ -1,0 +1,8 @@
+{
+  "diagnostics": {
+    "disable": [
+      "undefined-global",
+      "unnecessary-if"
+    ]
+  }
+}
