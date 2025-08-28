@@ -179,7 +179,7 @@
               },
               {
                 "id": 36,
-                "name": "The_interactive_object_exist"
+                "name": "The_Interactive_Npc_Exist"
               },
               {
                 "id": 37,
@@ -443,64 +443,70 @@
           },
           {
             "id": 85,
-            "name": "Selector",
-            "desc": "传送",
+            "name": "Sequence",
             "children": [
               {
                 "id": 86,
-                "name": "Is_Teleport"
+                "name": "Is_Team_leader"
               },
               {
                 "id": 87,
-                "name": "Sequence",
+                "name": "Selector",
+                "desc": "传送",
                 "children": [
                   {
                     "id": 88,
-                    "name": "Is_team"
+                    "name": "Is_Teleport"
                   },
                   {
                     "id": 89,
-                    "name": "Is_Open_Task_Wayoint"
-                  },
-                  {
-                    "id": 90,
-                    "name": "Selector",
+                    "name": "Sequence",
                     "children": [
                       {
+                        "id": 90,
+                        "name": "Is_Open_Task_Wayoint"
+                      },
+                      {
                         "id": 91,
-                        "name": "Sequence",
+                        "name": "Selector",
                         "children": [
                           {
                             "id": 92,
-                            "name": "Teleport_Is_Near"
-                          },
-                          {
-                            "id": 93,
                             "name": "Sequence",
-                            "desc": "Path_Move_Story",
                             "children": [
                               {
+                                "id": 93,
+                                "name": "Teleport_Is_Near"
+                              },
+                              {
                                 "id": 94,
-                                "name": "Is_Arrive",
-                                "desc": "是否在终点"
-                              },
-                              {
-                                "id": 95,
-                                "name": "GET_Path",
-                                "desc": "计算路径"
-                              },
-                              {
-                                "id": 96,
-                                "name": "Move_To_Target_Point",
-                                "desc": "移动到指定地点"
+                                "name": "Sequence",
+                                "desc": "Path_Move_Story",
+                                "children": [
+                                  {
+                                    "id": 95,
+                                    "name": "Is_Arrive",
+                                    "desc": "是否在终点"
+                                  },
+                                  {
+                                    "id": 96,
+                                    "name": "GET_Path",
+                                    "desc": "计算路径"
+                                  },
+                                  {
+                                    "id": 97,
+                                    "name": "Move_To_Target_Point",
+                                    "desc": "移动到指定地点"
+                                  }
+                                ]
                               }
                             ]
+                          },
+                          {
+                            "id": 98,
+                            "name": "Click_Map_To_Area_Teleport"
                           }
                         ]
-                      },
-                      {
-                        "id": 97,
-                        "name": "Click_Map_To_Area_Teleport"
                       }
                     ]
                   }
@@ -509,22 +515,22 @@
             ]
           },
           {
-            "id": 98,
+            "id": 99,
             "name": "Sequence",
             "desc": "Path_Move_Story",
             "children": [
               {
-                "id": 99,
+                "id": 100,
                 "name": "Is_Arrive",
                 "desc": "是否在终点"
               },
               {
-                "id": 100,
+                "id": 101,
                 "name": "GET_Path",
                 "desc": "计算路径"
               },
               {
-                "id": 101,
+                "id": 102,
                 "name": "Move_To_Target_Point",
                 "desc": "移动到指定地点"
               }
@@ -533,87 +539,80 @@
         ]
       },
       {
-        "id": 102,
+        "id": 103,
         "name": "Selector",
-        "desc": "is_check_skill",
+        "desc": "SKILL",
         "children": [
           {
-            "id": 103,
+            "id": 104,
             "name": "Not_In_New_Area_Skill",
             "desc": "是否在新手剧情(skill)"
           },
           {
-            "id": 104,
-            "name": "Selector",
-            "desc": "SKILL",
+            "id": 105,
+            "name": "Sequence",
+            "desc": "adjust",
             "children": [
               {
-                "id": 105,
-                "name": "Sequence",
-                "desc": "adjust",
-                "children": [
-                  {
-                    "id": 106,
-                    "name": "Is_fast_Skill",
-                    "desc": "快捷栏是否有技能"
-                  },
-                  {
-                    "id": 107,
-                    "name": "Adjust_Skills",
-                    "desc": "调整技能"
-                  }
-                ]
+                "id": 106,
+                "name": "Is_fast_Skill",
+                "desc": "快捷栏是否有技能"
               },
               {
-                "id": 108,
-                "name": "Sequence",
-                "desc": "equip",
-                "children": [
-                  {
-                    "id": 109,
-                    "name": "Is_Skill_In_Skill_List",
-                    "desc": "技能列表是否有技能"
-                  },
-                  {
-                    "id": 110,
-                    "name": "Adjust_Skills",
-                    "desc": "调整技能"
-                  }
-                ]
+                "id": 107,
+                "name": "Adjust_Skills",
+                "desc": "调整技能"
+              }
+            ]
+          },
+          {
+            "id": 108,
+            "name": "Sequence",
+            "desc": "equip",
+            "children": [
+              {
+                "id": 109,
+                "name": "Is_Skill_In_Skill_List",
+                "desc": "技能列表是否有技能"
               },
               {
-                "id": 111,
-                "name": "Sequence",
-                "desc": "put",
-                "children": [
-                  {
-                    "id": 112,
-                    "name": "Is_Bag_Have_Skill_Stone",
-                    "desc": "背包有没有技能宝石"
-                  },
-                  {
-                    "id": 113,
-                    "name": "Put_Skill_In_Skill_List",
-                    "desc": "放置技能到列表"
-                  }
-                ]
+                "id": 110,
+                "name": "Adjust_Skills",
+                "desc": "调整技能"
+              }
+            ]
+          },
+          {
+            "id": 111,
+            "name": "Sequence",
+            "desc": "put",
+            "children": [
+              {
+                "id": 112,
+                "name": "Is_Bag_Have_Skill_Stone",
+                "desc": "背包有没有技能宝石"
               },
               {
-                "id": 114,
-                "name": "Sequence",
-                "desc": "learn",
-                "children": [
-                  {
-                    "id": 115,
-                    "name": "Is_Have_Original_Skill_Stone",
-                    "desc": "有没有技能原石"
-                  },
-                  {
-                    "id": 116,
-                    "name": "Learn_Skill",
-                    "desc": "学习技能"
-                  }
-                ]
+                "id": 113,
+                "name": "Put_Skill_In_Skill_List",
+                "desc": "放置技能到列表"
+              }
+            ]
+          },
+          {
+            "id": 114,
+            "name": "Sequence",
+            "desc": "learn",
+            "children": [
+              {
+                "id": 115,
+                "name": "Is_Have_Original_Skill_Stone",
+                "desc": "有没有技能原石"
+              },
+              {
+                "id": 116,
+                "name": "Learn_Skill",
+                "desc": "学习技能"
               }
             ]
           }
@@ -646,7 +645,7 @@
                     "children": [
                       {
                         "id": 122,
-                        "name": "Not_In_New_Area",
+                        "name": "interactive_object_New_Area",
                         "desc": "是否在新手剧情"
                       },
                       {
@@ -995,7 +994,7 @@
                     "children": [
                       {
                         "id": 184,
-                        "name": "Not_In_New_Area",
+                        "name": "interactive_object_New_Area",
                         "desc": "是否在新手剧情"
                       },
                       {

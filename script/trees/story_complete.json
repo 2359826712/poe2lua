@@ -174,7 +174,7 @@
               },
               {
                 "id": 35,
-                "name": "The_interactive_object_exist"
+                "name": "The_Interactive_Npc_Exist"
               },
               {
                 "id": 36,
@@ -380,6 +380,152 @@
             "id": 73,
             "name": "Pick__Up",
             "desc": "拾取"
+          }
+        ]
+      },
+      {
+        "id": 74,
+        "name": "Selector",
+        "desc": "teleport_change",
+        "children": [
+          {
+            "id": 75,
+            "name": "Sequence",
+            "desc": "click_two_teleport",
+            "children": [
+              {
+                "id": 76,
+                "name": "Game_Block",
+                "desc": "清除遮挡"
+              },
+              {
+                "id": 77,
+                "name": "Need_Twice_Teleport",
+                "desc": "需要两次传送"
+              },
+              {
+                "id": 78,
+                "name": "Sequence",
+                "desc": "Path_Move_Story",
+                "children": [
+                  {
+                    "id": 79,
+                    "name": "Is_Arrive",
+                    "desc": "是否在终点"
+                  },
+                  {
+                    "id": 80,
+                    "name": "GET_Path",
+                    "desc": "计算路径"
+                  },
+                  {
+                    "id": 81,
+                    "name": "Move_To_Target_Point",
+                    "desc": "移动到指定地点"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "id": 82,
+            "name": "Click_Leader_To_Teleport",
+            "desc": "点击大号传送"
+          },
+          {
+            "id": 83,
+            "name": "Sequence",
+            "children": [
+              {
+                "id": 84,
+                "name": "Is_Team_leader"
+              },
+              {
+                "id": 85,
+                "name": "Selector",
+                "desc": "传送",
+                "children": [
+                  {
+                    "id": 86,
+                    "name": "Is_Teleport"
+                  },
+                  {
+                    "id": 87,
+                    "name": "Sequence",
+                    "children": [
+                      {
+                        "id": 88,
+                        "name": "Is_Open_Task_Wayoint"
+                      },
+                      {
+                        "id": 89,
+                        "name": "Selector",
+                        "children": [
+                          {
+                            "id": 90,
+                            "name": "Sequence",
+                            "children": [
+                              {
+                                "id": 91,
+                                "name": "Teleport_Is_Near"
+                              },
+                              {
+                                "id": 92,
+                                "name": "Sequence",
+                                "desc": "Path_Move_Story",
+                                "children": [
+                                  {
+                                    "id": 93,
+                                    "name": "Is_Arrive",
+                                    "desc": "是否在终点"
+                                  },
+                                  {
+                                    "id": 94,
+                                    "name": "GET_Path",
+                                    "desc": "计算路径"
+                                  },
+                                  {
+                                    "id": 95,
+                                    "name": "Move_To_Target_Point",
+                                    "desc": "移动到指定地点"
+                                  }
+                                ]
+                              }
+                            ]
+                          },
+                          {
+                            "id": 96,
+                            "name": "Click_Map_To_Area_Teleport"
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "id": 97,
+            "name": "Sequence",
+            "desc": "Path_Move_Story",
+            "children": [
+              {
+                "id": 98,
+                "name": "Is_Arrive",
+                "desc": "是否在终点"
+              },
+              {
+                "id": 99,
+                "name": "GET_Path",
+                "desc": "计算路径"
+              },
+              {
+                "id": 100,
+                "name": "Move_To_Target_Point",
+                "desc": "移动到指定地点"
+              }
+            ]
           }
         ]
       }
