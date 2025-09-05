@@ -528,6 +528,124 @@
             ]
           }
         ]
+      },
+      {
+        "id": 101,
+        "name": "Selector",
+        "desc": "技能",
+        "children": [
+          {
+            "id": 102,
+            "name": "Not_In_New_Area_Skill",
+            "desc": "是否不在新手区"
+          },
+          {
+            "id": 103,
+            "name": "Sequence",
+            "desc": "adjust",
+            "children": [
+              {
+                "id": 104,
+                "name": "Is_fast_Skill",
+                "desc": "快捷栏是否有技能"
+              },
+              {
+                "id": 105,
+                "name": "Adjust_Skills",
+                "desc": "调整技能"
+              }
+            ]
+          },
+          {
+            "id": 106,
+            "name": "Sequence",
+            "desc": "equip",
+            "children": [
+              {
+                "id": 107,
+                "name": "Is_Skill_In_Skill_List",
+                "desc": "技能列表是否有技能"
+              },
+              {
+                "id": 108,
+                "name": "Adjust_Skills",
+                "desc": "调整技能"
+              }
+            ]
+          },
+          {
+            "id": 109,
+            "name": "Sequence",
+            "desc": "put",
+            "children": [
+              {
+                "id": 110,
+                "name": "Is_Bag_Have_Skill_Stone",
+                "desc": "背包有没有技能宝石"
+              },
+              {
+                "id": 111,
+                "name": "Put_Skill_In_Skill_List",
+                "desc": "放置技能到列表"
+              }
+            ]
+          },
+          {
+            "id": 112,
+            "name": "Sequence",
+            "desc": "learn",
+            "children": [
+              {
+                "id": 113,
+                "name": "Is_Have_Original_Skill_Stone",
+                "desc": "有没有技能原石"
+              },
+              {
+                "id": 114,
+                "name": "Learn_Skill",
+                "desc": "学习技能"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": 115,
+        "name": "Selector",
+        "desc": "attack_or_interactive",
+        "children": [
+          {
+            "id": 116,
+            "name": "Sequence",
+            "desc": "in_new_area",
+            "children": [
+              {
+                "id": 117,
+                "name": "Is_In_New_Area",
+                "desc": "是否在新手区域"
+              }
+            ]
+          },
+          {
+            "id": 118,
+            "name": "Sequence",
+            "desc": "not_in_new_area",
+            "children": [
+              {
+                "id": 119,
+                "name": "unknow"
+              },
+              {
+                "id": 120,
+                "name": "unknow"
+              },
+              {
+                "id": 121,
+                "name": "unknow"
+              }
+            ]
+          }
+        ]
       }
     ]
   },

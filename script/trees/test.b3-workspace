@@ -5,6 +5,14 @@
       "desc": ""
     },
     {
+      "path": "follows.json",
+      "desc": ""
+    },
+    {
+      "path": "shouting.json",
+      "desc": ""
+    },
+    {
       "path": "story_complete.json",
       "desc": ""
     },
