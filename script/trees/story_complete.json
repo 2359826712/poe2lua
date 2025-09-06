@@ -633,14 +633,131 @@
             "children": [
               {
                 "id": 119,
-                "name": "unknow"
+                "name": "Selector",
+                "children": [
+                  {
+                    "id": 120,
+                    "name": "Check_Is_Need_Attack",
+                    "desc": "检查是否需要攻击"
+                  },
+                  {
+                    "id": 121,
+                    "name": "Sequence",
+                    "desc": "Attack",
+                    "children": [
+                      {
+                        "id": 122,
+                        "name": "Game_Block",
+                        "desc": "清除遮挡"
+                      },
+                      {
+                        "id": 123,
+                        "name": "DodgeAction",
+                        "desc": "躲避技能"
+                      },
+                      {
+                        "id": 124,
+                        "name": "Selector",
+                        "desc": "attack_move",
+                        "children": [
+                          {
+                            "id": 125,
+                            "name": "ReleaseSkillAction",
+                            "desc": "释放技能"
+                          },
+                          {
+                            "id": 126,
+                            "name": "Sequence",
+                            "desc": "Path_Move",
+                            "children": [
+                              {
+                                "id": 127,
+                                "name": "Is_Arrive",
+                                "desc": "是否到点"
+                              },
+                              {
+                                "id": 128,
+                                "name": "GET_Path",
+                                "desc": "获取路径"
+                              },
+                              {
+                                "id": 129,
+                                "name": "Move_To_Target_Point",
+                                "desc": "移动至目标点"
+                              }
+                            ]
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
               },
               {
-                "id": 120,
-                "name": "unknow"
+                "id": 130,
+                "name": "Selector",
+                "children": [
+                  {
+                    "id": 131,
+                    "name": "Is_Have_Interaction_Object",
+                    "desc": "是否要交互"
+                  },
+                  {
+                    "id": 132,
+                    "name": "Sequence",
+                    "children": [
+                      {
+                        "id": 133,
+                        "name": "Game_Block",
+                        "desc": "清除遮挡"
+                      },
+                      {
+                        "id": 134,
+                        "name": "The_Interactive_Object_Exist"
+                      },
+                      {
+                        "id": 135,
+                        "name": "Selector",
+                        "children": [
+                          {
+                            "id": 136,
+                            "name": "Is_Path_Move",
+                            "desc": "是否需要移动"
+                          },
+                          {
+                            "id": 137,
+                            "name": "Sequence",
+                            "desc": "Path_Move",
+                            "children": [
+                              {
+                                "id": 138,
+                                "name": "Is_Arrive",
+                                "desc": "是否到点"
+                              },
+                              {
+                                "id": 139,
+                                "name": "GET_Path",
+                                "desc": "获取路径"
+                              },
+                              {
+                                "id": 140,
+                                "name": "Move_To_Target_Point",
+                                "desc": "移动至目标点"
+                              }
+                            ]
+                          }
+                        ]
+                      },
+                      {
+                        "id": 141,
+                        "name": "Interactive"
+                      }
+                    ]
+                  }
+                ]
               },
               {
-                "id": 121,
+                "id": 142,
                 "name": "unknow"
               }
             ]

@@ -3,7 +3,6 @@ local json = require 'json'
 local my_game_info = require 'script/my_game_info'
 local BD_data = require 'script/BD'
 
-
 local CELL_WIDTH = 43.81  -- 每个格子宽度
 local CELL_HEIGHT = 43.81  -- 每个格子高度
 local START_X = 1059   -- 起始X坐标
@@ -67,7 +66,10 @@ _M.find_text = function(params)
         threshold = 0.8,
         position = 0,
         sorted = false,
-        UI_info = nil
+        UI_info = nil,
+        times = 100,
+        not_name_utf8 = false,
+        print_log = false
     }
     
     -- 合并传入参数和默认值
@@ -78,7 +80,9 @@ _M.find_text = function(params)
         error("find_text: text参数必须是字符串或表格")
         return false
     end
-    
+
+    -- _M.dbgp("defaults.text -->", defaults.text)
+
     -- 如果需要刷新或没有UI信息，则更新UI信息
     if defaults.refresh or not defaults.UI_info then
         _M.dbgp("defaults.refresh\n")
@@ -120,12 +124,12 @@ _M.find_text = function(params)
     local function perform_click(x, y, click_type, add_x, add_y)
         local final_x = math.floor(x + add_x)
         local final_y = math.floor(y + add_y)
-        
+        _M.dbgp("文本坐标",final_x, final_y)
         if click_type == 1 then
             api_ClickScreen(final_x, final_y, 0)
         elseif click_type == 2 then
             api_ClickScreen(final_x, final_y, 0)
-            api_Sleep(100)
+            api_Sleep(times)
             api_ClickScreen(final_x, final_y, 1)
             api_Sleep(100)
         elseif click_type == 3 then
@@ -138,7 +142,7 @@ _M.find_text = function(params)
         elseif click_type == 5 then
             _M.ctrl_right_click(final_x, final_y)
         elseif click_type == 6 then
-            api_Sleep(100)
+            api_Sleep(times)
             api_ClickScreen(final_x, final_y, 2)
             api_Sleep(100)
         end
@@ -190,13 +194,31 @@ _M.find_text = function(params)
 
     -- 处理非排序模式
     for _, actor in ipairs(defaults.UI_info) do
+        if actor.text_utf8 == "" or not actor.text_utf8 then
+            goto continue
+        end
+        if defaults.not_name_utf8 then
+            if actor.name_utf8 == "" or not actor.name_utf8 then
+                goto continue
+            end
+        end
+        -- if defaults.print_log then
+        --     _M.dbgp("------------------")
+        --     _M.dbgp(actor.text_utf8)
+        --     _M.dbgp(actor.left, actor.right)
+        --     _M.dbgp(actor.top, actor.bottom)
+        -- end
         if defaults.min_x <= actor.left and actor.left <= defaults.max_x and
            defaults.min_y <= actor.top and actor.top <= defaults.max_y then
             
             if actor.text_utf8 and is_text_match(actor.text_utf8, defaults.text, defaults.match) then
                 local center_x = (actor.left + actor.right) / 2
                 local center_y = (actor.top + actor.bottom) / 2
-                
+                -- _M.dbgp("actor.text_utf8 -- >",actor.text_utf8)
+                -- _M.dbgp("actor.left -- >",actor.left)
+                -- _M.dbgp("actor.right -- >",actor.right)
+                -- _M.dbgp("actor.top -- >",actor.top)
+                -- _M.dbgp("actor.bottom -- >",actor.bottom)
                 if defaults.click > 0 then
                     perform_click(center_x, center_y, defaults.click, defaults.add_x, defaults.add_y)
                 end
@@ -214,6 +236,7 @@ _M.find_text = function(params)
                 return true
             end
         end
+        ::continue::
     end
 
     return false
@@ -483,7 +506,11 @@ _M.is_have_mos = function(params)
     not_sight = params.not_sight or false
     stuck_monsters = params.stuck_monsters or nil
     not_attack_mos = params.not_attack_mos or nil
-    is_active = params.is_active == nil and true or is_active
+    is_active = params.is_active
+
+    if is_active == nil then
+        is_active = true
+    end
 
     -- 快速失败检查
     if not params.range_info then 
@@ -501,15 +528,15 @@ _M.is_have_mos = function(params)
         monster.life <= 0 or                  -- 生命值检查
         monster.name_utf8 == "" or              -- 名称检查
         _M.table_contains(my_game_info.not_attact_mons_CN_name,monster.name_utf8) or
-        _M.table_contains(my_game_info.not_attact_mons_path_name,monster.name_utf8)then  -- 路径名检查
+        _M.table_contains(my_game_info.not_attact_mons_path_name,monster.path_name_utf8)then  -- 路径名检查
             goto continue
         end
 
-        if string.find(monster.path_name_utf8,"Metadata/Monsters/TormentedSpirits") then
-            goto continue
-        end
+        -- if string.find(monster.path_name_utf8,"Metadata/Monsters/TormentedSpirits") then
+        --     goto continue
+        -- end
 
-        if params.is_active and not monster.isActive then
+        if is_active and not monster.isActive then
             goto continue
         end
 
@@ -527,7 +554,7 @@ _M.is_have_mos = function(params)
         end
 
         -- 检查卡住状态
-        if params.stuck_monsters and _M.table_contains(params.stuck_monsters,monster.id) then
+        if params.stuck_monsters and next(params.stuck_monsters) and _M.table_contains(params.stuck_monsters,monster.id) then
             goto continue
         end
 
@@ -535,11 +562,12 @@ _M.is_have_mos = function(params)
         local distance = _M.point_distance(monster.grid_x, monster.grid_y, player_info)
         -- _M.dbgp("计算距离：",distance,"==============================",dis)
         -- _M.print_log("计算距离：",distance)
+        -- _M.printTable(monster)
         if distance and distance <= dis then
             -- 检查视野
             if params.not_sight then
                 return true
-            elseif not params.not_sight and monster.hasLineOfSight then
+            elseif not params.not_sight and monster.hasLineOfSight and api_HasObstacleBetween(monster.grid_x, monster.grid_y) then
                 return true
             end
             
@@ -834,17 +862,17 @@ _M.time_p = function(...)
     local args = {...}
     
     -- 检查是否是耗时日志格式：倒数第二个参数包含"耗时 -->"且最后一个参数是数字
-    if #args >= 2 and 
-       type(args[#args]) == "number" and 
-       tostring(args[#args-1]):find("耗时 %-%->") then
+    -- if #args >= 2 and 
+    --    type(args[#args]) == "number" and 
+    --    tostring(args[#args-1]):find("耗时 %-%->") then
         
-        local elapsed = args[#args]  -- 获取耗时值
+    --     local elapsed = args[#args]  -- 获取耗时值
         
-        -- 只有耗时超过阈值时才处理
-        if elapsed < threshold then
-            return  -- 不满足阈值条件，直接返回
-        end
-    end
+    --     -- 只有耗时超过阈值时才处理
+    --     if elapsed < threshold then
+    --         return  -- 不满足阈值条件，直接返回
+    --     end
+    -- end
     
     -- 以下是原有的日志处理逻辑
     local parts = {}
@@ -1502,45 +1530,87 @@ _M.select_best_map_key = function(params)
         return nil
     end
 
-    -- UTF-8安全的字符串处理函数
+    -- UTF-8安全清理函数（最终版）
     local function clean_utf8(s)
-        if not s then
-            -- _M.dbgp("UTF-8警告: 尝试清理空字符串")
+        if not s or s == "" then
+            return ""
+        end
+    
+        local result = {}
+        local i = 1
+        local len = #s
+        
+        while i <= len do
+            local byte = string.byte(s, i)
+            
+            -- ASCII字符（0-127）
+            if byte < 128 then
+                if not string.match(string.char(byte), "[%s　]") then
+                    table.insert(result, string.char(byte))
+                end
+                i = i + 1
+            -- UTF-8多字节字符
+            else
+                local char
+                if byte >= 0xC0 and byte < 0xE0 then  -- 2字节字符
+                    char = string.sub(s, i, i+1)
+                    i = i + 2
+                elseif byte >= 0xE0 and byte < 0xF0 then  -- 3字节字符（包括中文）
+                    char = string.sub(s, i, i+2)
+                    i = i + 3
+                elseif byte >= 0xF0 then  -- 4字节字符
+                    char = string.sub(s, i, i+3)
+                    i = i + 4
+                else  -- 非法UTF-8起始字节
+                    i = i + 1  -- 跳过无效字节
+                    goto continue
+                end
+                
+                -- 验证字符有效性
+                if utf8.len(char) == 1 then
+                    table.insert(result, char)
+                end
+            end
+            ::continue::
+        end
+        
+        return table.concat(result)
+    end
+
+    -- UTF-8安全文本提取（最终版）
+    local function extract_utf8_text(s)
+        if not s or s == "" then
             return ""
         end
         
-        -- 使用更安全的方式去除空白字符（包括全角空格）
-        -- 首先将字符串转换为UTF-8字符表
-        local utf8chars = {}
-        for _, c in utf8.codes(s) do
-            table.insert(utf8chars, utf8.char(c))
-        end
-        
-        -- 过滤掉空白字符
-        local cleaned_chars = {}
-        for _, char in ipairs(utf8chars) do
-            if not (char:match("[%s　]")) then  -- 匹配半角和全角空格
-                table.insert(cleaned_chars, char)
+        local result = {}
+        local i = 1
+        while i <= #s do
+            local c = string.sub(s, i, i)
+            
+            -- 处理通配符 {数字}
+            if c == "{" then
+                local j = i
+                while j <= #s and string.sub(s, j, j) ~= "}" do
+                    j = j + 1
+                end
+                if j <= #s then
+                    i = j + 1  -- 跳过整个{}块
+                else
+                    i = i + 1
+                end
+            -- 过滤特殊符号但保护多字节字符
+            elseif c:match("[+%-%%#%$%^%*%(%)]") and #c == 1 then
+                i = i + 1
+            else
+                -- 安全获取完整UTF-8字符
+                local char = utf8.char(utf8.codepoint(s, i))
+                table.insert(result, char)
+                i = i + #char  -- 正确跳过多字节字符
             end
         end
         
-        local cleaned = table.concat(cleaned_chars)
-        -- _M.dbgp(string.format("UTF-8清理: '%s' -> '%s'", s, cleaned))
-        return cleaned
-    end
-
-    -- UTF-8安全的文本提取
-    local function extract_utf8_text(s)
-        if not s then
-            -- _M.dbgp("UTF-8警告: 尝试从空字符串提取文本")
-            return ""
-        end
-        -- 去除通配符
-        s = string.gsub(s, "{%d+(:[^}]*)?}", "")
-        -- 去除特定符号但保留中文字符
-        s = string.gsub(s, "[+%-%%#%$%^%*%(%)]", "")
-        -- _M.dbgp(string.format("UTF-8提取纯文本: '%s' -> '%s'", s, s))
-        return s
+        return table.concat(result)
     end
 
     
@@ -1565,7 +1635,17 @@ _M.select_best_map_key = function(params)
         local processed_not_use_map = {}
         for _, excl in ipairs(not_use_map or {}) do
             if excl then
-                local processed = string.gsub(excl, "[%d%%%s]", "")
+                -- 1. 移除RGB标签
+                local processed = string.gsub(excl, "<rgb%(255,0,0%)>", "")
+                
+                -- 2. UTF-8安全清理
+                processed = clean_utf8(processed)
+                
+                -- 3. UTF-8文本提取
+                processed = extract_utf8_text(processed)
+                
+                processed = string.gsub(processed, "[%d%%%s]", "")
+
                 table.insert(processed_not_use_map, processed)
                 -- _M.dbgp(string.format(
                 --                  "UTF-8处理排除词条: '%s' -> '%s'", excl,
@@ -1579,10 +1659,19 @@ _M.select_best_map_key = function(params)
             --                            #suffixes, suffix_name))
 
             -- UTF-8安全清理
-            local cleaned_suffix = string.gsub(suffix_name, "<rgb%(255,0,0%)>",
-                                               "")
+            -- _M.dbgp("原始词缀: "..suffix_name)
+    
+            -- 1. 移除RGB标签
+            local cleaned_suffix = string.gsub(suffix_name, "<rgb%(255,0,0%)>", "")
+            -- _M.dbgp("移除RGB后: "..cleaned_suffix)
+            
+            -- 2. UTF-8安全清理
             cleaned_suffix = clean_utf8(cleaned_suffix)
+            -- _M.dbgp("clean_utf8后: "..cleaned_suffix)
+            
+            -- 3. UTF-8文本提取
             cleaned_suffix = extract_utf8_text(cleaned_suffix)
+            -- _M.dbgp("extract_utf8_text后: "..cleaned_suffix)
 
             if cleaned_suffix == "" then
                 -- _M.dbgp("UTF-8词条为空，标记为无效")
@@ -1608,7 +1697,7 @@ _M.select_best_map_key = function(params)
 
             -- UTF-8安全的疯癫词条检查
             if string.find(processed_suffix, "譫妄", 1, true) then
-                -- _M.dbgp("发现UTF-8疯癫词条")
+                -- _M.dbgp("发现UTF-8譫妄词条")
                 table.insert(categories['譫妄'], cleaned_suffix)
                 goto continue
             end
@@ -1689,11 +1778,11 @@ _M.select_best_map_key = function(params)
             ["譫妄"] = 10.0
         }
 
-        -- 处理疯癫词条
+        -- 处理譫妄词条
         for _, suffix in ipairs(categories['譫妄']) do
-            -- _M.dbgp(string.format("UTF-8疯癫词条: %s, 权重=5.0",
+            -- _M.dbgp(string.format("UTF-8譫妄词条: %s, 权重=5.0",
             --                            suffix))
-            score = score + 50 -- 疯癫词条固定加分
+            score = score + 50 -- 譫妄词条固定加分
         end
 
         -- 处理其他词条
@@ -1712,7 +1801,7 @@ _M.select_best_map_key = function(params)
             end
             if not matched then
                 -- _M.dbgp(string.format(
-                --                  "UTF-8未匹配关键词的词条: %s", suffix))
+                                --  "UTF-8未匹配关键词的词条: %s", suffix))
             end
         end
 
@@ -1764,7 +1853,7 @@ _M.select_best_map_key = function(params)
         end
     end
 
-    -- _M.dbgp(string.format("开始处理 %d 个背包物品...", #inventory))
+    _M.dbgp(string.format("开始处理 %d 个物品...", #inventory))
     for i, item in ipairs(inventory) do
         -- _M.dbgp(string.format("\n处理物品 %d/%d: %s", i, #inventory,
         --                            item.baseType_utf8 or "未知"))
@@ -1850,10 +1939,10 @@ _M.select_best_map_key = function(params)
                 -- 排除词缀检查
                 if #not_use_map > 0 then
                     if _M.match_item_suffixes(suffixes, not_use_map, true) then
-                        -- _M.dbgp("匹配到排除词缀")
+                        _M.dbgp("匹配到排除词缀")
                         if trashest then
                             best_key = item
-                            -- _M.dbgp("trashest模式，选择此钥匙")
+                            _M.dbgp("trashest模式，选择此钥匙")
                             break
                         end
                         goto continue
@@ -1863,7 +1952,7 @@ _M.select_best_map_key = function(params)
                 -- 优先词缀检查
                 if #priority_map > 0 then
                     if _M.match_item_suffixes(suffixes, priority_map, true) then
-                        -- _M.dbgp("匹配到优先词缀，直接选择")
+                        _M.dbgp("匹配到优先词缀，直接选择")
                         best_key = item
                         break
                     end
@@ -1925,7 +2014,7 @@ _M.select_best_map_key = function(params)
 
         -- 记录最优
         if index == 0 then
-            if total_score > max_score then
+            if total_score > max_score and total_score > 0 then
                 max_score = total_score
                 best_key = item
                 -- _M.dbgp("新的最高分钥匙")
@@ -1943,10 +2032,10 @@ _M.select_best_map_key = function(params)
     end
 
     if best_key then
-        -- _M.dbgp("\n===== UTF-8选择结果 =====")
+        _M.dbgp("\n===== UTF-8选择结果 =====")
         
         -- 安全访问所有字段（带默认值）
-        -- _M.dbgp("选择的钥匙:", best_key.baseType_utf8 or "未知")
+        _M.dbgp("选择的钥匙:", best_key.baseType_utf8 or "未知")
         
         -- 提取等级时防止 nil
         local key_level = 0
@@ -2119,38 +2208,37 @@ end
 
 -- 词条过滤
 _M.filter_item = function(item, suffixes, config_list)
-    _M.dbgp("\n===== 开始物品过滤 =====")
-    _M.dbgp(string.format("物品名称: %s",
-                               item.baseType_utf8 or "未知"))
-    _M.dbgp(string.format("物品稀有度: %d", item.color or 0))
-    _M.dbgp(string.format("物品等级: %d", item.DemandLevel or 0))
+    -- _M.dbgp("\n===== 开始物品过滤 =====")
+    -- _M.dbgp(string.format("物品名称: %s",
+    --                            item.baseType_utf8 or "未知"))
+    -- _M.dbgp(string.format("物品稀有度: %d", item.color or 0))
+    -- _M.dbgp(string.format("物品等级: %d", item.DemandLevel or 0))
 
     -- 遍历所有配置规则
     for i, config in ipairs(config_list) do
-        _M.dbgp(
-            string.format("\n检查配置规则 %d/%d", i, #config_list))
+        -- _M.dbgp(
+        --     string.format("\n检查配置规则 %d/%d", i, #config_list))
 
         -- 1. 检查名称 (支持"全部物品"通配)
         if type(config["類型"]) == "table" then
             if not _M.table_contains(my_game_info.item_type_china,
                                      config["類型"][1]) then
-                _M.dbgp("→ 跳过：非装备物品类型")
+                -- _M.dbgp("→ 跳过：非装备物品类型")
                 goto continue -- 非装备物品则跳过此配置
             end
         elseif not _M.table_contains(my_game_info.item_type_china,
                                      config["類型"]) then
-            _M.dbgp("→ 跳过：非装备物品类型")
+            -- _M.dbgp("→ 跳过：非装备物品类型")
             goto continue -- 非装备物品则跳过此配置
         end
 
-        if config["基礎類型名"] ~= "全部物品" and
-            not _M.table_contains(config["基礎類型名"], item.baseType_utf8) then
+        if config["基礎類型名"] ~= "全部物品" and config["基礎類型名"] ~= item.baseType_utf8 then
             -- _M.dbgp(string.format(
             --                  "→ 跳过：基础类型不匹配（需要：%s）",
             --                  _M.table_contains(config["基礎類型名"], ",")))
             goto continue -- 名称不匹配则跳过此配置
         else
-            _M.dbgp("√ 基础类型匹配通过")
+            -- _M.dbgp("√ 基础类型匹配通过")
         end
 
         -- 2. 检查稀有度
@@ -2161,14 +2249,14 @@ _M.filter_item = function(item, suffixes, config_list)
             [3] = config["暗金"] or false
         }
         if not rarity_checks[item.color or 0] then
-            _M.dbgp(string.format(
-                             "→ 跳过：稀有度不匹配（当前：%d）",
-                             item.color or 0))
+            -- _M.dbgp(string.format(
+            --                  "→ 跳过：稀有度不匹配（当前：%d）",
+            --                  item.color or 0))
             goto continue
         else
-            _M.dbgp(string.format(
-                             "√ 稀有度匹配通过（当前：%d）",
-                             item.color or 0))
+            -- _M.dbgp(string.format(
+            --                  "√ 稀有度匹配通过（当前：%d）",
+            --                  item.color or 0))
         end
 
         -- 3. 检查物品类型
@@ -2177,14 +2265,14 @@ _M.filter_item = function(item, suffixes, config_list)
             local item_type = type(config_type) == "table" and config_type[1] or
                                   config_type
             if item.category_utf8 ~= my_game_info.type_conversion[item_type] then
-                _M.dbgp(string.format(
-                                 "→ 跳过：物品类型不匹配（需要：%s）",
-                                 item_type))
+                -- _M.dbgp(string.format(
+                --                  "→ 跳过：物品类型不匹配（需要：%s）",
+                --                  item_type))
                 goto continue
             else
-                _M.dbgp(string.format(
-                                 "√ 物品类型匹配通过（需要：%s）",
-                                 item_type))
+                -- _M.dbgp(string.format(
+                --                  "√ 物品类型匹配通过（需要：%s）",
+                --                  item_type))
             end
         end
 
@@ -2195,14 +2283,14 @@ _M.filter_item = function(item, suffixes, config_list)
             if item_type == "exact" then
                 local item_level = item_config["value"]
                 if (item.DemandLevel or 0) < item_level then
-                    _M.dbgp(string.format(
-                                     "→ 跳过：等级不足（需要：%d，当前：%d）",
-                                     item_level, item.DemandLevel or 0))
+                    -- _M.dbgp(string.format(
+                    --                  "→ 跳过：等级不足（需要：%d，当前：%d）",
+                    --                  item_level, item.DemandLevel or 0))
                     goto continue
                 else
-                    _M.dbgp(string.format(
-                                     "√ 等级匹配通过（需要：%d）",
-                                     item_level))
+                    -- _M.dbgp(string.format(
+                    --                  "√ 等级匹配通过（需要：%d）",
+                    --                  item_level))
                 end
             else
                 local min_level = item_config["min"]
@@ -2210,14 +2298,14 @@ _M.filter_item = function(item, suffixes, config_list)
                 if min_level and max_level then
                     if (item.DemandLevel or 0) < min_level or
                         (item.DemandLevel or 0) > max_level then
-                        _M.dbgp(string.format(
-                                        "→ 跳过：等级超出范围（需要：%d-%d，当前：%d）",
-                                        min_level, max_level, item.DemandLevel or 0))
+                        -- _M.dbgp(string.format(
+                        --                 "→ 跳过：等级超出范围（需要：%d-%d，当前：%d）",
+                        --                 min_level, max_level, item.DemandLevel or 0))
                         goto continue
                     else
-                        _M.dbgp(string.format(
-                                        "√ 等级范围匹配通过（需要：%d-%d）",
-                                        min_level, max_level))
+                        -- _M.dbgp(string.format(
+                        --                 "√ 等级范围匹配通过（需要：%d-%d）",
+                        --                 min_level, max_level))
                     end
                 end
             end
@@ -2227,12 +2315,12 @@ _M.filter_item = function(item, suffixes, config_list)
         local affix_rules = config["物品詞綴"] or {}
         local check_yes = false
         if next(affix_rules) ~= nil then
-            _M.dbgp("开始检查词缀规则...")
+            -- _M.dbgp("开始检查词缀规则...")
             
             -- 遍历所有词缀规则
             for rule_name, rule_config in pairs(affix_rules) do
                 if type(rule_config) ~= "table" then
-                    _M.dbgp(string.format("→ 跳过无效规则：%s", rule_name))
+                    -- _M.dbgp(string.format("→ 跳过无效规则：%s", rule_name))
                     goto rule_continue
                 end
                 
@@ -2241,64 +2329,64 @@ _M.filter_item = function(item, suffixes, config_list)
                 local affix_list = rule_config["詞綴"] or {}
 
                 if type(affix_list) ~= "table" or #affix_list == 0 then
-                    _M.dbgp(string.format("→ 规则 %s 无有效词缀列表", rule_name))
+                    -- _M.dbgp(string.format("→ 规则 %s 无有效词缀列表", rule_name))
                     goto rule_continue
                 end
 
-                _M.dbgp(string.format("检查规则：%s (模式：%s)", 
-                    rule_name, require_all and "全部包含" or "任一包含"))
+                -- _M.dbgp(string.format("检查规则：%s (模式：%s)", 
+                --     rule_name, require_all and "全部包含" or "任一包含"))
 
                 local matched_affixes = 0
 
                 -- 检查每个要求的词缀
-                _M.dbgp("开始检查词缀列表，共 " .. #affix_list .. " 个需要匹配的词缀")
+                -- _M.dbgp("开始检查词缀列表，共 " .. #affix_list .. " 个需要匹配的词缀")
                 for i, required_affix in ipairs(affix_list) do
-                    _M.dbgp(string.format("\n[词缀匹配 %d/%d] 开始检查需求词缀: %s", i, #affix_list, required_affix.name))
-                    _M.dbgp(string.format("需求值: value1=%s, value2=%s, value3=%s", 
-                        tostring(required_affix.value1), 
-                        tostring(required_affix.value2), 
-                        tostring(required_affix.value3)))
+                    -- _M.dbgp(string.format("\n[词缀匹配 %d/%d] 开始检查需求词缀: %s", i, #affix_list, required_affix.name))
+                    -- _M.dbgp(string.format("需求值: value1=%s, value2=%s, value3=%s", 
+                    --     tostring(required_affix.value1), 
+                    --     tostring(required_affix.value2), 
+                    --     tostring(required_affix.value3)))
                     
                     local found = false
                     
                     -- 在物品词缀中查找匹配
                     _M.dbgp("开始遍历物品词缀(后缀)，共 " .. #suffixes .. " 个后缀")
                     for j, item_affix in ipairs(suffixes) do
-                        _M.dbgp(string.format("[物品词缀 %d/%d] 检查: %s", j, #suffixes, item_affix.name_utf8))
-                        _M.dbgp(string.format("当前词缀值: value1=%s, value2=%s, value3=%s", 
-                            item_affix.value_list[1] and tostring(item_affix.value_list[1]) or "nil",
-                            item_affix.value_list[2] and tostring(item_affix.value_list[2]) or "nil",
-                            item_affix.value_list[3] and tostring(item_affix.value_list[3]) or "nil"))
+                        -- _M.dbgp(string.format("[物品词缀 %d/%d] 检查: %s", j, #suffixes, item_affix.name_utf8))
+                        -- _M.dbgp(string.format("当前词缀值: value1=%s, value2=%s, value3=%s", 
+                        --     item_affix.value_list[1] and tostring(item_affix.value_list[1]) or "nil",
+                        --     item_affix.value_list[2] and tostring(item_affix.value_list[2]) or "nil",
+                        --     item_affix.value_list[3] and tostring(item_affix.value_list[3]) or "nil"))
                         
                         if item_affix.name_utf8 == required_affix.name then
-                            _M.dbgp("√ 名称匹配成功: " .. required_affix.name)
+                            -- _M.dbgp("√ 名称匹配成功: " .. required_affix.name)
                             local match = true
                             
                             -- 检查 value1
                             if item_affix.value_list[1] then
-                                _M.dbgp(string.format("检查value1: 需求=%s, 实际=%s", 
-                                    tostring(required_affix.value1), 
-                                    item_affix.value_list[1] and tostring(item_affix.value_list[1]) or "nil"))
+                                -- _M.dbgp(string.format("检查value1: 需求=%s, 实际=%s", 
+                                --     tostring(required_affix.value1), 
+                                --     item_affix.value_list[1] and tostring(item_affix.value_list[1]) or "nil"))
                                 
                                 if not item_affix.value_list[1] or item_affix.value_list[1] < required_affix.value1 then
                                     match = false
-                                    _M.dbgp("× value1 不满足条件")
+                                    -- _M.dbgp("× value1 不满足条件")
                                 else
-                                    _M.dbgp("√ value1 满足条件")
+                                    -- _M.dbgp("√ value1 满足条件")
                                 end
                             end
                             
                             -- 检查 value2
                             if match and item_affix.value_list[2] then
-                                _M.dbgp(string.format("检查value2: 需求=%s, 实际=%s", 
-                                    tostring(required_affix.value2), 
-                                    item_affix.value_list[2] and tostring(item_affix.value_list[2]) or "nil"))
+                                -- _M.dbgp(string.format("检查value2: 需求=%s, 实际=%s", 
+                                --     tostring(required_affix.value2), 
+                                --     item_affix.value_list[2] and tostring(item_affix.value_list[2]) or "nil"))
                                 
                                 if not item_affix.value_list[2] or item_affix.value_list[2] < required_affix.value2 then
                                     match = false
-                                    _M.dbgp("× value2 不满足条件")
+                                    -- _M.dbgp("× value2 不满足条件")
                                 else
-                                    _M.dbgp("√ value2 满足条件")
+                                    -- _M.dbgp("√ value2 满足条件")
                                 end
                             end
                             
@@ -2310,87 +2398,89 @@ _M.filter_item = function(item, suffixes, config_list)
                                 
                                 if not item_affix.value_list[3] or item_affix.value_list[3] < required_affix.value3 then
                                     match = false
-                                    _M.dbgp("× value3 不满足条件")
+                                    -- _M.dbgp("× value3 不满足条件")
                                 else
-                                    _M.dbgp("√ value3 满足条件")
+                                    -- _M.dbgp("√ value3 满足条件")
                                 end
                             end
                             
                             if match then
                                 found = true
-                                _M.dbgp("√√ 当前词缀完全匹配需求!")
+                                -- _M.dbgp("√√ 当前词缀完全匹配需求!")
                                 break  -- 找到匹配，跳出当前词缀检查
                             else
-                                _M.dbgp("→ 当前词缀部分条件不匹配，继续检查下一个词缀")
+                                -- _M.dbgp("→ 当前词缀部分条件不匹配，继续检查下一个词缀")
                             end
                         else
-                            _M.dbgp("× 名称不匹配: " .. item_affix.name_utf8 .. " != " .. required_affix.name)
+                            -- _M.dbgp("× 名称不匹配: " .. item_affix.name_utf8 .. " != " .. required_affix.name)
                         end
                     end
                     
                     -- 更新匹配计数
                     if found then
                         matched_affixes = matched_affixes + 1
-                        _M.dbgp(string.format("当前匹配计数: %d/%d", matched_affixes, #affix_list))
+                        -- _M.dbgp(string.format("当前匹配计数: %d/%d", matched_affixes, #affix_list))
                     else
-                        _M.dbgp("× 未找到匹配的词缀: " .. required_affix.name)
+                        -- _M.dbgp("× 未找到匹配的词缀: " .. required_affix.name)
                     end
                     
                     -- 如果是 "任一包含" 模式，且已经匹配到一个词缀，可以提前结束
                     if not require_all and matched_affixes > 0 then
-                        _M.dbgp("√ 满足'任一包含'模式，已找到至少一个匹配词缀，提前结束检查")
+                        -- _M.dbgp("√ 满足'任一包含'模式，已找到至少一个匹配词缀，提前结束检查")
                         break
                     end
                 end
 
                 -- 检查匹配结果
-                _M.dbgp("\n最终匹配结果检查:")
-                _M.dbgp(string.format("匹配模式: %s", require_all and "必须全部匹配" or "任一匹配"))
-                _M.dbgp(string.format("实际匹配数: %d/%d", matched_affixes, #affix_list))
+                -- _M.dbgp("\n最终匹配结果检查:")
+                -- _M.dbgp(string.format("匹配模式: %s", require_all and "必须全部匹配" or "任一匹配"))
+                -- _M.dbgp(string.format("实际匹配数: %d/%d", matched_affixes, #affix_list))
 
                 if (require_all and matched_affixes == #affix_list) or 
                 (not require_all and matched_affixes > 0) then
-                    _M.dbgp(string.format("√√√ 规则 %s 匹配成功", rule_name))
+                    -- _M.dbgp(string.format("√√√ 规则 %s 匹配成功", rule_name))
                     check_yes = true
                 else
-                    _M.dbgp(string.format("××× 规则 %s 不匹配", rule_name))
+                    -- _M.dbgp(string.format("××× 规则 %s 不匹配", rule_name))
                 end
                 
                 ::rule_continue::
             end
             
             if not check_yes then
-                _M.dbgp("→ 所有词缀规则均不匹配")
+                -- _M.dbgp("→ 所有词缀规则均不匹配")
                 goto continue
             end
+        else
+            check_yes = true
         end
 
         if check_yes then
             -- 所有条件都满足
-            _M.dbgp("√ 所有条件匹配成功，保留物品")
+            -- _M.dbgp("√ 所有条件匹配成功，保留物品")
             return true
         end
 
-        _M.dbgp("→ 继续检查下一个配置规则")
+        -- _M.dbgp("→ 继续检查下一个配置规则")
         ::continue::
         
     end
 
     -- 没有任何配置规则匹配
-    _M.dbgp("× 无任何配置规则匹配，丢弃物品")
+    -- _M.dbgp("× 无任何配置规则匹配，丢弃物品")
     return false
 end
 
 -- 词条匹配（带详细日志）
 _M.match_affix_with_template = function(affix_str, template, item_value,
                                         required_value)
-    _M.dbgp("\n----- 开始词缀匹配 -----")
-    _M.dbgp(string.format("词缀: %s", affix_str or "无"))
-    _M.dbgp(string.format("模板: %s", template or "无"))
+    -- _M.dbgp("\n----- 开始词缀匹配 -----")
+    -- _M.dbgp(string.format("词缀: %s", affix_str or "无"))
+    -- _M.dbgp(string.format("模板: %s", template or "无"))
 
     -- 空值检查
     if type(affix_str) ~= "string" or type(template) ~= "string" then
-        _M.dbgp("× 无效输入类型")
+        -- _M.dbgp("× 无效输入类型")
         return false
     end
 
@@ -2402,8 +2492,8 @@ _M.match_affix_with_template = function(affix_str, template, item_value,
 
     local affix = clean(affix_str)
     local pattern = clean(template)
-    _M.dbgp(string.format("清理后词缀: %s", affix))
-    _M.dbgp(string.format("清理后模板: %s", pattern))
+    -- _M.dbgp(string.format("清理后词缀: %s", affix))
+    -- _M.dbgp(string.format("清理后模板: %s", pattern))
 
     -- 提取纯文字部分（去除所有数字索引的通配符和符号）
     local function extract_text(s)
@@ -2417,32 +2507,32 @@ _M.match_affix_with_template = function(affix_str, template, item_value,
 
     local affix_text = extract_text(affix)
     local pattern_text = extract_text(pattern)
-    _M.dbgp(string.format("纯文本词缀: %s", affix_text))
-    _M.dbgp(string.format("纯文本模板: %s", pattern_text))
+    -- _M.dbgp(string.format("纯文本词缀: %s", affix_text))
+    -- _M.dbgp(string.format("纯文本模板: %s", pattern_text))
 
     -- 首先检查文字部分是否匹配
     if affix_text ~= pattern_text then
-        _M.dbgp("× 文本不匹配")
+        -- _M.dbgp("× 文本不匹配")
         return false
     else
-        _M.dbgp("√ 文本匹配通过")
+        -- _M.dbgp("√ 文本匹配通过")
     end
 
     -- 如果只需要匹配文字，不需要比较数值
     if required_value == nil then
-        _M.dbgp("√ 无数值要求，匹配成功")
+        -- _M.dbgp("√ 无数值要求，匹配成功")
         return true
     end
 
     -- 确保item_value是数组
     if type(item_value) ~= "table" then item_value = {item_value} end
-    _M.dbgp(
-        string.format("物品数值: %s", table.concat(item_value, ",")))
+    -- _M.dbgp(
+    --     string.format("物品数值: %s", table.concat(item_value, ",")))
 
     -- 确保required_value是数组
     if type(required_value) ~= "table" then required_value = {required_value} end
-    _M.dbgp(string.format("需求数值: %s",
-                               table.concat(required_value, ",")))
+    -- _M.dbgp(string.format("需求数值: %s",
+    --                            table.concat(required_value, ",")))
 
     -- 数值比较
     local function safe_to_number(val)
@@ -2455,47 +2545,47 @@ _M.match_affix_with_template = function(affix_str, template, item_value,
     if #item_value == 1 and #required_value == 1 then
         result = safe_to_number(item_value[1]) >=
                      safe_to_number(required_value[1])
-        _M.dbgp(string.format("单值比较: %s >= %s → %s",
-                                   item_value[1], required_value[1],
-                                   tostring(result)))
+        -- _M.dbgp(string.format("单值比较: %s >= %s → %s",
+        --                            item_value[1], required_value[1],
+        --                            tostring(result)))
     elseif #item_value == 2 and #required_value == 1 then
         result = safe_to_number(required_value[1]) >=
                      safe_to_number(item_value[1]) and
                      safe_to_number(required_value[1]) <=
                      safe_to_number(item_value[2])
-        _M.dbgp(string.format("范围比较: %s <= %s <= %s → %s",
-                                   item_value[1], required_value[1],
-                                   item_value[2], tostring(result)))
+        -- _M.dbgp(string.format("范围比较: %s <= %s <= %s → %s",
+        --                            item_value[1], required_value[1],
+        --                            item_value[2], tostring(result)))
     elseif #item_value == 1 and #required_value == 2 then
         result = safe_to_number(item_value[1]) >=
                      safe_to_number(required_value[1])
-        _M.dbgp(string.format("下限比较: %s >= %s → %s",
-                                   item_value[1], required_value[1],
-                                   tostring(result)))
+        -- _M.dbgp(string.format("下限比较: %s >= %s → %s",
+        --                            item_value[1], required_value[1],
+        --                            tostring(result)))
     elseif #item_value == 2 and #required_value == 2 then
         result = (safe_to_number(item_value[1]) >=
                      safe_to_number(required_value[1]) and
                      safe_to_number(item_value[2]) >=
                      safe_to_number(required_value[2]))
-        _M.dbgp(string.format("双范围比较: [%s,%s] >= [%s,%s] → %s",
-                                   item_value[1], item_value[2],
-                                   required_value[1], required_value[2],
-                                   tostring(result)))
+        -- _M.dbgp(string.format("双范围比较: [%s,%s] >= [%s,%s] → %s",
+        --                            item_value[1], item_value[2],
+        --                            required_value[1], required_value[2],
+        --                            tostring(result)))
     else
-        _M.dbgp("× 数值格式不支持")
+        -- _M.dbgp("× 数值格式不支持")
         result = false
     end
 
-    _M.dbgp(string.format("匹配结果: %s", tostring(result)))
+    -- _M.dbgp(string.format("匹配结果: %s", tostring(result)))
     return result
 end
 
 -- 词缀规则匹配（带详细日志）
 _M.match_item_suffixes = function(item_suffixes, config_suffixes, not_item)
-    _M.dbgp("\n===== 开始词缀规则匹配 =====")
-    _M.dbgp(string.format("物品词缀数量: %d", #item_suffixes))
-    _M.dbgp(string.format("配置规则数量: %d",
-                               _M.table_size(config_suffixes)))
+    -- _M.dbgp("\n===== 开始词缀规则匹配 =====")
+    -- _M.dbgp(string.format("物品词缀数量: %d", #item_suffixes))
+    -- _M.dbgp(string.format("配置规则数量: %d",
+    --                            _M.table_size(config_suffixes)))
 
     local min_matched_count = 0
     local required_suffixes = {}
@@ -2506,7 +2596,7 @@ _M.match_item_suffixes = function(item_suffixes, config_suffixes, not_item)
         for k in pairs(config_suffixes) do table.insert(keys, k) end
         if not config_suffixes or not config_suffixes[keys[1]] or
             not config_suffixes[keys[1]]["詞綴"] then
-            _M.dbgp("→ 无有效配置规则，默认通过")
+            -- _M.dbgp("→ 无有效配置规则，默认通过")
             return true
         end
         required_suffixes = config_suffixes[keys[1]]["詞綴"]
@@ -2517,17 +2607,17 @@ _M.match_item_suffixes = function(item_suffixes, config_suffixes, not_item)
                                     (required_suffixes["满足几保留"][1] or
                                         0) or 0
         end
-        _M.dbgp(string.format("匹配模式: %s", must_contain_all and
-                                       "必须全部匹配" or "匹配任意"))
-        _M.dbgp(string.format("最小匹配数: %d", min_matched_count))
+        -- _M.dbgp(string.format("匹配模式: %s", must_contain_all and
+        --                                "必须全部匹配" or "匹配任意"))
+        -- _M.dbgp(string.format("最小匹配数: %d", min_matched_count))
     else
         required_suffixes = config_suffixes
         must_contain_all = false
-        _M.dbgp("→ 直接匹配模式")
+        -- _M.dbgp("→ 直接匹配模式")
     end
 
     if not required_suffixes or next(required_suffixes) == nil then
-        _M.dbgp("× 无词缀要求")
+        -- _M.dbgp("× 无词缀要求")
         return false
     end
 
@@ -2535,9 +2625,9 @@ _M.match_item_suffixes = function(item_suffixes, config_suffixes, not_item)
     local item_affixes = {}
     for _, affix in ipairs(item_suffixes) do
         table.insert(item_affixes, {affix.name_utf8, affix.value_list})
-        _M.dbgp(string.format("物品词缀: %s (值: %s)",
-                                   affix.name_utf8 or "无",
-                                   table.concat(affix.value_list or {}, ",")))
+        -- _M.dbgp(string.format("物品词缀: %s (值: %s)",
+        --                            affix.name_utf8 or "无",
+        --                            table.concat(affix.value_list or {}, ",")))
     end
 
     local matched_count = 0
@@ -2545,62 +2635,62 @@ _M.match_item_suffixes = function(item_suffixes, config_suffixes, not_item)
 
     -- 检查每个要求的词缀
     for required_key, required_value in pairs(required_suffixes) do
-        _M.dbgp(string.format("\n检查需求词缀: %s", required_key))
+        -- _M.dbgp(string.format("\n检查需求词缀: %s", required_key))
 
         -- 获取配置要求的模板和数值
         local required_template, required_val
         if type(required_value) == "table" and #required_value >= 2 then
             required_template = required_value[1]
             required_val = required_value[2]
-            _M.dbgp(string.format("模板: %s, 需求值: %s",
-                                       required_template,
-                                       table.concat(required_val, ",")))
+            -- _M.dbgp(string.format("模板: %s, 需求值: %s",
+            --                            required_template,
+            --                            table.concat(required_val, ",")))
         elseif type(required_suffixes) == "table" then
             required_template = required_key
             required_val = required_value
-            _M.dbgp(string.format("模板: %s, 需求值: %s",
-                                       required_template, tostring(required_val)))
+            -- _M.dbgp(string.format("模板: %s, 需求值: %s",
+            --                            required_template, tostring(required_val)))
         else
             required_template = required_value
             required_val = nil
-            _M.dbgp(string.format("模板: %s (无数值要求)",
-                                       required_template))
+            -- _M.dbgp(string.format("模板: %s (无数值要求)",
+            --                            required_template))
         end
 
         -- 检查物品词缀是否匹配
-        _M.dbgp("\n正在检查以下词缀:")
-        _M.dbgp(_M.printTable(item_affixes))
+        -- _M.dbgp("\n正在检查以下词缀:")
+        -- _M.dbgp(_M.printTable(item_affixes))
         for _, affix_pair in ipairs(item_affixes) do
             local item_affix = affix_pair[1]
             local item_value = affix_pair[2]
 
-            _M.dbgp(string.format("尝试匹配: %s", item_affix))
+            -- _M.dbgp(string.format("尝试匹配: %s", item_affix))
             if _M.match_affix_with_template(item_affix, required_template,
                                             item_value, required_val) then
                 matched_count = matched_count + 1
                 table.insert(matched_details, string.format("%s 匹配 %s",
                                                             item_affix,
                                                             required_template))
-                _M.dbgp("√ 匹配成功")
+                -- _M.dbgp("√ 匹配成功")
                 if not must_contain_all then
-                    _M.dbgp("√ 任意匹配模式，直接返回成功")
+                    -- _M.dbgp("√ 任意匹配模式，直接返回成功")
                     return true
                 end
                 break
             else
-                _M.dbgp("× 匹配失败")
+                -- _M.dbgp("× 匹配失败")
             end
         end
     end
 
     -- 输出匹配详情
-    _M.dbgp("\n匹配详情:")
+    -- _M.dbgp("\n匹配详情:")
     if #matched_details > 0 then
         for i, detail in ipairs(matched_details) do
-            _M.dbgp(string.format("%d. %s", i, detail))
+            -- _M.dbgp(string.format("%d. %s", i, detail))
         end
     else
-        _M.dbgp("无匹配项")
+        -- _M.dbgp("无匹配项")
     end
 
     -- _M.dbgp(string.format("\n总匹配数: %d (需要: %d)", matched_count,
@@ -2609,21 +2699,21 @@ _M.match_item_suffixes = function(item_suffixes, config_suffixes, not_item)
 
     if min_matched_count > 0 then
         if matched_count >= min_matched_count then
-            _M.dbgp("√ 满足最小匹配数要求")
+            -- _M.dbgp("√ 满足最小匹配数要求")
             return true
         else
-            _M.dbgp("× 不满足最小匹配数要求")
+            -- _M.dbgp("× 不满足最小匹配数要求")
             return false
         end
     end
 
     if must_contain_all then
         local result = matched_count == _M.table_size(required_suffixes)
-        _M.dbgp(string.format("必须全部匹配: %s", tostring(result)))
+        -- _M.dbgp(string.format("必须全部匹配: %s", tostring(result)))
         return result
     else
         local result = matched_count > 0
-        _M.dbgp(string.format("任意匹配: %s", tostring(result)))
+        -- _M.dbgp(string.format("任意匹配: %s", tostring(result)))
         return result
     end
 end
@@ -2873,19 +2963,26 @@ _M.find_text_position = function(params)
     local matchs_object = {}  -- 存储所有匹配的文本对象
     
     for _, actor in ipairs(defaults.UI_info) do
-        if not actor.text_utf8 or actor.text_utf8 == "" then
+        
+        if actor.text_utf8 == "" then
             goto continue
         end
+
+        -- _M.dbgp("发现文本:", actor.text_utf8, " ,", string.len(actor.text_utf8), "defaults.lens:", defaults.lens)
+        -- _M.dbgp(actor.left," ,", actor.top," ,", actor.right)
+        -- goto continue
+
 
         -- 检查文本长度
         if defaults.lens > 0 and string.len(actor.text_utf8) < defaults.lens then
             goto continue
         end
-        
+
         -- 检查坐标范围
         if defaults.min_x <= actor.left and actor.left <= defaults.max_x and
-           defaults.min_y <= actor.top and actor.top <= defaults.max_y and 
-           defaults.min_x <= actor.right and actor.right <= defaults.max_x then
+           defaults.min_y <= actor.top and actor.top <= defaults.max_y 
+           and defaults.min_x <= actor.right and actor.right <= defaults.max_x 
+           then
             
             if defaults.num == 1 then
                 if defaults.text and actor.text_utf8 ~= defaults.text then
@@ -3156,7 +3253,7 @@ _M.get_sorted_list = function(table1, player_info)
     end
 
     local player_x, player_y = player_info.grid_x, player_info.grid_y
-    _M.dbgp(string.format("排序基准点 - X:%.2f, Y:%.2f", player_x, player_y))
+    -- _M.dbgp(string.format("排序基准点 - X:%.2f, Y:%.2f", player_x, player_y))
 
     -- 创建排序副本(避免修改原表)
     local sorted_items = {}
@@ -3425,11 +3522,11 @@ end
 
 _M.format_map_data = function(config)
     -- 将获取到的剧情地图数据格式化为 ['地图名称', '章节'] 格式的列表
-    local map_data = config['刷圖設置']['劇情地圖'] or {}  -- 获取剧情地图数据，默认为空表
+    local map_data = config['全局設置']['剧情地图设置'] or {}  -- 获取剧情地图数据，默认为空表
     
     -- 获取地图名称和章节
-    local map_name = map_data['地圖名'] or ''
-    local chapter = map_data['章節'] or ''
+    local map_name = map_data['地图名'] or ''
+    local chapter = map_data['章节'] or ''
     
     -- 处理章节格式
     if chapter ~= '' then
@@ -3498,11 +3595,14 @@ end
 -- name (string): 要查找的目标对象名称（UTF-8编码）
 -- actors (table): 包含周围对象信息的数组，每个元素应包含 name_utf8、grid_x 和 grid_y 字段
 -- player_info (table): 包含玩家位置信息的表，结构应与 _M.point_distance 函数要求的格式一致
-_M.check_pos_dis = function(name, actors, player_info)
+_M.check_pos_dis = function(name, actors, player_info, all_info)
     if next(actors) then
         for _,point in ipairs(actors) do
             if point.name_utf8 == name then
                 distance = _M.point_distance(point.grid_x, point.grid_y, player_info)
+                if all_info then
+                    return {distance, {point.grid_x, point.grid_y}}
+                end
                 return distance
             end
         end
@@ -3582,12 +3682,14 @@ end
 _M.get_item_type = function(item)
     local text = ""
     if item.category_utf8 == "StackableCurrency" then
-        if item.baseType_utf8 and string.find(item.baseType_utf8,"精煉") then
+        if item.baseType_utf8 and (string.find(item.baseType_utf8,"精煉") or string.find(item.baseType_utf8,"液態")) then
             text = "精煉"
         elseif item.baseType_utf8 and string.find(item.baseType_utf8,"催化劑") then
             text = "催化劑"
         elseif item.baseType_utf8 and string.find(item.baseType_utf8,"精髓") then
             text = "精髓"
+        elseif item.baseType_utf8 and (string.find(item.baseType_utf8,"破碎的") or string.find(item.baseType_utf8,"保存良好的") or string.find(item.baseType_utf8,"古老的")) then
+            text = "深淵骸骨"
         else
             text = "通貨"
         end
@@ -3774,14 +3876,36 @@ _M.get_point_distance = function(x1, y1, x2, y2)
     return distance
 end
 
--- 深度拷贝
-_M.deepCopy = function(tbl)
-    if type(tbl) ~= "table" then return tbl end
-    local copy = {}
-    for k, v in pairs(tbl) do
-        copy[k] = deepCopy(v)
+-- 深度拷贝函数（完整版）
+_M.deepCopy = function(orig)
+    -- 处理非table类型和nil
+    if type(orig) ~= "table" then return orig end
+    
+    -- 循环引用处理表
+    local seen = {}
+    
+    -- 局部递归函数
+    local function _copy(obj)
+        -- 基础类型直接返回
+        if type(obj) ~= "table" then return obj end
+        
+        -- 如果已经拷贝过则直接返回
+        if seen[obj] then return seen[obj] end
+        
+        -- 创建新table
+        local new = {}
+        seen[obj] = new  -- 记录已拷贝
+        
+        -- 拷贝所有字段（包括元表）
+        for k, v in pairs(obj) do
+            new[_copy(k)] = _copy(v)  -- 递归拷贝key和value
+        end
+        
+        -- 拷贝元表
+        return setmetatable(new, _copy(getmetatable(obj)))
     end
-    return copy
+    
+    return _copy(orig)
 end
 
 -- 随机点击屏幕
@@ -3789,6 +3913,17 @@ _M.random_click = function(x, y, w, h)
     local x1 = x + math.random(0, w)
     local y1 = y + math.random(0, h)
     api_ClickScreen(x1, y1, 1)
+end
+
+-- 根据名字返回其所在地图
+_M.party_pos = function(name,team_info)
+     -- 根据成员名称返回其当前地图名称
+     for _, m in ipairs(team_info) do
+        if m.name_utf8 == name then
+            return m.current_map_name_utf8
+        end
+    end
+    return nil
 end
 
 -- 获取指定text的物品排序
@@ -4048,7 +4183,6 @@ _M.move_towards = function(start, end_pos, speed)
     
     return {new_x, new_y}
 end
-
 
 -- 其他可能用到的API
 _M.get_current_time = function() return api_GetTickCount64() end

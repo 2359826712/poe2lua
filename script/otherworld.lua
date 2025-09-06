@@ -1522,9 +1522,7 @@ local custom_nodes = {
             local buy_items = env.buy_items
             local config = env.user_config
             local player_info = env.player_info
-            
-            
-
+        
             --- 辅助函数
             -- 检查是否处于停滞移动状态
             local function _check_stagnant_movement()

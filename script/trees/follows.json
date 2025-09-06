@@ -140,12 +140,12 @@
           {
             "id": 29,
             "name": "Sequence",
-            "desc": "Area_Move",
+            "desc": "follow_Interactive",
             "children": [
               {
                 "id": 30,
-                "name": "Check_Leader_Position",
-                "desc": "检查大号位置"
+                "name": "Follow_Interactive",
+                "desc": "点击进入"
               },
               {
                 "id": 31,
@@ -169,8 +169,103 @@
                   },
                   {
                     "id": 35,
-                    "name": "Check_Leader_Position",
-                    "desc": "检查大号位置"
+                    "name": "Move_To_Target_Point",
+                    "desc": "移动至目标点"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "id": 36,
+            "name": "Sequence",
+            "desc": "Attack",
+            "children": [
+              {
+                "id": 37,
+                "name": "Check_Is_Need_Attack",
+                "desc": "检查队员是否需要攻击"
+              },
+              {
+                "id": 38,
+                "name": "Game_Block",
+                "desc": "清除遮挡"
+              },
+              {
+                "id": 39,
+                "name": "DodgeAction",
+                "desc": "躲避技能"
+              },
+              {
+                "id": 40,
+                "name": "Selector",
+                "desc": "attack_move",
+                "children": [
+                  {
+                    "id": 41,
+                    "name": "ReleaseSkillAction",
+                    "desc": "释放技能"
+                  },
+                  {
+                    "id": 42,
+                    "name": "Sequence",
+                    "desc": "Path_Move",
+                    "children": [
+                      {
+                        "id": 43,
+                        "name": "Is_Arrive",
+                        "desc": "是否到点"
+                      },
+                      {
+                        "id": 44,
+                        "name": "GET_Path",
+                        "desc": "获取路径"
+                      },
+                      {
+                        "id": 45,
+                        "name": "Move_To_Target_Point",
+                        "desc": "移动至目标点"
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "id": 46,
+            "name": "Sequence",
+            "desc": "Area_Move",
+            "children": [
+              {
+                "id": 47,
+                "name": "Game_Block",
+                "desc": "清除遮挡"
+              },
+              {
+                "id": 48,
+                "name": "Check_Leader_Position",
+                "desc": "检查大号位置"
+              },
+              {
+                "id": 49,
+                "name": "Sequence",
+                "desc": "Path_Move",
+                "children": [
+                  {
+                    "id": 50,
+                    "name": "Is_Arrive",
+                    "desc": "是否到点"
+                  },
+                  {
+                    "id": 51,
+                    "name": "GET_Path",
+                    "desc": "获取路径"
+                  },
+                  {
+                    "id": 52,
+                    "name": "Move_To_Target_Point",
+                    "desc": "移动至目标点"
                   }
                 ]
               }

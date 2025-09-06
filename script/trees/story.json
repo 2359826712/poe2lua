@@ -1155,30 +1155,25 @@
                     "children": [
                       {
                         "id": 214,
-                        "name": "Pick_Up_Ground_Item",
-                        "desc": "拾取"
-                      },
-                      {
-                        "id": 215,
                         "name": "Check_Target_Point",
                         "desc": "查找目标点"
                       },
                       {
-                        "id": 216,
+                        "id": 215,
                         "name": "Sequence",
                         "desc": "Path_Move_Story",
                         "children": [
                           {
-                            "id": 217,
+                            "id": 216,
                             "name": "Is_Pick_Up_Task_Props"
                           },
                           {
-                            "id": 218,
+                            "id": 217,
                             "name": "GET_Path",
                             "desc": "计算路径"
                           },
                           {
-                            "id": 219,
+                            "id": 218,
                             "name": "Move_To_Target_Point",
                             "desc": "移动到指定地点"
                           }

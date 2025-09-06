@@ -2,7 +2,10 @@
   "diagnostics": {
     "disable": [
       "undefined-global",
-      "unnecessary-if"
+      "param-type-not-match",
+      "unnecessary-if",
+      "unnecessary-assert",
+      "need-check-nil"
     ]
   }
 }
