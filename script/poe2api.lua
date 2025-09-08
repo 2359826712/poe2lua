@@ -3919,6 +3919,8 @@ end
 _M.party_pos = function(name,team_info)
      -- 根据成员名称返回其当前地图名称
      for _, m in ipairs(team_info) do
+        _M.dbgp(m.name_utf8)
+        _M.dbgp(m.current_map_name_utf8)
         if m.name_utf8 == name then
             return m.current_map_name_utf8
         end

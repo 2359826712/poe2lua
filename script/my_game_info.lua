@@ -185,7 +185,7 @@ local my_game_info = {
         "藏身處：石灰岩", "藏身處：殞落", "藏身處：無畏隊",
         "藏身處：扭曲", "藏身處：瓦斯提里競技場",
         "藏身處：救贖烽塔", "皆伐營地", "阿杜拉車隊",
-        "高地神塔營地","藏身處：海岸線"
+        "高地神塔營地","城鎮傳送門","藏身處：海岸線"
     },
     hideout = {
         "G_Endgame_Town", "HideoutFelled", "HideoutShrine", "HideoutLimestone",

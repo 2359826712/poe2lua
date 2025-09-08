@@ -1089,59 +1089,63 @@
                 "children": [
                   {
                     "id": 201,
-                    "name": "Selector",
+                    "name": "Sequence",
                     "desc": "Follow_Move",
                     "children": [
                       {
                         "id": 202,
-                        "name": "Sequence",
+                        "name": "Game_Block",
+                        "desc": "清除遮挡"
+                      },
+                      {
+                        "id": 203,
+                        "name": "Is_Follow_Move"
+                      },
+                      {
+                        "id": 204,
+                        "name": "Selector",
                         "desc": "move",
                         "children": [
                           {
-                            "id": 203,
-                            "name": "Game_Block",
-                            "desc": "清除遮挡"
-                          },
-                          {
-                            "id": 204,
+                            "id": 205,
                             "name": "Far_Away_From_Capital"
                           },
                           {
-                            "id": 205,
+                            "id": 206,
                             "name": "DodgeAction_Story"
                           },
                           {
-                            "id": 206,
+                            "id": 207,
                             "name": "Move_To_Target_Point"
                           }
                         ]
                       },
                       {
-                        "id": 207,
+                        "id": 208,
                         "name": "Sequence",
                         "desc": "far_move",
                         "children": [
                           {
-                            "id": 208,
+                            "id": 209,
                             "name": "Selector",
                             "desc": "find",
                             "children": [
                               {
-                                "id": 209,
+                                "id": 210,
                                 "name": "Is_Have_Path"
                               },
                               {
-                                "id": 210,
+                                "id": 211,
                                 "name": "GET_Path"
                               }
                             ]
                           },
                           {
-                            "id": 211,
+                            "id": 212,
                             "name": "Is_Have_Target_Point"
                           },
                           {
-                            "id": 212,
+                            "id": 213,
                             "name": "Move_To_Members_Point"
                           }
                         ]
@@ -1149,24 +1153,20 @@
                     ]
                   },
                   {
-                    "id": 213,
+                    "id": 214,
                     "name": "Sequence",
                     "desc": "Area_Move",
                     "children": [
                       {
-                        "id": 214,
+                        "id": 215,
                         "name": "Check_Target_Point",
                         "desc": "查找目标点"
                       },
                       {
-                        "id": 215,
+                        "id": 216,
                         "name": "Sequence",
                         "desc": "Path_Move_Story",
                         "children": [
-                          {
-                            "id": 216,
-                            "name": "Is_Pick_Up_Task_Props"
-                          },
                           {
                             "id": 217,
                             "name": "GET_Path",

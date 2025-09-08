@@ -120,7 +120,8 @@
 
 -- api_UpdateMapInfo() - 刷新地图信息
 --   @return nil
-
+-- api_InitExplorationArea() - 初始化探索地图
+--   @return nil
 -- api_UpdateMapObstacles(range) - 更新地图障碍点
 --   @param range 更新范围（非负整数）
 --   @return nil

@@ -184,7 +184,7 @@
               {
                 "id": 37,
                 "name": "Check_Is_Need_Attack",
-                "desc": "检查队员是否需要攻击"
+                "desc": "检查是否需要攻击"
               },
               {
                 "id": 38,
@@ -198,33 +198,73 @@
               },
               {
                 "id": 40,
-                "name": "Selector",
-                "desc": "attack_move",
+                "name": "Sequence",
                 "children": [
                   {
                     "id": 41,
-                    "name": "ReleaseSkillAction",
-                    "desc": "释放技能"
-                  },
-                  {
-                    "id": 42,
-                    "name": "Sequence",
-                    "desc": "Path_Move",
+                    "name": "Selector",
+                    "desc": "attack_move",
                     "children": [
                       {
+                        "id": 42,
+                        "name": "ReleaseSkillAction",
+                        "desc": "释放技能"
+                      },
+                      {
                         "id": 43,
-                        "name": "Is_Arrive",
-                        "desc": "是否到点"
+                        "name": "Sequence",
+                        "desc": "Path_Move",
+                        "children": [
+                          {
+                            "id": 44,
+                            "name": "Is_Arrive",
+                            "desc": "是否到点"
+                          },
+                          {
+                            "id": 45,
+                            "name": "GET_Path",
+                            "desc": "获取路径"
+                          },
+                          {
+                            "id": 46,
+                            "name": "Move_To_Target_Point",
+                            "desc": "移动至目标点"
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "id": 47,
+                    "name": "Sequence",
+                    "desc": "rare_mos_move",
+                    "children": [
+                      {
+                        "id": 48,
+                        "name": "Find_Monster",
+                        "desc": "找精英怪"
                       },
                       {
-                        "id": 44,
-                        "name": "GET_Path",
-                        "desc": "获取路径"
-                      },
-                      {
-                        "id": 45,
-                        "name": "Move_To_Target_Point",
-                        "desc": "移动至目标点"
+                        "id": 49,
+                        "name": "Sequence",
+                        "desc": "Path_Move",
+                        "children": [
+                          {
+                            "id": 50,
+                            "name": "Is_Arrive",
+                            "desc": "是否到点"
+                          },
+                          {
+                            "id": 51,
+                            "name": "GET_Path",
+                            "desc": "获取路径"
+                          },
+                          {
+                            "id": 52,
+                            "name": "Move_To_Target_Point",
+                            "desc": "移动至目标点"
+                          }
+                        ]
                       }
                     ]
                   }
@@ -233,37 +273,37 @@
             ]
           },
           {
-            "id": 46,
+            "id": 53,
             "name": "Sequence",
             "desc": "Area_Move",
             "children": [
               {
-                "id": 47,
+                "id": 54,
                 "name": "Game_Block",
                 "desc": "清除遮挡"
               },
               {
-                "id": 48,
+                "id": 55,
                 "name": "Check_Leader_Position",
                 "desc": "检查大号位置"
               },
               {
-                "id": 49,
+                "id": 56,
                 "name": "Sequence",
                 "desc": "Path_Move",
                 "children": [
                   {
-                    "id": 50,
+                    "id": 57,
                     "name": "Is_Arrive",
                     "desc": "是否到点"
                   },
                   {
-                    "id": 51,
+                    "id": 58,
                     "name": "GET_Path",
                     "desc": "获取路径"
                   },
                   {
-                    "id": 52,
+                    "id": 59,
                     "name": "Move_To_Target_Point",
                     "desc": "移动至目标点"
                   }

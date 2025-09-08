@@ -5,7 +5,23 @@
       "desc": ""
     },
     {
+      "path": "attack_target_inside.json",
+      "desc": ""
+    },
+    {
+      "path": "attack_target.json",
+      "desc": ""
+    },
+    {
       "path": "follows.json",
+      "desc": ""
+    },
+    {
+      "path": "main_story_map.json",
+      "desc": ""
+    },
+    {
+      "path": "out_id.json",
       "desc": ""
     },
     {
