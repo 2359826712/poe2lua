@@ -1630,7 +1630,7 @@ local custom_nodes = {
 
             -- 领取任务奖励
             if poe2_api.find_text({ UI_info = env.UI_info, text = "獎勵", min_x = 100 }) then
-                poe2_api.find_text({ UI_info = env.UI_info, text = "獎勵", add_y = 50, click = 2 })
+                poe2_api.find_text({ UI_info = env.UI_info, text = "獎勵", add_y = 100, click = 2 })
                 api_Sleep(500)
                 if poe2_api.find_text({ UI_info = env.UI_info, text = "背包" , min_x = 1020, min_y = 46, max_x = 1090, max_y = 70}) then
                     if have_roman_number() then
@@ -4385,7 +4385,7 @@ local custom_nodes = {
                     return bret.RUNNING
                 end
                 local npc_names = is_have_active_npc(range_info)
-                if npc_names and not string.find(name.name_utf8, '沙漠') then
+                if npc_names and not string.find(npc_names.name_utf8, '沙漠') then
                     env.npc_names = npc_names
                     return bret.SUCCESS
                 end
@@ -4403,27 +4403,24 @@ local custom_nodes = {
             if self.last_click_time == nil then
                 poe2_api.dbgp("[The_Interactive_Npc_Exist]初始化")
                 self.last_click_time = 0
-                self.click_cooldown = 1
+                self.click_cooldown = 1000
             end
             local npc_names = env.npc_names
             local player_info = env.player_info
-            local text = { "追尋巨獸的蹤跡" }
             if npc_names and string.find(player_info.current_map_name_utf8, "town") then
                 local distance = poe2_api.point_distance(npc_names.grid_x, npc_names.grid_y, player_info)
-                env.interaction_object = npc_names.name_utf8
                 local point = api_FindNearestReachablePoint(npc_names.grid_x, npc_names.grid_y, 15, 0)
                 if distance <= 25 then
+                    poe2_api.dbgp("[The_Interactive_Npc_Exist]找到城镇任务npc:", npc_names.name_utf8)
                     if poe2_api.find_text({ UI_info = env.UI_info, text = npc_names.name_utf8 }) then
                         if self.last_click_time == 0 then
                             self.last_click_time = api_GetTickCount64()
                         end
                         if api_GetTickCount64() - self.last_click_time > self.click_cooldown then
-                            for _, t in ipairs(text) do
-                                if poe2_api.find_text({ UI_info = env.UI_info, text = t }) then
-                                    poe2_api.find_text({ UI_info = env.UI_info, text = t, click = 2 })
-                                end
+                            if poe2_api.find_text({ UI_info = env.UI_info, text = "再會", refresh = true }) then
+                                poe2_api.dbgp("打开Npc对话选项")
+                                return bret.FAIL
                             end
-                            poe2_api.find_text({ UI_info = env.UI_info, text = "再會", click = 2 })
                             poe2_api.find_text({ UI_info = env.UI_info, text = npc_names.name_utf8, click = 2 })
                             self.last_click_time = 0
                         end
@@ -4675,6 +4672,10 @@ local custom_nodes = {
                     local main_quest = task.MainQuestName_utf8
                     local sub_quest = task.SubQuestState_utf8
                     local dec_quest = task.QuestDescription_utf8
+                    if not main_quest then
+                        poe2_api.dbgp("[Query_Current_Task_Information]获取不到任务信息")
+                        return bret.RUNNING
+                    end
                     if not task_dict[main_quest] then
                         task_dict[main_quest] = {}
                     end
@@ -7774,9 +7775,9 @@ local custom_nodes = {
                 end
                 if poe2_api.find_text({ UI_info = env.UI_info, text = "獎勵", min_x = 100}) then
                     if not me_area ~= "G4_2" then
-                        poe2_api.find_text({ UI_info = env.UI_info, text = "獎勵", add_x = 50,add_y = 50 , click = 2 })
+                        poe2_api.find_text({ UI_info = env.UI_info, text = "獎勵", add_x = 100,add_y = 100 , click = 2 })
                     end
-                    poe2_api.find_text({ UI_info = env.UI_info, text = "獎勵", add_y = 50 , click = 2 })
+                    poe2_api.find_text({ UI_info = env.UI_info, text = "獎勵", add_y = 100 , click = 2 })
                     api_Sleep(500)
                     if poe2_api.find_text({UI_info = env.UI_info, text = "背包",  min_x = 1020, min_y = 46, max_x = 1090, max_y = 70}) then
                         if have_roman_number() then
@@ -9533,7 +9534,8 @@ local custom_nodes = {
 
                 local reward_click = { "任務獎勵", "獎勵" }
                 if poe2_api.find_text({ UI_info = env.UI_info, text = reward_click, min_x = 100 }) then
-                    poe2_api.find_text({ UI_info = env.UI_info, text = reward_click, min_x = 0, add_y = 50, click = 2 })
+                    poe2_api.dbgp("检测到奖励提示，将执行点击操作")
+                    poe2_api.find_text({ UI_info = env.UI_info, text = reward_click, min_x = 0, add_y = 100, click = 2 })
                     if poe2_api.find_text({ UI_info = env.UI_info, text = "背包" , min_x = 1020, min_y = 46, max_x = 1090, max_y = 70}) then
                         local point = poe2_api.get_space_point({ width = 2, height = 2, index = 1 })
                         if point then
