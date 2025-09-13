@@ -543,10 +543,10 @@
     ],
     "組隊設置": {
         "大號名": "king_qq",
+        "日志路径": "D:\\SteamLibrary\\steamapps\\common\\Path of Exile 2\\logs\\Client.txt",
         "職業": "戰士",
         "隊伍人數": 2,
-        "隊長名": "covIvoc",
-        "日志路径":"D:\\SteamLibrary\\steamapps\\common\\Path of Exile 2\\logs\\Client.txt"
+        "隊長名": "covIvoc"
     },
     "通貨交換設置": null
 }

@@ -4317,7 +4317,53 @@ _M.move_towards = function(start, end_pos, speed)
     
     return {new_x, new_y}
 end
-
+_M.check_task_map_without = function()
+    local task = api_GetQuestList(0)
+    local task_maps = my_game_info.task_maps
+    
+    if task then
+        -- 创建一个表来存储未完成的任务名称
+        local completed_tasks = {}
+        for _, k in ipairs(task) do
+            if k.SubQuestState_utf8 == "任務完成" then
+                completed_tasks[k.MainQuestName_utf8] = true
+            end
+        end
+        
+        local all_finished_tasks = {}  -- 用于存储所有已完成的任务
+        
+        for _, map_info in ipairs(task_maps) do
+            local map_name = map_info[1]
+            local tasks = map_info[2]
+            
+            -- 检查已完成的任务
+            local finished_tasks = {}
+            local unfinished_tasks1 = {}
+            
+            for _, task_name in ipairs(tasks) do
+                if completed_tasks[task_name] then
+                    table.insert(finished_tasks, task_name)
+                else
+                    table.insert(unfinished_tasks1, task_name)
+                end
+            end
+            
+            if #finished_tasks > 0 then
+                for _, task_name in ipairs(finished_tasks) do
+                    table.insert(all_finished_tasks, task_name)
+                end
+            end
+            
+            if #unfinished_tasks1 > 0 then
+                return map_name, all_finished_tasks  -- 返回元组 (map_name, all_finished_tasks)
+            end
+        end
+        
+        return nil, all_finished_tasks  -- 如果没有未完成的任务，返回 (nil, all_finished_tasks)
+    else
+        return nil, {}  -- 如果没有任务，返回 (nil, {})
+    end
+end
 -- 其他可能用到的API
 _M.get_current_time = function() return api_GetTickCount64() end
 
