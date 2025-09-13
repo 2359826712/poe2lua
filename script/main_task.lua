@@ -38,8 +38,8 @@ local main_task= {
         ["領取倫利的獎勵"] = {
             map_name = 'G1_town',
             interaction_object = {"倫利", "米勒的憐憫獎勵"},
-            grid_x = 386,
-            grid_y = 397,
+            grid_x = 396,
+            grid_y = 360,
             index = 8
         },
         ["穿過皆伐營地前往葛瑞爾林"] = {

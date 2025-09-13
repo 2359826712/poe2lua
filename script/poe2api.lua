@@ -1,5 +1,5 @@
 local _M = {} -- 主接口表
-local json = require 'json'
+local json = require 'script.lualib.json'
 local my_game_info = require 'script/my_game_info'
 local BD_data = require 'script/BD'
 
@@ -15,38 +15,87 @@ local CELL_WIDTH_max = 22  -- 超大仓库 每个格子宽度
 local CELL_HEIGHT_max = 22  -- 超大仓库 每个格子高度
 
 _M.point_distance = function(x, y, ac)
-    -- 检查 x, y 是否为有效数字
-    if type(x) ~= "number" or type(y) ~= "number" or type(x) == 0 or type(y) == 0 then
-        return nil -- 或者返回 nil，取决于你的需求
+    -- 检查参数有效性
+    if type(x) ~= "number" or type(y) ~= "number" then
+        _M.dbgp("检查参数有效性")
+        return nil
     end
-
-    -- 检查 ac 是否有效
-    if not ac then
-        return nil -- 如果 ac 是 nil，直接返回 0 或 nil
-    end
-
-    -- 确定玩家坐标
-    local player_x, player_y
+    
+    -- 获取参考坐标
+    local ref_x, ref_y = 0, 0
+    
     if type(ac) == "table" then
-        if _M.countTableItems(ac) < 3 then
-            player_x = ac[1] or 0 -- 如果 ac[1] 是 nil，默认 0
-            player_y = ac[2] or 0 -- 如果 ac[2] 是 nil，默认 0
+        -- 处理不同的表结构
+        if ac.grid_x and ac.grid_y then
+            -- 玩家信息表结构
+            ref_x = ac.grid_x or 0
+            ref_y = ac.grid_y or 0
+        elseif #ac >= 2 then
+            -- 数组结构 [x, y]
+            ref_x = ac[1] or 0
+            ref_y = ac[2] or 0
         else
-            player_x = ac.grid_x or 0 -- 如果 grid_x 不存在，默认 0
-            player_y = ac.grid_y or 0 -- 如果 grid_y 不存在，默认 0
+            -- 无效的表结构
+            _M.dbgp("无效的表结构")
+            return nil
         end
     else
-        player_x = ac.grid_x or 0 -- 如果 grid_x 不存在，默认 0
-        player_y = ac.grid_y or 0 -- 如果 grid_y 不存在，默认 0
+        if ac.grid_x and ac.grid_y then
+            -- 玩家信息表结构
+            ref_x = ac.grid_x or 0
+            ref_y = ac.grid_y or 0
+        else
+            -- ac 不是表，无法获取坐标
+            _M.dbgp("不是表，无法获取坐标")
+            return nil
+        end
     end
-
-    -- 计算距离
-    local dx = x - player_x
-    local dy = y - player_y
-
-    local distance = math.sqrt(dx * dx + dy * dy)
-
-    return distance or nil -- 确保返回值有效
+    
+    -- 检查坐标是否为有效数字
+    if type(ref_x) ~= "number" or type(ref_y) ~= "number" then
+        _M.dbgp("333")
+        return nil
+    end
+    
+    -- 情况1: 两个坐标完全相同
+    if x == ref_x and y == ref_y then
+        return 0  -- 完全相同，距离为0
+    end
+    
+    -- 情况2: 两个坐标不同但计算后距离为0（由于浮点数精度）
+    local dx = x - ref_x
+    local dy = y - ref_y
+    
+    -- 处理浮点数精度问题
+    local epsilon = 1e-10  -- 很小的阈值
+    
+    if math.abs(dx) < epsilon and math.abs(dy) < epsilon then
+        return 0  -- 实际距离接近0，视为相同坐标
+    end
+    
+    -- 计算欧几里得距离
+    local distance_squared = dx * dx + dy * dy
+    
+    -- 防止数学错误
+    if distance_squared < 0 then
+        _M.dbgp("111")
+        return nil
+    end
+    
+    local distance = math.sqrt(distance_squared)
+    
+    -- 再次检查浮点数精度（距离非常接近0）
+    if distance < epsilon then
+        return 0
+    end
+    
+    -- 确保返回有效数字
+    if type(distance) == "number" and distance >= 0 then
+        return distance
+    else
+        _M.dbgp("222")
+        return nil
+    end
 end
 
 -- 查找文本
@@ -603,7 +652,7 @@ _M.is_have_mos_boss = function(range_info, boss_list)
 
     BOSS_WHITELIST = {'多里亞尼'}
     MOB_BLACKLIST = {"惡魔", '複製體', "隱形", "複製之躰"}
-    rarity_list = {2, 3}
+    rarity_list = {3}
 
     for _, monster in ipairs(range_info) do
         if monster.is_selectable and not monster.is_friendly and monster.life > 0 and monster.name_utf8 and _M.table_contains(rarity_list, monster.rarity) then
@@ -875,34 +924,34 @@ _M.time_p = function(...)
     -- end
     
     -- 以下是原有的日志处理逻辑
-    local parts = {}
-    table.insert(parts, "*time_p* ")
+    -- local parts = {}
+    -- table.insert(parts, "*time_p* ")
     
-    -- 处理每个参数
-    for i, v in ipairs(args) do
-        local vType = type(v)
-        local formatted
+    -- -- 处理每个参数
+    -- for i, v in ipairs(args) do
+    --     local vType = type(v)
+    --     local formatted
         
-        if vType == "table" then
-            formatted = "{table} "..tostring(v)
-        elseif vType == "function" then
-            formatted = "{function} "..tostring(v)
-        elseif vType == "userdata" then
-            formatted = "{userdata} "..tostring(v)
-        elseif vType == "thread" then
-            formatted = "{thread} "..tostring(v)
-        else
-            formatted = tostring(v)
-        end
+    --     if vType == "table" then
+    --         formatted = "{table} "..tostring(v)
+    --     elseif vType == "function" then
+    --         formatted = "{function} "..tostring(v)
+    --     elseif vType == "userdata" then
+    --         formatted = "{userdata} "..tostring(v)
+    --     elseif vType == "thread" then
+    --         formatted = "{thread} "..tostring(v)
+    --     else
+    --         formatted = tostring(v)
+    --     end
         
-        table.insert(parts, formatted)
-    end
+    --     table.insert(parts, formatted)
+    -- end
     
-    -- 用制表符连接多个参数，并加上换行符
-    local formattedText = table.concat(parts, "\t") .. "\n"
+    -- -- 用制表符连接多个参数，并加上换行符
+    -- local formattedText = table.concat(parts, "\t") .. "\n"
     
-    -- 调用日志函数
-    api_Log(formattedText)
+    -- -- 调用日志函数
+    -- api_Log(formattedText)
     -- 或者使用标准print
     -- print(formattedText)
 end
@@ -1502,7 +1551,7 @@ _M.select_best_map_key = function(params)
     local inventory = params.inventory
     local click = params.click or 0
     local key_level_threshold = params.key_level_threshold
-    local type = params.type or 0
+    local type_map = params.type or 0
     local index = params.index or 0
     local score = params.score or 0
     local no_categorize_suffixes = params.no_categorize_suffixes or 0
@@ -1820,34 +1869,57 @@ _M.select_best_map_key = function(params)
     if key_level_threshold then
         -- _M.dbgp("处理钥匙等级阈值...")
         for _, user_map in ipairs(key_level_threshold) do
-            local levels = tonumber(user_map['階級'] or 0)
-            table.insert(level, levels)
-            if user_map['白'] then
-                if not _M.table_contains(white, levels) then
-                    table.insert(white, levels)
-                    -- _M.dbgp(string.format("添加白色钥匙等级: %d",
-                    --                            levels))
+            local tier_value = user_map['階級']
+            local level_list = {}
+            
+            -- 处理区间格式（如 "4-15"）
+            if type(tier_value) == "string" and string.find(tier_value, "-") then
+                local min_tier, max_tier = tier_value:match("(%d+)-(%d+)")
+                min_tier = tonumber(min_tier)
+                max_tier = tonumber(max_tier)
+                
+                if min_tier and max_tier then
+                    for t = min_tier, max_tier do
+                        table.insert(level_list, t)
+                    end
+                end
+            -- 处理单个数值
+            else
+                local tier_num = tonumber(tier_value)
+                if tier_num then
+                    table.insert(level_list, tier_num)
                 end
             end
-            if user_map['藍'] then
-                if not _M.table_contains(blue, levels) then
-                    table.insert(blue, levels)
-                    -- _M.dbgp(string.format("添加蓝色钥匙等级: %d",
-                    --                            levels))
+            
+            -- 为每个层级添加对应的配置
+            for _, lvl in ipairs(level_list) do
+                -- 这里需要根据您的实际需求调整，原来的 table.insert(level, levels) 可能有误
+                -- 假设是要将层级添加到某个总表中
+                table.insert(level, lvl)  -- 如果level是存储所有层级的表
+                
+                if user_map['白'] then
+                    if not _M.table_contains(white, lvl) then
+                        table.insert(white, lvl)
+                        -- _M.dbgp(string.format("添加白色钥匙等级: %d", lvl))
+                    end
                 end
-            end
-            if user_map['黃'] then
-                if not _M.table_contains(gold, levels) then
-                    table.insert(gold, levels)
-                    -- _M.dbgp(string.format("添加黄色钥匙等级: %d",
-                    --                            levels))
+                if user_map['藍'] then
+                    if not _M.table_contains(blue, lvl) then
+                        table.insert(blue, lvl)
+                        -- _M.dbgp(string.format("添加蓝色钥匙等级: %d", lvl))
+                    end
                 end
-            end
-            if user_map['已污染'] then
-                if not _M.table_contains(valls, levels) then
-                    table.insert(valls, levels)
-                    -- _M.dbgp(string.format("添加污染钥匙等级: %d",
-                    --                            levels))
+                if user_map['黃'] then
+                    if not _M.table_contains(gold, lvl) then
+                        table.insert(gold, lvl)
+                        -- _M.dbgp(string.format("添加黄色钥匙等级: %d", lvl))
+                    end
+                end
+                if user_map['已污染'] then
+                    if not _M.table_contains(valls, lvl) then
+                        table.insert(valls, lvl)
+                        -- _M.dbgp(string.format("添加污染钥匙等级: %d", lvl))
+                    end
                 end
             end
         end
@@ -2094,12 +2166,12 @@ _M.select_best_map_key = function(params)
                 _M.ctrl_left_click(pos[1], pos[2])
                 return _M.extract_key_level(best_key.baseType_utf8 or "未知")
             end
-            if type == 1 then
+            if type_map == 1 then
                 -- _M.api_print(11111111111111)
                 _M.ctrl_left_click_store_items(best_key.obj or nil, inventory)
                 return _M.extract_key_level(best_key.baseType_utf8 or "未知")
             end
-            if type == 3 then
+            if type_map == 3 then
                 _M.return_more_map(best_key.obj or nil, inventory, START_X, START_Y)
                 return _M.extract_key_level(best_key.baseType_utf8 or "未知")
             end
@@ -3085,11 +3157,31 @@ _M.process_void_maps = function(map_cfg)
         local tier = config['階級']
 
 
-        -- 建立层级索引
-        if not tier_index[tier] then
-            tier_index[tier] = {}
+        -- 处理区间格式（如 "4-15"）
+        if type(tier) == "string" and string.find(tier, "-") then
+            local min_tier, max_tier = tier:match("(%d+)-(%d+)")
+            min_tier = tonumber(min_tier)
+            max_tier = tonumber(max_tier)
+            
+            if min_tier and max_tier then
+                -- 为区间内的每个层级创建索引
+                for t = min_tier, max_tier do
+                    if not tier_index[t] then
+                        tier_index[t] = {}
+                    end
+                    table.insert(tier_index[t], config)
+                end
+            end
+        -- 处理单个数值
+        else
+            local tier_num = tonumber(tier)
+            if tier_num then
+                if not tier_index[tier_num] then
+                    tier_index[tier_num] = {}
+                end
+                table.insert(tier_index[tier_num], config)
+            end
         end
-        table.insert(tier_index[tier], config)
 
 
         -- 建立复合索引
@@ -3681,6 +3773,10 @@ _M.extract_level = function(text)
     if level then
         return tonumber(level)  -- 转换为数字
     end
+    local level = text:match("等級%s*(%d+)")
+    if level then
+        return tonumber(level)  -- 转换为数字
+    end
     return nil
 end
 
@@ -3804,10 +3900,13 @@ _M.match_item = function(item, cfg, index)
                 return false
             end    
         end
-    elseif _M.table_contains(item.category_utf8,{'UncutSkillGem', 'UncutReservationGem','UncutSupportGem'}) then 
+    elseif _M.table_contains(item.category_utf8,{'UncutSkillGemStackable', 'UncutReservationGemStackable','UncutSupportGemStackable'}) then 
+        local skill_level = _M.extract_level(item.baseType_utf8)
+        -- _M.dbgp("skill_level: ",skill_level)
+        -- api_Sleep(100000)
         if item_type == "exact" then
             local item_level = level.value
-            if item.skillGemLevel < item_level or item.skillGemLevel > item_level then
+            if skill_level < item_level or skill_level > item_level then
                 -- _M.dbgp("宝石精确等级不匹配1")
                 return false
             end
@@ -3815,18 +3914,18 @@ _M.match_item = function(item, cfg, index)
             local min_level = level.min
             local max_level = level.max
             if index then
-                if item.category == 'UncutSkillGem' then
-                    if item.skillGemLevel < 2 or item.skillGemLevel > max_level then
+                if item.category == 'UncutSkillGemStackable' then
+                    if skill_level < 2 or skill_level > max_level then
                         return false
                     end
                 else
-                    if item.skillGemLevel < min_level or item.skillGemLevel > max_level then
+                    if skill_level < min_level or skill_level > max_level then
                         -- _M.dbgp("宝石等级不匹配1")
                         return false
                     end 
                 end
             else  
-                if item.skillGemLevel < min_level or item.skillGemLevel > max_level then
+                if skill_level < min_level or skill_level > max_level then
                     -- _M.dbgp("宝石等级不匹配1")
                     return false
                 end    
@@ -3932,6 +4031,33 @@ _M.party_pos = function(name,team_info)
         end
     end
     return nil
+end
+
+-- biao
+_M.has_common_element = function(t1, t2)
+    -- 类型检查（当前实现）
+    if t1 == nil or t2 == nil or type(t1) ~= "table" or type(t2) ~= "table" then
+        return false
+    end
+    
+    -- 优化：如果其中一个表为空，直接返回false
+    if #t1 == 0 or #t2 == 0 then
+        return false
+    end
+    
+    -- 优化：使用哈希表提高查找效率（对于较大的表）
+    local lookup = {}
+    for _, v in ipairs(t1) do
+        lookup[v] = true
+    end
+    
+    for _, v in ipairs(t2) do
+        if lookup[v] then
+            return true
+        end
+    end
+    
+    return false
 end
 
 -- 获取指定text的物品排序
