@@ -2196,13 +2196,19 @@ end
 -- 粘贴输入文本
 _M.paste_text = function(text)
     api_SetClipboard(text)
-    api_Sleep(100)
+    api_Sleep(200)
     _M.click_keyboard("ctrl", 1)
-    api_Sleep(100)
+    api_Sleep(200)
     _M.click_keyboard("a", 0)
-    api_Sleep(100)
+    api_Sleep(200)
+    _M.click_keyboard("ctrl", 2)
+    api_Sleep(200)
+    _M.click_keyboard("backspace")
+    api_Sleep(200)
+    _M.click_keyboard("ctrl", 1)
+    api_Sleep(200)
     _M.click_keyboard("v", 0)
-    api_Sleep(100)
+    api_Sleep(200)
     _M.click_keyboard("ctrl", 2)
 end
 

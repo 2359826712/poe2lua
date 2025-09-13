@@ -268,6 +268,104 @@
 -- - requiredMapLevel: 所需地图等级
 -- - mapPlayModes: 游戏模式数组（索引从1开始）
 
+--[[
+============================================================
+ SkillMonitor Lua API 简易说明文档
+============================================================
+
+
+1. api_IsPointInAnyActive(gx, gy [, expand])
+   功能：
+       判定某个格子是否处于当前「未过期技能」的覆盖范围内。
+   参数：
+       gx (int)          - 网格坐标 X
+       gy (int)          - 网格坐标 Y
+       expand (float?)   - 可选，判定范围扩展，默认 2.0
+   返回：
+       bool              - true 表示危险，false 表示安全
+
+
+   示例：
+       if api_IsPointInAnyActive(100, 200, 1.0) then
+           print("当前位置危险！")
+       end
+
+
+------------------------------------------------------------
+
+
+2. api_FindNearestSafeTile(playerX, playerY [, searchRadius, aoeExpand])
+   功能：
+       在玩家附近寻找最近的可站立安全点。
+       条件：必须不是障碍，且不在任何「未过期技能」范围内。
+   参数：
+       playerX (int)     - 玩家所在格 X
+       playerY (int)     - 玩家所在格 Y
+       searchRadius (int?)- 可选，搜索半径，默认 50
+       aoeExpand (float?)- 可选，AoE 扩展，默认 2.0
+   返回：
+       table { x = int, y = int } - 安全点坐标
+
+
+   示例：
+       local safe = api_FindNearestSafeTile(120, 250, 30, 1.5)
+       print("安全点:", safe.x, safe.y)
+
+
+------------------------------------------------------------
+
+
+3. api_RegisterCircle(name, centerX, centerY, radius [, offsetX, offsetY, defaultTTL])
+   功能：
+       注册一个「圆形技能」的默认属性（只有注册过的技能才会被监测）。
+   参数：
+       name (wstring)    - 技能名
+       centerX, centerY  - 默认圆心坐标
+       radius (float)    - 半径（格）
+       offsetX, offsetY? - 可选，偏移，默认 0
+       defaultTTL? (sec) - 可选，默认存活时长，<=0 表示永久
+   返回：
+       bool              - 是否注册成功
+
+
+------------------------------------------------------------
+
+
+4. api_RegisterSector(name, centerX, centerY, angleRad, fovDeg, radius [, offsetX, offsetY, defaultTTL])
+   功能：
+       注册一个「扇形技能」的默认属性。
+   参数：
+       name (wstring)    - 技能名
+       centerX, centerY  - 默认顶点坐标
+       angleRad (float)  - 朝向角（弧度，逆时针 [0,2π)）
+       fovDeg (float)    - 总张角（度，例如 40 表示 40°）
+       radius (float)    - 半径（格）
+       offsetX, offsetY? - 可选，偏移，默认 0
+       defaultTTL? (sec) - 可选，默认存活时长，<=0 表示永久
+   返回：
+       bool              - 是否注册成功
+
+
+------------------------------------------------------------
+
+
+5. api_RegisterRect(name, centerX, centerY, angleRad, length, width [, offsetX, offsetY, defaultTTL])
+   功能：
+       注册一个「矩形技能」的默认属性。
+   参数：
+       name (wstring)    - 技能名
+       centerX, centerY  - 默认几何中心坐标
+       angleRad (float)  - 朝向角（弧度）
+       length (float)    - 长度（格）
+       width (float)     - 宽度（格）
+       offsetX, offsetY? - 可选，偏移，默认 0
+       defaultTTL? (sec) - 可选，默认存活时长，<=0 表示永久
+   返回：
+       bool              - 是否注册成功
+
+
+============================================================
+--]]
 
 -- ---------------------------- 全局数组类型 ----------------------------
 -- Actors 周围对象数组

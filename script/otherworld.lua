@@ -2,10 +2,10 @@ package.path = package.path .. ';./path/to/module/?.lua'
 
 -- 根据otherworld.json实现的完整行为树系统
 package.path = package.path .. ';lualib/?.lua'
-local behavior_tree = require 'lualib.behavior3.behavior_tree'
-local bret = require 'lualib.behavior3.behavior_ret'
+local behavior_tree = require 'script.lualib.behavior3.behavior_tree'
+local bret = require 'script.lualib.behavior3.behavior_ret'
 -- 加载基础节点类型
-local base_nodes = require 'lualib.behavior3.sample_process'
+local base_nodes = require 'script.lualib.behavior3.sample_process'
 local my_game_info = require 'script/my_game_info'
 
 local script_path = debug.getinfo(1, "S").source:sub(2)
@@ -13,14 +13,14 @@ local path = script_path:gsub("/", "\\")
 local script_dir = path:match("(.*\\)(.*)\\")
 local json_path = script_dir .. "config.json"
 local user_info_path = script_dir .. "config.ini"
-local json = require 'json'
+local json = require 'script.lualib.json'
 
 api_Log("清除 poe2api 模块的缓存")
 package.loaded['script/poe2api'] = nil
 package.loaded['json'] = nil
 
 local poe2_api = require "script/poe2api"
-local json = require 'json'
+local json = require 'script.lualib.json'
 
 -- 自定义节点实现
 local custom_nodes = {
@@ -91,6 +91,8 @@ local custom_nodes = {
                 env.dist_ls = config["刷圖設置"]['異界地圖索引']["涂油设置"] or {}
                 -- 更新地图相关设置（添加空值保护）
                 env.user_map = (config["刷圖設置"] or {})["地圖鑰匙"] or ""
+                -- poe2_api.printTable(env.user_map)
+                -- api_Sleep(100000)
                 env.not_use_map = (config['刷圖設置'] or {})["不打地圖詞綴"] or {}
                 env.priority_map = (config["刷圖設置"] or {})["優先打地圖詞綴"] or {}
                 env.not_enter_map = (config["刷圖設置"] or {})["不打地圖名"] or {}
@@ -180,6 +182,7 @@ local custom_nodes = {
                 local min_distance = math.huge  -- 初始化为一个很大的数
 
                 for _, v in pairs(skill_config) do 
+                    -- if v["启用"] and v["技能屬性"] == "攻击技能" and (v["白怪"] or v["藍怪"] or v["黃怪"] or v["Boss"]) then
                     if v["启用"] and v["技能屬性"] == "攻击技能" and (v["白怪"] or v["藍怪"] or v["黃怪"]) then
                         if v["攻擊距離"] < min_distance then
                             min_distance = v["攻擊距離"]
@@ -187,13 +190,18 @@ local custom_nodes = {
                     end
                 end
 
+                -- 边走边释放技能
+                -- env.walk_attack = env.user_config["全局設置"]["刷图通用設置"]["边走边释放技能"] or false
+
                 -- 如果没有找到符合条件的技能，设置默认值
                 if min_distance == math.huge then
                     min_distance = 100  -- 默认攻击距离
-                    print("警告：未找到符合条件的攻击技能，使用默认攻击距离：" .. min_distance)
+                    -- print("警告：未找到符合条件的攻击技能，使用默认攻击距离：" .. min_distance)
                 end
 
                 env.min_attack_dis = min_distance
+                -- poe2_api.dbgp("env.min_attack_dis ==>>", env.min_attack_dis)
+                -- api_Sleep(1000000)
 
                 -- 加载躲避技能
 
@@ -201,13 +209,27 @@ local custom_nodes = {
                     self.open_mos_skill = true
                     local skills = config["全局設置"]["刷图通用設置"]["是否躲避技能"]
                     if skills then
-                        for _,k in ipairs(my_game_info.MonitoringSkills) do
-                            api_AddMonitoringSkills(k[1] , k[2] , k[3])
+                        -- 圆形
+                        for _,k in ipairs(my_game_info.MonitoringSkills_Circle) do
+                            -- poe2_api.dbgp(k[2])
+                            api_RegisterCircle(k[2] , k[3])
+                        end
+
+                        -- 扇形
+                        for _,k in ipairs(my_game_info.MonitoringSkills_Sector) do
+                            -- poe2_api.dbgp(k[2])
+                            api_RegisterSector(k[1] , 0, k[2], k[3])
+                        end
+
+                        -- 矩形
+                        for _,k in ipairs(my_game_info.MonitoringSkills_Rect) do
+                            -- poe2_api.dbgp(k[2])
+                            api_RegisterRect(k[1] , k[2], k[3])
                         end
                     end
                     -- # 高傷害技能
                     for _,k in ipairs(my_game_info.High_Damage_Skill) do
-                        api_AddMonitoringSkills(k[1] , k[2] , k[3])
+                        api_RegisterCircle(k[2] , k[3], 2)
                     end
                 end
 
@@ -216,6 +238,13 @@ local custom_nodes = {
                 env.follow_move = config["全局設置"]["跟随设置"]["是否開啟"] or false
             end
             poe2_api.time_p("Get_User_Config_Info... 耗时 --> ", api_GetTickCount64() - start_time)
+
+            -- while true do
+            --     Actors:Update() 
+            --     api_Sleep(100)
+            --     return bret.RUNNING
+            -- end
+
             return bret.SUCCESS
         end
     },
@@ -831,8 +860,8 @@ local custom_nodes = {
                 return bret.RUNNING
             end
             -- poe2_api.dbgp("------------------")
-            -- poe2_api.printTable(a)
-            -- api_Sleep(4000)
+            -- -- poe2_api.printTable(a)
+            -- -- api_Sleep(4000)
             -- for _,k in ipairs(env.UI_info) do
             --     -- poe2_api.printTable(env.UI_info)
             --     -- if k.left > 977 
@@ -857,20 +886,58 @@ local custom_nodes = {
             local start_time = api_GetTickCount64() -- 开始时间
 
             local player_info_start_time = api_GetTickCount64()
+            -- api_Log("+++++++++++++++++++++++++++++++++++++++++++++")
             env.player_info = api_GetLocalPlayer()
+            local player_info_start_time = api_GetTickCount64()  -- 记录开始时间(毫秒)
+
+            -- if not self.player_info_last_check then
+            --     self.player_info_last_check = player_info_start_time
+            -- end
+            -- if player_info_start_time - self.player_info_last_check > 5 or not env.player_info then 
+            --     env.player_info = api_GetLocalPlayer()
+            --     self.player_info_last_check = player_info_start_time
+            --     -- if #env.player_info < 1 then
+            --         -- poe2_api.dbgp("等待获取周围对象信息...")
+            --     --     return bret.RUNNING
+            --     -- end
+            --     -- poe2_api.time_p("    获取周围对象信息... 耗时 --> ", api_GetTickCount64() - range_info_start_time)
+            -- end
             -- poe2_api.printTable(env.player_info)
             -- api_Sleep(10000)
+            
+            -- api_Log(env.player_info.grid_x)
+            -- api_Log(env.player_info.grid_y)
+            -- poe2_api.dbgp("player——pos ==>>", env.player_info.grid_x, env.player_info.grid_y)
+            -- poe2_api.dbgp("=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=")
+            -- return bret.RUNNING
             if poe2_api.countTableItems(env.player_info) < 1 then
                 poe2_api.dbgp("空人物信息")
                 return bret.RUNNING
             end
             poe2_api.time_p("    获取人物信息... 耗时 --> ", api_GetTickCount64() - player_info_start_time)
+            -- poe2_api.printTable(env.player_info)
+            -- api_Sleep(10000000)
+            -- bools = api_IsPointInAnyActive(env.player_info.grid_x, env.player_info.grid_y)
+            -- poe2_api.dbgp("api_IsPointInAnyActive -->> ", bools)
+            -- point = api_FindNearestSafeTile(env.player_info.grid_x, env.player_info.grid_y, 60)
+            -- poe2_api.dbgp("api_FindNearestSafeTile -->> ", point.x, point.y)
+            -- api_RegisterCircle("Metadata/Effects/Spells/monsters_effects/Act1_FOUR/FungalArtillery/ao/fungal_ground.ao", 20, 5)
+            -- api_ClickMove(point.x, point.y, env.player_info.wolrd_z, 7)
+            -- poe2_api.click_keyboard("space")
+            -- if 0 < 1 then
+            --     -- poe2_api.dbgp("")
+            --     return bret.RUNNING
+            -- end
+
+            poe2_api.dbgp("死亡次数统计：", (env.death_times or 0))
+            poe2_api.dbgp("开图次数统计：", (env.enter_map_times or 0))
+
 
             local range_info_start_time = api_GetTickCount64()  -- 记录开始时间(毫秒)
             if not self.last_check then
                 self.last_check = range_info_start_time
             end
-            if range_info_start_time - self.last_check > 10 or not env.range_info or #env.range_info < 1 then 
+            if range_info_start_time - self.last_check > 5 or not env.range_info or #env.range_info < 1 then 
                 env.range_info = Actors:Update()
                 self.last_check = range_info_start_time
                 if #env.range_info < 1 then
@@ -960,12 +1027,19 @@ local custom_nodes = {
 
             -- 测试函数
             local function dumprange(inventory)
+                -- inventory = poe2_api.get_sorted_list(inventory, env.player_info)
                 for _, item in ipairs(inventory) do
                     
-                    -- if item.name_utf8 == "" or item.life == 0 or not item.isActive then
+                    if item.name_utf8 == "" or item.life == 0 or not item.isActive then
+                        goto continue
+                    end
+                    -- if item.name_utf8 == "" or item.life == 0 then
                     --     goto continue
                     -- end
-                    -- if item.name_utf8 == "" or item.life == 0 then
+                    -- if item.life == 0 then
+                    --     goto continue
+                    -- end
+                    -- if item.type ~= 1 then
                     --     goto continue
                     -- end
                     -- if item.name_utf8 == "" then
@@ -978,10 +1052,13 @@ local custom_nodes = {
                     --     api_Log(string.format("%-25s: %s", field, tostring(value)))
                     -- end
                     poe2_api.printTable(item)
-                    
-                    -- api_ClickMove(item.grid_x, item.grid_y,0)
+                    -- api_Log("====")
+                    -- poe2_api.printTable(env.player_info)
+                    dis1 = poe2_api.point_distance(item.grid_x, item.grid_y, {env.player_info.grid_x, env.player_info.grid_y})
+                    api_ClickMove(item.grid_x, item.grid_y,0)
+                    api_Log("dis-->>", dis1)
                     -- GameCore_CastSkill(2231369792, item.id, 0, 0, 0, 0)
-                    api_CastSkill(2231369792, 0, env.player_info.grid_x, env.player_info.grid_y, item.grid_x, item.grid_y)
+                    -- api_CastSkill(2231369792, 0, env.player_info.grid_x, env.player_info.grid_y, item.grid_x, item.grid_y)
                     api_Sleep(1000)
                     
                     api_Log("----------------------------------")
@@ -996,14 +1073,9 @@ local custom_nodes = {
             -- poe2_api.printTable(api_GetSkillSlots())
 
             -- id, title, progress, is_completed, rewards
-            -- for _,i in ipairs(api_GetQuestList(1)) do
-            --     poe2_api.dbgp("------------------")
-            --     poe2_api.dbgp(i.id)
-            --     poe2_api.dbgp(i.title)
-            --     poe2_api.dbgp(i.progress)
-            --     poe2_api.dbgp(i.is_completed)
-            --     poe2_api.dbgp(i.rewards)
-            -- end
+            for _,i in ipairs(api_GetQuestList(0)) do
+                poe2_api.printTable(i)
+            end
             -- poe2_api.printTable(api_GetTeamInfo())
             -- for _,i in ipairs(api_GetTeamInfo()) do
             --     poe2_api.dbgp("------------------")
@@ -1016,7 +1088,11 @@ local custom_nodes = {
             -- 调用函数
             -- dumpInventory(env.range_items)
             -- dumprange(env.range_info)
-            -- api_Sleep(10000)
+            -- poe2_api.dbgp("--=================================================----")
+            -- -- api_Sleep(10000)
+            -- while true do
+            --     api_Sleep(1000)
+            -- end
 
             if self.wear_items == nil then
                 self.wear_items = true
@@ -1284,7 +1360,7 @@ local custom_nodes = {
             end
             -- 超时判断（10次点击约15秒）
             if self.error_kill_start_time and (current_time - self.error_kill_start_time) > 30*1000 then
-                print("小退超时")
+                -- print("小退超时")
                 env.error_kill = true
                 self.error_kill_start_time = nil  -- 重置计时器
                 env.need_SmallRetreat = false
@@ -1532,8 +1608,6 @@ local custom_nodes = {
             local config = env.user_config
             local player_info = env.player_info
             
-            
-
             --- 辅助函数
             -- 检查是否处于停滞移动状态
             local function _check_stagnant_movement()
@@ -1605,7 +1679,7 @@ local custom_nodes = {
                     return false
                 end
 
-                poe2_api.dbgp(string.format("检查 %d 个范围内的对象", #sorted_range))
+                -- poe2_api.dbgp(string.format("检查 %d 个范围内的对象", #sorted_range))
                 
                 -- 遍历查找符合条件的对象
                 for _, obj in ipairs(sorted_range) do
@@ -1671,13 +1745,25 @@ local custom_nodes = {
             -- 获取配置参数
             local no_exp_to_town = config['全局設置']['異常處理']['沒有經驗回城']['是否開啟']
             local no_exp_to_town_time = config['全局設置']['異常處理']['沒有經驗回城']['閾值'] * 60 * 1000
+            if not no_exp_to_town then
+                no_exp_to_town = true
+                no_exp_to_town_time = 5 * 60 * 1000
+            end
+
             local no_exp_to_change = config['全局設置']['異常處理']['沒有經驗小退']['是否開啟']
             local no_exp_to_change_time = config['全局設置']['異常處理']['沒有經驗小退']['閾值'] * 60 * 1000
 
             local no_move_to_town = config['全局設置']['異常處理']['不動回城']['是否開啟']
             local no_move_to_town_time = config['全局設置']['異常處理']['不動回城']['閾值'] * 1000
+            if not no_move_to_town then
+                no_move_to_town = true
+                no_move_to_town_time = 3 * 60 * 1000
+            end
+
             local no_move_to_change = config['全局設置']['異常處理']['不動小退']['是否開啟']
             local no_move_to_change_time = config['全局設置']['異常處理']['不動小退']['閾值'] * 1000
+
+
 
             -- 经验增长时重置状态
             if player_info.currentExperience ~= env.last_exp_value then
@@ -1821,13 +1907,13 @@ local custom_nodes = {
                     real_stagnation_time, real_stagnation_time_move))
                 
                 -- 优先级：回城 > 小退
-                if real_stagnation_time > no_exp_to_change_time then
-                    env.is_map_complete = true
-                    env.need_SmallRetreat = true
-                    poe2_api.dbgp("触发小退条件")
+                -- if real_stagnation_time > no_exp_to_change_time and  then
+                --     env.is_map_complete = true
+                --     env.need_SmallRetreat = true
+                --     poe2_api.dbgp("触发小退条件")
                     
-                    return bret.SUCCESS
-                end
+                --     return bret.SUCCESS
+                -- end
                 
                 if (trigger_town and no_exp_to_town) or (trigger_town_move and no_move_to_town) then
                     if not poe2_api.table_contains(my_game_info.hideout, player_info.current_map_name_utf8) then
@@ -1886,7 +1972,7 @@ local custom_nodes = {
                     poe2_api.time_p("Is_Deth_Otherworld(RUNNING)... 耗时 --> ", api_GetTickCount64() - start_time)
                     return bret.RUNNING
                 end
-                    
+                env.death_times = (env.death_times or 0) + 1
                 -- api_ClickScreen(point[1], point[2], 0)
                 -- api_Sleep(1000)
                 -- api_ClickScreen(point[1], point[2], 1)
@@ -2300,6 +2386,77 @@ local custom_nodes = {
                 if item and next(item) then
                     local width = item[1].end_x - item[1].start_x
                     local height = item[1].end_y - item[1].start_y
+                    local item_category = {"One Hand Mace","Two Hand Mace","Warstaff","Wand","Staff","Crossbow","Sceptre","Bow",
+                    "Body Armour","Helmet","Gloves","Boots","Shield","Quiver","Focus","Amulet","Belt","Ring","Spear","Buckler"}
+                    if poe2_api.table_contains(item[1].category_utf8,item_category) then
+                        poe2_api.dbgp("检测到物品，将执行点击操作111111")
+                        local index_list ={2,3,4,5,6,7,8,9,0xa,0xb}
+                        local point_list = {
+                            [2] = {1320,250},
+                            [3] = {1151,191},
+                            [4] = {1493,191},
+                            [5] = {1322,133},
+                            [6] = {1410,201},
+                            [7] = {1237,255},
+                            [8] = {1410,255},
+                            [9] = {1213,330},
+                            [0xa] = {1431,330},
+                            [0xb] = {1322,353},
+                        }
+                        local point = nil
+                        for _, v in ipairs(index_list) do
+                            if poe2_api.table_contains(v,{10,11}) then
+                                v = string.format("0x%x", v)
+                            end
+                            local item_player = env["item"..v]
+                            if item_player and next(item_player) then
+                                if item[1].baseType_utf8 == item_player[1].baseType_utf8 
+                                and item[1].DemandStrength == item_player[1].DemandStrength
+                                and item[1].DemandAgility == item_player[1].DemandAgility
+                                and item[1].DemandWisdom == item_player[1].DemandWisdom
+                                and item[1].DemandLevel == item_player[1].DemandLevel
+                                and item[1].not_identified == item_player[1].not_identified
+                                and item[1].category_utf8 == item_player[1].category_utf8
+                                and item[1].color == item_player[1].color then
+                                    local current_item = api_Getinventorys(v,0)
+                                    if current_item and next(current_item) then
+                                        if current_item[1].baseType_utf8 == item_player[1].baseType_utf8 
+                                        and current_item[1].DemandStrength == item_player[1].DemandStrength
+                                        and current_item[1].DemandAgility == item_player[1].DemandAgility
+                                        and current_item[1].DemandWisdom == item_player[1].DemandWisdom
+                                        and current_item[1].DemandLevel == item_player[1].DemandLevel
+                                        and current_item[1].not_identified == item_player[1].not_identified
+                                        and current_item[1].category_utf8 == item_player[1].category_utf8
+                                        and current_item[1].color == item_player[1].color then
+                                        else
+                                            point = point_list[v]
+                                            break
+                                        end
+                                    else
+                                        point = point_list[v]
+                                        break
+                                    end
+                                end
+                            else
+                                point = point_list[v]
+                                break
+                            end
+                        end
+                        if point then
+                            if poe2_api.find_text({text = "背包",UI_info = env.UI_info, min_x = 1020,min_y=32,max_x=1600,max_y=81}) then
+                                api_ClickScreen(poe2_api.toInt(point[1]),poe2_api.toInt(point[2]),1)
+                                api_Sleep(500)
+                                poe2_api.time_p("开背包,城区附着... 耗时 --> ", api_GetTickCount64() - strat_time)
+                                return bret.RUNNING
+                            else
+                                poe2_api.dbgp("开背包,城区附着")
+                                poe2_api.click_keyboard("i")
+                                api_Sleep(300)
+                                poe2_api.time_p("开背包,城区附着1... 耗时 --> ", api_GetTickCount64() - strat_time)
+                                return bret.RUNNING
+                            end
+                        end
+                    end
                     local point = poe2_api.get_space_point({width = width, height = height, info = env.bag_info})
                     
                     poe2_api.dbgp(string.format("物品尺寸: 宽%d, 高%d", width, height))
@@ -2902,13 +3059,13 @@ local custom_nodes = {
 
                     local interactive_npc = nil
                     local interactive_text = nil
-                    if env.player_info.current_map_name_utf8 == "G_Endgame_Town" then
-                        interactive_npc = "時間建造者．凱亞祖利"
-                        interactive_text = "時間建造者．凱亞祖利 的物品"
-                    else
-                        interactive_npc = "佐林"
-                        interactive_text = "佐林 的物品"
-                    end
+                    -- if env.player_info.current_map_name_utf8 == "G_Endgame_Town" then
+                    --     interactive_npc = "時間建造者．凱亞祖利"
+                    --     interactive_text = "時間建造者．凱亞祖利 的物品"
+                    -- else
+                    interactive_npc = "佐林"
+                    interactive_text = "佐林 的物品"
+                    -- end
 
                     if not poe2_api.find_text({UI_info = env.UI_info, text = interactive_text, min_x = 0}) then
                         env.interactive = interactive_npc
@@ -3529,7 +3686,7 @@ local custom_nodes = {
                         -- 取出地图
                         if next(re_map)then
                             poe2_api.dbgp("取出地图")
-                            poe2_api.find_text({UI_info = env.UI_info, text = "滴注中",add_y = 134,min_x = 0,click = 4})
+                            poe2_api.find_text({UI_info = env.UI_info, text = "滴注中",add_y = 134,min_x = 0,click = 4, refresh = true})
                             api_Sleep(300)
                             return bret.RUNNING
                         end
@@ -3921,6 +4078,18 @@ local custom_nodes = {
                 poe2_api.time_p("打开仓库（RUNNING4）... 耗时 --> ", api_GetTickCount64() - start_time)
                 return bret.RUNNING
             end
+            if poe2_api.find_text({text="重組",UI_info=env.UI_info,min_x=200,max_x=1200}) then
+                poe2_api.click_keyboard('space')
+                api_Sleep(500)
+                poe2_api.time_p("打开仓库（RUNNING4）... 耗时 --> ", api_GetTickCount64() - start_time)
+                return bret.RUNNING
+            end
+            if poe2_api.find_text({text="回收具有品質或插槽的裝備，以獲得品質通貨和工匠碎片",UI_info=env.UI_info,min_x=200,max_x=1200}) then
+                poe2_api.click_keyboard('space')
+                api_Sleep(500)
+                poe2_api.time_p("打开仓库（RUNNING4）... 耗时 --> ", api_GetTickCount64() - start_time)
+                return bret.RUNNING
+            end
             poe2_api.find_text({text = "再會",UI_info = env.UI_info,click =2,min_x=0})
             if poe2_api.find_text({text = {'重鑄台'}, UI_info=env.UI_info,min_x=0}) and poe2_api.find_text({text = '摧毀三個相似的物品，重鑄為一個新的物品', UI_info=env.UI_info,min_x=0}) then
                 poe2_api.click_keyboard('space')
@@ -4236,7 +4405,7 @@ local custom_nodes = {
                     pages = api_GetRepositoryPages(1)
                 end
             else
-                poe2_api.api_print("【倉庫類型】 错误！")
+                -- poe2_api.api_print("【倉庫類型】 错误！")
                 return bret.FAIL
             end
             
@@ -4411,7 +4580,7 @@ local custom_nodes = {
     
                     -- 取出地图
                     if next(api_Getinventorys(0x26,0)) then
-                        poe2_api.find_text({UI_info = env.UI_info, text = "滴注中",add_y = 134,min_x = 0,click = 4})
+                        poe2_api.find_text({UI_info = env.UI_info, text = "滴注中",add_y = 134,min_x = 0,click = 4, refresh = true})
                         api_Sleep(300)
                         return bret.RUNNING
                     end
@@ -4542,7 +4711,7 @@ local custom_nodes = {
             
             -- 取出地图
             if next(api_Getinventorys(0x26,0))then
-                poe2_api.find_text({UI_info = env.UI_info, text = "滴注中",add_y = 134,min_x = 0,click = 4})
+                poe2_api.find_text({UI_info = env.UI_info, text = "滴注中",add_y = 134,min_x = 0,click = 4, refresh = true})
                 api_Sleep(300)
                 return bret.RUNNING
             end
@@ -5604,6 +5773,7 @@ local custom_nodes = {
             end
             local player_info = env.player_info
             local bag_info = env.bag_info
+            poe2_api.printTable(bag_info)
             if not next(player_info) then
                 poe2_api.time_p("是否购买地图（RUNNING1）... 耗时 --> ", api_GetTickCount64() - start_time)
                 return bret.RUNNING
@@ -5613,13 +5783,14 @@ local custom_nodes = {
             local function get_map_len(bag_info)
                 local tiers = {}
                 for _, v in ipairs(map_config) do
-                    table.insert(tiers,v)
+                    table.insert(tiers,v["階級"])
                 end
                 local function number_map()
                     if not tiers or not next(tiers) then
                         return false
                     end
                     local map_count = 0
+                    poe2_api.printTable(tiers)
                     for _, v in ipairs(bag_info) do
                         if v.category_utf8 == "Map" and poe2_api.table_contains(poe2_api.extract_level(v.baseType_utf8),tiers) then
                             map_count = map_count + 1
@@ -5630,12 +5801,14 @@ local custom_nodes = {
                     end
                     return false
                 end
-                if not bag_info or not next(bag_info) or number_map then
+                if not bag_info or not next(bag_info) or number_map == 0 then
                     return true
                 end
                 return false
             end
-            if not get_map_len(bag_info) then
+            local a = get_map_len(bag_info)
+            poe2_api.dbgp("a------------------------------------------------------------------------:",tostring(a))
+            if a then
                 env.is_shop = false
                 poe2_api.time_p("是否购买地图（RUNNING2）... 耗时 --> ", api_GetTickCount64() - start_time)
                 return bret.RUNNING
@@ -5810,6 +5983,7 @@ local custom_nodes = {
                     end
                     local point = get_point({max_map.start_x, max_map.end_x},{max_map.start_y,max_map.end_y})
                     poe2_api.ctrl_left_click(point[1],point[2])
+                    return bret.RUNNING
                 end
             end
             error("商城已无地图或者没有你想要打的等级地图，请手动购买")
@@ -6585,7 +6759,7 @@ local custom_nodes = {
                         -- 从仓库取地图
                         poe2_api.dbgp("开始从仓库取地图")
                         for i = 1, math.floor(all_map_nums * 0.6) do
-                            print("循环执行第 ", i, " 次")
+                            -- print("循环执行第 ", i, " 次")
                             -- 获取仓库物品
                             local items
                             if text == "公會倉庫" then
@@ -6776,7 +6950,7 @@ local custom_nodes = {
             self.times = (self.times or 0) + 1
             poe2_api.dbgp("entry_length_take_map-->", entry_length_take_map)
             poe2_api.dbgp("self.times-->", self.times)
-            if self.times > 2 then
+            if self.times >= 2 then
                 self.times = 0
                 if entry_length_take_map then
                     env.map_up = true
@@ -7058,6 +7232,9 @@ local custom_nodes = {
                 }
                 local point = nil
                 for _, v in ipairs(index_list) do
+                    if poe2_api.table_contains(v,{10,11}) then
+                        v = string.format("0x%x", v)
+                    end
                     local item = env["item"..v]
                     if item and next(item) then
                         if Attachments[1].baseType_utf8 == item[1].baseType_utf8 
@@ -7759,7 +7936,7 @@ local custom_nodes = {
                                     end
                                     if distance and distance > 15 then
                                         local ralet = is_point(item.grid_x,item.grid_y)
-                                        if not ralet and not next(ralet) then
+                                        if not ralet or not next(ralet) then
                                             poe2_api.dbgp("无路径")
                                             break
                                         end
@@ -8034,6 +8211,12 @@ local custom_nodes = {
                             -- poe2_api.dbgp("物品已捡起,更新状态")
                             -- api_Sleep(1000)
                         end
+                        if self.number % 10 == 0 then
+                            local point = api_FindRandomWalkablePosition(math.floor(player_info.grid_x),math.floor(player_info.grid_y),70)
+                            if point then
+                                api_ClickMove(poe2_api.toInt(point.x),poe2_api.toInt(point.y),poe2_api.toInt(player_info.world_z),7)
+                            end
+                        end
                         poe2_api.dbgp("number: "..self.number)
                         if self.number >= 50 then
                             table.insert(env.pick_up_timeout,env.need_item.id)
@@ -8159,12 +8342,25 @@ local custom_nodes = {
                     item_groups[item_name] = {}
                 end
             
-                -- 分类物品
+                -- 分类物品：同时匹配 baseType_utf8 和 name_utf8
                 local not_appeared_items = {}
                 for _, item in ipairs(all_items) do
+                    local matched = false
+                    
+                    -- 检查 baseType_utf8
                     if item.baseType_utf8 and item_groups[item.baseType_utf8] then
                         table.insert(item_groups[item.baseType_utf8], item)
-                    elseif item.baseType_utf8 == '隱藏道具' then
+                        matched = true
+                    end
+                    
+                    -- 检查 name_utf8（如果 baseType_utf8 没有匹配）
+                    if item.name_utf8 and item_groups[item.name_utf8] then
+                        table.insert(item_groups[item.name_utf8], item)
+                        matched = true
+                    end
+                    
+                    -- 如果都没有匹配，且是隐藏道具
+                    if not matched and item.baseType_utf8 == '隱藏道具' then
                         table.insert(not_appeared_items, item)
                     end
                 end
@@ -8220,6 +8416,11 @@ local custom_nodes = {
 
             if poe2_api.table_contains(player_info.current_map_name_utf8, my_game_info.hideout) then
                 poe2_api.time_p("祭祀購買(SUCCESS)(不在异界)... 耗时 --> ", api_GetTickCount64() - current_time)
+                return bret.SUCCESS
+            end
+
+            if env.afoot_altar and env.afoot_altar.stateMachineList["current_state"] == 2 and env.afoot_altar.stateMachineList["interaction_enabled"] == 0 then
+                poe2_api.time_p("祭祀購買正在打祭祀(SUCCESS)... 耗时 --> ", api_GetTickCount64() - current_time)
                 return bret.SUCCESS
             end
 
@@ -8329,7 +8530,7 @@ local custom_nodes = {
                     return bret.RUNNING
                 end
                 
-                poe2_api.dbgp("正在购买 ",item.baseType_utf8)
+                poe2_api.dbgp("正在购买 ",item.baseType_utf8 or item.name_utf8)
                 if poe2_api.ctrl_left_click_altar_items(item.obj, all_items) then
                     api_Sleep(500)
                 end
@@ -8349,7 +8550,7 @@ local custom_nodes = {
                     return bret.RUNNING
                 end
                 
-                poe2_api.dbgp("暫緩 ",item.baseType_utf8)
+                poe2_api.dbgp("暫緩 ",item.baseType_utf8 or item.name_utf8)
                 if poe2_api.ctrl_left_click_altar_items(item.obj, all_items, 2) then
                     api_Sleep(500)
                 end
@@ -8383,10 +8584,12 @@ local custom_nodes = {
     DodgeAction_Inside = {
         name = "躲避",
         run = function(self, env)
+            poe2_api.dbgp("DodgeAction_Inside")
             local is_initialized  = false
-            if not is_initialized then
+            if not self.last_space_time or self.last_space_time == nil then
+                poe2_api.dbgp("DodgeAction_Inside 初始化")
                 self.last_space_time = 0.0 -- 上次按下空格的时间
-                self.space_cooldown = 1.5  -- 空格键冷却时间（秒）
+                self.space_cooldown = 1500  -- 空格键冷却时间（秒）
                 self.last_space_time1 = 0.0
                 is_initialized = true
             end
@@ -8400,6 +8603,8 @@ local custom_nodes = {
                     break
                 end
             end
+
+            local result_60 = api_GetSafeAreaLocationNoMonsters(60)
             
             local _handle_space_action = function(monster, space_flag, space_monsters, space_time, player_info)
                 -- 处理空格键操作
@@ -8408,99 +8613,227 @@ local custom_nodes = {
                 else
                     space_time = space_time
                 end
-
+                poe2_api.dbgp("space_time",space_time)
                 if space_flag then
-                    -- local result = api_GetNextCirclePosition(
-                    --     monster.grid_x, monster.grid_y, 
-                    --     player_info.grid_x, player_info.grid_y, 50,20,0
-                    -- )
-                    local result = api_GetSafeAreaLocationNoMonsters(60)
-                    api_ClickMove(poe2_api.toInt(result.x), poe2_api.toInt(result.y), poe2_api.toInt(player_info.world_z), 0)
+                    local result = nil
+                    if poe2_api.table_contains({3},monster.rarity) then
+                        result = api_GetNextCirclePosition(
+                            monster.grid_x, monster.grid_y, 
+                            player_info.grid_x, player_info.grid_y, 50,20,0
+                        )
+
+                    else
+                        result = api_GetSafeAreaLocationNoMonsters(60)
+                    end
+                    -- api_ClickMove(poe2_api.toInt(result.x), poe2_api.toInt(result.y), poe2_api.toInt(player_info.world_z), 0)
+                    -- api_Sleep(200)
+                    api_ClickMove(poe2_api.toInt(result.x), poe2_api.toInt(result.y), poe2_api.toInt(player_info.world_z), 7)
                     api_Sleep(200)
                     poe2_api.dbgp("_handle_space_action")
-                    if is_bird then
-                        api_ClickMove(poe2_api.toInt(result.x), poe2_api.toInt(result.y), poe2_api.toInt(player_info.world_z), 7)
-                    else
+
+                
+                    if not is_bird then
+                    -- else
+                        -- poe2_api.printTable(space_monsters)
+                        poe2_api.dbgp("monster.rarity -->", monster.rarity)
+                        poe2_api.dbgp("self.last_space_time -->", self.last_space_time)
+                        poe2_api.dbgp("space_time -->", space_time)
+                        poe2_api.dbgp("api_GetTickCount64() - self.last_space_time -->", (api_GetTickCount64() - self.last_space_time))
                         if poe2_api.table_contains(space_monsters,monster.rarity) and api_GetTickCount64() - self.last_space_time >= space_time then
                             poe2_api.click_keyboard("space")
                         end
                     end
                     self.last_space_time = api_GetTickCount64() + (math.random(-5, 5)* 0.01)
+                    return false
                 end
+
+                return true
             end    
+
             local _handle_space_action_path_name = function(player_info, space_time)
                 -- 处理空格键操作（添加20单位距离限制）
                 space_time = space_time or 1500
-                if player_info.isInDangerArea then
-                    local rct = api_GetSafeAreaLocation()
-                    if is_bird then
-                        local ret = api_GetSafeAreaLocationNoMonsters(60)
-                    else
-                        local ret = api_GetSafeAreaLocationNoMonsters(40)
-                    end
+                local ret = nil
+                local r = api_IsPointInAnyActive(player_info.grid_x , player_info.grid_y , 0)
+                if r then
+                    ret = api_FindNearestSafeTile(player_info.grid_x, player_info.grid_y, 60, 5)
+                    -- poe2_api.printTable(ret)
+                    -- api_Log("ret1 type: " .. type(ret1))
+                    -- poe2_api.dbgp("ret1 -->", ret.x, ret.y)
+                end
+                if r then
                     if ret and ret.x ~= -1 and ret.y ~= -1 then
                         api_ClickMove(poe2_api.toInt(ret.x), poe2_api.toInt(ret.y) ,poe2_api.toInt(player_info.world_z), 0)
                         api_Sleep(200)
-                        poe2_api.dbgp1("sdgbvsadgavagbzgbaz")
+                        poe2_api.dbgp("space")
                         -- if is_bird then
                         --     api_ClickMove(poe2_api.toInt(result.x), poe2_api.toInt(result.y), poe2_api.toInt(player_info.world_z), 7)
                         -- else
+                        env.end_point = nil
+                        env.path_list = nil
                         poe2_api.click_keyboard("space")
                         -- end
                         return true
-                    else
-                        local rct = api_GetSafeAreaLocation()
-                        api_ClickMove(poe2_api.toInt(rct.x),poe2_api.toInt(rct.y),poe2_api.toInt(player_info.world_z), 0)
-                        api_Sleep(200)
-                        poe2_api.dbgp1("aFEWFGDSVBDSGBSDFGB")
-                        -- if is_bird then
-                        --     api_ClickMove(poe2_api.toInt(result.x), poe2_api.toInt(result.y), poe2_api.toInt(player_info.world_z), 7)
-                        -- else
-                        poe2_api.click_keyboard("space")
-                        -- end
-                        return true
+                    -- else
+                    --     local rct = api_GetSafeAreaLocation()
+                    --     api_ClickMove(poe2_api.toInt(rct.x),poe2_api.toInt(rct.y),poe2_api.toInt(player_info.world_z), 0)
+                    --     api_Sleep(200)
+                    --     poe2_api.dbgp1("aFEWFGDSVBDSGBSDFGB")
+                    --     -- if is_bird then
+                    --     --     api_ClickMove(poe2_api.toInt(result.x), poe2_api.toInt(result.y), poe2_api.toInt(player_info.world_z), 7)
+                    --     -- else
+                    --     env.end_point = nil
+                    --     env.path_list = nil
+                    --     poe2_api.click_keyboard("space")
+                    --     -- end
+                    --     return true
                     end
+                    
+                end
+                -- end
+                return false
+            end
+
+            local function keep_distancen(min_attack_range)
+                local range_info1 = poe2_api.get_sorted_list(env.range_info, player_info)
+                -- 怪物检查主逻辑
+                for _, monster in ipairs(range_info1) do
+                    -- 快速跳过不符合基本条件的怪物
+                    if monster.type ~= 1 or                  -- 类型检查
+                    not monster.is_selectable or          -- 可选性检查
+                    monster.is_friendly or                -- 友方检查
+                    monster.life <= 0 or                  -- 生命值检查
+                    monster.name_utf8 == "" or              -- 名称检查
+                    poe2_api.table_contains(my_game_info.not_attact_mons_CN_name,monster.name_utf8) or
+                    poe2_api.table_contains(my_game_info.not_attact_mons_path_name,monster.path_name_utf8)then  -- 路径名检查
+                        goto continue_prop
+                    end
+
+                    if not monster.isActive then
+                        goto continue_prop
+                    end
+
+                    -- 检查坐标有效性
+                    if not monster.grid_x or not monster.grid_y then
+                        goto continue_prop
+                    end
+
+                    -- 检查卡住状态
+                    if env.stuck_monsters and next(env.stuck_monsters) and poe2_api.table_contains(env.stuck_monsters,monster.id) then
+                        goto continue_prop
+                    end
+
+                    for _, prop in ipairs(my_game_info.first_magicProperties or {}) do
+                        if poe2_api.table_contains(monster.magicProperties, prop) then
+                            poe2_api.dbgp("特殊词缀怪物,不闪避")
+                            return false
+                        end
+                    end
+
+                    poe2_api.printTable(monster.magicProperties)
+
+                    -- 计算距离
+                    local distance = poe2_api.point_distance(monster.grid_x, monster.grid_y, env.player_info)
+                    -- _M.dbgp("计算距离：",distance,"==============================",dis)
+                    -- _M.print_log("计算距离：",distance)
+                    -- _M.printTable(monster)
+                    if distance and distance <= min_attack_range then
+                        if monster.hasLineOfSight and api_HasObstacleBetween(monster.grid_x, monster.grid_y) then
+                            poe2_api.dbgp("keep_distancen -- > ", result_60.x, result_60.y)
+                            api_ClickMove(poe2_api.toInt(result_60.x), poe2_api.toInt(result_60.y), poe2_api.toInt(player_info.world_z), 7)
+                            -- api_Sleep(200)
+                            return true
+                        end
+                    end
+                    ::continue_prop::
                 end
                 return false
             end
+
             -- 更新方法，执行躲避逻辑
             local monsters = env.range_info
             local player_info = env.player_info
             local space = env.space
             local space_time = env.space_time
             local space_monster = env.space_monster
+            poe2_api.dbgp("space_monster")
+            poe2_api.printTable(space_monster)
             if not monsters or not player_info then
                 return bret.SUCCESS
             end
-            local min_attack_range = env.min_attack_range or 70
-            poe2_api.dbgp("min_attack_range -- >",min_attack_range)
-            function has_common_element(t1, t2)
-                if t1 == nil or t2 == nil or type(t1) ~= "table" or type(t2) ~= "table" then
-                    return false
-                end
-                for _, v1 in ipairs(t1) do
-                    for _, v2 in ipairs(t2) do
-                        if v1 == v2 then return true end
-                    end
-                end
-                return false
+            local min_attack_range = 0
+            if env.min_attack_range == 0 or not env.min_attack_range then
+                min_attack_range = 70
+            else
+                min_attack_range = env.min_attack_range
             end
+
+            poe2_api.dbgp("min_attack_range -- >",min_attack_range)
+
+            
+            poe2_api.dbgp(space)
+            
+            local keep_distance = false
             if space then
+                poe2_api.dbgp("111111111")
+                monsters = poe2_api.get_sorted_list(monsters, player_info)
                 for _, monster in ipairs(monsters) do
                     dis = poe2_api.point_distance(monster.grid_x, monster.grid_y, player_info)
-                    if monster.life > 0 and monster.isActive and monster.type == 1 and dis and dis < min_attack_range and 
-                    not monster.is_friendly then
-                        if has_common_element(my_game_info.first_magicProperties, monster.magicProperties) then
-                            -- poe2_api.dbgp("特殊词缀怪物"..monster.magicProperties.."不闪避")
+                    if monster.life > 0 and monster.isActive and dis and dis < min_attack_range and 
+                    not monster.is_friendly and monster.hasLineOfSight then
+                        if not poe2_api.table_contains(monsters.rarity, space_monster) then
                             goto continue
                         end
+                        if not poe2_api.table_contains(my_game_info.type_3_boss, monster.name_utf8) and monster.type ~= 1 then
+                            goto continue
+                        end
+                        local function checks()
+                            for _, prop in ipairs(my_game_info.first_magicProperties or {}) do
+                                if poe2_api.table_contains(monster.magicProperties, prop) then
+                                    poe2_api.dbgp("特殊词缀怪物,不闪避")
+                                    return true
+                                end
+                            end
+                        end
+                        -- if poe2_api.has_common_element(my_game_info.first_magicProperties, monster.magicProperties) then
+                        --     poe2_api.dbgp("特殊词缀怪物,不闪避")
+                        --     goto continue
+                        -- end
+                        if checks() then
+                            break
+                        end
+
+                        poe2_api.dbgp("222")
                         _handle_space_action(monster, space, space_monster, space_time, player_info)
+                        break
                     end
                     ::continue::
                 end
+
+                -- poe2_api.dbgp("env.select_skill")
+                
             end
-            
-            _handle_space_action_path_name(player_info)
+
+            if min_attack_range >= 70 and (env.user_config["全局設置"]["刷图通用設置"]["保持距离"] or false) and not space then
+                keep_distance = keep_distancen(min_attack_range)
+                poe2_api.dbgp("keep_distance --> ",keep_distance)
+            end
+
+            -- poe2_api.printTable(env.select_skill)
+            -- poe2_api.dbgp("env.select_skill.walk_attack -- >",env.select_skill.walk_attack)
+            if not _handle_space_action_path_name(player_info) then
+                poe2_api.dbgp("555555")
+                -- poe2_api.printTable(env.select_skill)
+                -- if env.select_skill and 
+                if (env.select_skill and not env.select_skill.walk_attack) or keep_distance then
+                    env.end_point = nil
+                    env.path_list = nil
+                    return bret.RUNNING
+                end
+                return bret.SUCCESS
+            end
+            env.end_point = nil
+            env.path_list = nil
             return bret.RUNNING
         end
     },
@@ -8510,7 +8843,7 @@ local custom_nodes = {
         name = "躲避",
         run = function(self, env)
             local is_initialized  = false
-            if not is_initialized then
+            if self.last_space_time == nil then
                 self.last_space_time = 0.0 -- 上次按下空格的时间
                 self.space_cooldown = 1500 -- 空格键冷却时间（秒）
                 self.last_space_time1 = 0.0
@@ -8544,15 +8877,15 @@ local custom_nodes = {
                     api_ClickMove(poe2_api.toInt(result.x), poe2_api.toInt(result.y), poe2_api.toInt(player_info.world_z), 0)
                     api_Sleep(200)
                     poe2_api.dbgp1("_handle_space_action")
-                    if env.is_bird then
+                    if is_bird then
                         api_ClickMove(poe2_api.toInt(result.x), poe2_api.toInt(result.y), poe2_api.toInt(player_info.world_z), 7)
                     else
                         poe2_api.click_keyboard("space")
                     end
-                    self.last_space_time = api_GetTickCount64() + (math.random(-5, 5)* 0.01)
+                    self.last_space_time = api_GetTickCount64()
                 end
             end    
-            local _handle_space_action_path_name = function(player_info, space_time)
+            local _handle_space_action_path_name1 = function(player_info, space_time)
                 -- 处理空格键操作（添加20单位距离限制）
                 space_time = space_time or 1500
                 if player_info.isInDangerArea then
@@ -8587,6 +8920,117 @@ local custom_nodes = {
                 end
                 return false
             end
+
+            local _handle_space_action_path_name = function(player_info, space_time)
+                -- 处理空格键操作（添加20单位距离限制）
+                space_time = space_time or 1500
+                local rct = nil
+                local r = api_IsPointInAnyActive(player_info.grid_x , player_info.grid_y , 0)
+                if r then
+                    rct = api_FindNearestSafeTile(player_info.grid_x , player_info.grid_y , 60 , 5)
+                end
+                poe2_api.dbgp("r -->", r)
+                poe2_api.dbgp("rct -->")
+                poe2_api.printTable(rct)
+                -- if player_info.isInDangerArea then
+                    -- local rct = api_GetSafeAreaLocation()
+                    -- -- if is_bird then
+                    -- local ret = api_GetSafeAreaLocationNoMonsters(60)
+                    -- else
+                    --     local ret = api_GetSafeAreaLocationNoMonsters(40)
+                    -- end
+                
+                if ret and ret.x ~= -1 and ret.y ~= -1 then
+                    api_ClickMove(poe2_api.toInt(ret.x), poe2_api.toInt(ret.y) ,poe2_api.toInt(player_info.world_z), 0)
+                    api_Sleep(200)
+                    poe2_api.dbgp1("sdgbvsadgavagbzgbaz")
+                    -- if is_bird then
+                    --     api_ClickMove(poe2_api.toInt(result.x), poe2_api.toInt(result.y), poe2_api.toInt(player_info.world_z), 7)
+                    -- else
+                    env.end_point = nil
+                    env.path_list = nil
+                    poe2_api.click_keyboard("space")
+                    -- end
+                    return true
+                -- else
+                --     local rct = api_GetSafeAreaLocation()
+                --     api_ClickMove(poe2_api.toInt(rct.x),poe2_api.toInt(rct.y),poe2_api.toInt(player_info.world_z), 0)
+                --     api_Sleep(200)
+                --     poe2_api.dbgp1("aFEWFGDSVBDSGBSDFGB")
+                --     -- if is_bird then
+                --     --     api_ClickMove(poe2_api.toInt(result.x), poe2_api.toInt(result.y), poe2_api.toInt(player_info.world_z), 7)
+                --     -- else
+                --     env.end_point = nil
+                --     env.path_list = nil
+                --     poe2_api.click_keyboard("space")
+                --     -- end
+                --     return true
+                end
+                -- end
+                return false
+            end
+
+            local function keep_distancen(min_attack_range)
+                local range_info1 = poe2_api.get_sorted_list(env.range_info, player_info)
+                local result_60 = api_GetSafeAreaLocationNoMonsters(60)
+                -- 怪物检查主逻辑
+                for _, monster in ipairs(range_info1) do
+                    -- 快速跳过不符合基本条件的怪物
+                    if monster.type ~= 1 or                  -- 类型检查
+                    not monster.is_selectable or          -- 可选性检查
+                    monster.is_friendly or                -- 友方检查
+                    monster.life <= 0 or                  -- 生命值检查
+                    monster.name_utf8 == "" or              -- 名称检查
+                    poe2_api.table_contains(my_game_info.not_attact_mons_CN_name,monster.name_utf8) or
+                    poe2_api.table_contains(my_game_info.not_attact_mons_path_name,monster.path_name_utf8)then  -- 路径名检查
+                        goto continue
+                    end
+
+                    if not monster.isActive then
+                        goto continue
+                    end
+
+                    -- 检查坐标有效性
+                    if not monster.grid_x or not monster.grid_y then
+                        goto continue
+                    end
+
+                    -- 检查卡住状态
+                    if env.stuck_monsters and next(env.stuck_monsters) and poe2_api.table_contains(env.stuck_monsters,monster.id) then
+                        goto continue
+                    end
+
+                    for _, prop in ipairs(my_game_info.first_magicProperties or {}) do
+                        if poe2_api.table_contains(monster.magicProperties, prop) then
+                            poe2_api.dbgp("特殊词缀怪物,不闪避")
+                            goto continue
+                        end
+                    end
+
+                    -- if poe2_api.has_common_element(my_game_info.first_magicProperties, monster.magicProperties) then
+                    --     poe2_api.dbgp("特殊词缀怪物,不闪避")
+                    --     goto continue
+                    -- end
+
+                    -- 计算距离
+                    local distance = poe2_api.point_distance(monster.grid_x, monster.grid_y, env.player_info)
+                    -- _M.dbgp("计算距离：",distance,"==============================",dis)
+                    -- _M.print_log("计算距离：",distance)
+                    -- _M.printTable(monster)
+                    if distance and distance <= min_attack_range then
+                        if monster.hasLineOfSight and api_HasObstacleBetween(monster.grid_x, monster.grid_y) then
+                            poe2_api.dbgp("keep_distancen -- > ", result_60.x, result_60.y)
+                            api_ClickMove(poe2_api.toInt(result_60.x), poe2_api.toInt(result_60.y), poe2_api.toInt(player_info.world_z), 7)
+                            -- api_Sleep(200)
+                            return true
+                        end
+                    end
+                    ::continue::
+                end
+                return false
+            end
+
+
             -- 更新方法，执行躲避逻辑
             local monsters = env.range_info
             local player_info = env.player_info
@@ -8597,30 +9041,33 @@ local custom_nodes = {
                 return bret.SUCCESS
             end
             local min_attack_range = env.min_attack_range or 70
-            function has_common_element(t1, t2)
-                if t1 == nil or t2 == nil or type(t1) ~= "table" or type(t2) ~= "table" then
-                    return false
-                end
-                for _, v1 in ipairs(t1) do
-                    for _, v2 in ipairs(t2) do
-                        if v1 == v2 then return true end
-                    end
-                end
-                return false
-            end
             if space then
                 for _, monster in ipairs(monsters) do
                     dis = poe2_api.point_distance(monster.grid_x, monster.grid_y, player_info)
-                    if monster.life > 0 and monster.isActive and monster.type == 1 and dis and dis < min_attack_range and 
-                    not monster.is_friendly then
-                        if has_common_element(my_game_info.first_magicProperties, monster.magicProperties) then
-                            -- poe2_api.dbgp("特殊词缀怪物"..monster.magicProperties.."不闪避")
+                    if monster.life > 0 and monster.isActive and dis and dis < min_attack_range and 
+                    not monster.is_friendly and monster.hasLineOfSight then
+                        if not poe2_api.table_contains(my_game_info.type_3_boss, monster.name_utf8) and monster.type ~= 1 then
                             goto continue
+                        end
+                        -- if poe2_api.has_common_element(my_game_info.first_magicProperties, monster.magicProperties) then
+                        --     -- poe2_api.dbgp("特殊词缀怪物"..monster.magicProperties.."不闪避")
+                        --     goto continue
+                        -- end
+                        for _, prop in ipairs(my_game_info.first_magicProperties or {}) do
+                            if poe2_api.table_contains(monster.magicProperties, prop) then
+                                poe2_api.dbgp("特殊词缀怪物,不闪避")
+                                goto continue
+                            end
                         end
                         _handle_space_action(monster, space, space_monster, space_time, player_info)
                     end
                     ::continue::
                 end
+                -- poe2_api.dbgp("env.select_skill")
+                -- if min_attack_range >= 70 then
+                --     local keep_distance = keep_distancen(min_attack_range)
+                --     poe2_api.dbgp("keep_distance --> ",keep_distance)
+                -- end
             end
             
             _handle_space_action_path_name(player_info)
@@ -8655,7 +9102,7 @@ local custom_nodes = {
             local all_check = {
                 {UI_info = env.UI_info, text = "繼續遊戲", add_x = 0, add_y = 0, click = 2},
                 {UI_info = env.UI_info, text = "寶石切割", add_x = 280, add_y = 17, click = 2},
-                {UI_info = env.UI_info, text = "技能", min_x = 0, add_x = 253, click = 2},
+                {UI_info = env.UI_info, text = "技能", min_x = 0, add_x = 253, click = 2, max_y = 81},
             }
             -- 检查单个按钮
             for _, check in ipairs(all_check) do
@@ -8771,7 +9218,7 @@ local custom_nodes = {
                 -- 检查仓库页面
                 local warehouse_page = {"倉庫","聖域鎖櫃","公會倉庫"}
                 if poe2_api.find_text({UI_info = env.UI_info, text = warehouse_page, min_x = 0}) and 
-                poe2_api.find_text({UI_info = env.UI_info, text = "强調物品", min_x = 0}) then
+                poe2_api.find_text({UI_info = env.UI_info, text = "強調物品", min_x = 0}) then
                     poe2_api.dbgp("检测到仓库页面，将执行点击操作")
                     poe2_api.find_text({UI_info = env.UI_info, text = warehouse_page, min_x = 0, click = 2, add_x = 253})
                     return bret.RUNNING
@@ -8781,6 +9228,77 @@ local custom_nodes = {
                 if item and next(item) then
                     local width = item[1].end_x - item[1].start_x
                     local height = item[1].end_y - item[1].start_y
+                    local item_category = {"One Hand Mace","Two Hand Mace","Warstaff","Wand","Staff","Crossbow","Sceptre","Bow",
+                    "Body Armour","Helmet","Gloves","Boots","Shield","Quiver","Focus","Amulet","Belt","Ring","Spear","Buckler"}
+                    if poe2_api.table_contains(item[1].category_utf8,item_category) then
+                        poe2_api.dbgp("检测到物品，将执行点击操作111111")
+                        local index_list ={2,3,4,5,6,7,8,9,0xa,0xb}
+                        local point_list = {
+                            [2] = {1320,250},
+                            [3] = {1151,191},
+                            [4] = {1493,191},
+                            [5] = {1322,133},
+                            [6] = {1410,201},
+                            [7] = {1237,255},
+                            [8] = {1410,255},
+                            [9] = {1213,330},
+                            [0xa] = {1431,330},
+                            [0xb] = {1322,353},
+                        }
+                        local point = nil
+                        for _, v in ipairs(index_list) do
+                            if poe2_api.table_contains(v,{10,11}) then
+                                v = string.format("0x%x", v)
+                            end
+                            local item_player = env["item"..v]
+                            if item_player and next(item_player) then
+                                if item[1].baseType_utf8 == item_player[1].baseType_utf8 
+                                and item[1].DemandStrength == item_player[1].DemandStrength
+                                and item[1].DemandAgility == item_player[1].DemandAgility
+                                and item[1].DemandWisdom == item_player[1].DemandWisdom
+                                and item[1].DemandLevel == item_player[1].DemandLevel
+                                and item[1].not_identified == item_player[1].not_identified
+                                and item[1].category_utf8 == item_player[1].category_utf8
+                                and item[1].color == item_player[1].color then
+                                    local current_item = api_Getinventorys(v,0)
+                                    if current_item and next(current_item) then
+                                        if current_item[1].baseType_utf8 == item_player[1].baseType_utf8 
+                                        and current_item[1].DemandStrength == item_player[1].DemandStrength
+                                        and current_item[1].DemandAgility == item_player[1].DemandAgility
+                                        and current_item[1].DemandWisdom == item_player[1].DemandWisdom
+                                        and current_item[1].DemandLevel == item_player[1].DemandLevel
+                                        and current_item[1].not_identified == item_player[1].not_identified
+                                        and current_item[1].category_utf8 == item_player[1].category_utf8
+                                        and current_item[1].color == item_player[1].color then
+                                        else
+                                            point = point_list[v]
+                                            break
+                                        end
+                                    else
+                                        point = point_list[v]
+                                        break
+                                    end
+                                end
+                            else
+                                point = point_list[v]
+                                break
+                            end
+                        end
+                        if point then
+                            if poe2_api.find_text({text = "背包",UI_info = env.UI_info, min_x = 1020,min_y=32,max_x=1600,max_y=81}) then
+                                api_ClickScreen(poe2_api.toInt(point[1]),poe2_api.toInt(point[2]),1)
+                                api_Sleep(500)
+                                poe2_api.time_p("开背包,城区附着... 耗时 --> ", api_GetTickCount64() - current_time)
+                                return bret.RUNNING
+                            else
+                                poe2_api.dbgp("开背包,城区附着")
+                                poe2_api.click_keyboard("i")
+                                api_Sleep(300)
+                                poe2_api.time_p("开背包,城区附着1... 耗时 --> ", api_GetTickCount64() - current_time)
+                                return bret.RUNNING
+                            end
+                        end
+                    end
                     local point = poe2_api.get_space_point({width = width, height = height, info = env.bag_info})
                     
                     poe2_api.dbgp(string.format("物品尺寸: 宽%d, 高%d", width, height))
@@ -8817,6 +9335,105 @@ local custom_nodes = {
             poe2_api.dbgp("未检测到任何阻挡情况，模块返回SUCCESS状态")
             poe2_api.time_p("Game_Block 耗时 --> ", api_GetTickCount64() - current_time)
             return bret.SUCCESS
+        end
+    },
+
+    -- 清理遮挡页面
+    Game_Block_Inside = {
+        run = function(self, env)
+            poe2_api.print_log("游戏阻挡处理模块开始执行...")
+            poe2_api.dbgp("=== 开始处理游戏阻挡 ===")
+            
+            local current_time = api_GetTickCount64()
+            
+            local player_info = env.player_info
+            -- if player_info then
+            --     return bret.SUCCESS
+            -- end
+            
+            -- poe2_api.dbgp(string.format("当前时间戳: %d", current_time))
+            -- poe2_api.dbgp(string.format("当前地图: %s", player_info.current_map_name_utf8 or "未知"))
+
+            -- 检查交易拒绝情况
+            local refuse_click = {"等待玩家接受交易請求..."}
+            if poe2_api.find_text({UI_info = env.UI_info, text = refuse_click, min_x = 0, add_x = 253, click = 2}) then
+                poe2_api.dbgp("检测到交易请求等待，将执行拒绝操作")
+                return bret.RUNNING
+            end
+
+            ---常驻
+            local all_check = {
+                {UI_info = env.UI_info, text = "繼續遊戲", add_x = 0, add_y = 0, click = 2},
+                {UI_info = env.UI_info, text = "寶石切割", add_x = 280, add_y = 17, click = 2},
+                {UI_info = env.UI_info, text = "技能", min_x = 0, add_x = 253, click = 2, max_y = 81},
+            }
+            -- 检查单个按钮
+            for _, check in ipairs(all_check) do
+                if poe2_api.find_text(check) then
+                    poe2_api.dbgp(string.format("检测到按钮: %s，将执行点击操作", check.text))
+                    return bret.RUNNING
+                end
+            end
+
+            if poe2_api.find_text({UI_info = env.UI_info, text = "私訊", add_x = 265, min_x = 0, max_x = 400, click = 2}) then
+                return bret.RUNNING
+            end
+
+            -- 检查顶部中间页面按钮
+            local top_mid_page = {"傳送", "Checkpoints"}
+            if poe2_api.find_text({UI_info = env.UI_info, text = top_mid_page, min_x = 0, add_x = 215, click = 2}) then
+                return bret.RUNNING
+            end
+
+            -- 按键
+            if not self.once_check then
+                api_Log("检查是否在主页面11111")
+                local once_check = {
+                    {UI_info = env.UI_info, text = "精選", add_x = 677, min_x = 0, add_y = 10, click = 2},
+                    
+                    {UI_info = env.UI_info, text = "社交", min_x = 0, add_x = 253, click = 2},
+                    {UI_info = env.UI_info, text = "角色", min_x = 0, add_x = 253, click = 2},
+                    {UI_info = env.UI_info, text = "活動", min_x = 0, add_x = 253, click = 2},
+                    {UI_info = env.UI_info, text = "選項", min_x = 0, add_x = 253, click = 2},
+                    {UI_info = env.UI_info, text = "重置天賦點數", min_x = 0, add_x = 215, click = 2},
+                    {UI_info = env.UI_info, text = "天賦技能", min_x = 0, add_x = 215, click = 2},
+                    {UI_info = env.UI_info, text = "黯幣",min_x = 0,min_y = 0,max_y = 81,add_x = 673,add_y = 4,click = 2},
+                    {UI_info = env.UI_info, text = "願望清單",min_x = 0,min_y = 0,max_y = 81,add_x = 673,add_y = 4,click = 2},
+
+                }
+                -- 检查单个按钮
+                for _, check in ipairs(once_check) do
+                    if poe2_api.find_text(check) then
+                        poe2_api.dbgp(string.format("检测到按钮: %s，将执行点击操作", check.text))
+                        return bret.RUNNING
+                    end
+                end
+                self.once_check = true
+            end
+            
+            -- 藏身处特殊处理
+            local current_map_info = env.current_map_info
+            local function is_map_device(obj_list)
+                if not obj_list or #obj_list == 0 then
+                    return false
+                end
+                for _, i in ipairs(obj_list) do
+                    if i.name_utf8 == "MapDevice" then
+                        return true
+                    end
+                end
+                return false
+            end
+            
+            if poe2_api.find_text({UI_info = env.UI_info, text = "背包", add_x = 250, min_x = 1020}) then
+                poe2_api.click_keyboard("i")
+                api_Sleep(500)
+                return bret.RUNNING
+            end
+            
+            poe2_api.dbgp("未检测到任何阻挡情况，模块返回SUCCESS状态")
+            poe2_api.time_p("Game_Block 耗时 --> ", api_GetTickCount64() - current_time)
+            return bret.FAIL
         end
     },
 
@@ -8857,13 +9474,15 @@ local custom_nodes = {
                 local spcify_monsters_name_list = {"巨蛇女王．瑪娜莎"}
                 for _, monster in ipairs(env.range_info) do
                     for _, name in ipairs(spcify_monsters_name_list) do
-						if monster.name_utf8 == name then
+						if monster.name_utf8 == name and monster.life > 0 then
+
 							return true
 						end
 					end
                 end
                 return false
             end
+
             poe2_api.dbgp("is_active:",is_active," ","not_sight:",not_sight)
             if #env.center_point > 0 and env.center_radius > 0 then
                 stuck_monsters = {}
@@ -8873,8 +9492,13 @@ local custom_nodes = {
 
             nomarl_monster = poe2_api.is_have_mos({range_info = env.range_info, dis = env.min_attack_dis, player_info = player_info,is_active = is_active, not_sight = not_sight,stuck_monsters = stuck_monsters})
             poe2_api.dbgp("nomarl_monster -- > ", nomarl_monster)
+            -- api_Log("nomarl_monster -- > ")
+            -- api_Log(nomarl_monster)
             Boss_monster = poe2_api.is_have_mos_boss(env.range_info, my_game_info.boss_name)
             poe2_api.dbgp("Boss_monster --> ", Boss_monster)
+            -- poe2_api.printTable(Boss_monster)
+            local a = spcify_monsters()
+            poe2_api.dbgp("spcify_monsters() --> ")
             if nomarl_monster or Boss_monster or spcify_monsters() then
                 poe2_api.dbgp("需要攻击")
                 poe2_api.time_p("Check_Is_Need_Attack(SUCCESS) 耗时 --> ", api_GetTickCount64() - current_time)
@@ -8891,13 +9515,83 @@ local custom_nodes = {
         end
     },
 
+    -- 检查是否需要攻击
+    Check_Is_Need_Attack_Inside = {
+        run = function(self, env)
+            poe2_api.print_log("检查是否需要攻击...")
+            local current_time = api_GetTickCount64()
+            local player_info = env.player_info
+            local stuck_monsters = poe2_api.deepCopy(env.stuck_monsters)
+            local is_active = true
+            local not_sight = false
+
+            -- if poe2_api.table_contains(env.player_info.current_map_name_utf8,my_game_info.hideout) then
+            --     return bret.SUCCESS
+			-- end
+            
+            if not player_info then
+                poe2_api.dbgp("玩家信息不存在")
+                return bret.RUNNING
+            end
+            
+            if string.find(player_info.current_map_name_utf8, "Claimable") then
+                local range_sorted = poe2_api.get_sorted_list(env.range_info, env.player_info)
+                for _, i in ipairs(range_sorted) do
+                    if i.path_name_utf8 == "Metadata/MiscellaneousObjects/Monolith" then
+                        is_active = true
+                        not_sight = true
+                        break
+                    end
+                end
+                is_active = false
+                not_sight = true
+            end
+            -- 特殊怪物檢查
+
+            local function spcify_monsters()
+                local spcify_monsters_name_list = {"巨蛇女王．瑪娜莎"}
+                for _, monster in ipairs(env.range_info) do
+                    for _, name in ipairs(spcify_monsters_name_list) do
+						if monster.name_utf8 == name and monster.life > 0 then
+							return true
+						end
+					end
+                end
+                return false
+            end
+            poe2_api.dbgp("is_active:",is_active," ","not_sight:",not_sight)
+            if #env.center_point > 0 and env.center_radius > 0 then
+                stuck_monsters = {}
+            end
+            
+            nomarl_monster = poe2_api.is_have_mos({range_info = env.range_info, dis = env.min_attack_dis, player_info = player_info,is_active = is_active, not_sight = not_sight,stuck_monsters = stuck_monsters})
+            poe2_api.dbgp("nomarl_monster -- > ", nomarl_monster)
+            Boss_monster = poe2_api.is_have_mos_boss(env.range_info, my_game_info.boss_name)
+            poe2_api.dbgp("Boss_monster --> ", Boss_monster)
+            if nomarl_monster or Boss_monster or spcify_monsters() then
+                poe2_api.dbgp("需要攻击")
+                poe2_api.time_p("Check_Is_Need_Attack(FAIL) 耗时 --> ", api_GetTickCount64() - current_time)
+                return bret.FAIL
+            else
+                poe2_api.dbgp("不需要攻击")
+                -- if env.afoot_altar then
+                --     return bret.RUNNING
+                -- end
+                poe2_api.time_p("Check_Is_Need_Attack(FAIL) 耗时 --> ", api_GetTickCount64() - current_time)
+                return bret.SUCCESS
+            end
+        end
+    },
+
     -- 释放技能动作
     ReleaseSkillAction_Inside = {
         run = function(self, env)
             local current_time_ms = api_GetTickCount64()
             local player_info = env.player_info
+            env.select_skill = nil
             --- 辅助函数
             -- 根据稀有度获取可释放的技能
+
             local available_skills = {}
             local function _get_available_skills(monster_rarity)
                 -- 根据怪物稀有度获取可用技能
@@ -9015,7 +9709,12 @@ local custom_nodes = {
                 if not self.all_skill or self.all_skill == nil then
                     self.all_skill = api_GetSelectableSkillControls()
                 end
-                
+                -- poe2_api.dbgp("22222222222222222222")
+                -- poe2_api.printTable(api_GetSkillSlots())
+                -- poe2_api.dbgp("111111111111111111111")
+                -- poe2_api.printTable(api_GetSelectableSkillControls())
+                -- poe2_api.dbgp("33333333333333333")
+                -- api_Sleep(10000)
                 local skill_pos = {
                     ["q"] = {1194, 1230},
                     ["w"] = {1236, 1272},
@@ -9075,6 +9774,7 @@ local custom_nodes = {
                                 priority = 1,
                                 weight = 1.0,
                                 attack = skill_data["釋放對象"],
+                                walk_attack = skill_data["走A"],
                                 attack_range = tonumber(skill_data["攻擊距離"]) or 100,
                                 target_targets = {
                                     ["白怪"] = skill_data["白怪"] or false,
@@ -9116,7 +9816,7 @@ local custom_nodes = {
                 
                 self.skills = new_skills
                 self.sup_skills = new_sup_skills
-                poe2_api.printTable(self.skills)
+                -- poe2_api.printTable(self.skills)
                 self.skill_cooldowns = preserved_cooldowns
                 self.sup_skill_cooldowns = sup_preserved_cooldowns
 
@@ -9240,8 +9940,13 @@ local custom_nodes = {
                 
                 -- 释放技能
                 -- poe2_api.click_keyboard(skill.key)
-
+                -- poe2_api.dbgp("id=-=-=-->>>>", skill.id)
+                -- poe2_api.dbgp("env.player_info.grid_x=-=-=-->>>>", env.player_info.grid_x)
+                -- poe2_api.dbgp("env.player_info.grid_y=-=-=-->>>>", env.player_info.grid_y)
+                -- poe2_api.dbgp("move_x=-=-=-->>>>", move_x)
+                -- poe2_api.dbgp("move_y=-=-=-->>>>", move_y)
                 api_CastSkill(skill.id, 0, env.player_info.grid_x, env.player_info.grid_y, move_x, move_y)
+                -- api_CastSkill(skill.id, 0, env.player_info.grid_x, env.player_info.grid_y, monster.grid_x, monster.grid_y)
 
                 poe2_api.dbgp("释放技能=-=-=-->>>>", skill.key)
             end
@@ -9292,7 +9997,7 @@ local custom_nodes = {
                 end
             end
 
-            check_and_cast_support_skills()
+            -- check_and_cast_support_skills()
             
             -- 特殊boss处理
             local function _handle_special_boss_movement(boss, player_info)
@@ -9331,12 +10036,19 @@ local custom_nodes = {
             nearest_distance_sq = math.huge
 
             -- 加载技能设置
-            if not self.skills then
+            if not self.is_have_skills then
                 poe2_api.dbgp("加载技能设置...")
                 self.stuck_monsters = {}
                 
                 parse_skill_config()
+                self.is_have_skills = true
                 return bret.RUNNING
+            end
+
+
+            if not self.skills or #self.skills == 0 then
+                poe2_api.dbgp("主动攻击无技能")
+                return bret.FAIL
             end
 
             -- 是否激活
@@ -9356,10 +10068,11 @@ local custom_nodes = {
             
             -- 怪物筛选和处理逻辑
             for _, monster in ipairs(env.range_info) do
-                -- if monster.name_utf8 == "" then
-                --     goto continue
-                -- end
+                if monster.name_utf8 == "" then
+                    goto continue
+                end
                 -- poe2_api.dbgp("monster ------------------------------------------------------->")
+                -- poe2_api.printTable(monster)
                 -- poe2_api.dbgp("monster name -->" ,monster.name_utf8)
                 -- poe2_api.dbgp("obj: ",tostring(string.format("%x",monster.obj)))
                 -- poe2_api.dbgp("monster -->" ,monster.life)
@@ -9370,8 +10083,7 @@ local custom_nodes = {
                 -- poe2_api.print_log("a monster -->" ,a.life)
 
                 -- 快速失败条件检查（按计算成本从低到高排序）
-                if monster.type ~= 1 or                  -- 类型检查
-                not monster.is_selectable or          -- 可选性检查
+                if not monster.is_selectable or          -- 可选性检查
                 monster.is_friendly or                -- 友方检查
                 monster.life <= 0 or                  -- 生命值检查
                 monster.name_utf8 == "" or              -- 名称检查
@@ -9379,6 +10091,13 @@ local custom_nodes = {
                 poe2_api.table_contains(my_game_info.not_attact_mons_path_name , monster.path_name_utf8) then  -- 路径名检查
                     goto continue
                 end
+                if not poe2_api.table_contains(my_game_info.type_3_boss, monster.name_utf8) and monster.type ~= 1 then
+                    goto continue
+                end    
+                -- poe2_api.dbgp("monster ------------------------------------------------------->")
+                -- poe2_api.dbgp("monster name -->" ,monster.name_utf8)
+                -- poe2_api.dbgp("obj: ",tostring(string.format("%x",monster.obj)))
+                -- poe2_api.dbgp("monster -->" ,monster.life)
 
                 -- if string.find(monster.path_name_utf8,"Metadata/Monsters/TormentedSpirits/") then
                 --     goto continue
@@ -9411,7 +10130,7 @@ local custom_nodes = {
 
                 -- 计算距离平方
                 local distance_sq = poe2_api.point_distance(monster.grid_x, monster.grid_y, player_info)
-                -- poe2_api.dbgp("当前怪物：",monster.name_utf8,"，距离：",distance_sq,"米") q
+                -- poe2_api.dbgp("当前怪物：",monster.name_utf8,"，距离：",distance_sq,"米")
 
                 if not player_info.isInBossBattle and monster.rarity ~= 3 and not string.find(player_info.current_map_name_utf8 or "", "Claimable") then
                     if monster.hasLineOfSight and distance_sq < nearest_distance_sq then
@@ -9431,28 +10150,33 @@ local custom_nodes = {
             if valid_monsters then
                 -- 获取当前目标ID
                 local current_target_id = valid_monsters and valid_monsters.id or nil
-                poe2_api.dbgp("a valid_monsters ------------------------------------------------------->")
-                poe2_api.dbgp("a valid_monsters name -->" ,valid_monsters.name_utf8)
-                poe2_api.dbgp("a valid_monsters path_name -->" ,valid_monsters.path_name_utf8)
-                poe2_api.dbgp("a valid_monsters: ",tostring(string.format("%x",valid_monsters.obj)))
-                poe2_api.dbgp("a life -->" ,valid_monsters.life)
-                poe2_api.dbgp("a grid_x -->" ,valid_monsters.grid_x)
-                poe2_api.dbgp("a grid_y -->" ,valid_monsters.grid_y)
+                -- poe2_api.dbgp("a valid_monsters ------------------------------------------------------->")
+                -- poe2_api.dbgp("a valid_monsters name -->" ,valid_monsters.name_utf8)
+                -- poe2_api.dbgp("a valid_monsters path_name -->" ,valid_monsters.path_name_utf8)
+                -- poe2_api.dbgp("a valid_monsters: ",tostring(string.format("%x",valid_monsters.obj)))
+                -- poe2_api.dbgp("a life -->" ,valid_monsters.life)
+                -- poe2_api.dbgp("a grid_x -->" ,valid_monsters.grid_x)
+                -- poe2_api.dbgp("a grid_y -->" ,valid_monsters.grid_y)
 
 
                 if not (#env.center_point > 0 and env.center_radius > 0) then
                     -- 第二次遍历进行卡住检测和其他处理
                     for _, monster in ipairs(env.range_info) do
                         local current_time = api_GetTickCount64()
+
+                        if string.find(player_info.current_map_name_utf8,"Abyss") then
+                            break
+                        end  
                         
                         -- 快速失败条件检查
-                        if monster.type ~= 1 or 
-                        not monster.is_selectable or 
+                        if not monster.is_selectable or 
                         poe2_api.table_contains(self.stuck_monsters,monster.id) or 
                         monster.is_friendly then
                             goto continue_second
                         end
-
+                        if not poe2_api.table_contains(my_game_info.type_3_boss, monster.name_utf8) and monster.type ~= 1 then
+                            goto continue_second
+                        end   
                         -- Metadata/Monsters/TormentedSpirits/Cat/SpiritOfTheCat
                         -- if string.find(monster.path_name_utf8,"Metadata/Monsters/TormentedSpirits/") then
                         --     goto continue_second
@@ -9563,7 +10287,7 @@ local custom_nodes = {
                     poe2_api.dbgp("special_bosses,或者未激活")
                     _handle_special_boss_movement(valid_monsters, player_info)
                     poe2_api.dbgp("移动到目标附近444")
-                    return bret.FAIL
+                    return bret.SUCCESS
                 end
                 -- 构建可用技能池
 
@@ -9589,7 +10313,7 @@ local custom_nodes = {
                             if poe2_api.table_contains(valid_monsters.magicProperties, prop) then
                                 env.end_point = {valid_monsters.grid_x, valid_monsters.grid_y}
                                 poe2_api.dbgp("移动到目标附近111")
-                                return bret.FAIL
+                                return bret.SUCCESS
                             end
                             ::continue_prop::
                         end
@@ -9600,7 +10324,7 @@ local custom_nodes = {
                     poe2_api.dbgp("distance", distance)
 
                     if valid_monsters.name_utf8 ~= "骨之暴君．札瓦里" then
-                        
+                        poe2_api.dbgp("11111111111111")
                         if distance > selected_skill.attack_range and distance > min_attack_range or not valid_monsters.isActive then
                             -- poe2_api.dbgp("移动到目标附近")
                             -- -- 拾取不移动
@@ -9608,32 +10332,32 @@ local custom_nodes = {
                             --     return bret.FAIL
                             -- end
 
-                            if env.is_map_complete then
-                                -- 寻找传送门
-                                if env.range_info then
-                                    for _, k in ipairs(env.range_info) do
-                                        if k.name_utf8 ~= '' and k.type == 5 and poe2_api.table_contains(k.name_utf8, my_game_info.hideout_CH) then
-                                            dis = poe2_api.point_distance(k.grid_x, k.grid_y, player_info)
-                                            if dis and dis < 25 then
-                                                if not poe2_api.find_text({UI_info = env.UI_info, text = k.name_utf8, click = 2}) then
-                                                    api_ClickMove(poe2_api.toInt(k.grid_x), poe2_api.toInt(k.grid_y), poe2_api.toInt(k.world_z), 1)
-                                                end
-                                            end
-                                        end
-                                    end
-                                end
+                            -- if env.is_map_complete then
+                            --     -- 寻找传送门
+                            --     if env.range_info then
+                            --         for _, k in ipairs(env.range_info) do
+                            --             if k.name_utf8 ~= '' and k.type == 5 and poe2_api.table_contains(k.name_utf8, my_game_info.hideout_CH) then
+                            --                 dis = poe2_api.point_distance(k.grid_x, k.grid_y, player_info)
+                            --                 if dis and dis < 25 then
+                            --                     if not poe2_api.find_text({UI_info = env.UI_info, text = k.name_utf8, click = 2}) then
+                            --                         api_ClickMove(poe2_api.toInt(k.grid_x), poe2_api.toInt(k.grid_y), poe2_api.toInt(k.world_z), 1)
+                            --                     end
+                            --                 end
+                            --             end
+                            --         end
+                            --     end
 
-                                env.end_point = {valid_monsters.grid_x, valid_monsters.grid_y}
-                                poe2_api.dbgp("移动到目标附近555")
-                                return bret.FAIL
-                            end
+                            --     env.end_point = {valid_monsters.grid_x, valid_monsters.grid_y}
+                            --     poe2_api.dbgp("移动到目标附近555")
+                            --     return bret.SUCCESS
+                            -- end
                             
                             if env.afoot_altar then
                                 local distance = poe2_api.point_distance(env.afoot_altar.grid_x, env.afoot_altar.grid_y, env.player_info)
                                 if distance < 105 then
                                     env.end_point = {valid_monsters.grid_x, valid_monsters.grid_y}
                                     poe2_api.dbgp("移动到目标附近222")
-                                    return bret.FAIL
+                                    return bret.SUCCESS
                                 end
                             end
 
@@ -9642,33 +10366,43 @@ local custom_nodes = {
                                 if distance < 120 then
                                     env.end_point = {valid_monsters.grid_x, valid_monsters.grid_y}
                                     poe2_api.dbgp("移动到目标附近333")
-                                    return bret.FAIL
+                                    return bret.SUCCESS
                                 end
                             end
                             
-                            -- env.end_point = {valid_monsters.grid_x, valid_monsters.grid_y}
+                            if poe2_api.table_contains(valid_monsters.rarity, {2, 3}) then
+                                poe2_api.dbgp("精英怪移动到目标附近")
+                                env.end_point = {valid_monsters.grid_x, valid_monsters.grid_y}
+                                return bret.SUCCESS
+                            -- else
+                            --     return bret.SUCCESS
+                            end
                             return bret.FAIL
-                            -- return bret.FAIL
                         end
                     else
                         if distance > 80 then
                             env.end_point = {valid_monsters.grid_x, valid_monsters.grid_y}
                             poe2_api.dbgp("移动到目标附近333")
-                            return bret.FAIL
+                            return bret.SUCCESS
                         end
                     end
                     
                     _execute_skill(selected_skill, valid_monsters, player_info)
                     poe2_api.dbgp("释放：")
                     poe2_api.printTable(selected_skill)
-                    poe2_api.time_p("ReleaseSkillAction 耗时 --> ", api_GetTickCount64() - current_time_ms)
-                    return bret.SUCCESS
+                    env.select_skill = selected_skill
+                    -- if valid_monsters.rarity > 1 then
+                    --     poe2_api.time_p("ReleaseSkillAction(RUNNING) 耗时 --> ", api_GetTickCount64() - current_time_ms)
+                    --     return bret.RUNNING
+                    -- end
+                    poe2_api.time_p("ReleaseSkillAction 耗时(123123123123) --> ", api_GetTickCount64() - current_time_ms)
+                    return bret.FAIL
                 end
                 return bret.RUNNING
             end
 
-            poe2_api.time_p("ReleaseSkillAction 耗时 --> ", api_GetTickCount64() - current_time_ms)
-            return bret.SUCCESS
+            poe2_api.time_p("ReleaseSkillAction 耗时(hcdhfhfhfhf) --> ", api_GetTickCount64() - current_time_ms)
+            return bret.FAIL
         end
     },
 
@@ -9677,6 +10411,7 @@ local custom_nodes = {
         run = function(self, env)
             local current_time_ms = api_GetTickCount64()
             --- 辅助函数
+            env.select_skill = nil
             -- 根据稀有度获取可释放的技能
             local available_skills = {}
             local function _get_available_skills(monster_rarity)
@@ -10017,8 +10752,7 @@ local custom_nodes = {
                 -- poe2_api.print_log("a monster -->" ,a.life)
 
                 -- 快速失败条件检查（按计算成本从低到高排序）
-                if monster.type ~= 1 or                  -- 类型检查
-                not monster.is_selectable or          -- 可选性检查
+                if not monster.is_selectable or          -- 可选性检查
                 monster.is_friendly or                -- 友方检查
                 monster.life <= 0 or                  -- 生命值检查
                 monster.name_utf8 == "" or              -- 名称检查
@@ -10026,7 +10760,9 @@ local custom_nodes = {
                 poe2_api.table_contains(my_game_info.not_attact_mons_path_name , monster.path_name_utf8) then  -- 路径名检查
                     goto continue
                 end
-
+                if not poe2_api.table_contains(my_game_info.type_3_boss, monster.name_utf8) and monster.type ~= 1 then
+                    goto continue
+                end   
                 -- if string.find(monster.path_name_utf8,"Metadata/Monsters/TormentedSpirits/") then
                 --     goto continue
                 -- end
@@ -10093,14 +10829,21 @@ local custom_nodes = {
                     -- 第二次遍历进行卡住检测和其他处理
                     for _, monster in ipairs(env.range_info) do
                         local current_time = api_GetTickCount64()
-                        
+
+                        if string.find(player_info.current_map_name_utf8,"Abyss") then
+                            break
+                        end  
+
                         -- 快速失败条件检查
-                        if monster.type ~= 1 or 
-                        not monster.is_selectable or 
+                        if not monster.is_selectable or 
                         poe2_api.table_contains(self.stuck_monsters,monster.id) or 
                         monster.is_friendly then
                             goto continue_second
                         end
+
+                        if not poe2_api.table_contains(my_game_info.type_3_boss, monster.name_utf8) and monster.type ~= 1 then
+                            goto continue_second
+                        end  
 
                         -- Metadata/Monsters/TormentedSpirits/Cat/SpiritOfTheCat
                         -- if string.find(monster.path_name_utf8,"Metadata/Monsters/TormentedSpirits/") then
@@ -10310,6 +11053,7 @@ local custom_nodes = {
                     _execute_skill(selected_skill, valid_monsters, player_info)
                     poe2_api.dbgp("释放：")
                     poe2_api.printTable(selected_skill)
+                    env.select_skill = selected_skill
                 end
                 return bret.RUNNING
             end
@@ -10366,7 +11110,7 @@ local custom_nodes = {
                 -- 检查仓库页面
                 local warehouse_page = {"倉庫","聖域鎖櫃","公會倉庫"}
                 if poe2_api.find_text({UI_info = env.UI_info, text = warehouse_page, min_x = 0, add_x = 253}) and
-                poe2_api.find_text({UI_info = env.UI_info, text = "强調物品", min_x = 0}) then
+                poe2_api.find_text({UI_info = env.UI_info, text = "強調物品", min_x = 0}) then
                     poe2_api.dbgp("检测到仓库页面，将执行点击操作")
                     poe2_api.find_text({UI_info = env.UI_info, text = warehouse_page, min_x = 0, click = 2, add_x = 253})
                     return bret.RUNNING
@@ -11013,6 +11757,7 @@ local custom_nodes = {
                                         poe2_api.dbgp("点击穿越成功")
                                         env.is_map_complete = false
                                         self.open_num = 0
+                                        env.enter_map_times = (env.enter_map_times or 0) + 1
                                         api_Sleep(3000)
                                         
                                         return bret.SUCCESS
@@ -11273,6 +12018,7 @@ local custom_nodes = {
                 env.interactive_permanent_id_list = {}
                 env.obj_color = nil
                 env.is_abyss_complete = false
+                env.is_abyss_time = false
                 -- for _,k in ipairs(env.player_info.buffs) do
                 --     -- poe2_api.printTable(k)
                 --     -- poe2_api.dbgp("k.name_en", k.name_en)
@@ -11451,7 +12197,7 @@ local custom_nodes = {
                 -- 释放辅助技能
                 if skill.id and skill.id ~= 0 then
                     -- 辅助技能通常不需要目标位置，使用玩家当前位置
-                    if next(env.target_point) then
+                    if env.target_point and next(env.target_point) then
                         api_CastSkill(skill.id, 0, env.player_info.grid_x, env.player_info.grid_y, env.target_point[1], env.target_point[2])
                     else
                         api_CastSkill(skill.id, 0, env.player_info.grid_x, env.player_info.grid_y, env.player_info.grid_x, env.player_info.grid_y)
@@ -11607,7 +12353,7 @@ local custom_nodes = {
                 end
 
                 -- 如果没有找到匹配的技能，返回nil或默认值
-                print("警告：未找到名称为 '" .. daimos_change .. "' 的辅助技能")
+                -- print("警告：未找到名称为 '" .. daimos_change .. "' 的辅助技能")
                 return false
             end
 
@@ -11662,6 +12408,12 @@ local custom_nodes = {
                     return bret.RUNNING
                 end
                 env.boss_drop = false
+            end
+            if env.is_abyss_time then
+                if api_GetTickCount64() - env.abyss_time < 5000 then
+                    poe2_api.dbgp("等待深渊物品掉落...")
+                    return bret.RUNNING
+                end
             end
             -- 判断boss死亡
             local function is_not_boss(range_info)
@@ -11728,21 +12480,6 @@ local custom_nodes = {
                             end
                         end
                     end
-                    local function is_point1(grid_x,grid_y)
-                        local player_position = api_FindNearestReachablePoint(grid_x,grid_y, 50, 0)
-                        local resu = api_FindPath(player_info.grid_x,player_info.grid_y,player_position.x, player_position.y)
-                        return resu
-                    end
-                        
-                    for _, item in ipairs(current_map_sorted_info) do
-                        if item.name_utf8 == 'UniqueMonsterAlive' and item.flagStatus == 1 and item.flagStatus1 == 1 and is_point1(item.grid_x,item.grid_y) then
-                            poe2_api.dbgp("小地图对象中最终boss----------------------------")
-                            env.minimap_info = item
-                            local player_position = api_FindNearestReachablePoint(item.grid_x, item.grid_y, 50, 0)
-                            env.end_point = {player_position.x, player_position.y}
-                            return true
-                        end
-                    end
 
                     for _, item in ipairs(current_map_sorted_info) do
                         if item.name_utf8 == 'AbyssChestActive' and item.flagStatus == 0 and item.flagStatus1 == 1 then
@@ -11765,7 +12502,7 @@ local custom_nodes = {
                         end
                     end
                     for _, item in ipairs(current_map_sorted_info) do
-                        if string.find(item.name_utf8,"Abyss_Depths") and item.flagStatus1 == 1 and not env.is_abyss_complete then
+                        if string.find(item.name_utf8,"Abyss_") and item.flagStatus1 == 1 and not env.is_abyss_complete then
                             if not poe2_api.table_contains(player_info.current_map_name_utf8,my_game_info.PRIORITY_MAPS) or (poe2_api.table_contains(player_info.current_map_name_utf8,my_game_info.PRIORITY_MAPS) and not poe2_api.find_text({text = "地圖完成"})) then
                                 poe2_api.dbgp("小地图对象中深渊入口----------------------------")
                                 env.minimap_info = item
@@ -11775,18 +12512,40 @@ local custom_nodes = {
                         end
                     end
 
+                    local function is_point1(grid_x,grid_y)
+                        local player_position = api_FindNearestReachablePoint(grid_x,grid_y, 50, 0)
+                        local resu = api_FindPath(player_info.grid_x,player_info.grid_y,player_position.x, player_position.y)
+                        return resu
+                    end
+                        
+                    for _, item in ipairs(current_map_sorted_info) do
+                        if item.name_utf8 == 'UniqueMonsterAlive' and item.flagStatus == 1 and item.flagStatus1 == 1 then
+                            local is_path = is_point1(item.grid_x,item.grid_y)
+                            if is_path and next(is_path) then
+                                poe2_api.dbgp("小地图对象中最终boss----------------------------")
+                                env.minimap_info = item
+                                local player_position = api_FindNearestReachablePoint(item.grid_x, item.grid_y, 50, 0)
+                                env.end_point = {player_position.x, player_position.y}
+                                return true
+                            end
+                            
+                        end
+                    end
+
+                    
+
                     if not env.minimap_info then
                         return false
                     end
                 else
                     poe2_api.dbgp("小地图对象中已有目标--------------------------------------------------------------------------------------------")
                     local minimap_info = env.minimap_info 
-                    if string.find(minimap_info.name_utf8,"Abyss_Depths") then
+                    if string.find(minimap_info.name_utf8,"Abyss_") then
                         if env.is_abyss_complete then
                             env.minimap_info = nil
                             return "刷新"
                         end
-                        local distance = poe2_api.point_distance(minimap_info.grid_x,minimap_info.grid_y,player_info)
+                        local distance = poe2_api.point_distance(minimap_info.grid_x,minimap_info.grid_y,env.player_info)
                         if distance < 50 then
                             local function get_abyss()
                                 if not env.range_info or not next(env.range_info) then
@@ -11808,8 +12567,9 @@ local custom_nodes = {
                         end
                     end
                     for _, item in ipairs(current_map_sorted_info) do
-                        if item.name_utf8 == minimap_info.name_utf8 and item.flagStatus == minimap_info.flagStatus and item.flagStatus1 == minimap_info.flagStatus1 and poe2_api.point_distance(item.grid_x,item.grid_y,minimap_info)<20 then
-                            if minimap_info == 'UniqueMonsterAlive' then
+                        local distance = poe2_api.point_distance(item.grid_x,item.grid_y,minimap_info)
+                        if item.name_utf8 == minimap_info.name_utf8 and item.flagStatus == minimap_info.flagStatus and item.flagStatus1 == minimap_info.flagStatus1 and distance and distance < 20 then
+                            if minimap_info.name_utf8 == 'UniqueMonsterAlive' then
                                 local player_position = api_FindNearestReachablePoint(item.grid_x, item.grid_y, 50, 0)
                                 env.end_point = {player_position.x, player_position.y}
                             else
@@ -11861,14 +12621,15 @@ local custom_nodes = {
                 poe2_api.dbgp("没有恐喙鳥盟友...")
                 return true
             end
-
-            if env.is_bird and not env.is_map_complete then
+            nomarl_monster = poe2_api.is_have_mos({range_info = env.range_info, dis = env.min_attack_dis, player_info = player_info,is_active = is_active, not_sight = true,stuck_monsters = stuck_monsters})
+            Boss_monster = poe2_api.is_have_mos_boss(env.range_info, my_game_info.boss_name)
+            if env.is_bird and not env.is_map_complete and not nomarl_monster and not Boss_monster then
                 poe2_api.dbgp("---上鸟---")
                 local function is_door()
                     for _, v in ipairs(env.range_info) do
                         if v.name_utf8 ~= "" and v.type == 5 and poe2_api.table_contains(v.name_utf8,my_game_info.hideout_CH) then
                             local dis = poe2_api.point_distance(v.grid_x, v.grid_y, player_info)
-                            if dis and dis < 25 then
+                            if dis and dis < 50 then
                                 return false
                             end
                         end
@@ -11968,6 +12729,17 @@ local custom_nodes = {
                     end
 
                     if string.find(player_info.current_map_name_utf8,"Abyss") then
+                        if not poe2_api.find_text({UI_info = env.UI_info, text = "重返地表",min_x = 0,min_y = 0}) then
+                            api_InitExplorationArea()
+                            poe2_api.time_p("深渊地图(RUNNING1) 耗时 -->", api_GetTickCount64() - current_time)
+                            return bret.RUNNING
+                        end
+                        if not env.is_abyss_time then
+                            env.is_abyss_time = true
+                            env.abyss_time = api_GetTickCount64()
+                            poe2_api.time_p("深渊地图(RUNNING2) 耗时 -->", api_GetTickCount64() - current_time)
+                            return bret.RUNNING
+                        end
                         env.is_abyss_complete = true
                         poe2_api.find_text({UI_info = env.UI_info, text = "重返地表",min_x = 0,min_y = 0,add_x = -50, click = 2})
                         api_Sleep(1000)
@@ -11977,6 +12749,7 @@ local custom_nodes = {
                         env.is_map_complete = true
                         env.one_other_map = nil
                     end
+
                     if not string.find(player_info.current_map_name_utf8 or "", "town") and not poe2_api.table_contains(player_info.current_map_name_utf8, my_game_info.hideout) or poe2_api.table_contains(player_info.current_map_name_utf8, PRIORITY_MAPS) then
                         no = poe2_api.is_have_mos({range_info = env.range_info, player_info = player_info,dis = 80, not_sight = 1})
                         if no then
@@ -12014,6 +12787,7 @@ local custom_nodes = {
                         api_Sleep(500)
                         api_ClickScreen(1230, 815, 1)
                         -- api_Sleep(1500)
+                        poe2_api.dbgp("重置地图信息")
                         api_RestoreOriginalMap()
                         api_UpdateMapObstacles(env.radius * 2)
                         self.false_times = self.false_times + 1000
@@ -13342,9 +14116,10 @@ local custom_nodes = {
 
                 if not lock_button then
                     poe2_api.dbgp("未找到锁定按钮，尝试点击标签列表")
-                    api_ClickScreen((tab_list_button.left + tab_list_button.right) / 2, (tab_list_button.top + tab_list_button.bottom) / 2, 0)
-                    api_ClickScreen((tab_list_button.left + tab_list_button.right) / 2, (tab_list_button.top + tab_list_button.bottom) / 2, 1)
-                    api_Sleep(200)
+                    api_ClickScreen(poe2_api.toInt((tab_list_button.left+tab_list_button.right)/2),poe2_api.toInt((tab_list_button.top+tab_list_button.bottom)/2),1)
+                    api_Sleep(2000)
+                    api_ClickScreen(poe2_api.toInt(((tab_list_button.left+tab_list_button.right)/2) + 30),poe2_api.toInt(((tab_list_button.top+tab_list_button.bottom)/2) - 30),1)
+                    api_Sleep(1000)
                     return bret.RUNNING
                 end
 
@@ -14226,8 +15001,12 @@ local custom_nodes = {
                                     poe2_api.find_text({text = "怪物受到強大的精髓禁錮。", UI_info = env.UI_info, min_x=200,max_y=750,match=2,max_x=1200,sorted = true, click=2})
                                 elseif poe2_api.table_contains(interactive_object.path_name_utf8, path_name_list) then
                                     api_ClickMove(poe2_api.toInt(interactive_object.grid_x), poe2_api.toInt(interactive_object.grid_y), poe2_api.toInt(interactive_object.world_z), 1)
+                                elseif interactive_object.name_utf8 == "開關" then
+                                    api_ClickMove(poe2_api.toInt(interactive_object.grid_x), poe2_api.toInt(interactive_object.grid_y), poe2_api.toInt(env.player_info.world_z), 1)
                                 else
-                                    api_ClickMove(poe2_api.toInt(interactive_object.grid_x), poe2_api.toInt(interactive_object.grid_y), poe2_api.toInt(interactive_object.world_z - 250), 1)
+                                    if interactive_object.path_name_utf8 ~= "Metadata/MiscellaneousObjects/Abyss/AbyssCrack" then
+                                        api_ClickMove(poe2_api.toInt(interactive_object.grid_x), poe2_api.toInt(interactive_object.grid_y), poe2_api.toInt(interactive_object.world_z - 250), 1)
+                                    end
                                 end
                             else
                                 api_ClickMove(poe2_api.toInt(interactive_object.grid_x), poe2_api.toInt(interactive_object.grid_y), poe2_api.toInt(interactive_object.world_z - 250), 1)
@@ -14257,7 +15036,11 @@ local custom_nodes = {
                 end)
                 if ok and value ~= nil then
                     if string.find("Metadata/Terrain/Leagues/Ritual/RitualRuneInteractable", interactive_object.path_name_utf8) then
-                        -- env.afoot_altar = interactive_object
+                        env.afoot_altar = interactive_object
+                    end
+                    if interactive_object.path_name_utf8 == "Metadata/MiscellaneousObjects/Abyss/AbyssCrack" then
+                        table.insert(env.interactive_permanent_id_list,interactive_object.id)
+                        -- env.interactive_permanent_id_list
                     end 
                 end
                 poe2_api.print_log("清路径666")
@@ -14361,7 +15144,7 @@ local custom_nodes = {
 
             local function need_appraisal(bag_info)
                 if not bag_info then
-                    poe2_api.dbgp("背包信息为空")
+                    poe2_api.dbgp("城外鉴定: 背包信息为空")
                     return false
                 end
                 
@@ -14378,7 +15161,7 @@ local custom_nodes = {
                     
                     -- 检查config_type是否存在
                     if not config_type then
-                        poe2_api.dbgp("[错误] config_type 配置表不存在！")
+                        -- poe2_api.dbgp("[错误] config_type 配置表不存在！")
                         return nil
                     end
                 
@@ -14386,8 +15169,7 @@ local custom_nodes = {
                     -- poe2_api.dbgp("\n=== 开始类型配置匹配 ===")
                     for config_name, item_config in pairs(config_type) do
                         -- poe2_api.dbgp(string.format("\n[检查配置组] 配置组名称: %s", config_name))
-                        -- poe2_api.dbgp("[配置内容]")
-                        -- poe2_api.printTable(item_config)
+                        -- poe2_api.dbgp("[配置内容] %s", poe2_api.printTable(item_config))
 
                         for idx, item in ipairs(item_config) do
                             -- poe2_api.dbgp("\n[检查配置项] 序号: %d", idx)
@@ -14428,7 +15210,7 @@ local custom_nodes = {
                                 -- poe2_api.dbgp("-> 基础类型不匹配，跳过")
                                 goto continue
                             end
-                            -- poe2_api.dbgp("-> 基础类型匹配通过")
+                            poe2_api.dbgp("-> 基础类型匹配通过")
                 
                             -- 品质检查
                             local quality_check = {
@@ -14460,22 +15242,20 @@ local custom_nodes = {
                                 goto continue
                             end
                             poe2_api.dbgp("-> 品质检查通过")
-                
+                            
                             -- 名称检查
-                            if item["名稱"] then
+                            if item["名稱"] and item["基礎類型名"] then
                                 -- poe2_api.dbgp(string.format("[名称检查] 配置名称: %s | 物品名称: %s",
                                 --     item["名稱"], bag.name_utf8 or "nil"))
-                                
-                                if item["名稱"] == bag.name_utf8 then
-                                    -- poe2_api.dbgp("-> 名称完全匹配，返回配置")
-                                    -- poe2_api.dbgp("[匹配成功] 配置详情:")
-                                    -- poe2_api.dbgp(poe2_api.printTable(item))
+                                if item["名稱"] == bag.name_utf8 or item["基礎類型名"] == bag.baseType_utf8 then
+                                    poe2_api.dbgp("-> 名称完全匹配，返回配置")
+                                    -- poe2_api.dbgp("[匹配成功] 配置详情:\n%s", poe2_api.printTable(item))
                                     return item
                                 else
-                                    poe2_api.dbgp("-> 名称不匹配，继续检查")
+                                    -- poe2_api.dbgp("-> 名称不匹配，继续检查")
                                 end
                             else
-                                poe2_api.dbgp("[名称检查] 配置无名称要求，检查词缀")
+                                -- poe2_api.dbgp("[名称检查] 配置无名称要求，检查词缀")
                                 
                                 -- 词缀检查
                                 if item["物品詞綴"] then
@@ -14486,16 +15266,15 @@ local custom_nodes = {
                                         for affix_name, v in pairs(affix_dict) do
                                             if type(v) == "table" and v["詞綴"] then
                                                 -- poe2_api.dbgp(string.format("-> 发现有效词缀: %s", affix_name))
-                                                -- poe2_api.dbgp(string.format("[匹配成功] 配置详情: %s", poe2_api.printTable(item)))
+                                                -- poe2_api.dbgp(string.format("[匹配成功] 配置详情:\n%s", poe2_api.printTable(item)))
                                                 return item
                                             end
                                         end
                                     end
                                 end
                             end
-                
                             -- 如果前面都通过但没返回，检查基础类型名
-                            poe2_api.dbgp("[最终检查] 基础类型名匹配检查")
+                            -- poe2_api.dbgp("[最终检查] 基础类型名匹配检查")
                             if base_type == bag.baseType_utf8 or base_type == "全部物品" then
                                 -- poe2_api.dbgp("-> 基础类型名匹配，返回配置")
                                 -- poe2_api.dbgp(string.format("[匹配成功] 配置详情:\n%s", poe2_api.printTable(item)))
@@ -14509,7 +15288,7 @@ local custom_nodes = {
                     -- 2. 检查名称匹配
                     poe2_api.dbgp("\n=== 开始名称配置匹配 ===")
                     if not config_name then
-                        -- poe2_api.dbgp("[警告] config_name 配置表不存在")
+                        poe2_api.dbgp("[警告] config_name 配置表不存在")
                     else
                         for config_name, item_config in pairs(config_name) do
                             -- poe2_api.dbgp(string.format("\n[检查名称配置组] %s", config_name))
@@ -14522,7 +15301,7 @@ local custom_nodes = {
                                     --     item["基礎類型名"] or "nil", bag.baseType_utf8 or "nil"))
                                     
                                     if item["基礎類型名"] == bag.baseType_utf8 then
-                                        -- poe2_api.dbgp("-> 基础类型匹配")
+                                        poe2_api.dbgp("-> 基础类型匹配")
                                         
                                         local type_ok = true
                                         if item["類型"] and item["類型"][1] then
@@ -14541,13 +15320,13 @@ local custom_nodes = {
                             end
                         end
                     end
-                    
-                    -- poe2_api.dbgp("\n[匹配结果] 未找到匹配配置")
+                
+                    poe2_api.dbgp("\n[匹配结果] 未找到匹配配置")
                     return nil
                 end
 
                 local items_to_identify = {}
-                -- poe2_api.dbgp("开始扫描背包物品...")
+                poe2_api.dbgp("开始扫描背包物品...")
                 
                 for i, bag in ipairs(bag_info) do
                     -- poe2_api.dbgp(string.format("\n物品 %d/%d: %s (类型: %s, 基础类型: %s, 颜色: %d, 已鉴定: %s)", 
@@ -14564,7 +15343,7 @@ local custom_nodes = {
                     
                     -- 特殊类别直接加入鉴定列表
                     if poe2_api.table_contains({"Map", "TowerAugmentation"}, bag.category_utf8) then
-                        -- poe2_api.dbgp("特殊类别物品，直接加入鉴定列表")
+                        poe2_api.dbgp("特殊类别物品，直接加入鉴定列表")
                         table.insert(items_to_identify, bag)
                         goto continue_item
                     end
@@ -14572,30 +15351,29 @@ local custom_nodes = {
                     -- 获取匹配的配置
                     poe2_api.dbgp("开始匹配配置...")
                     local matched_config = get_matched_config(bag)
-                    
                     -- 检查物品詞綴配置
-                    if matched_config and matched_config["物品詞綴"] then
+                    if matched_config and (matched_config["物品詞綴"] or matched_config["名稱"]) then
                         poe2_api.dbgp("找到匹配配置，检查词缀...")
                         local affix_dict = matched_config["物品詞綴"]
                         if affix_dict and type(affix_dict) == "table" then
                             local has_valid_affix = false
                             for affix_name, v in pairs(affix_dict) do
                                 if type(v) == "table" and v["詞綴"] then
-                                    -- poe2_api.dbgp(string.format("发现有效词缀: %s", affix_name))
+                                    poe2_api.dbgp(string.format("发现有效词缀: %s", affix_name))
                                     has_valid_affix = true
                                     break
                                 end
                             end
                             
                             if has_valid_affix then
-                                -- poe2_api.dbgp("物品有有效词缀，加入鉴定列表")
+                                poe2_api.dbgp("物品有有效词缀，加入鉴定列表")
                                 table.insert(items_to_identify, bag)
                             else
-                                -- poe2_api.dbgp("配置中无有效词缀，跳过")
+                                poe2_api.dbgp("配置中无有效词缀，跳过")
                             end
                         end
                     else
-                        -- poe2_api.dbgp("未找到匹配配置或配置无词缀要求")
+                        poe2_api.dbgp("未找到匹配配置或配置无词缀要求")
                     end
                     ::continue_item::
                 end
@@ -14652,6 +15430,13 @@ local custom_nodes = {
                         poe2_api.dbgp("交互",env.interactive)
                         return bret.FAIL
                     else
+                        if poe2_api.find_text({UI_info = env.UI_info, text = "重鑄台", min_x = 0}) 
+                        and poe2_api.find_text({UI_info = env.UI_info, text = "摧毀三個相似的物品，重鑄為一個新的物品", min_x = 0}) then
+                            poe2_api.dbgp("关闭重铸台界面")
+                            poe2_api.dbgp1("SDGSFDGSFHBSFB")
+                            poe2_api.click_keyboard("space")
+                            return bret.RUNNING
+                        end
                         api_Sleep(1000)
                         if not poe2_api.find_text({UI_info = env.UI_info, text = "鑑定物品"}) then
                             poe2_api.find_text({UI_info = env.UI_info, text = "多里亞尼",click=2, refresh = true})
@@ -14685,6 +15470,12 @@ local custom_nodes = {
             
             if not need_synthesis or env.full_map then
                 poe2_api.dbgp("自动合成未开启，返回FAIL")
+                if poe2_api.find_text({UI_info = env.UI_info, text = "重鑄台", min_x = 0}) 
+                   and poe2_api.find_text({UI_info = env.UI_info, text = "摧毀三個相似的物品，重鑄為一個新的物品", min_x = 0}) then
+                    poe2_api.dbgp("关闭重铸台界面")
+                    poe2_api.dbgp1("SDGSFDGSFHBSFB")
+                    poe2_api.click_keyboard("space")
+                end
                 return bret.SUCCESS
             end
             
@@ -14714,6 +15505,12 @@ local custom_nodes = {
             
             if not hammer_active and not hammer_active_range then
                 poe2_api.dbgp("重铸台未激活")
+                if poe2_api.find_text({UI_info = env.UI_info, text = "重鑄台", min_x = 0}) 
+                   and poe2_api.find_text({UI_info = env.UI_info, text = "摧毀三個相似的物品，重鑄為一個新的物品", min_x = 0}) then
+                    poe2_api.dbgp("关闭重铸台界面")
+                    poe2_api.dbgp1("SDGSFDGSFHBSFB")
+                    poe2_api.click_keyboard("space")
+                end
                 return bret.SUCCESS
             end
             
@@ -15896,12 +16693,12 @@ local custom_nodes = {
                             break
                         end
                         
-                        local condition3 = (string.find(i.path_name_utf8,"Metadata/Monsters/TormentedSpirits/TormentedSpiritofthe") and i.life>0 and not is_target and not player_info.isInBossBattle)
-                        if condition3 then
-                            -- poe2_api.dbgp("条件3匹配: 受折磨的灵魂 ("..(i.path_name_utf8 or "无路径")..")")
-                            currency = i
-                            break
-                        end
+                        -- local condition3 = (string.find(i.path_name_utf8,"Metadata/Monsters/TormentedSpirits/TormentedSpiritofthe") and i.life>0 and not is_target and not player_info.isInBossBattle)
+                        -- if condition3 then
+                        --     -- poe2_api.dbgp("条件3匹配: 受折磨的灵魂 ("..(i.path_name_utf8 or "无路径")..")")
+                        --     currency = i
+                        --     break
+                        -- end
                         
                         local condition4 = (i.name_utf8 and i.name_utf8 ~= "" and i.name_utf8 == "門" and i.isActive and i.is_selectable and ((poe2_api.point_distance(i.grid_x,i.grid_y,player_info)>30 and not is_target) or poe2_api.point_distance(i.grid_x,i.grid_y,player_info)<30) and not player_info.isInBossBattle)
                         if condition4 then
@@ -16028,12 +16825,12 @@ local custom_nodes = {
                             break
                         end
 
-                        local condition21 = (i.isActive and i.is_selectable and i.rarity ==2 and i.type==1 and i.life>0 and not poe2_api.table_contains(player_info.current_map_name_utf8,{"MapAugury","MapAugury_NoBoss"}))
-                        if condition21 then
-                            -- poe2_api.dbgp("条件21匹配: 活跃稀有怪物 (地图:"..(player_info.current_map_name_utf8 or "无")..")")
-                            currency = i
-                            break
-                        end
+                        -- local condition21 = (i.isActive and i.is_selectable and i.rarity ==2 and i.type==1 and i.life>0 and not poe2_api.table_contains(player_info.current_map_name_utf8,{"MapAugury","MapAugury_NoBoss"}))
+                        -- if condition21 then
+                        --     -- poe2_api.dbgp("条件21匹配: 活跃稀有怪物 (地图:"..(player_info.current_map_name_utf8 or "无")..")")
+                        --     currency = i
+                        --     break
+                        -- end
 
                         local condition22 = string.find(i.path_name_utf8,"Metadata/Chests/Abyss/Abyss") and i.is_selectable and (not next(i.stateMachineList) or (next(i.stateMachineList) and i.stateMachineList["unlocked"] == 1)) and not is_target and not player_info.isInBossBattle 
                         if condition22 then
@@ -16055,9 +16852,30 @@ local custom_nodes = {
                         --     break
                         -- end
 
+                        local condition24 = next(i.stateMachineList) and i.stateMachineList["doomepk"] == 0 and i.life > 0 and i.type == 1 and not is_target and not player_info.isInBossBattle 
+                        if condition24 then
+                            -- poe2_api.dbgp("条件24匹配: 深淵裂缝怪物")
+                            currency = i
+                            break
+                        end
+
                         local condition25 = i.path_name_utf8 == "Metadata/MiscellaneousObjects/Abyss/AbyssSubAreaTransition" and not is_target and not player_info.isInBossBattle and not env.is_abyss_complete 
                         if condition25 then
                             -- poe2_api.dbgp("条件25匹配: 深淵地圖")
+                            currency = i
+                            break
+                        end
+
+                        local condition26 = i.name_utf8 == "魔幻石陣" and i.is_selectable and not is_target and not player_info.isInBossBattle 
+                        if condition26 then
+                            -- poe2_api.dbgp("条件26匹配: 魔幻石陣")
+                            currency = i
+                            break
+                        end
+
+                        local condition27 = i.path_name_utf8 == "Metadata/MiscellaneousObjects/Abyss/AbyssCrack" and not is_target and not player_info.isInBossBattle 
+                        if condition27 then
+                            -- poe2_api.dbgp("条件27匹配: 深淵裂缝小点")
                             currency = i
                             break
                         end
@@ -16112,18 +16930,50 @@ local custom_nodes = {
                     return false
                 end
             end
+            local function get_range1(range_info)
+                local range_sorted = poe2_api.get_sorted_list(env.range_info, env.player_info)
+                for i, v in ipairs(range_sorted) do
+                    local function get_boss_turret()
+                        local lock = poe2_api.get_game_control_by_rect({UI_info = env.UI_info,min_x = 443,min_y = 770,max_x = 639,max_y = 872})
+                        for i, v in ipairs(lock) do
+                            if v.name_utf8 == "quest_state_changed_button" then
+                                return true
+                            end
+                        end
+                        return false
+                    end
+                    local condition = v.name_utf8 == "砲塔" and player_info.isInBossBattle and get_boss_turret()
+                    if condition then
+                        -- poe2_api.dbgp("条件26匹配: Boss砲塔")
+                        env.interaction_object = v
+                        env.interactive = v
+                        return true
+                    end
+                end
+                return false
+            end
             local interaction_object = env.interaction_object
             if not interaction_object then
                 local interactive = get_range(env.range_info)
+                local interactive1 = get_range1(env.range_info)
                 if not interactive then
-                    env.interactive_id = nil
-                    env.interactiontimeout = 0
-                    poe2_api.dbgp("无需要交互的对象")
-                    poe2_api.time_p("无需要交互的对象(SUCCESS)... 耗时 --> ", api_GetTickCount64() - current_time)
-                    return bret.SUCCESS
+                    if not interactive1 then
+                        env.interactive_id = nil
+                        env.interactiontimeout = 0
+                        poe2_api.dbgp("无需要交互的对象")
+                        poe2_api.time_p("无需要交互的对象(SUCCESS)... 耗时 --> ", api_GetTickCount64() - current_time)
+                        return bret.SUCCESS
+                    end
                 end
             end
             local interaction_object = env.interaction_object
+            if string.find(player_info.current_map_name_utf8,"Abyss") and interaction_object.path_name_utf8 == "Metadata/MiscellaneousObjects/Abyss/AbyssSubAreaTransition" then
+                env.interactiontimeout = 0
+                env.interaction_object = nil
+                env.interactive_id = nil
+                poe2_api.time_p("人物在深渊地图清楚交互对象(RUNNING)... 耗时 --> ", api_GetTickCount64() - current_time)
+                return bret.RUNNING
+            end
             if interaction_object then
                 if poe2_api.table_contains(interaction_object.name_utf8,my_game_info.Treasure_Chest) then
                     local obj = nil
@@ -16171,7 +17021,7 @@ local custom_nodes = {
                                 return bret.SUCCESS
                             end
                         else
-                            if not poe2_api.table_contains(interaction_object.name_utf8,{"門","開關","把手","聖潔神殿"}) then
+                            if not poe2_api.table_contains(interaction_object.name_utf8,{"門","開關","把手","聖潔神殿","砲塔"}) then
                                 env.interactiontimeout = 0
                                 env.interaction_object = nil
                                 env.interactive_id = nil
@@ -16204,7 +17054,7 @@ local custom_nodes = {
                     end
                 else
                     if not poe2_api.table_contains(interaction_object.name_utf8,{"門","聖潔神殿"}) or (interaction_object.name_utf8 == "門" and poe2_api.point_distance(interaction_object.grid_x,interaction_object.grid_y,player_info)>30) or (interaction_object.name_utf8 == "聖潔神殿" and poe2_api.point_distance(interaction_object.grid_x,interaction_object.grid_y,player_info)>60) then
-                        if is_target then
+                        if is_target and interaction_object.name_utf8 ~= "砲塔" then
                             env.interactiontimeout = 0
                             env.interaction_object = nil
                             env.interactive_id = nil
@@ -16630,7 +17480,7 @@ local custom_nodes = {
                     return bret.FAIL
                 end
                 if distance < 100 then
-                    api_UpdateMapObstacles(100)
+                    api_UpdateMapObstacles(150)
                 end
                 env.afoot_altar = is_altar
                 poe2_api.time_p("是否有未激活/黑雾祭坛（SUCCESS1）... 耗时 --> ", api_GetTickCount64() - start_time)
@@ -16698,7 +17548,8 @@ local custom_nodes = {
                                 
                                 poe2_api.dbgp("距离: "..dis)
                                 if dis and dis < distance then
-                                    if is_point(v.grid_x, v.grid_y) then
+                                    local is_path = is_point(v.grid_x, v.grid_y)
+                                    if is_path and next(is_path) then
                                         poe2_api.time_p("算距离耗时1... 耗时 --> ", api_GetTickCount64() - cutt1)
                                         return v
                                     end
@@ -16706,18 +17557,22 @@ local custom_nodes = {
                             end
                         elseif index == 1 then
                             poe2_api.time_p("算距离耗时... 耗时 --> ", 22222222222222)
-                            if (not v.hasLineOfSight or not v.isActive) and v.name_utf8 ~= "赤陶士兵" then
+                            if (not v.hasLineOfSight or not v.isActive) and (not poe2_api.table_contains(v.name_utf8,{"赤陶士兵","石兵","鮮明水母"}) and not string.find(v.path_name_utf8,"Metadata/Monsters/TormentedSpirits/TormentedSpiritofthe")) then
                                 poe2_api.dbgp("无视野，或者未激活")
                                 local dis = poe2_api.point_distance(v.grid_x, v.grid_y,mate)
                                 poe2_api.dbgp("距离: "..dis)
                                 if dis and dis < distance then
                                     if not self.break_object_list or not next(self.break_object_list) then
-                                        if is_point(v.grid_x, v.grid_y) then
+                                        local is_path = is_point(v.grid_x, v.grid_y)
+                                        if is_path and next(is_path) then
+                                        -- if is_point(v.grid_x, v.grid_y) then
                                             return v
                                         end
                                     else
                                         if not poe2_api.table_contains(self.break_object_list,v.id) then
-                                            if is_point(v.grid_x, v.grid_y) then
+                                            local is_path = is_point(v.grid_x, v.grid_y)
+                                            if is_path and next(is_path) then
+                                            -- if is_point(v.grid_x, v.grid_y) then
                                                 return v
                                             end
                                         end
@@ -16822,6 +17677,10 @@ local custom_nodes = {
                     if not self.target then
                         local is_target = is_monster({range_info=env.range_info,mate=afoot_altar,distance=105})
                         if not is_target then
+                            if env.path_list and next(env.path_list) then
+                                poe2_api.dbgp("祭坛已有路径，先完成原先路径")
+                                return bret.SUCCESS
+                            end
                             local point = api_FindNearestReachablePoint(afoot_altar.grid_x,afoot_altar.grid_y,50,0)
                             env.end_point = {point.x,point.y}
                             poe2_api.dbgp("人物在祭坛附近，移动到祭坛1")
@@ -16948,7 +17807,7 @@ local custom_nodes = {
                             return bret.SUCCESS
                         else
                             if not env.prestore_list or not next(env.prestore_list) then
-                                local result_list = api_GetCalculateCircleGridPoints(poe2_api.toInt(afoot_altar.grid_x),poe2_api.toInt(afoot_altar.grid_y),98,math.floor(15))
+                                local result_list = api_GetCalculateCircleGridPoints(poe2_api.toInt(afoot_altar.grid_x),poe2_api.toInt(afoot_altar.grid_y),98,math.floor(10))
                                 if result_list then
                                     env.prestore_list = result_list
                                     poe2_api.time_p("是否需要移动祭坛（RUNNING2）... 耗时 --> ", api_GetTickCount64() - start_time)
@@ -17930,14 +18789,15 @@ local custom_nodes = {
                     return false
                 end
                 -- 路径计算失败处理
-                local altar = get_altar(env.range_info)
-                if altar then
-                    if poe2_api.point_distance(altar.grid_x, altar.grid_y,player_info) > 110 then
-                        api_RestoreOriginalMap()
-                    end
-                else
-                    api_RestoreOriginalMap()
-                end
+                -- local altar = get_altar(env.range_info)
+                -- if altar then
+                --     if poe2_api.point_distance(altar.grid_x, altar.grid_y,player_info) > 110 then
+                api_RestoreOriginalMap()
+                api_UpdateMapObstacles(100)
+                --     end
+                -- else
+                --     api_RestoreOriginalMap()
+                -- end
                 if self.FAIL_count == nil then
                     self.FAIL_count = 0
                 end
@@ -18037,10 +18897,11 @@ local custom_nodes = {
             end
             
             -- 执行移动（按时间间隔）
-            if current_time - self.last_move_time >= move_interval * 1000 then
+            if current_time - self.last_move_time >= move_interval * 800 then
                 if point then
                     local dis = poe2_api.point_distance(point[1], point[2], player_info)
                     poe2_api.dbgp(point[1], ",", point[2], ",", dis)
+                    poe2_api.dbgp("player_info -->", player_info.grid_x, ",", player_info.grid_y)
                     if dis and dis > 70 then
                         poe2_api.print_log("清路径10101")
                         env.path_list = nil
@@ -18051,12 +18912,13 @@ local custom_nodes = {
                         return bret.RUNNING
                     end
                     -- api_ClickMove(poe2_api.toInt(point[1]), poe2_api.toInt(point[2]), poe2_api.toInt(player_info.world_z), 0)
+                    -- poe2_api.dbgp("-------")
+                    poe2_api.dbgp("----点击移动----")
                     api_ClickMove(poe2_api.toInt(point[1]), poe2_api.toInt(point[2]), poe2_api.toInt(player_info.world_z), 7)
 
                     if not string.find(player_info.current_map_name_utf8,"Claimable") then
                         api_SetExplorationArea(env.radius)
                     end
-                    
 
                     self.last_move_time = current_time
                 end
@@ -18065,8 +18927,9 @@ local custom_nodes = {
             -- 检查是否到达目标点
             if point then
                 local dis = poe2_api.point_distance(point[1], point[2], player_info)
-                -- poe2_api.dbgp("距离：", dis)
-                if dis and dis < 20 then
+                poe2_api.dbgp("检查是否到达目标点距离：", dis)
+                poe2_api.dbgp("player_info---->>", player_info.grid_x, ",", player_info.grid_y)
+                if dis and dis < 25 then
                     if env.path_list and #env.path_list > 0 then
                         env.target_point = {env.path_list[1].x, env.path_list[1].y}
                         -- poe2_api.dbgp("len 5604 移除已使用的点")
@@ -18091,13 +18954,14 @@ local custom_nodes = {
             local leaders = poe2_api.check_pos_dis(env.leader_name, env.range_info, env.player_info)
 
             local leader_area = poe2_api.party_pos(env.leader_name,env.team_info)
-            -- poe2_api.dbgp("player_info.current_map_name_utf8 -->", player_info.current_map_name_utf8)
-            -- poe2_api.dbgp("leader_area -->", leader_area)
-            -- poe2_api.dbgp("env.leader_name -->", env.leader_name)
-            -- poe2_api.printTable(env.team_info)
+            poe2_api.dbgp("player_info.current_map_name_utf8 -->", player_info.current_map_name_utf8)
+            poe2_api.dbgp("leader_area -->", leader_area)
+            poe2_api.dbgp("leaders -->", leaders)
+            poe2_api.dbgp("env.leader_name -->", env.leader_name)
+            poe2_api.printTable(env.team_info)
             if poe2_api.find_text({text = "你確定要傳送至此玩家的位置？", UI_info = UI_info, min_x = 0}) then
                 poe2_api.dbgp("你確定要傳送至此玩家的位置？")
-                poe2_api.find_text({text = "確認", UI_info = UI_info, min_x = 0, click = 2})
+                poe2_api.find_text({text = "確定", UI_info = UI_info, min_x = 0, click = 2})
                 return bret.RUNNING
             end
 
@@ -18117,7 +18981,7 @@ local custom_nodes = {
             -- if poe2_api.find_text({text = leader_area_name, UI_info = UI_info, min_x = 0, min_y = 0, max_x = 195, max_y = 590}) then
             if poe2_api.find_text({text = "你確定要傳送至此玩家的位置？", UI_info = UI_info, min_x = 0}) then
                 poe2_api.dbgp("你確定要傳送至此玩家的位置？")
-                poe2_api.find_text({text = "確認", UI_info = UI_info, min_x = 0, click = 2})
+                poe2_api.find_text({text = "確定", UI_info = UI_info, min_x = 0, click = 2})
                 return bret.RUNNING
             end
             local leader_teleport_point = poe2_api.find_text({text = env.leader_name, UI_info = UI_info, min_x = 75, min_y = 0, max_x = 400, max_y = 666, position = 3})
@@ -18261,7 +19125,7 @@ local custom_nodes = {
                     return bret.RUNNING
                 end
             end
-
+            return bret.FAIL 
         end
     }
 
@@ -18272,7 +19136,7 @@ for k, v in pairs(base_nodes) do all_nodes[k] = v end
 for k, v in pairs(custom_nodes) do all_nodes[k] = v end
 
 -- 注册自定义节点
-local behavior_node = require 'lualib.behavior3.behavior_node'
+local behavior_node = require 'script.lualib.behavior3.behavior_node'
 behavior_node.process(all_nodes)
 
 -- 创建行为树环境
@@ -18551,6 +19415,8 @@ local env_params = {
     not_need_take = false,
     is_bird = false, -- 骑鸟
     is_abyss_complete = false,  -- 深渊地图是否完成
+    is_abyss_time = false,  -- 是否需要等待深渊掉落
+    abyss_time = 0, -- 深渊掉落时间
 
     -- 新增性能监控配置
     debug_tree_time = true,      -- 打印整棵树耗时

@@ -278,7 +278,7 @@ local my_game_info = {
         {1, "Metadata/Monsters/MonsterMods/VolatilePlants/volatile.ao", 10} -- 追踪紫色爆炸球
     },
 
-    MonitoringSkills = {
+    MonitoringSkills_Circle = {
         -- 祭坛
         {
             1,
@@ -474,7 +474,20 @@ local my_game_info = {
             1,
             "Metadata/Effects/Spells/monsters_effects/Act3_FOUR/ViperNapuatzi/ao/spear_aura/spear_aura.ao",
             20
-        } -- 邪魔毒蛇納普阿茲
+        }, -- 邪魔毒蛇納普阿茲
+        {2,"Metadata/Effects/Spells/monsters_effects/Act4_FOUR/GreatWhiteOne/ao/piranha_puddle_01.ao", 20}, --大白鲨boss
+
+        {2,"Metadata/Effects/Spells/monsters_effects/Act4_FOUR/TwilightOrderGuardBoss/ao/SkyBeam.ao", 30}, --勇士-卜拉克斯
+    },
+
+    MonitoringSkills_Sector = {
+        {"Metadata/Effects/Spells/monsters_effects/League_Abyss/FarudinCorpseStrider/spike_proj_impact.ao", 40, 60, 4}, --深渊精英怪地刺
+    },
+
+    MonitoringSkills_Rect = {
+        {"Metadata/Effects/Spells/monsters_effects/Act1_FOUR/FungalArtillery/ao/abysslightning_projectile_impact.ao",20,5},
+        {"TCSwollenMillerCharge",85,20},
+        {"SwollenMillerSlam",85,20}
     },
 
     -- # 商人npc

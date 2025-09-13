@@ -279,74 +279,73 @@
               {
                 "id": 54,
                 "name": "Selector",
-                "desc": "攻击或者移动",
+                "desc": "Attack",
                 "children": [
                   {
                     "id": 55,
+                    "name": "Check_Is_Need_Attack_Inside",
+                    "desc": "检查是否需要攻击"
+                  },
+                  {
+                    "id": 56,
+                    "name": "Game_Block_Inside",
+                    "desc": "清除遮挡"
+                  },
+                  {
+                    "id": 57,
                     "name": "Sequence",
-                    "desc": "祭坛",
+                    "desc": "attack_move",
                     "children": [
                       {
-                        "id": 56,
-                        "name": "Has_Black_Mist_Altar",
-                        "desc": "是否有黑雾或者未激活祭坛"
+                        "id": 58,
+                        "name": "ReleaseSkillAction_Inside",
+                        "desc": "释放技能"
                       },
                       {
-                        "id": 57,
+                        "id": 59,
                         "name": "Sequence",
+                        "desc": "Path_Move",
                         "children": [
                           {
-                            "id": 58,
-                            "name": "Game_Block",
-                            "desc": "清理遮挡"
+                            "id": 60,
+                            "name": "Is_Arrive",
+                            "desc": "是否到点"
                           },
                           {
-                            "id": 59,
-                            "name": "Sequence",
-                            "desc": "move_to_object",
-                            "children": [
-                              {
-                                "id": 60,
-                                "name": "Is_Move_Altar",
-                                "desc": "是否需要移动祭坛"
-                              },
-                              {
-                                "id": 61,
-                                "name": "Sequence",
-                                "desc": "Path_Move",
-                                "children": [
-                                  {
-                                    "id": 62,
-                                    "name": "Is_Arrive",
-                                    "desc": "是否到点"
-                                  },
-                                  {
-                                    "id": 63,
-                                    "name": "GET_Path",
-                                    "desc": "获取路径"
-                                  },
-                                  {
-                                    "id": 64,
-                                    "name": "Move_To_Target_Point",
-                                    "desc": "移动至目标点"
-                                  }
-                                ]
-                              }
-                            ]
+                            "id": 61,
+                            "name": "GET_Path",
+                            "desc": "获取路径"
+                          },
+                          {
+                            "id": 62,
+                            "name": "Move_To_Target_Point",
+                            "desc": "移动至目标点"
                           }
                         ]
                       }
                     ]
                   },
                   {
+                    "id": 63,
+                    "name": "DodgeAction_Inside",
+                    "desc": "躲避技能"
+                  }
+                ]
+              },
+              {
+                "id": 64,
+                "name": "Selector",
+                "desc": "攻击或者移动",
+                "children": [
+                  {
                     "id": 65,
                     "name": "Sequence",
-                    "desc": "玩法保险箱",
+                    "desc": "祭坛",
                     "children": [
                       {
                         "id": 66,
-                        "name": "Gameplay_Safe_Box",
-                        "desc": "是否有激活玩法保险箱"
+                        "name": "Has_Black_Mist_Altar",
+                        "desc": "是否有黑雾或者未激活祭坛"
                       },
                       {
                         "id": 67,
@@ -364,8 +363,8 @@
                             "children": [
                               {
                                 "id": 70,
-                                "name": "Is_Move_Safe_Box",
-                                "desc": "是否需要移动玩法保险箱"
+                                "name": "Is_Move_Altar",
+                                "desc": "是否需要移动祭坛"
                               },
                               {
                                 "id": 71,
@@ -398,56 +397,57 @@
                   {
                     "id": 75,
                     "name": "Sequence",
-                    "desc": "Attack",
+                    "desc": "玩法保险箱",
                     "children": [
                       {
                         "id": 76,
-                        "name": "Check_Is_Need_Attack",
-                        "desc": "检查是否需要攻击"
+                        "name": "Gameplay_Safe_Box",
+                        "desc": "是否有激活玩法保险箱"
                       },
                       {
                         "id": 77,
-                        "name": "Game_Block",
-                        "desc": "清除遮挡"
-                      },
-                      {
-                        "id": 78,
-                        "name": "Selector",
-                        "desc": "attack_move",
+                        "name": "Sequence",
                         "children": [
                           {
-                            "id": 79,
-                            "name": "ReleaseSkillAction_Inside",
-                            "desc": "释放技能"
+                            "id": 78,
+                            "name": "Game_Block",
+                            "desc": "清理遮挡"
                           },
                           {
-                            "id": 80,
+                            "id": 79,
                             "name": "Sequence",
-                            "desc": "Path_Move",
+                            "desc": "move_to_object",
                             "children": [
                               {
+                                "id": 80,
+                                "name": "Is_Move_Safe_Box",
+                                "desc": "是否需要移动玩法保险箱"
+                              },
+                              {
                                 "id": 81,
-                                "name": "Is_Arrive",
-                                "desc": "是否到点"
-                              },
-                              {
-                                "id": 82,
-                                "name": "GET_Path",
-                                "desc": "获取路径"
-                              },
-                              {
-                                "id": 83,
-                                "name": "Move_To_Target_Point",
-                                "desc": "移动至目标点"
+                                "name": "Sequence",
+                                "desc": "Path_Move",
+                                "children": [
+                                  {
+                                    "id": 82,
+                                    "name": "Is_Arrive",
+                                    "desc": "是否到点"
+                                  },
+                                  {
+                                    "id": 83,
+                                    "name": "GET_Path",
+                                    "desc": "获取路径"
+                                  },
+                                  {
+                                    "id": 84,
+                                    "name": "Move_To_Target_Point",
+                                    "desc": "移动至目标点"
+                                  }
+                                ]
                               }
                             ]
                           }
                         ]
-                      },
-                      {
-                        "id": 84,
-                        "name": "DodgeAction_Inside",
-                        "desc": "躲避技能"
                       }
                     ]
                   },
