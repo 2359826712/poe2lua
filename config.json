@@ -53,17 +53,20 @@
                 "運行時間": 120
             },
             "怪物近距離躲避": {
-                "Boss": false,
-                "是否開啟": false,
+                "Boss": true,
+                "是否翻滚": true,
+                "是否開啟": true,
                 "白": false,
                 "藍": false,
-                "閾值": 2000,
+                "触发躲避怪物数": 2,
+                "躲避距离": 2,
+                "閾值": 200,
                 "黃": false
             },
             "是否全圖": false,
             "是否分解暗金": true,
             "是否图内鉴定": false,
-            "是否躲避技能": false,
+            "是否躲避技能": true,
             "是否骑鸟": false,
             "自动清理地图(个人仓库)": true,
             "自動合成地圖": false
@@ -274,7 +277,7 @@
         },
         "r": {
             "Boss": true,
-            "启用": true,
+            "启用": false,
             "技能屬性": "攻击技能",
             "攻擊距離": 70,
             "白怪": false,
@@ -544,7 +547,7 @@
     "組隊設置": {
         "大號名": "king_qq",
         "日志路径": "D:\\SteamLibrary\\steamapps\\common\\Path of Exile 2\\logs\\Client.txt",
-        "職業": "戰士",
+        "職業": "遊俠",
         "隊伍人數": 2,
         "隊長名": "covIvoc"
     },

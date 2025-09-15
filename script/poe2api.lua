@@ -3714,7 +3714,7 @@ end
 -- waypoint (table): 传送点总表
 _M.Waypoint_is_open = function(area, waypoint)
     for _,v in ipairs(waypoint) do
-        if v.name_utf8 == area and v.is_open == true then
+        if v.name == area and v.is_open == true then
             return true
         end
     end
@@ -4150,7 +4150,7 @@ _M.is_have_boss_distance = function(range_info,player_info,boss_list,dis)
         end
         
         -- 检查boss列表中的怪物
-        if monster.name_utf8 ~= '' and _M.is_in_list(monster.name_utf8, boss_list)
+        if monster.name_utf8 ~= '' and _M.table_contains(monster.name_utf8, boss_list)
            and monster.life > 0 and not monster.is_friendly 
            and within_distance and monster.hasLineOfSight
            and not _M.table_contains(monster.name_utf8, {"惡魔", "隱形", "複製之躰", '複製體'})
@@ -4363,6 +4363,15 @@ _M.check_task_map_without = function()
     else
         return nil, {}  -- 如果没有任务，返回 (nil, {})
     end
+end
+-- 获取传送点屏幕坐标
+_M.waypoint_pos = function(area, waypoint)
+    for _, i in ipairs(waypoint) do
+        if i.name == area then
+            return {(i.left + i.right) / 2, (i.top + i.bottom) / 2}
+        end
+    end
+    return {0, 0}
 end
 -- 其他可能用到的API
 _M.get_current_time = function() return api_GetTickCount64() end

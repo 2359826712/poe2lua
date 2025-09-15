@@ -363,7 +363,17 @@
    返回：
        bool              - 是否注册成功
 
-
+--- 获取指定矩形范围内的仓库物品表
+-- @function api_GetMapRepositoryItems
+-- @param rectStartX number 矩形起始点 X 坐标（左上角）
+-- @param rectStartY number 矩形起始点 Y 坐标（左上角）
+-- @param rectEndX   number 矩形结束点 X 坐标（右下角）
+-- @param rectEndY   number 矩形结束点 Y 坐标（右下角）
+-- @return table 返回一个物品表（数组），每个元素是一个物品对象，包含字段：
+    item_table["RectSart_x"] = item->RectSart_x;
+    item_table["RectSart_y"] = item->RectSart_y;
+    item_table["RectEnd_x"] = item->RectEnd_x;
+    item_table["RectEnd_y"] = item->RectEnd_y;
 ============================================================
 --]]
 
