@@ -1077,32 +1077,32 @@ end
 _M.dbgp = function(...)
     local args = {...}
     local parts = {}
-    table.insert(parts, "*dbgp* ")
-    -- 处理每个参数
-    for i, v in ipairs(args) do
-        local vType = type(v)
-        local formatted
+    -- table.insert(parts, "*dbgp* ")
+    -- -- 处理每个参数
+    -- for i, v in ipairs(args) do
+    --     local vType = type(v)
+    --     local formatted
         
-        if vType == "table" then
-            formatted = "{table} "..tostring(v)
-        elseif vType == "function" then
-            formatted = "{function} "..tostring(v)
-        elseif vType == "userdata" then
-            formatted = "{userdata} "..tostring(v)
-        elseif vType == "thread" then
-            formatted = "{thread} "..tostring(v)
-        else
-            formatted = tostring(v)
-        end
+    --     if vType == "table" then
+    --         formatted = "{table} "..tostring(v)
+    --     elseif vType == "function" then
+    --         formatted = "{function} "..tostring(v)
+    --     elseif vType == "userdata" then
+    --         formatted = "{userdata} "..tostring(v)
+    --     elseif vType == "thread" then
+    --         formatted = "{thread} "..tostring(v)
+    --     else
+    --         formatted = tostring(v)
+    --     end
         
-        table.insert(parts, formatted)
-    end
+    --     table.insert(parts, formatted)
+    -- end
     
-    -- 用制表符连接多个参数，并加上换行符
-    local formattedText = table.concat(parts, "\t") .. "\n"
+    -- -- 用制表符连接多个参数，并加上换行符
+    -- local formattedText = table.concat(parts, "\t") .. "\n"
     
-    -- 调用日志函数
-    api_Log(formattedText)
+    -- -- 调用日志函数
+    -- api_Log(formattedText)
     -- 或者使用标准print
     -- print(formattedText)
 end
@@ -1141,51 +1141,51 @@ end
 
 -- 时间调试（内部阈值设为100毫秒）
 _M.time_p = function(...)
-    local threshold = 5  -- 内部设定的阈值（毫秒）
+    local threshold = 0  -- 内部设定的阈值（毫秒）
     local args = {...}
     
     -- 检查是否是耗时日志格式：倒数第二个参数包含"耗时 -->"且最后一个参数是数字
-    -- if #args >= 2 and 
-    --    type(args[#args]) == "number" and 
-    --    tostring(args[#args-1]):find("耗时 %-%->") then
+    if #args >= 2 and 
+       type(args[#args]) == "number" and 
+       tostring(args[#args-1]):find("耗时 %-%->") then
         
-    --     local elapsed = args[#args]  -- 获取耗时值
+        local elapsed = args[#args]  -- 获取耗时值
         
-    --     -- 只有耗时超过阈值时才处理
-    --     if elapsed < threshold then
-    --         return  -- 不满足阈值条件，直接返回
-    --     end
-    -- end
+        -- 只有耗时超过阈值时才处理
+        if elapsed < threshold then
+            return  -- 不满足阈值条件，直接返回
+        end
+    end
     
     -- 以下是原有的日志处理逻辑
-    -- local parts = {}
-    -- table.insert(parts, "*time_p* ")
+    local parts = {}
+    table.insert(parts, "*time_p* ")
     
-    -- -- 处理每个参数
-    -- for i, v in ipairs(args) do
-    --     local vType = type(v)
-    --     local formatted
+    -- 处理每个参数
+    for i, v in ipairs(args) do
+        local vType = type(v)
+        local formatted
         
-    --     if vType == "table" then
-    --         formatted = "{table} "..tostring(v)
-    --     elseif vType == "function" then
-    --         formatted = "{function} "..tostring(v)
-    --     elseif vType == "userdata" then
-    --         formatted = "{userdata} "..tostring(v)
-    --     elseif vType == "thread" then
-    --         formatted = "{thread} "..tostring(v)
-    --     else
-    --         formatted = tostring(v)
-    --     end
+        if vType == "table" then
+            formatted = "{table} "..tostring(v)
+        elseif vType == "function" then
+            formatted = "{function} "..tostring(v)
+        elseif vType == "userdata" then
+            formatted = "{userdata} "..tostring(v)
+        elseif vType == "thread" then
+            formatted = "{thread} "..tostring(v)
+        else
+            formatted = tostring(v)
+        end
         
-    --     table.insert(parts, formatted)
-    -- end
+        table.insert(parts, formatted)
+    end
     
-    -- -- 用制表符连接多个参数，并加上换行符
-    -- local formattedText = table.concat(parts, "\t") .. "\n"
+    -- 用制表符连接多个参数，并加上换行符
+    local formattedText = table.concat(parts, "\t") .. "\n"
     
-    -- -- 调用日志函数
-    -- api_Log(formattedText)
+    -- 调用日志函数
+    api_Log(formattedText)
     -- 或者使用标准print
     -- print(formattedText)
 end

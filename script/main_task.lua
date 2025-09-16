@@ -67,7 +67,7 @@ local main_task= {
             interaction_object = {'赤谷'},
             index = 12
         },
-        ["在葛瑞爾林尋找赤谷入口\n在赤谷尋找含有力量魔符的鐵鏽方尖碑"] = {
+        ["在葛瑞爾林尋找赤谷入口在赤谷尋找含有力量魔符的鐵鏽方尖碑"] = {
             map_name = 'G1_5',
             interaction_object = {'赤谷'},
             index = 13
@@ -91,7 +91,7 @@ local main_task= {
             interaction_object = {'赤谷'},
             index = 16
         },
-        ["調查鐵鏽方尖碑\n收集力量魔符"] = {
+        ["調查鐵鏽方尖碑收集力量魔符"] = {
             map_name = 'G1_5',
             interaction_object = {'鐵鏽方尖碑'},
             interaction_object_map_name = {'RustObeliskActive'},
