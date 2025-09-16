@@ -40,15 +40,9 @@ _M.point_distance = function(x, y, ac)
             return nil
         end
     else
-        if ac.grid_x and ac.grid_y then
-            -- 玩家信息表结构
-            ref_x = ac.grid_x or 0
-            ref_y = ac.grid_y or 0
-        else
-            -- ac 不是表，无法获取坐标
-            _M.dbgp("不是表，无法获取坐标")
-            return nil
-        end
+        -- ac 不是表，无法获取坐标
+        _M.dbgp("不是表，无法获取坐标")
+        return nil
     end
     
     -- 检查坐标是否为有效数字
@@ -116,9 +110,10 @@ _M.find_text = function(params)
         position = 0,
         sorted = false,
         UI_info = nil,
-        times = 100,
+        times = 200,
         not_name_utf8 = false,
-        print_log = false
+        print_log = false,
+        delay = 0
     }
     
     -- 合并传入参数和默认值
@@ -197,6 +192,34 @@ _M.find_text = function(params)
         end
     end
 
+    -- 辅助函数：执行点击操作
+    local function perform_click_delay(x, y, click_type, add_x, add_y)
+        local final_x = math.floor(x + add_x)
+        local final_y = math.floor(y + add_y)
+        _M.dbgp("文本坐标",final_x, final_y)
+        if click_type == 1 then
+            api_ClickScreen(final_x, final_y, 0, defaults.delay)
+        elseif click_type == 2 then
+            api_ClickScreen(final_x, final_y, 0, defaults.delay)
+            api_Sleep(times)
+            api_ClickScreen(final_x, final_y, 1, defaults.delay)
+            api_Sleep(100)
+        elseif click_type == 3 then
+            local hold_time = 8
+            api_ClickScreen(final_x, final_y, 3, defaults.delay)
+            api_Sleep(hold_time * 1000)
+            api_ClickScreen(final_x, final_y, 4, defaults.delay)
+        elseif click_type == 4 then
+            _M.ctrl_left_click(final_x, final_y)
+        elseif click_type == 5 then
+            _M.ctrl_right_click(final_x, final_y)
+        elseif click_type == 6 then
+            api_Sleep(times)
+            api_ClickScreen(final_x, final_y, 2, defaults.delay)
+            api_Sleep(100)
+        end
+    end
+
     -- 处理排序模式
     if defaults.sorted then
         -- _M.dbgp("进入排序模式\n")
@@ -231,8 +254,10 @@ _M.find_text = function(params)
             local center_x = (text_list[1].left + text_list[1].right) / 2
             local center_y = (text_list[1].top + text_list[1].bottom) / 2
             
-            if defaults.click > 0 then
+            if defaults.click > 0 and defaults.delay == 0 then
                 perform_click(center_x, center_y, defaults.click, defaults.add_x, defaults.add_y)
+            elseif defaults.click > 0 and defaults.delay > 0 then
+                perform_click_delay(center_x, center_y, defaults.click, defaults.add_x, defaults.add_y)
             end
             
             return true
@@ -628,6 +653,174 @@ _M.is_have_mos = function(params)
     return false
 end
 
+--- 获取范围内所有符合条件的怪物列表（包含详细信息）
+_M.get_mos_list_in_range = function(params)
+    -- 参数默认值与校验
+    range_info = params.range_info or nil
+    player_info = params.player_info
+    dis = params.dis or 60
+    not_sight = params.not_sight or false
+    stuck_monsters = params.stuck_monsters or nil
+    not_attack_mos = params.not_attack_mos or nil
+    is_active = params.is_active
+
+    if is_active == nil then
+        is_active = true
+    end
+
+    -- 初始化怪物列表
+    local monster_list = {}
+
+    -- 快速失败检查
+    if not params.range_info then 
+        _M.dbgp("更新怪物信息")
+        params.range_info = Actors:Update()
+    end
+
+    -- 怪物检查主逻辑
+    for _, monster in ipairs(params.range_info) do
+        -- 快速跳过不符合基本条件的怪物
+        if monster.type ~= 1 or                  -- 类型检查
+        not monster.is_selectable or          -- 可选性检查
+        monster.is_friendly or                -- 友方检查
+        monster.life <= 0 or                  -- 生命值检查
+        monster.name_utf8 == "" or              -- 名称检查
+        _M.table_contains(my_game_info.not_attact_mons_CN_name, monster.name_utf8) or
+        _M.table_contains(my_game_info.not_attact_mons_path_name, monster.path_name_utf8) then  -- 路径名检查
+            goto continue
+        end
+
+        if is_active and not monster.isActive then
+            goto continue
+        end
+
+        -- 检查坐标有效性
+        if not monster.grid_x or not monster.grid_y then
+            goto continue
+        end
+
+        -- 检查不攻击的怪物
+        if params.not_attack_mos then
+            if _M.table_contains(params.not_attack_mos, monster.rarity) then
+                goto continue
+            end
+        end
+
+        -- 检查卡住状态
+        if params.stuck_monsters and next(params.stuck_monsters) and _M.table_contains(params.stuck_monsters, monster.id) then
+            goto continue
+        end
+
+        -- 计算距离
+        local distance = _M.point_distance(monster.grid_x, monster.grid_y, player_info)
+        
+        if distance and distance <= dis then
+            -- 检查视野
+            local valid = false
+            if params.not_sight then
+                valid = true
+            elseif not params.not_sight and monster.hasLineOfSight and not api_HasObstacleBetween(monster.grid_x, monster.grid_y) then
+                valid = true
+            end
+            
+            if valid then
+                -- 添加怪物信息到列表
+                table.insert(monster_list, {
+                    id = monster.id,
+                    name = monster.name_utf8,
+                    path_name = monster.path_name_utf8,
+                    grid_x = monster.grid_x,
+                    grid_y = monster.grid_y,
+                    distance = distance,
+                    rarity = monster.rarity,
+                    life = monster.life,
+                    max_life = monster.max_life
+                })
+            end
+        end
+        
+        ::continue::
+    end
+    
+    return monster_list
+end
+
+--- 查找范围内符合条件的怪物数量
+_M.count_mos_in_range = function(params)
+    -- 参数默认值与校验
+    range_info = params.range_info or nil
+    player_info = params.player_info
+    dis = params.dis or 60
+    not_sight = params.not_sight or false
+    stuck_monsters = params.stuck_monsters or nil
+    not_attack_mos = params.not_attack_mos or nil
+    is_active = params.is_active
+
+    if is_active == nil then
+        is_active = true
+    end
+
+    -- 初始化计数器
+    local count = 0
+
+    -- 快速失败检查
+    if not params.range_info then 
+        _M.dbgp("更新怪物信息")
+        params.range_info = Actors:Update()
+    end
+
+    -- 怪物检查主逻辑
+    for _, monster in ipairs(params.range_info) do
+        -- 快速跳过不符合基本条件的怪物
+        if monster.type ~= 1 or                  -- 类型检查
+        not monster.is_selectable or          -- 可选性检查
+        monster.is_friendly or                -- 友方检查
+        monster.life <= 0 or                  -- 生命值检查
+        monster.name_utf8 == "" or              -- 名称检查
+        _M.table_contains(my_game_info.not_attact_mons_CN_name, monster.name_utf8) or
+        _M.table_contains(my_game_info.not_attact_mons_path_name, monster.path_name_utf8) then  -- 路径名检查
+            goto continue
+        end
+
+        if is_active and not monster.isActive then
+            goto continue
+        end
+
+        -- 检查坐标有效性
+        if not monster.grid_x or not monster.grid_y then
+            goto continue
+        end
+
+        -- 检查不攻击的怪物
+        if params.not_attack_mos then
+            if _M.table_contains(params.not_attack_mos, monster.rarity) then
+                goto continue
+            end
+        end
+
+        -- 检查卡住状态
+        if params.stuck_monsters and next(params.stuck_monsters) and _M.table_contains(params.stuck_monsters, monster.id) then
+            goto continue
+        end
+
+        -- 计算距离
+        local distance = _M.point_distance(monster.grid_x, monster.grid_y, player_info)
+        
+        if distance and distance <= dis then
+            -- 检查视野
+            if params.not_sight then
+                count = count + 1
+            elseif not params.not_sight and monster.hasLineOfSight and api_HasObstacleBetween(monster.grid_x, monster.grid_y) then
+                count = count + 1
+            end
+        end
+        
+        ::continue::
+    end
+    
+    return count
+end
+
 -- 检查值是否在表中（不严格要求参数顺序）
 _M.table_contains = function(a, b)
     -- 自动判断哪个是 table，哪个是 value
@@ -681,6 +874,47 @@ _M.click_keyboard = function(click_str, click_type)
     elseif click_type == 2 then
         api_Keyboard(key_code, 1)
     end
+end
+
+--- 输入多位数字
+-- @param numbers number|string|table 要输入的数字（可以是数字、字符串或数字表）
+-- @param[opt] delay number 每个按键之间的延迟（毫秒）
+_M.input_numbers = function(numbers, delay)
+    delay = delay or 50  -- 默认50毫秒延迟
+    
+    if numbers == nil then
+        _M.dbgp("错误：数字不能为空")
+        return false
+    end
+    
+    local num_str
+    if type(numbers) == "table" then
+        -- 处理数字表
+        num_str = table.concat(numbers)
+    else
+        -- 处理数字或字符串
+        num_str = tostring(numbers)
+    end
+    
+    -- 验证是否为有效数字
+    if not num_str:match("^%d+$") then
+        _M.dbgp("错误：只能输入数字（0-9）")
+        return false
+    end
+    
+    _M.dbgp("开始输入数字：", num_str)
+    
+    -- 逐个输入数字
+    for i = 1, #num_str do
+        local digit = num_str:sub(i, i)
+        _M.click_keyboard(digit, 0)  -- 单击数字键
+        
+        if delay > 0 and i < #num_str then
+            api_Sleep(delay)  -- 添加延迟，避免输入过快
+        end
+    end
+    
+    return true
 end
 
 -- 左ctrl+左键
@@ -807,35 +1041,35 @@ end
 
 -- 日志打印（适配 api_Log，使其输出和 print 一致）
 _M.print_log = function(...)
-    local args = {...}
-    local parts = {}
-    table.insert(parts, "*print_log* ")
-    -- 处理每个参数
-    for i, v in ipairs(args) do
-        local vType = type(v)
-        local formatted
+    -- local args = {...}
+    -- local parts = {}
+    -- table.insert(parts, "*print_log* ")
+    -- -- 处理每个参数
+    -- for i, v in ipairs(args) do
+    --     local vType = type(v)
+    --     local formatted
         
-        if vType == "table" then
-            formatted = "{table} "..tostring(v)
-        elseif vType == "function" then
-            formatted = "{function} "..tostring(v)
-        elseif vType == "userdata" then
-            formatted = "{userdata} "..tostring(v)
-        elseif vType == "thread" then
-            formatted = "{thread} "..tostring(v)
-        else
-            formatted = tostring(v)
-        end
+    --     if vType == "table" then
+    --         formatted = "{table} "..tostring(v)
+    --     elseif vType == "function" then
+    --         formatted = "{function} "..tostring(v)
+    --     elseif vType == "userdata" then
+    --         formatted = "{userdata} "..tostring(v)
+    --     elseif vType == "thread" then
+    --         formatted = "{thread} "..tostring(v)
+    --     else
+    --         formatted = tostring(v)
+    --     end
         
-        table.insert(parts, formatted)
-    end
+    --     table.insert(parts, formatted)
+    -- end
     
-    -- 用制表符连接多个参数，并加上换行符
-    local formattedText = table.concat(parts, "\t") .. "\n"
+    -- -- 用制表符连接多个参数，并加上换行符
+    -- local formattedText = table.concat(parts, "\t") .. "\n"
     
-    -- 调用日志函数
-    api_Log(formattedText)
-    -- 或者使用标准print
+    -- -- 调用日志函数
+    -- api_Log(formattedText)
+    -- -- 或者使用标准print
     -- print(formattedText)
 end
 
@@ -2273,15 +2507,20 @@ _M.paste_text = function(text)
     api_Sleep(200)
     _M.click_keyboard("a", 0)
     api_Sleep(200)
-    _M.click_keyboard("ctrl", 2)
-    api_Sleep(200)
-    _M.click_keyboard("backspace")
-    api_Sleep(200)
-    _M.click_keyboard("ctrl", 1)
-    api_Sleep(200)
     _M.click_keyboard("v", 0)
     api_Sleep(200)
     _M.click_keyboard("ctrl", 2)
+end
+
+-- 按键输入文本
+_M.key_board_input_text = function(text)
+    _M.click_keyboard("ctrl", 1)
+    api_Sleep(200)
+    _M.click_keyboard("a", 0)
+    api_Sleep(200)
+    _M.click_keyboard("ctrl", 2)
+    api_Sleep(200)
+    _M.input_numbers(text)
 end
 
 -- 词条过滤
@@ -3879,6 +4118,14 @@ _M.match_item = function(item, cfg, index)
         if not cfg['基礎類型名'] or cfg['基礎類型名'] == "" or not string.find(cfg['基礎類型名'],item.baseType_utf8) then 
             -- _M.dbgp("名稱不匹配2")
             return false
+        end
+    else
+        local name = cfg["名稱"] or ""
+        if name and name ~= ""then
+            if not item.not_identified and not string.find(name,item.name_utf8) then
+                -- _M.dbgp("名稱不匹配3")
+                return false
+            end
         end
     end
     -- 等级检查

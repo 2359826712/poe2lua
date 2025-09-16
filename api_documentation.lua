@@ -268,6 +268,59 @@
 -- - requiredMapLevel: 所需地图等级
 -- - mapPlayModes: 游戏模式数组（索引从1开始）
 
+
+-- ---------------------------- 全局数组类型 ----------------------------
+-- Actors 周围对象数组
+-- Actors:GetStateMachineList() 获取状态数组
+-- 返回值:map表{k:v}
+
+
+-- Actors:GetObjectMagicProperties() 获取魔法属性数组
+-- 返回值:字符串数组{"",""...}
+
+
+-- WorldItems 地面物品数组
+
+
+-- UiElements UI数组
+
+
+-- api_SetExplorationArea(radius)
+-- 设置探索区域
+-- radius: 探索范围
+
+
+-- api_UpdateMapObstacles
+
+
+
+-- api_MouseWheelSmooth(totalNotches , steps , stepDelayMs)
+-- 平滑滚动：把总刻度拆成多步发送，中间延时，适合“慢慢滚”的效果
+-- totalNotches: 刻度数 ，正数 = 向上滚，负数 = 向下滚。
+-- steps： 把总滚动量拆分为几步来发，默认 6
+-- stepDelayMs：两步之间的延时（毫秒），默认 8ms，意味着滚动会在 6 × 8ms ≈ 48ms 内完成，看起来连贯
+
+-- lua.set_function(
+--     DECRYPT_WIDE_TO_UTF8(L"GameCore_CastSkill"),
+--     [&lua](UINT32 skill_id,
+--         UINT32 target_id,
+--         int self_grid_x,
+--         int self_grid_y,
+--         int target_grid_x,
+--         int target_grid_y) {
+--             // 调用 C++ 的函数
+--             GameCore_CastSkill(skill_id, target_id,
+--                 self_grid_x, self_grid_y,
+--                 target_grid_x, target_grid_y);
+
+
+--             // 返回值（这里返回 bool 或者 struct 都行）
+--             return true;
+--     }
+-- );
+
+
+
 --[[
 ============================================================
  SkillMonitor Lua API 简易说明文档
@@ -315,14 +368,12 @@
 ------------------------------------------------------------
 
 
-3. api_RegisterCircle(name, centerX, centerY, radius [, offsetX, offsetY, defaultTTL])
+3. api_RegisterCircle(name, radius [defaultTTL])
    功能：
        注册一个「圆形技能」的默认属性（只有注册过的技能才会被监测）。
    参数：
        name (wstring)    - 技能名
-       centerX, centerY  - 默认圆心坐标
        radius (float)    - 半径（格）
-       offsetX, offsetY? - 可选，偏移，默认 0
        defaultTTL? (sec) - 可选，默认存活时长，<=0 表示永久
    返回：
        bool              - 是否注册成功
@@ -331,16 +382,13 @@
 ------------------------------------------------------------
 
 
-4. api_RegisterSector(name, centerX, centerY, angleRad, fovDeg, radius [, offsetX, offsetY, defaultTTL])
+4. api_RegisterSector(name, angleRad, fovDeg, radius [, offsetX, offsetY, defaultTTL])
    功能：
        注册一个「扇形技能」的默认属性。
    参数：
        name (wstring)    - 技能名
-       centerX, centerY  - 默认顶点坐标
-       angleRad (float)  - 朝向角（弧度，逆时针 [0,2π)）
        fovDeg (float)    - 总张角（度，例如 40 表示 40°）
        radius (float)    - 半径（格）
-       offsetX, offsetY? - 可选，偏移，默认 0
        defaultTTL? (sec) - 可选，默认存活时长，<=0 表示永久
    返回：
        bool              - 是否注册成功
@@ -348,20 +396,136 @@
 
 ------------------------------------------------------------
 
-
-5. api_RegisterRect(name, centerX, centerY, angleRad, length, width [, offsetX, offsetY, defaultTTL])
+--- 只需要空格前名称
+5. api_RegisterRect(name, length, width [, offsetX, offsetY, defaultTTL])
    功能：
        注册一个「矩形技能」的默认属性。
    参数：
        name (wstring)    - 技能名
-       centerX, centerY  - 默认几何中心坐标
        angleRad (float)  - 朝向角（弧度）
        length (float)    - 长度（格）
        width (float)     - 宽度（格）
-       offsetX, offsetY? - 可选，偏移，默认 0
        defaultTTL? (sec) - 可选，默认存活时长，<=0 表示永久
    返回：
        bool              - 是否注册成功
+
+
+============================================================
+--]]
+// 注册“圆形”技能
+lua.set_function(
+    DECRYPT_WIDE_TO_UTF8(L"api_RegisterCircle"),
+    [](const std::string& name,
+        float radius,
+        sol::optional<double> defaultTTL)
+    {
+        SkillMonitor::Circle def{};
+        def.radius = radius;
+
+
+     std::wstring name_wide;
+     UtilUTF8ToUnicode(name, name_wide);
+
+
+        return g_LuaManager->m_SkillMonitor.RegisterCircle(
+            name_wide,
+            def,
+            defaultTTL.value_or(0.5)
+        );
+    }
+);
+
+
+// 注册“扇形”技能
+lua.set_function(
+    DECRYPT_WIDE_TO_UTF8(L"api_RegisterSector"),
+    [](const std::string& i , float fovDeg, float radius,
+        sol::optional<double> defaultTTL)
+    {
+        SkillMonitor::Sector def{};
+        def.fovDeg = fovDeg;   // 注意：Lua 传度数
+        def.radius = radius;
+
+
+        std::wstring name_wide;
+        UtilUTF8ToUnicode(name, name_wide);
+
+
+        return g_LuaManager->m_SkillMonitor.RegisterSector(
+            name_wide,
+            def,
+            defaultTTL.value_or(0.5)
+        );
+    }
+);
+
+
+// 注册“矩形”技能
+lua.set_function(
+    DECRYPT_WIDE_TO_UTF8(L"api_RegisterRect"),
+    [](const std::string& name , float length, float width,
+        sol::optional<double> defaultTTL)
+    {
+        SkillMonitor::Rect def{};
+        def.length = length;
+        def.width = width;
+
+
+        std::wstring name_wide;
+        UtilUTF8ToUnicode(name, name_wide);
+
+
+        return g_LuaManager->m_SkillMonitor.RegisterRect(
+            name_wide,
+            def,
+            defaultTTL.value_or(0.5)
+        );
+    }
+);
+
+
+--[[
+函数: api_GetSafeAreaLocation(curX, curY, searchRadius, densityRadius, maxMonsters, expandHazard)
+
+
+功能:
+    从指定的当前位置 (curX, curY) 出发，搜索一个安全点坐标，并返回 {x, y} 表。
+
+
+安全点判定条件:
+    1. 必须在地图范围内；
+    2. 不可被阻挡 (非障碍格)；
+    3. 不在技能范围内 (支持范围扩展 expandHazard)；
+    4. 附近怪物数量 <= maxMonsters。
+
+
+如果找不到合适位置，则返回当前位置作为兜底。
+
+
+参数:
+    curX (int)           -- 当前所在格 X 坐标
+    curY (int)           -- 当前所在格 Y 坐标
+    searchRadius (int)   -- 搜索半径 (格)，越大搜索范围越广，性能开销也越大
+    densityRadius (int)  -- 怪物密度检测半径 (格)，在该范围内统计怪物数量
+    maxMonsters (int)    -- 密度阈值，允许在 densityRadius 内的最大怪物数
+    expandHazard (float) -- 技能范围扩展系数，0=原始范围，>0 表示更保守
+
+
+返回值:
+    table { x = int, y = int }
+        - x: 安全点 X 坐标
+        - y: 安全点 Y 坐标
+
+
+示例:
+    -- 搜索范围 80，密度半径 30，允许最多 1 个怪，技能范围扩展 0.5
+    local safe = api_GetSafeAreaLocation(100, 200, 80, 30, 1, 0.5)
+    print("安全点坐标:", safe.x, safe.y)
+
+
+备注:
+    内部逻辑会自动更新 g_LuaManager.m_SafeAreaLocation
+]]
 
 --- 获取指定矩形范围内的仓库物品表
 -- @function api_GetMapRepositoryItems
@@ -370,32 +534,14 @@
 -- @param rectEndX   number 矩形结束点 X 坐标（右下角）
 -- @param rectEndY   number 矩形结束点 Y 坐标（右下角）
 -- @return table 返回一个物品表（数组），每个元素是一个物品对象，包含字段：
-    item_table["RectSart_x"] = item->RectSart_x;
-    item_table["RectSart_y"] = item->RectSart_y;
-    item_table["RectEnd_x"] = item->RectEnd_x;
-    item_table["RectEnd_y"] = item->RectEnd_y;
-============================================================
---]]
-
--- ---------------------------- 全局数组类型 ----------------------------
--- Actors 周围对象数组
--- Actors:GetStateMachineList() 获取状态数组
--- 返回值:map表{k:v}
 
 
--- Actors:GetObjectMagicProperties() 获取魔法属性数组
--- 返回值:字符串数组{"",""...}
-
-
--- WorldItems 地面物品数组
-
-
--- UiElements UI数组
-
-
--- api_SetExplorationArea(radius)
--- 设置探索区域
--- radius: 探索范围
-
-
--- api_UpdateMapObstacles
+-- api_ClickScreen(ScreenX, ScreenY, mode) - 点击屏幕指定位置
+--   @param ScreenX 屏幕X坐标（像素，整数）
+--   @param ScreenY 屏幕Y坐标（像素，整数）
+--   @param mode 点击模式：
+--     1=左键点击, 2=右键点击, 3=左键按下,
+--     4=左键释放, 5=右键按下, 6=右键释放
+--   @param pre_click_delay_min 移动完成到“按下”之间的最小延迟(ms)
+--   @param pre_click_delay_max 移动完成到“按下”之间的最大延迟(ms)
+--   @return nil
