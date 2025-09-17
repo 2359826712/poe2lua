@@ -4607,8 +4607,8 @@ local custom_nodes = {
                 end
                 return false
             end
-            local is_target = is_monster(env.range_info, player_info,180)
-            if is_target then
+            local is_target = is_monster(env.range_info, player_info,40)
+            if is_target and player_info.name_utf8 == env.user_config["組隊設置"]["大號名"] then
                 poe2_api.dbgp("附近有怪，不捡")
                 poe2_api.time_p("检查是否拾取（SUCCESS3）... 耗时 --> ", api_GetTickCount64() - start_time)
                 return bret.SUCCESS
@@ -6881,7 +6881,10 @@ local custom_nodes = {
                 return bret.RUNNING
             end
             local count = 3
-            if poe2_api.find_text({ UI_info = UI_info, text = poe2_api.task_area_list_data(party_pos(team_member_3))[1][2], min_x = 0, min_y = 0, max_x = 195, max_y = 590 }) then
+            if party_pos(team_member_3) == "" then
+                error("队长没有位置信息或掉线")
+            end
+            if  poe2_api.find_text({ UI_info = UI_info, text = poe2_api.task_area_list_data(party_pos(team_member_3))[1][2], min_x = 0, min_y = 0, max_x = 195, max_y = 590 }) then
                 for i = 0, count - 1 do
                     if not poe2_api.find_text({ UI_info = UI_info, text = "你確定要傳送至此玩家的位置？" }) then
                         if poe2_api.find_text({ UI_info = UI_info, text = "快行" }) then
@@ -6908,6 +6911,36 @@ local custom_nodes = {
                 return bret.RUNNING
             end
 
+            if string.find(current_map, "G4") and get_range_pos(poe2_api.task_area_list_data(party_pos(team_member_3))[1][2]) then
+                poe2_api.find_text({UI_info = env.UI_info, text = poe2_api.task_area_list_data(party_pos(team_member_3))[1][2], min_x = 0, min_y = 0, click = 2})
+                return bret.RUNNING
+            end
+            if check_pos_dis(team_member_3) then
+                local point = get_range_pos(team_member_3)
+                local arena_list = poe2_api.get_sorted_obj("競技場", env.range_info, player_info)
+                
+                if poe2_api.find_text({UI_info = env.UI_info, text = "你確定要傳送至此玩家的位置？"}) then
+                    poe2_api.click_keyboard("space")
+                end
+                
+                if arena_list and #arena_list > 0  and arena_list[1].hasLineOfSight and arena_list[1].is_selectable and not api_FindPath(player_info.grid_x, player_info.grid_y, point[1], point[2]) then
+                    if not poe2_api.find_text({UI_info = env.UI_info, text = "競技場"}) then
+                        local arena = get_range_pos("競技場")
+                        if arena then
+                            local NearestReachablePoint = api_FindNearestReachablePoint(arena[1], arena[2], 40, 1)
+                            env.end_point = {NearestReachablePoint.x, NearestReachablePoint.y}
+                            return bret.FAILURE
+                        end
+                    end
+                    
+                    poe2_api.find_text({UI_info = nil, text = "競技場",click = 2})
+                    env.end_point = nil
+                    env.is_arrive_end = false
+                    env.path_list = {}
+                    env.entrancelist = {}
+                    return bret.RUNNING
+                end
+            end
             if check_pos_dis(team_member_3) and check_pos_dis(team_member_3) > 100 and poe2_api.table_contains(current_map, { "G1_15", "G2_3", "C_G1_15", "C_G2_3" }) then
                 local function next_level()
                     local entrance = get_range_pos("樓梯")
@@ -7451,6 +7484,7 @@ local custom_nodes = {
                 end
                 if arena_list and #arena_list > 0 and arena_list[1].hasLineOfSight and arena_list[1].is_selectable and api_FindPath(player_info.grid_x, player_info.grid_y, arena_list[1].grid_x, arena_list[1].grid_y) then
                     if poe2_api.is_have_mos({ range_info = range_info, player_info = player_info }) then
+                        poe2_api.dbgp("有怪物不点击arena_list")
                         return bret.SUCCESS
                     end
                     if not poe2_api.find_text({ UI_info = UI_info, text = "競技場" }) then
@@ -7460,12 +7494,12 @@ local custom_nodes = {
                             env.end_point = { near_point.x, near_point.y }
                             return bret.FAIL
                         end
-                        poe2_api.find_text({ UI_info = UI_info, text = "競技場", click = 2 })
-                        env.end_point = nil
-                        env.entrancelist = {}
-                        env.end_point = {}
-                        return bret.RUNNING
                     end
+                    poe2_api.find_text({ UI_info = UI_info, text = "競技場", click = 2 })
+                    env.end_point = nil
+                    env.entrancelist = {}
+                    env.end_point = {}
+                    return bret.RUNNING
                 end
                 if poe2_api.table_contains(me_area, { "G1_15", "G2_3", "G3_12", "C_G1_15", "C_G2_3", "C_G3_12" }) then
                     local louti = get_range_pos("樓梯")
@@ -7934,7 +7968,9 @@ local custom_nodes = {
                         poe2_api.find_text({UI_info = env.UI_info, text = "古奧札爾草稿", min_x = 0, match = 2}) then
                         if not poe2_api.find_text({ UI_info = UI_info, text = task_area_name, click = 0, refresh = true }) then
                             if #(poe2_api.task_area_list_data(teleport_area)) < 3 then
+                                api_Sleep(1000)
                                 env.waypoint = api_GetTeleportationPoint()
+                                api_Sleep(1000)
                                 waypoint_screen = poe2_api.waypoint_pos(teleport_area,env.waypoint)
                                 api_ClickScreen(poe2_api.toInt(waypoint_screen[1]), poe2_api.toInt(waypoint_screen[2]), 0)
                                 api_Sleep(1000)
@@ -7944,6 +7980,11 @@ local custom_nodes = {
                                     return bret.RUNNING
                                 end
                                 api_Sleep(300)
+                                if string.find(teleport_area, "own") or  string.find(teleport_area, "G1_7") then
+                                    poe2_api.dbgp("回城镇或者去G1_7")
+                                    api_ClickScreen(poe2_api.toInt(waypoint_screen[1]), poe2_api.toInt(waypoint_screen[2]), 1)
+                                    return bret.RUNNING
+                                end
                                 if not string.find(teleport_area, "own") and not string.find(teleport_area, "G1_7") and
                                     not poe2_api.find_text({ UI_info = UI_info, text = "副本管理員", click = 0, refresh = true }) then
                                     poe2_api.ctrl_left_click(waypoint_screen[1],waypoint_screen[2])
@@ -7978,6 +8019,7 @@ local custom_nodes = {
                         local task_two_area_name = poe2_api.task_area_list_data(teleport_area)[3]
                         teleport_area = teleport_area.."_Underground"
                         waypoint_screen = poe2_api.waypoint_pos(teleport_area,env.waypoint)
+                        api_Sleep(1000)
                         api_ClickScreen(poe2_api.toInt(waypoint_screen[1]), poe2_api.toInt(waypoint_screen[2]), 0)
                         api_Sleep(1000)
                         if not poe2_api.find_text({ UI_info = UI_info, text = task_two_area_name, click = 0, min_x = 0, refresh = true }) then
@@ -10260,9 +10302,8 @@ local custom_nodes = {
                     poe2_api.dbgp("小地图")
                     for _,map_obj in ipairs(current_map_info) do
                         local name = map_obj.name_utf8
-                        poe2_api.dbgp(name)
                         if (not name or not poe2_api.table_contains(name,interaction_object_map_name)) and not record_map then
-                            goto continue
+                            goto continue 
                         end
                         if not record_map then
                             env.record_map = {map_obj.grid_x, map_obj.grid_y}
