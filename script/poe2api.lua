@@ -1077,32 +1077,32 @@ end
 _M.dbgp = function(...)
     local args = {...}
     local parts = {}
-    -- table.insert(parts, "*dbgp* ")
-    -- -- 处理每个参数
-    -- for i, v in ipairs(args) do
-    --     local vType = type(v)
-    --     local formatted
+    table.insert(parts, "*dbgp* ")
+    -- 处理每个参数
+    for i, v in ipairs(args) do
+        local vType = type(v)
+        local formatted
         
-    --     if vType == "table" then
-    --         formatted = "{table} "..tostring(v)
-    --     elseif vType == "function" then
-    --         formatted = "{function} "..tostring(v)
-    --     elseif vType == "userdata" then
-    --         formatted = "{userdata} "..tostring(v)
-    --     elseif vType == "thread" then
-    --         formatted = "{thread} "..tostring(v)
-    --     else
-    --         formatted = tostring(v)
-    --     end
+        if vType == "table" then
+            formatted = "{table} "..tostring(v)
+        elseif vType == "function" then
+            formatted = "{function} "..tostring(v)
+        elseif vType == "userdata" then
+            formatted = "{userdata} "..tostring(v)
+        elseif vType == "thread" then
+            formatted = "{thread} "..tostring(v)
+        else
+            formatted = tostring(v)
+        end
         
-    --     table.insert(parts, formatted)
-    -- end
+        table.insert(parts, formatted)
+    end
     
-    -- -- 用制表符连接多个参数，并加上换行符
-    -- local formattedText = table.concat(parts, "\t") .. "\n"
+    -- 用制表符连接多个参数，并加上换行符
+    local formattedText = table.concat(parts, "\t") .. "\n"
     
-    -- -- 调用日志函数
-    -- api_Log(formattedText)
+    -- 调用日志函数
+    api_Log(formattedText)
     -- 或者使用标准print
     -- print(formattedText)
 end
