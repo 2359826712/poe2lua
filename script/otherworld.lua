@@ -3644,7 +3644,7 @@ local custom_nodes = {
                     poe2_api.time_p("取碑牌（RUNNING7）... 耗时 --> ", api_GetTickCount64() - start_time)
                     return bret.RUNNING
                 end
-                if not bag_operate({godown_info=godown_info,max_y=850,min_x=556,min_y=20,max_x=851})then
+                if not bag_operate({godown_info=godown_info,max_y=800,min_x=556,min_y=20,max_x=851})then
                     poe2_api.time_p("取碑牌（RUNNING8）... 耗时 --> ", api_GetTickCount64() - start_time)
                     return bret.RUNNING
                 end
@@ -4476,7 +4476,7 @@ local custom_nodes = {
                             return bret.RUNNING
                         end
                         if page.manage_index == 0 then
-                            if poe2_api.find_text({UI_info = env.UI_info, text=page.name_utf8, max_y=850, min_x=556, min_y=20, max_x=851, click=2}) then
+                            if poe2_api.find_text({UI_info = env.UI_info, text=page.name_utf8, max_y=800, min_x=556, min_y=20, max_x=851, click=2}) then
                                 api_Sleep(500)
                             end
                             return bret.RUNNING
@@ -4512,7 +4512,7 @@ local custom_nodes = {
                     if not tab_list_button then
                         click = poe2_api.find_text({UI_info = env.UI_info, text=page.name_utf8, max_y=90, min_x=0, max_x=500, min_y=0, click=2})
                     else
-                        click = poe2_api.find_text({UI_info = env.UI_info, text=page.name_utf8, max_y=850, min_x=556, min_y=20, max_x=851, click=2})
+                        click = poe2_api.find_text({UI_info = env.UI_info, text=page.name_utf8, max_y=800, min_x=556, min_y=20, max_x=851, click=2})
                     end
                     
                     if not click then
@@ -5697,8 +5697,8 @@ local custom_nodes = {
                 -- end
                 -- poe2_api.dbgp("=================================")
                 if self.type ~= store_item[2] or precut_page.manage_index == 0 then
-                    if poe2_api.find_text({text=store_item[2],UI_info=env.UI_info,max_y=850,min_x=556,min_y=20,max_x=851,click = 2}) then
-                        poe2_api.find_text({text=store_item[2],UI_info=env.UI_info,max_y=850,min_x=556,min_y=20,max_x=851,click = 2})
+                    if poe2_api.find_text({text=store_item[2],UI_info=env.UI_info,max_y=800,min_x=556,min_y=20,max_x=851,click = 2}) then
+                        poe2_api.find_text({text=store_item[2],UI_info=env.UI_info,max_y=800,min_x=556,min_y=20,max_x=851,click = 2})
                         self.is_wait = true
                         self.current = api_GetTickCount64()
                         self.wait_item = 500
@@ -9443,7 +9443,9 @@ local custom_nodes = {
                     return bret.RUNNING
                 end
                 
-                poe2_api.dbgp("暫緩 ",item.baseType_utf8 or item.name_utf8)
+                poe2_api.dbgp("暫緩 ",item.baseType_utf8 or item.name_utf8, "贡礼: ", item.tribute)
+                poe2_api.dbgp("item.totalDeferredConsumption --> ", item.totalDeferredConsumption)
+                poe2_api.dbgp("item.tribute --> ", item.tribute)
                 if poe2_api.ctrl_left_click_altar_items(item.obj, all_items, 2) then
                     api_Sleep(500)
                 end
@@ -9799,7 +9801,11 @@ local custom_nodes = {
                 end
                 if r then
                     if ret and ret.x ~= -1 and ret.y ~= -1 then
-                        api_ClickMove(poe2_api.toInt(ret.x), poe2_api.toInt(ret.y) ,poe2_api.toInt(player_info.world_z), 0)
+                        if not api_ClickMove(poe2_api.toInt(ret.x), poe2_api.toInt(ret.y) ,poe2_api.toInt(player_info.world_z), 0)or api_HasObstacleBetween(ret.x, ret.y) then
+                            poe2_api.dbgp("安全点过远或有障碍物")
+                            env.end_point = {ret.x, ret.y}
+                            return bret.FAIL
+                        end
                         api_Sleep(200)
                         env.end_point = nil
                         env.path_list = nil
@@ -10028,7 +10034,7 @@ local custom_nodes = {
     },
 
     -- 躲避技能
-    DodgeAction1 = {
+    DodgeAction = {
         name = "躲避",
         run = function(self, env)
             local is_initialized  = false
@@ -10264,7 +10270,7 @@ local custom_nodes = {
     },
 
     -- 躲避技能
-    DodgeAction = {
+    DodgeAction1 = {
         name = "躲避",
         run = function(self, env)
             poe2_api.dbgp("DodgeAction")
@@ -10295,7 +10301,11 @@ local custom_nodes = {
                 end
                 if r then
                     if ret and ret.x ~= -1 and ret.y ~= -1 then
-                        api_ClickMove(poe2_api.toInt(ret.x), poe2_api.toInt(ret.y) ,poe2_api.toInt(player_info.world_z), 0)
+                        if not api_ClickMove(poe2_api.toInt(ret.x), poe2_api.toInt(ret.y) ,poe2_api.toInt(player_info.world_z), 0) or api_HasObstacleBetween(ret.x, ret.y) then
+                            poe2_api.dbgp("安全点过远或有障碍物")
+                            env.end_point = {ret.x, ret.y}
+                            return bret.FAIL
+                        end
                         api_Sleep(200)
                         env.end_point = nil
                         env.path_list = nil
@@ -12420,7 +12430,7 @@ local custom_nodes = {
                     poe2_api.dbgp("special_bosses,或者未激活")
                     _handle_special_boss_movement(valid_monsters, player_info)
                     poe2_api.dbgp("移动到目标附近444")
-                    return bret.FAIL
+                    return bret.SUCCESS
                 end
                 -- 构建可用技能池
 
@@ -12446,7 +12456,7 @@ local custom_nodes = {
                             if poe2_api.table_contains(valid_monsters.magicProperties, prop) then
                                 env.end_point = {valid_monsters.grid_x, valid_monsters.grid_y}
                                 poe2_api.dbgp("移动到目标附近111")
-                                return bret.FAIL
+                                return bret.SUCCESS
                             end
                             ::continue_prop::
                         end
@@ -12482,7 +12492,7 @@ local custom_nodes = {
 
                                 env.end_point = {valid_monsters.grid_x, valid_monsters.grid_y}
                                 poe2_api.dbgp("移动到目标附近555")
-                                return bret.FAIL
+                                return bret.SUCCESS
                             end
                             
                             if env.afoot_altar then
@@ -12490,7 +12500,7 @@ local custom_nodes = {
                                 if distance < 105 then
                                     env.end_point = {valid_monsters.grid_x, valid_monsters.grid_y}
                                     poe2_api.dbgp("移动到目标附近222")
-                                    return bret.FAIL
+                                    return bret.SUCCESS
                                 end
                             end
 
@@ -12499,13 +12509,13 @@ local custom_nodes = {
                                 if distance < 120 then
                                     env.end_point = {valid_monsters.grid_x, valid_monsters.grid_y}
                                     poe2_api.dbgp("移动到目标附近333")
-                                    return bret.FAIL
+                                    return bret.SUCCESS
                                 end
                             end
                             
                             -- env.end_point = {valid_monsters.grid_x, valid_monsters.grid_y}
-                            -- return bret.FAIL
-                            return bret.SUCCESS
+                            return bret.FAIL
+                            -- return bret.SUCCESS
                         end
                     else
                         if distance > 80 then
@@ -12519,12 +12529,13 @@ local custom_nodes = {
                     poe2_api.dbgp("释放：")
                     poe2_api.printTable(selected_skill)
                     env.select_skill = selected_skill
+                    return bret.RUNNING
                 end
-                return bret.RUNNING
+                return bret.FAIL
             end
 
             poe2_api.time_p("ReleaseSkillAction 耗时 --> ", api_GetTickCount64() - current_time_ms)
-            return bret.SUCCESS
+            return bret.FAIL
         end
     },
 
@@ -13453,10 +13464,10 @@ local custom_nodes = {
                     -- end
                 -- end
                 poe2_api.time_p("寻找怪物(SUCCESS) 耗时 -->", api_GetTickCount64() - current_time)
-                return bret.SUCCESS
+                return bret.FAIL
             else
                 poe2_api.time_p("寻找怪物(FAIL) 耗时 -->", api_GetTickCount64() - current_time)
-                return bret.FAIL
+                return bret.SUCCESS
             end
             -- return bret.SUCCESS
         end

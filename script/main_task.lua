@@ -451,7 +451,7 @@ local main_task= {
             map_name = 'G1_15',
             index = 77
         },
-        ['潛入村外的宅第\n奧格姆伯爵'] = {
+        ['潛入村外的宅第奧格姆伯爵'] = {
             map_name = 'G1_15', 
             interaction_object = {'奧格姆宅第'},
             index = 78
@@ -1125,8 +1125,10 @@ local main_task= {
             index = 187
         },
         ['與黑衣幽魂交談，了解下一步該做什麼']= {
-            map_name= 'G3_town',
-            index = 188
+            map_name= 'G3_1',
+            index = 188,
+            interaction_object= {'高地神塔營地'},
+            interaction_object_map_name= {'G3_town'}
         },
         ['風沙沼澤']= {
             map_name= 'G3_town',

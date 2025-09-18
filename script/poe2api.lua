@@ -113,7 +113,7 @@ _M.find_text = function(params)
         times = 200,
         not_name_utf8 = false,
         print_log = false,
-        delay = 0
+        delay = 20
     }
     
     -- 合并传入参数和默认值
@@ -198,24 +198,24 @@ _M.find_text = function(params)
         local final_y = math.floor(y + add_y)
         _M.dbgp("文本坐标",final_x, final_y)
         if click_type == 1 then
-            api_ClickScreen(final_x, final_y, 0, defaults.delay)
+            api_ClickScreen(final_x, final_y, 0, defaults.delay, defaults.delay + 5)
         elseif click_type == 2 then
-            api_ClickScreen(final_x, final_y, 0, defaults.delay)
+            api_ClickScreen(final_x, final_y, 0, defaults.delay, defaults.delay + 5)
             api_Sleep(times)
-            api_ClickScreen(final_x, final_y, 1, defaults.delay)
+            api_ClickScreen(final_x, final_y, 1, defaults.delay, defaults.delay + 5)
             api_Sleep(100)
         elseif click_type == 3 then
             local hold_time = 8
-            api_ClickScreen(final_x, final_y, 3, defaults.delay)
+            api_ClickScreen(final_x, final_y, 3, defaults.delay, defaults.delay + 5)
             api_Sleep(hold_time * 1000)
-            api_ClickScreen(final_x, final_y, 4, defaults.delay)
+            api_ClickScreen(final_x, final_y, 4, defaults.delay, defaults.delay + 5)
         elseif click_type == 4 then
             _M.ctrl_left_click(final_x, final_y)
         elseif click_type == 5 then
             _M.ctrl_right_click(final_x, final_y)
         elseif click_type == 6 then
             api_Sleep(times)
-            api_ClickScreen(final_x, final_y, 2, defaults.delay)
+            api_ClickScreen(final_x, final_y, 2, defaults.delay, defaults.delay + 5)
             api_Sleep(100)
         end
     end
@@ -1141,7 +1141,7 @@ end
 
 -- 时间调试（内部阈值设为100毫秒）
 _M.time_p = function(...)
-    local threshold = 0  -- 内部设定的阈值（毫秒）
+    local threshold = 0 -- 内部设定的阈值（毫秒）
     local args = {...}
     
     -- 检查是否是耗时日志格式：倒数第二个参数包含"耗时 -->"且最后一个参数是数字

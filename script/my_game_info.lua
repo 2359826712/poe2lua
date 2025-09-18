@@ -226,6 +226,7 @@ local my_game_info = {
         "MapForge", -- # 锻造 有Boss
         "MapAlpineRidge_NoBoss", "MapAlpineRidge",
         "MapSandspit",-- 新版砂土
+        "MapVaalVault"
     },
 
     not_attact_mons_path_name = {
@@ -494,7 +495,7 @@ local my_game_info = {
         {"TCSwollenMillerCharge",95,30},
         {"TCSwollenMillerChargeEnraged",95,30},
         {"SwollenMillerSlam",95,30}
-        },
+    },
 
     -- # 商人npc
     merchant_npc = {"烏娜"},
