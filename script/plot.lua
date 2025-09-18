@@ -10277,9 +10277,16 @@ local custom_nodes = {
                                     return bret.SUCCESS
                                 end
                             end
-                            if poe2_api.table_contains(player_info.current_map_name_utf8,{"G2_10_2"}) and get_distance(obj.grid_x,obj.grid_y) < 30 then
-                                api_ClickMove(poe2_api.toInt(obj.grid_x),poe2_api.toInt(obj.grid_y),poe2_api.toInt(obj.world_z),1)
-                                return bret.RUNNING
+                            if poe2_api.table_contains(player_info.current_map_name_utf8,{"G2_10_2"}) and obj.name_utf8 == "法里登叛變者．芮蘇" then
+                                if get_distance(obj.grid_x,obj.grid_y) < 30 then
+                                    api_ClickMove(poe2_api.toInt(obj.grid_x),poe2_api.toInt(obj.grid_y),poe2_api.toInt(obj.world_z),1)
+                                    return bret.RUNNING
+                                else
+                                    env.end_point = {obj.grid_x,obj.grid_y}
+                                    return bret.SUCCESS
+                                end
+                                
+                                
                             end
                             if obj.hasLineOfSight and obj.is_selectable and get_distance(obj.grid_x,obj.grid_y) < 30 then
                                 api_ClickMove(poe2_api.toInt(obj.grid_x),poe2_api.toInt(obj.grid_y),poe2_api.toInt(obj.world_z),1)
@@ -10319,12 +10326,12 @@ local custom_nodes = {
                                 if boss_list and #boss_list > 0 and boss_list[1].life >0 then
                                     local boss = boss_list[1]
                                     local toward_boss = poe2_api.move_towards({local_x,local_y},{boss.grid_x,boss.grid_y},20)
-                                    api_ClickMove(poe2_api.toInt(toward_boss[1]),poe2_api.toInt(toward_boss[2]),poe2_api.toInt(boss.world_z),1)
+                                    api_ClickMove(poe2_api.toInt(toward_boss[1]),poe2_api.toInt(toward_boss[2]),poe2_api.toInt(boss.world_z),0)
                                     api_Sleep(100)
                                     poe2_api.click_keyboard("space")
                                 end
                                 local toward_record_map = poe2_api.move_towards({local_x,local_y},{record_map[1],record_map[2]},20)
-                                api_ClickMove(poe2_api.toInt(toward_record_map[1]),poe2_api.toInt(toward_record_map[2]),poe2_api.toInt(player_info.world_z),1)
+                                api_ClickMove(poe2_api.toInt(toward_record_map[1]),poe2_api.toInt(toward_record_map[2]),poe2_api.toInt(player_info.world_z),0)
                                 api_Sleep(100)
                                 poe2_api.click_keyboard("space")
                             end
