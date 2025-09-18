@@ -762,6 +762,7 @@ local main_task= {
         },
         ['凱斯城'] = {
             map_name = 'G2_4_1',
+            interaction_object = { "卡巴拉部落聖物" },
             index = 126
         },
         ['在沙堆中找到失落的凱斯城的入口'] = {
@@ -848,6 +849,7 @@ local main_task= {
         },
         ['骨坑'] = {
             map_name = 'G2_5_2',
+            interaction_object = {'太陽部落聖物'},
             index = 142
         },
         ['擊敗遠古之蹄．埃克巴勃和死亡領主．伊克塔，然後取回象牙'] = {
@@ -1506,6 +1508,7 @@ local main_task= {
         },
         ['奧札爾']= {
             map_name= 'G3_14',
+            interaction_object = { "犧牲之心" },
             index = 248
         },
         ['進入阿戈拉並尋找漆黑密室']= {
@@ -1558,6 +1561,7 @@ local main_task= {
         },
         ['阿札克泥沼']= {
             map_name= 'G3_7',
+            interaction_object = { "傑洛特顱骨" },
             index = 257
         },
         ['召喚瑟維打聽卡佛的消息']= {
