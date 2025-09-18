@@ -39,3 +39,5 @@ api_timing_logs/
 *.lnk
 *.log
 *.pdb
+Poe2Help.exe
+config.ini
