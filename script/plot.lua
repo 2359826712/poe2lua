@@ -5775,6 +5775,12 @@ local custom_nodes = {
                     poe2_api.dbgp("[Query_Current_Task_Information]召喚艾瓦，尋求她的意見")
                     env.map_name = "G3_6_2"
                     env.interaction_object = { '中型靈魂核心', ' <questitem>{發電機}', '門' }
+                elseif player_info.current_map_name_utf8 == "G2_3a" and task.task_name == "使用貧脊之地的地圖前往哈拉妮關口所在之處" then
+                    poe2_api.dbgp("[Query_Current_Task_Information]G2_3a使用貧脊之地的地圖前往哈拉妮關口所在之處")
+                    env.map_name = "G2_3a"
+                    env.grid_x = 587
+                    env.grid_y = 733
+                    env.interaction_object = { "絲克瑪．阿薩拉" }
                 elseif poe2_api.table_contains(player_info.current_map_name_utf8, { "G2_town"}) and task.task_name == "返回車隊，與芮蘇討論封閉的古老關口" then
                     poe2_api.dbgp("[Query_Current_Task_Information]返回車隊，與芮蘇討論封閉的古老關口")
                     env.map_name = "G2_town"
@@ -6663,6 +6669,7 @@ local custom_nodes = {
             local team_member_3 = poe2_api.get_team_info(team_info, user_config, player_info, 3)
             local team_member_4 = poe2_api.get_team_info(team_info, user_config, player_info, 4)
             local current_map = player_info.current_map_name_utf8
+            local num = user_config["組隊設置"]["隊伍人數"]
             if self.time == nil then
                 poe2_api.dbgp("[Click_Leader_To_Teleport]初始化時間")
                 self.time = 0
@@ -6761,7 +6768,7 @@ local custom_nodes = {
                     end
                 end
             end
-            if not party_dis_memember(actors) and string.find(current_map, "a") then
+            if not party_dis_memember(actors) and string.find(current_map, "a") and task_name == "使用貧脊之地的地圖前往哈拉妮關口所在之處" then
                 poe2_api.dbgp("等待大号")
                 return bret.RUNNING
             end
@@ -6942,9 +6949,13 @@ local custom_nodes = {
                 return bret.RUNNING
             end
             local count = 3 
-            if party_pos(team_member_3) == "" then
+            if party_pos(team_member_3) == ""   then
                 if string.find(current_map, "Hideout") then
                     poe2_api.dbgp("在藏身处")
+                    return bret.SUCCESS
+                end
+                if player_info.current_map_name_utf8 =="G2_3a" then
+                    poe2_api.dbgp("在G2_3a")
                     return bret.SUCCESS
                 end
                 error("大号没有位置信息或掉线")
@@ -7644,13 +7655,9 @@ local custom_nodes = {
             local task_area_name = poe2_api.task_area_list_data(task_area)[1][1]
             local waypoint = env.waypoint
             local current_map = player_info.current_map_name_utf8
-            if current_map == task_area then
-                poe2_api.dbgp("在任务地区")
-                return bret.FAIL
-            end
             if poe2_api.task_area_list_data(task_area)[2] == "有" and poe2_api.Waypoint_is_open(task_area, waypoint) then
                 if string.find(task_area, "G2") and not string.find(current_map, "G2") and task_area~="G2_1" then
-                    env.teleport_area = "G2_town"
+                    env.teleport_area = "G2_towm"
                     return bret.SUCCESS
                 end
 
@@ -7939,7 +7946,6 @@ local custom_nodes = {
             poe2_api.print_log("地区传送模块开始执行...")
             poe2_api.dbgp("[Click_Map_To_Area_Teleport]地区传送模块开始执行...")
             local teleport_area = env.teleport_area
-            poe2_api.dbgp(teleport_area)
             local task_area_name = poe2_api.task_area_list_data(teleport_area)[1][1]
             local UI_info = env.UI_info
             local player_info = env.player_info

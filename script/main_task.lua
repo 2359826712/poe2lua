@@ -604,7 +604,7 @@ local main_task= {
         },
         ['使用貧脊之地的地圖前往哈拉妮關口所在之處'] = {
             map_name = 'G2_town',
-            special_map_point = {662,415},
+            special_map_point = {587,733},
             grid_x = 586,
             grid_y = 723,
             interaction_object = {'哈拉妮關口', '絲克瑪．阿薩拉'},
