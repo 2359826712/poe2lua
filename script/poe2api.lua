@@ -4369,7 +4369,7 @@ end
 _M.is_have_boss_distance = function(range_info,player_info,boss_list,dis)
     dis = dis or 100  -- 默认距离100
     
-    if not range_info or not boss_list or not player_info then
+    if not range_info or not player_info then
         return false
     end
     

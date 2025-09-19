@@ -82,68 +82,259 @@
       },
       {
         "id": 18,
+        "name": "Team"
+      },
+      {
+        "id": 19,
+        "name": "Selector",
+        "desc": "查询任务信息",
+        "children": [
+          {
+            "id": 20,
+            "name": "Sequence",
+            "children": [
+              {
+                "id": 21,
+                "name": "Interactive_Npc_In_Town"
+              },
+              {
+                "id": 22,
+                "name": "The_Interactive_Npc_Exist"
+              },
+              {
+                "id": 23,
+                "name": "Selector",
+                "children": [
+                  {
+                    "id": 24,
+                    "name": "Is_Path_Move",
+                    "desc": "是否需要移动"
+                  },
+                  {
+                    "id": 25,
+                    "name": "Sequence",
+                    "desc": "Path_Move_Story",
+                    "children": [
+                      {
+                        "id": 26,
+                        "name": "Game_Block",
+                        "desc": "清除遮挡"
+                      },
+                      {
+                        "id": 27,
+                        "name": "Is_Arrive",
+                        "desc": "是否在终点"
+                      },
+                      {
+                        "id": 28,
+                        "name": "GET_Path",
+                        "desc": "计算路径"
+                      },
+                      {
+                        "id": 29,
+                        "name": "Move_To_Target_Point",
+                        "desc": "移动到指定地点"
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "id": 30,
+            "name": "Sequence",
+            "children": [
+              {
+                "id": 31,
+                "name": "Check_Role"
+              },
+              {
+                "id": 32,
+                "name": "Query_Current_Task_Information_Local"
+              }
+            ]
+          },
+          {
+            "id": 33,
+            "name": "Query_Current_Task_Information"
+          }
+        ]
+      },
+      {
+        "id": 34,
+        "name": "Check_LongTime_Not_Move",
+        "desc": "长时间未移动"
+      },
+      {
+        "id": 35,
+        "name": "Selector",
+        "desc": "ExceptionTeam",
+        "children": [
+          {
+            "id": 36,
+            "name": "Is_Exception_Team"
+          },
+          {
+            "id": 37,
+            "name": "Sequence",
+            "children": [
+              {
+                "id": 38,
+                "name": "Game_Block",
+                "desc": "清理遮挡"
+              },
+              {
+                "id": 39,
+                "name": "Selector",
+                "desc": "move",
+                "children": [
+                  {
+                    "id": 40,
+                    "name": "Is_Move",
+                    "desc": "是否需要移动"
+                  },
+                  {
+                    "id": 41,
+                    "name": "Is_Path_Move",
+                    "desc": "是否需要移动"
+                  },
+                  {
+                    "id": 42,
+                    "name": "Sequence",
+                    "desc": "Path_Move_Story",
+                    "children": [
+                      {
+                        "id": 43,
+                        "name": "Is_Arrive",
+                        "desc": "是否在终点"
+                      },
+                      {
+                        "id": 44,
+                        "name": "GET_Path",
+                        "desc": "计算路径"
+                      },
+                      {
+                        "id": 45,
+                        "name": "Move_To_Target_Point",
+                        "desc": "移动到指定地点"
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "id": 46,
+                "name": "Selector",
+                "desc": "attack",
+                "children": [
+                  {
+                    "id": 47,
+                    "name": "Is_Attack",
+                    "desc": "是否需要攻击"
+                  },
+                  {
+                    "id": 48,
+                    "name": "ReleaseSkillAction",
+                    "desc": "释放技能"
+                  },
+                  {
+                    "id": 49,
+                    "name": "Sequence",
+                    "desc": "Path_Move_Story",
+                    "children": [
+                      {
+                        "id": 50,
+                        "name": "Is_Arrive",
+                        "desc": "是否在终点"
+                      },
+                      {
+                        "id": 51,
+                        "name": "GET_Path",
+                        "desc": "计算路径"
+                      },
+                      {
+                        "id": 52,
+                        "name": "Move_To_Target_Point",
+                        "desc": "移动到指定地点"
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "id": 53,
+                "name": "Click",
+                "desc": "点击"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": 54,
         "name": "Selector",
         "desc": "Store_items",
         "children": [
           {
-            "id": 19,
+            "id": 55,
             "name": "Is_Store_Items"
           },
           {
-            "id": 20,
+            "id": 56,
             "name": "Selector",
             "desc": "is",
             "children": [
               {
-                "id": 21,
+                "id": 57,
                 "name": "Store_Items"
               },
               {
-                "id": 22,
+                "id": 58,
                 "name": "Selector",
                 "children": [
                   {
-                    "id": 23,
+                    "id": 59,
                     "name": "Open_Warehouse",
                     "desc": "仓库页是否已打开"
                   },
                   {
-                    "id": 24,
+                    "id": 60,
                     "name": "Sequence",
                     "desc": "Interactive",
                     "children": [
                       {
-                        "id": 25,
+                        "id": 61,
                         "name": "Game_Block",
                         "desc": "清理遮挡"
                       },
                       {
-                        "id": 26,
+                        "id": 62,
                         "name": "Selector",
                         "desc": "move_to_object",
                         "children": [
                           {
-                            "id": 27,
+                            "id": 63,
                             "name": "Click_Item_Text",
                             "desc": "点击交互"
                           },
                           {
-                            "id": 28,
+                            "id": 64,
                             "name": "Sequence",
                             "desc": "Path_Move",
                             "children": [
                               {
-                                "id": 29,
+                                "id": 65,
                                 "name": "Is_Arrive",
                                 "desc": "是否到点"
                               },
                               {
-                                "id": 30,
+                                "id": 66,
                                 "name": "GET_Path",
                                 "desc": "获取路径"
                               },
                               {
-                                "id": 31,
+                                "id": 67,
                                 "name": "Move_To_Target_Point",
                                 "desc": "移动至目标点"
                               }
@@ -158,197 +349,6 @@
             ]
           }
         ]
-      },
-      {
-        "id": 32,
-        "name": "Team"
-      },
-      {
-        "id": 33,
-        "name": "Selector",
-        "desc": "ExceptionTeam",
-        "children": [
-          {
-            "id": 34,
-            "name": "Is_Exception_Team"
-          },
-          {
-            "id": 35,
-            "name": "Sequence",
-            "children": [
-              {
-                "id": 36,
-                "name": "Game_Block",
-                "desc": "清理遮挡"
-              },
-              {
-                "id": 37,
-                "name": "Selector",
-                "desc": "move",
-                "children": [
-                  {
-                    "id": 38,
-                    "name": "Is_Move",
-                    "desc": "是否需要移动"
-                  },
-                  {
-                    "id": 39,
-                    "name": "Is_Path_Move",
-                    "desc": "是否需要移动"
-                  },
-                  {
-                    "id": 40,
-                    "name": "Sequence",
-                    "desc": "Path_Move_Story",
-                    "children": [
-                      {
-                        "id": 41,
-                        "name": "Is_Arrive",
-                        "desc": "是否在终点"
-                      },
-                      {
-                        "id": 42,
-                        "name": "GET_Path",
-                        "desc": "计算路径"
-                      },
-                      {
-                        "id": 43,
-                        "name": "Move_To_Target_Point",
-                        "desc": "移动到指定地点"
-                      }
-                    ]
-                  }
-                ]
-              },
-              {
-                "id": 44,
-                "name": "Selector",
-                "desc": "attack",
-                "children": [
-                  {
-                    "id": 45,
-                    "name": "Is_Attack",
-                    "desc": "是否需要攻击"
-                  },
-                  {
-                    "id": 46,
-                    "name": "ReleaseSkillAction",
-                    "desc": "释放技能"
-                  },
-                  {
-                    "id": 47,
-                    "name": "Sequence",
-                    "desc": "Path_Move_Story",
-                    "children": [
-                      {
-                        "id": 48,
-                        "name": "Is_Arrive",
-                        "desc": "是否在终点"
-                      },
-                      {
-                        "id": 49,
-                        "name": "GET_Path",
-                        "desc": "计算路径"
-                      },
-                      {
-                        "id": 50,
-                        "name": "Move_To_Target_Point",
-                        "desc": "移动到指定地点"
-                      }
-                    ]
-                  }
-                ]
-              },
-              {
-                "id": 51,
-                "name": "Click",
-                "desc": "点击"
-              }
-            ]
-          }
-        ]
-      },
-      {
-        "id": 52,
-        "name": "Selector",
-        "desc": "查询任务信息",
-        "children": [
-          {
-            "id": 53,
-            "name": "Sequence",
-            "children": [
-              {
-                "id": 54,
-                "name": "Interactive_Npc_In_Town"
-              },
-              {
-                "id": 55,
-                "name": "The_Interactive_Npc_Exist"
-              },
-              {
-                "id": 56,
-                "name": "Selector",
-                "children": [
-                  {
-                    "id": 57,
-                    "name": "Is_Path_Move",
-                    "desc": "是否需要移动"
-                  },
-                  {
-                    "id": 58,
-                    "name": "Sequence",
-                    "desc": "Path_Move_Story",
-                    "children": [
-                      {
-                        "id": 59,
-                        "name": "Game_Block",
-                        "desc": "清除遮挡"
-                      },
-                      {
-                        "id": 60,
-                        "name": "Is_Arrive",
-                        "desc": "是否在终点"
-                      },
-                      {
-                        "id": 61,
-                        "name": "GET_Path",
-                        "desc": "计算路径"
-                      },
-                      {
-                        "id": 62,
-                        "name": "Move_To_Target_Point",
-                        "desc": "移动到指定地点"
-                      }
-                    ]
-                  }
-                ]
-              }
-            ]
-          },
-          {
-            "id": 63,
-            "name": "Sequence",
-            "children": [
-              {
-                "id": 64,
-                "name": "Check_Role"
-              },
-              {
-                "id": 65,
-                "name": "Query_Current_Task_Information_Local"
-              }
-            ]
-          },
-          {
-            "id": 66,
-            "name": "Query_Current_Task_Information"
-          }
-        ]
-      },
-      {
-        "id": 67,
-        "name": "Check_LongTime_Not_Move",
-        "desc": "长时间未移动"
       },
       {
         "id": 68,

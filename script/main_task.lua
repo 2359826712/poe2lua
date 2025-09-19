@@ -865,6 +865,13 @@ local main_task= {
             interaction_object_map_name = {'MastodonActive', 'MastodonInactive'},
             index = 144
         },
+        ['返回阿杜拉車隊並與札卡交談']= {
+            map_name= 'G2_town',
+            grid_x= 384,
+            grid_y= 247,
+            interaction_object= {'札卡', '七大水域之都獎勵'},
+            index = 145
+        },
         ['收下交還水之精髓的獎勵。']= {
             map_name= 'G2_town',
             grid_x= 384,
@@ -1132,12 +1139,18 @@ local main_task= {
             interaction_object= {'高地神塔營地'},
             interaction_object_map_name= {'G3_town'}
         },
+        ['穿越沙掠濕地，尋找高地神塔']= {
+            map_name= 'G3_1',
+            index = 188,
+            interaction_object= {'高地神塔營地'},
+            interaction_object_map_name= {'G3_town'}
+        },
         ['風沙沼澤']= {
             map_name= 'G3_town',
             interaction_object= {'黑衣幽魂'},
             index = 189
         },
-        ['穿過風沙沼澤尋找高地神塔']= {
+        ['與那些寶藏獵人會面']= {
             map_name= 'G3_town',
             grid_x= 354,
             grid_y= 800,
@@ -1189,7 +1202,7 @@ local main_task= {
             map_name= 'G3_5',
             index = 198
         },
-        ['探索叢林邊陲，尋找龍蜥濕地']= {
+        ['探索龍蜥濕地，尋找古老的機械迷城']= {
             map_name= 'G3_5',
             interaction_object= {'吉卡尼的機械迷城'},
             interaction_object_map_name= {'G3_6_1'},
