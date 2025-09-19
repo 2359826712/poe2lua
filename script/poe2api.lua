@@ -4327,10 +4327,14 @@ _M.get_sorted_obj = function(text, range_info, player_info)
     -- 3. 定义筛选函数
     local function is_match(actor)
         if type(text) == "string" then
-            return string.find(actor.name_utf8 or "", text) ~= nil
+            if string.find(actor.baseType_utf8 or "", text) ~= nil or string.find(actor.name_utf8 or "", text) ~= nil then
+                return true
+            else
+                return false
+            end
         elseif type(text) == "table" then
             for _, name in ipairs(text) do
-                if name == actor.name_utf8 then
+                if (name == actor.baseType_utf8) or (name == actor.name_utf8) then
                     return true
                 end
             end
@@ -4491,7 +4495,7 @@ _M.while_click = function(UI_info,text ,mate, range_info,is_leader)
         if api_GetTickCount64() - time >= 30 * 1000 then
             break
         end
-        if not _M.find_text({UI_info = UI_info, text = text, min_x=0 ,refresh = true}) then
+        if not _M.find_text({UI_info = UI_info, text = text,refresh = true}) then
             break
         end
     end
@@ -4531,7 +4535,7 @@ _M.get_member_name_according = function(UI_info, text, min_x, min_y, max_x, max_
     if UI_info and #UI_info > 0 then
         for _, actor in ipairs(UI_info) do
             if min_x <= actor.left and actor.left <= max_x and 
-               min_y <= actor.top and actor.top <= max_y then
+               min_y <= actor.top and actor.top <= max_y and actor.text_utf8 == text then
                 -- Calculate center position
                 local center_x = (actor.left + actor.right) / 2
                 local center_y = (actor.top + actor.bottom) / 2

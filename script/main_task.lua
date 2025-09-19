@@ -1240,7 +1240,7 @@ local main_task= {
             interaction_object_map_name= {'艾瓦'},
             index = 204
         },
-        ['在機械迷城尋找大型靈魂核心']= {
+        ['在機械迷城中尋找一個大型靈魂核心']= {
             map_name= 'G3_6_1',
             Boss={'遺忘的黑顎'},
             interaction_object= {'召喚艾瓦', '艾瓦', '門'},
@@ -1254,7 +1254,7 @@ local main_task= {
             interaction_object_map_name= {'艾瓦'},
             index = 206
         },
-        ['向艾瓦尋求意見']= {
+        ['向艾瓦詢問建議']= {
             map_name= 'G3_6_1', 
             Boss={'遺忘的黑顎'},
             interaction_object= {'召喚艾瓦', '艾瓦','門'},
@@ -1274,7 +1274,7 @@ local main_task= {
             interaction_object_map_name= {'G3_6_2'},
             index = 209
         },
-        ['深入探索機械迷城']= {
+        ['繼續深入機械迷城']= {
             map_name= 'G3_6_1',
             Boss={'遺忘的黑顎'},
             interaction_object= {'門', '小型靈魂核心', '石陣祭壇', '吉卡尼的聖域'},
@@ -1291,7 +1291,7 @@ local main_task= {
             interaction_object_map_name= {'ZicoatlBossActive'},
             index = 212
         },
-        ['繼續深入機械迷城']= {
+        ['深入機械迷城']= {
             map_name= 'G3_6_2',
             interaction_object= {'召喚艾瓦','艾瓦'},
             interaction_object_map_name= {'ZicoatlBossActive'},
@@ -1313,9 +1313,9 @@ local main_task= {
         --     map_name= 'C_G3_6_2',
         --     interaction_object= {'中型靈魂核心',' <questitem>{發電機}','門'},
         -- },
-        ['在吉卡尼的聖域中尋找兩個中型靈魂核心，並用它們啟動兩個發電機']= {
+        ['在吉卡尼的聖域尋找兩個中型靈魂核心，並用它們啟動兩台發電機']= {
             map_name= 'G3_6_2',
-            interaction_object= {'中型靈魂核心',' <questitem>{發電機}','門','<questitem>{大型靈魂核心}'},
+            interaction_object= {'中型靈魂核心','<questitem>{發電機}','門','<questitem>{大型靈魂核心}'},
             index = 215
         },
         ['在機械迷城下層尋找兩個中型靈魂核心，並用它們啟動兩台發電機']= {
@@ -1324,7 +1324,7 @@ local main_task= {
             interaction_object_map_name= {'艾瓦'},
             index = 216
         },
-        ['取回艾瓦旁邊的大型靈魂核心']= {
+        ['取回艾瓦附近的大型靈魂核心']= {
             map_name= 'G3_6_2',
             interaction_object= {'中型靈魂核心', '<questitem>{發電機}','<questitem>{大型靈魂核心}','門'},
             index = 217
@@ -1336,7 +1336,7 @@ local main_task= {
             interaction_object_map_name= {'ZicoatlBossActive'},
             index = 218
         },
-        ['拾取大型靈魂核心']= {
+        ['撿起大型靈魂核心']= {
             map_name= 'G3_6_2',
             Boss= {'核心守衛．茲科亞特'},
             interaction_object= {'中型靈魂核心', '<questitem>{發電機}','門','<questitem>{大型靈魂核心}'},
