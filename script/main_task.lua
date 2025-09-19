@@ -1365,7 +1365,7 @@ local main_task= {
             interaction_object= {'壓桿'},
             index = 223
         },
-        ['找出控制機關並啟用水道，抽乾該區的水。']= {
+        ['返回營地，在高地神塔下方找到艾瓦']= {
             map_name= 'G3_town',
             grid_x= 419,
             grid_y= 330,
@@ -1384,7 +1384,7 @@ local main_task= {
             map_name= 'G3_8',
             index = 227
         },
-        ['進入阿戈拉遺跡，並尋找一把鑰匙']= {
+        ['探索污垢頂峰並尋找鑰匙']= {
             map_name= 'G3_11',
             index = 228
         },

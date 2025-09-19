@@ -6255,14 +6255,17 @@ local custom_nodes = {
                         poe2_api.dbgp("[Is_Move]大號打怪")
                         if monster and monster_distacne < 180 then
                             poe2_api.dbgp("[Is_Move]怪物存在且距离小于180")
-                            if not next(env.path_list) then
+                            if not env.path_list or not next(env.path_list) then
                                 local point = is_point(monster.grid_x, monster.grid_y)
-                                if not point then
+                                if not point or #point == 0 then
+                                    poe2_api.dbgp("[Is_Move]怪物坐标非法")
                                     table.insert(relife_stuck_monsters, monster.id)
                                     return bret.RUNNING
                                 end
                             end
+
                             env.monster_info = monster
+                            monster_info = monster
                             point_monster = api_FindNearestReachablePoint(monster.grid_x, monster.grid_y, 25, 0)
                             env.end_point = { point_monster.x, point_monster.y }
                         end
@@ -6979,7 +6982,7 @@ local custom_nodes = {
                             poe2_api.click_keyboard("space")
                             return bret.RUNNING
                         end
-                        local x, y = poe2_api.get_member_name_according(UI_info, team_member_4)
+                        local x, y = poe2_api.get_member_name_according(UI_info, team_member_3)
                         poe2_api.dbgp("x,y",x,y)
                         if y ~= 0 then
                             local rand_x = 14 + math.random(-7, 7)
@@ -9892,25 +9895,23 @@ local custom_nodes = {
             end
             -- 小地图是否有指定对象距离
             local function min_map_dis(name)
-                function min_map_dis(name)
-                    local function target_distance(actor)
-                        -- 计算与玩家的平方距离
-                        return (actor.grid_x - player_info.grid_x) ^ 2 + (actor.grid_y - player_info.grid_y) ^ 2
-                    end
-                    
-                    local targets = {}
-                    for _, item in ipairs(current_map_info) do
-                        if item.name_utf8 == name and item.flagStatus1 == 1 then
-                            table.insert(targets, item)
-                        end
-                    end
-                    
-                    table.sort(targets, function(a, b)
-                        return target_distance(a) < target_distance(b)
-                    end)
-                    
-                    return targets
+                local function target_distance(actor)
+                    -- 计算与玩家的平方距离
+                    return (actor.grid_x - player_info.grid_x) ^ 2 + (actor.grid_y - player_info.grid_y) ^ 2
                 end
+                
+                local targets = {}
+                for _, item in ipairs(current_map_info) do
+                    if item.name_utf8 == name and item.flagStatus1 == 1 then
+                        table.insert(targets, item)
+                    end
+                end
+                
+                table.sort(targets, function(a, b)
+                    return target_distance(a) < target_distance(b)
+                end)
+                
+                return targets
             end
             if interaction_object or interaction_object_map_name then
                 local interaction_object_set = interaction_object
@@ -9970,15 +9971,15 @@ local custom_nodes = {
                     local range_target = poe2_api.get_sorted_obj("壓桿",range_info,player_info)
                     if target and #target > 0 then
                         local target_point = api_FindNearestReachablePoint(target[1].grid_x, target[1].grid_y,20,1)
-                        if get_distance(target[1].grid_x, target[1].grid_y) <25 then
-                            poe2_api.dbgp("距离压杆小于25，点击压杆")
+                        if get_distance(target[1].grid_x, target[1].grid_y) < 25 then
+                            poe2_api.dbgp("距离压杆小于30，点击压杆")
                             poe2_api.find_text({ UI_info = UI_info, text = "壓桿", min_x = 200, click = 2})
                             api_Sleep(5000)
                             api_UpdateMapObstacles(100)
                             return bret.RUNNING
                         else
                             if api_FindPath(local_x,local_y,target_point.x,target_point.y) then
-                                poe2_api.dbgp("找到压杆的路径")
+                                poe2_api.dbgp("找到压杆的路径",get_distance(target[1].grid_x, target[1].grid_y))
                                 env.end_point = {target_point.x,target_point.y}
                                 return bret.SUCCESS
                             else
@@ -11197,8 +11198,8 @@ local custom_nodes = {
                 }
                 if poe2_api.table_contains(special_map,current_map) then
                     if poe2_api.table_contains(current_map,{"G3_2_2"}) then
-                        poe2_api.dbgp("大号探索范围40")
-                        point = api_GetUnexploredArea(40)
+                        poe2_api.dbgp("大号探索范围50")
+                        point = api_GetUnexploredArea(50)
                     else
                         poe2_api.dbgp("大号探索范围70")
                         point = api_GetUnexploredArea(70)
