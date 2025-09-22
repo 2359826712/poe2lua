@@ -32,10 +32,9 @@
 
 
 -- 移动控制
--- api_ClickMove(x, y, world_z, mode) - 点击移动到指定坐标
+-- api_ClickMove(x, y,  mode) - 点击移动到指定坐标
 --   @param x 游戏世界X坐标（浮点型）
 --   @param y 游戏世界Y坐标（浮点型）
---   @param world_z 游戏世界高度坐标（浮点型）
 --   @param mode 移动模式：
 --     0=只移动
 --     1=移动+左键点击, 2=移动+右键点击,

@@ -1384,16 +1384,12 @@ local main_task= {
             map_name= 'G3_8',
             index = 227
         },
-        ['探索污垢頂峰並尋找鑰匙']= {
-            map_name= 'G3_11',
-            index = 228
-        },
         ['污垢頂峰']= {
             map_name= 'G3_11',
             Boss= {'污垢女王'},
             index = 229
         },
-        ['探索阿戈拉遺跡，並尋找一把鑰匙']= {
+        ['探索污垢頂峰並尋找鑰匙']= {
             map_name= 'G3_11',
             interaction_object= {'污垢'},
             Boss= {'污垢女王'},
@@ -1479,7 +1475,7 @@ local main_task= {
             interaction_object_map_name= {'艾瓦', 'KaazuliBossInactive'},
             index = 241
         },
-        ['進入通道']= {
+        ['進入崎點']= {
             map_name= 'G3_town',
             grid_x= 423,
             grid_y= 835,

@@ -19,8 +19,26 @@ while true do
     
     -- 记录开始时间（毫秒）
     local start_time = api_GetTickCount64()  -- 转换为 ms
-
-    -- api_RestoreOriginalMap()
+    -- local arrive_point = api_FindNearestReachablePoint(1734,841, 50, 0)
+    -- api_Log(arrive_point.x)
+    -- api_Log(arrive_point.y)
+    -- local result = api_FindPath(1575,843, arrive_point.x,arrive_point.y)
+    -- api_Log(result)
+    -- point = api_GetUnexploredArea(70)
+    -- api_Log("获取未探索区域")
+    -- api_Log(point.x)
+    -- api_Log(point.y)
+    -- -- rpoint = api_FindNearestReachablePoint(point.x, point.y, 15, 0)
+    -- -- api_Log("计算最近可到达的点")
+    -- -- api_Log(rpoint.x)
+    -- -- api_Log(rpoint.y)
+    -- if point.x ==-1 and point.y == -1 then
+    --     api_Log("没有未探索区域")
+    --     while true do
+    --         api_Sleep(1)
+    --     end
+    -- end
+    -- -- api_RestoreOriginalMap()
     -- api_UpdateMapObstacles(100)
     -- point = api_GetUnexploredArea(120)
     -- api_Log("point -- > ")
