@@ -8,7 +8,7 @@ package.loaded['json'] = nil
 
 local plot = require 'script/plot'
 local poe2api = require 'script/poe2api'
-local json = require 'json'
+local json = require 'script.lualib.json'
 
 -- 创建行为树
 local bt = plot.create()

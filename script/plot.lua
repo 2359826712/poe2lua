@@ -2,18 +2,18 @@ package.path = package.path .. ';./path/to/module/?.lua'
 
 -- 根据otherworld.json实现的完整行为树系统
 package.path = package.path .. ';lualib/?.lua'
-local behavior_tree = require 'behavior3.behavior_tree'
-local bret = require 'behavior3.behavior_ret'
+local behavior_tree = require 'script.lualib.behavior3.behavior_tree'
+local bret = require 'script.lualib.behavior3.behavior_ret'
 -- 加载基础节点类型
-local base_nodes = require 'behavior3.sample_process'
+local base_nodes = require 'script.lualib.behavior3.sample_process'
 local my_game_info = require 'script/my_game_info'
 local main_task = require 'script/main_task'
 
-local script_path = debug.getinfo(1, "S").source:sub(2)
-local path = script_path:gsub("/", "\\")
-local script_dir = path:match("(.*\\)(.*)\\")
-local json_path = script_dir .. "config.json"
-local user_info_path = script_dir .. "config.ini"
+local script_dir = api_GetExecutablePath()
+-- api_Log(script_dir)
+local json_path = script_dir .."\\config.json"
+local user_info_path = script_dir .."\\config.ini"
+local json = require 'script.lualib.json'
 
 local poe2_api = require "script/poe2api"
 api_Log("清除 poe2api 模块的缓存")
@@ -466,7 +466,6 @@ local custom_nodes = {
                     poe2_api.print_log("等待获取任务信息")
                     poe2_api.dbgp("等待获取任务信息")
                     self.bool = true
-                    env.tasks_data = main_task.tasks_data
                 end
                 poe2_api.dbgp("已进入游戏")
                 -- 计算当前 Tick 耗时（毫秒）
@@ -5423,9 +5422,8 @@ local custom_nodes = {
                 return false
             end
 
-            env.tasks_data = main_task.tasks_data
 
-            local task = poe2_api.get_task_info(env.tasks_data, task_name)
+            local task = poe2_api.get_task_info(main_task.tasks_data, task_name)
             if next(task) then
                 if poe2_api.click_text_UI({ UI_info = env.UI_info, text = "respawn_at_checkpoint_button" }) and not env.special_relife_point then
                     poe2_api.click_keyboard("space")
@@ -5533,7 +5531,6 @@ local custom_nodes = {
                     poe2_api.dbgp("[Query_Current_Task_Information_Local]SUCCESS3")
                     return bret.SUCCESS
                 end
-                env.tasks_data = main_task.tasks_data
                 if not maps then
                     poe2_api.dbgp("未识别到小号任务")
                     return bret.RUNNING
@@ -5687,9 +5684,9 @@ local custom_nodes = {
                     end
                 end
                 if (poe2_api.table_contains(main_task_info, "追尋傳奇人物奧爾巴拉的腳步，重鑄瓦斯提里的戰角") or poe2_api.table_contains(main_task_info, "跟艾瓦談談發生的事")) and #(main_task_info) > 1 then
-                    task = poe2_api.get_task_info(env.tasks_data,main_task_info[2])
+                    task = poe2_api.get_task_info(main_task.tasks_data,main_task_info[2]) 
                 else
-                    task = poe2_api.get_task_info(env.tasks_data,main_task_info[1])
+                    task = poe2_api.get_task_info(main_task.tasks_data,main_task_info[1])
                 end
             else
                 task = nil
@@ -5697,6 +5694,7 @@ local custom_nodes = {
             if poe2_api.find_text({UI_info = env.UI_info, text = "私訊", add_x = 265, min_x = 0, max_x = 400, click = 2}) then
                 return bret.RUNNING
             end
+            
             if task and next(task) then
                 self.mas = nil
                 env.special_relife_point = false
@@ -6812,14 +6810,16 @@ local custom_nodes = {
                     if self.time1 == 0 then
                         self.time1 = api_GetTickCount64()
                     end
+                    poe2_api.dbgp(api_GetTickCount64() - self.time1 > 30 * 1000)
                     if api_GetTickCount64() - self.time1 > 30 * 1000 then
                         if string.find(current_map, "own") then
                             self.time1 = 0
                             return bret.SUCCESS
                         end
                         for _, name in ipairs(my_game_info.city_map) do
-                            poe2_api.find_text({ UI_info = UI_info, text = name, click = 2 })
-                            return bret.RUNNING
+                            if poe2_api.find_text({ UI_info = UI_info, text = name, click = 2 }) then
+                                return bret.RUNNING
+                            end
                         end
                         api_ClickScreen(1230, 815, 0)
                         api_Sleep(500)
@@ -7586,7 +7586,6 @@ local custom_nodes = {
             if string.find(me_area, "own") then
                 self.back_city = true
             end
-            poe2_api.dbgp(me_area,task_area)
             if me_area == task_area then
                 if not string.find(me_area, "own") then
                     if (not party_pos_memember(me_area) or not party_dis_memember(range_info)) and not self.back_city then
@@ -10430,7 +10429,7 @@ local custom_nodes = {
                 env.is_not_ui = true
                 return bret.RUNNING
             end
-            if team_member_2 == "大號名" and poe2_api.table_contains(interaction_object,"調查平台") then
+            if team_member_2 == "小號名" and poe2_api.table_contains(interaction_object,"調查平台") then
                 if not party_dis(range_info,"艾瓦") then
                     return bret.RUNNING
                 end
