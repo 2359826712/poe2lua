@@ -898,8 +898,11 @@ local custom_nodes = {
                 end
                 poe2_api.time_p("    获取周围对象信息... 耗时 --> ", api_GetTickCount64() - range_info_start_time)
             end
-
-
+            -- for _,k in ipairs(env.range_info) do
+            --     if k.name_utf8 == "芙雷雅．哈特林" then
+            --         poe2_api.printTable(k)
+            --     end
+            -- end
             -- api_GetMinimapActorInfo() - 获取小地图周围对象信息
             local current_map_info_start_time = api_GetTickCount64()
             env.current_map_info = api_GetMinimapActorInfo()
@@ -1431,6 +1434,9 @@ local custom_nodes = {
             if player_info.life ~= 0 then
                 self.click_time = 0
                 self.death_time = 0
+                if poe2_api.table_contains( player_info.current_map_name_utf8,{"G4_2_2"}) then 
+                    env.leader_teleport = true
+                end
                 poe2_api.time_p("Is_Deth... 耗时 --> ", api_GetTickCount64() - start_time)
                 return bret.SUCCESS
             end
@@ -1438,6 +1444,9 @@ local custom_nodes = {
                 if poe2_api.click_text_UI({ UI_info = env.UI_info, text = "respawn_at_checkpoint_button" }) and not env.is_timeout and not env.is_timeout_exit then
                     poe2_api.dbgp1("rewyrejhgfdbnsdbvs")
                     poe2_api.click_keyboard("space")
+                end
+                if poe2_api.table_contains( player_info.current_map_name_utf8,{"G4_2_2"}) then 
+                    env.leader_teleport = false
                 end
                 poe2_api.dbgp("点击确认")
                 poe2_api.find_text({ UI_info = env.UI_info, text = "確定", click = 2, min_x = 0 })
@@ -6873,23 +6882,54 @@ local custom_nodes = {
                 poe2_api.click_keyboard("space")
                 return bret.RUNNING
             end
-            if current_map == "C_G1_1" and check_pos_dis(team_member_3) == nil and not task_name and string.find(task_area, "C") then
-                if team_member_2 == "小號" then
-                    if not poe2_api.find_text({ UI_info = UI_info, text = "你確定要傳送至此玩家的位置？" }) then
-                        local x, y = poe2_api.get_member_name_according(UI_info, team_member_4)
-                        if y ~= 0 then
-                            local rand_x = 14 + math.random(-7, 7)
-                            local rand_y = y + 21 + math.random(-7, 7)
-                            api_ClickScreen(poe2_api.toInt(rand_x), poe2_api.toInt(rand_y), 0)
-                            api_Sleep(500)
-                            api_ClickScreen(poe2_api.toInt(rand_x), poe2_api.toInt(rand_y), 1)
+            if task_name == "自瘋狂中存活" then
+                for _,k in ipairs(actors) do
+                    if k.name_utf8 == "芙雷雅．哈特林" and k.stateMachineList and k.stateMachineList["activated"] == 1 then
+                        env.leader_teleport = true
+                    elseif k.name_utf8 == "芙雷雅．哈特林" and k.stateMachineList and k.stateMachineList["activated"] ~= 1 then
+                        env.leader_teleport = false
+                    end
+                end
+            end
+            if env.leader_teleport then
+                if team_member_2 == "隊長名" then
+                    if task_area == "G4_2_2" then
+                        if task_name == "自瘋狂中存活" then
+                            local g4_area_name = get_range_pos("凱吉灣")
+                            if g4_area_name then
+                                local distance = poe2_api.point_distance(g4_area_name[1], g4_area_name[2], player_info)
+                                if distance < 30 then
+                                    poe2_api.find_text({UI_info = env.UI_info, text ="凱吉灣", click = 2})
+                                    return bret.RUNNING
+                                else                    
+                                    env.end_point= {g4_area_name[1], g4_area_name[2]}
+                                    return bret.FAIL
+                                end
+                            end
+                        elseif task_name == "旅程結束" then
+                            local g4_area_name = get_range_pos("旅程結束")
+                            if g4_area_name then
+                                local distance = poe2_api.point_distance(g4_area_name[1], g4_area_name[2], player_info)
+                                if distance < 30 then
+                                    if not poe2_api.find_text({ UI_info = UI_info, text = "副本管理員", click = 0, refresh = true }) then
+                                        api_Sleep(500)
+                                        poe2_api.find_text({UI_info = env.UI_info, text ="旅程結束", click = 4})
+                                        api_Sleep(500)
+                                    else
+                                        api_Sleep(500)
+                                        poe2_api.find_text({ UI_info = UI_info, text = "新副本", click = 2, min_x = 0, refresh = true })
+                                        api_Sleep(500)
+                                        if poe2_api.click_text_UI({ UI_info = env.UI_info, text = "loading_screen_tip_label" }) then
+                                            env.leader_teleport = false
+                                        end
+                                    end
+                                    return bret.RUNNING
+                                else                    
+                                    env.end_point= {g4_area_name[1], g4_area_name[2]}
+                                    return bret.FAIL
+                                end
+                            end
                         end
-                        return bret.RUNNING
-                    else
-                        api_ClickScreen(916, 467, 0)
-                        api_Sleep(500)
-                        api_ClickScreen(916, 467, 1)
-                        return bret.SUCCESS
                     end
                 end
                 return bret.RUNNING
@@ -6900,6 +6940,10 @@ local custom_nodes = {
             end
             if poe2_api.table_contains(current_map, { "G2_1" }) and poe2_api.table_contains(task_area, { "G2_1" }) and task_name == "進入阿杜拉車隊" then
                 poe2_api.dbgp("检测到任务:進入阿杜拉車隊")
+                return bret.SUCCESS
+            end
+            if poe2_api.table_contains(current_map, { "G4_2_2" }) and poe2_api.table_contains(task_area, { "G4_2_2" }) and task_name =="自瘋狂中存活" then
+                poe2_api.dbgp("检测到任务区域:G3_1")
                 return bret.SUCCESS
             end
             if poe2_api.table_contains(current_map, { "G3_2_2" }) and poe2_api.table_contains(task_area, { "G3_2_2" }) and
@@ -7385,7 +7429,7 @@ local custom_nodes = {
                 return bret.SUCCESS
             end
             if not self.follow and ((special_map_point and interaction_object and string.find(me_area, "G2_town")) or (me_area ~= task_area and poe2_api.table_contains(task_area, { "G3_1", "G3_2_2" }) and not party_dis_memember(range_info))
-                    or (me_area ~= task_area and poe2_api.table_contains(task_area, { "G3_12",  "G3_14", "G3_16", "G3_17" })) or poe2_api.table_contains(task_name, { "回到過去，進入奧札爾", "探索科佩克神殿並尋找瓦爾的知識展覽室" }) or (poe2_api.table_contains(party_pos(team_member_4), { "G2_1" }))) then
+                    or (me_area ~= task_area and poe2_api.table_contains(task_area, { "G3_12",  "G3_14", "G3_16", "G3_17" })) or poe2_api.table_contains(task_name, { "回到過去，進入奧札爾", "探索科佩克神殿並尋找瓦爾的知識展覽室" }) or (poe2_api.table_contains(party_pos(team_member_4), { "G2_1","G4_2_2" }))) then
                 
                 poe2_api.dbgp("大号跟随传送")
                 if not poe2_api.find_text({ UI_info = env.UI_info, text = "/clear", min_x = 0 })and not self.bool2 then
@@ -12417,7 +12461,7 @@ local env_params = {
     interaction_object_map_name_copy = nil, -- 交互对象所在地图名称copy
     modify_interaction = false,
     not_move = false, -- 不移动
-
+    leader_teleport = false, --队长传送
     warehouse_type_interactive = nil,  -- 仓库类型交互（个仓/公仓/nil）
     hwrd_time = 0,                     -- 获取窗口句柄间隔
     game_window = 0,                   -- 暂存的窗口句柄

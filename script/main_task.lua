@@ -1664,8 +1664,14 @@ local main_task= {
         },
         ["返回芙雷雅．哈特林身邊"]= {
             map_name= 'G4_2_2',
-            interaction_object= {'召喚圖貞'},
+            interaction_object= {"圖貞",'召喚圖貞',"卡魯圖騰","芙雷雅．哈特林"},
             interaction_object_map_name= {'芙雷雅．哈特林'},
+            index = 276
+        },
+        ["自瘋狂中存活"]= {
+            map_name= 'G4_2_2',
+            interaction_object= {"芙雷雅．哈特林","卡魯圖騰",},
+            interaction_object_map_name= {'芙雷雅．哈特林',"StoryGlyph"},
             index = 276
         },
     }

@@ -4488,7 +4488,7 @@ _M.while_click = function(UI_info,text ,mate, range_info,is_leader)
     end
     api_ClickScreen(_M.toInt(point[1]) ,_M.toInt(point[2]), 3)
     while true do
-        if _M.is_have_mos({range_info = range_info , player_info = mate ,dis = 100}) and is_leader then
+        if _M.is_have_mos({range_info = range_info , player_info = mate ,dis = 160}) and is_leader then
             _M.dbgp("发现怪物")
             break
         end
