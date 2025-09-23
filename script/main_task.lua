@@ -1609,6 +1609,16 @@ local main_task= {
         ['和艾瓦對話以前往金司馬區']= {
             map_name= 'G3_town',
             interaction_object= {'艾瓦',"前往金司馬區"},
+            index = 265
+        },
+        ['與瑪寇魯交談，討論雇用船隻的事宜']= {
+            map_name= 'G4_town',
+            interaction_object= {"瑪寇魯"},
+            index = 266
+        },
+        ['與瑪寇魯對話，來前往凱吉灣']= {
+            map_name= 'G4_2_1',
+            interaction_object= {'瑪寇魯'},
             index = 267
         },
     }

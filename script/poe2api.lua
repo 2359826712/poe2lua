@@ -4581,7 +4581,6 @@ _M.check_task_map_without = function()
                 completed_tasks[k.MainQuestName] = true
             end
         end
-        
         local all_finished_tasks = {}  -- 用于存储所有已完成的任务
         
         for _, map_info in ipairs(task_maps) do
