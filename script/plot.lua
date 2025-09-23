@@ -7019,7 +7019,7 @@ local custom_nodes = {
                 return bret.RUNNING
             end
 
-            if string.find(current_map, "G4") and string.find(task_area, "G4") then 
+            if current_map == task_area and string.find(current_map, "G4") and string.find(task_area, "G4") then 
                 local g4_area_name = get_range_pos(poe2_api.task_area_list_data(task_area)[1][2])
                 if g4_area_name then
                     local distance = poe2_api.point_distance(g4_area_name[1], g4_area_name[2], player_info)
@@ -7945,7 +7945,7 @@ local custom_nodes = {
                     return bret.FAIL
                 end
             end
-            if (teleport_area == "G2_town" and current_map == "G2_1") or (not check_pos_dis("傳送點") and check_current_map_info_dis("Waypoint") > 200) then
+            if (teleport_area == "G2_town" and current_map == "G2_1") or (not check_pos_dis("傳送點") and check_current_map_info_dis("Waypoint") and   check_current_map_info_dis("Waypoint") > 200) then
                 poe2_api.dbgp("非常规传送点处理")
                 if string.find(current_map, "G2_1$") and not check_pos_dis("札卡") then
                     poe2_api.dbgp("[teleport_area]G2_1札卡")

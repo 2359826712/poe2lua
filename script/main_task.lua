@@ -1636,6 +1636,14 @@ local main_task= {
             map_name= 'G4_2_1',
             index = 270
         },
+        ['旅程結束']= {
+            map_name= 'G4_2_2',
+            index = 271
+        },
+        ['探索末途島']= {
+            map_name= 'G4_2_2',
+            index = 272
+        },
     }
 }
 return main_task
