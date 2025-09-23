@@ -5689,6 +5689,7 @@ local custom_nodes = {
                 
                 return quest_details
             end
+            -- poe2_api.printTable(api_GetQuestList(0))
             local main_task_info = get_ordered_quest_status(api_GetQuestList(0), my_game_info.mian_task)
             if next(main_task_info) then
                 -- 处理main_task_info中的反斜杠和换行符
@@ -7018,9 +7019,19 @@ local custom_nodes = {
                 return bret.RUNNING
             end
 
-            if string.find(current_map, "G4") and get_range_pos(poe2_api.task_area_list_data(party_pos(team_member_3))[1][2]) then
-                poe2_api.find_text({UI_info = env.UI_info, text = poe2_api.task_area_list_data(party_pos(team_member_3))[1][2], min_x = 0, min_y = 0, click = 2})
-                return bret.RUNNING
+            if string.find(current_map, "G4") and string.find(task_area, "G4") then 
+                local g4_area_name = get_range_pos(poe2_api.task_area_list_data(task_area)[1][2])
+                if g4_area_name then
+                    local distance = poe2_api.point_distance(g4_area_name[1], g4_area_name[2], player_info)
+                    poe2_api.dbgp(g4_area_name,distance)
+                    if distance < 30 then
+                        poe2_api.find_text({UI_info = env.UI_info, text = poe2_api.task_area_list_data(task_area)[1][2], click = 2})
+                        return bret.RUNNING
+                    else                    
+                        env.end_point= {g4_area_name[1], g4_area_name[2]}
+                        return bret.FAIL
+                    end
+                end
             end
             if check_pos_dis(team_member_3) then
                 local point = get_range_pos(team_member_3)
@@ -7604,6 +7615,19 @@ local custom_nodes = {
                 self.back_city = true
             end
             if me_area == task_area then
+                if string.find(me_area,"G4") then
+                    local g4_area_name = get_range_pos(poe2_api.task_area_list_data(task_area)[1][2])
+                    if g4_area_name then
+                        local distance = poe2_api.point_distance(g4_area_name[1], g4_area_name[2], player_info)
+                        if distance < 30 then
+                            poe2_api.find_text({UI_info = env.UI_info, text = poe2_api.task_area_list_data(task_area)[1][2], click = 2})
+                            return bret.RUNNING
+                        else                    
+                            env.end_point= {g4_area_name[1], g4_area_name[2]}
+                            return bret.SUCCESS
+                        end
+                    end
+                end
                 if not string.find(me_area, "own") then
                     if (not party_pos_memember(me_area) or not party_dis_memember(range_info)) and not self.back_city then
                         if poe2_api.is_have_mos({ range_info = range_info, player_info = player_info }) or player_info.isInBossBattle then
@@ -7781,7 +7805,7 @@ local custom_nodes = {
                         poe2_api.find_text({ UI_info = env.UI_info, text = "間歇", click = 2, refresh = true })
                         api_Sleep(500)
                         env.waypoint = api_GetTeleportationPoint()
-                    end                    
+                    end                        
                     api_Sleep(200)
                     poe2_api.click_keyboard("u")
                     poe2_api.print_log("任务地区" .. task_area_name .. "传送点未打开")
@@ -8120,10 +8144,6 @@ local custom_nodes = {
                         api_Sleep(1000)
                         return bret.RUNNING
                     elseif string.find(teleport_area, "G4") and not poe2_api.find_text({UI_info = env.UI_info, text = "金司馬區港", min_x = 0, match = 2, refresh = true}) then
-                        poe2_api.dbgp("切层级")
-                        api_ClickScreen(1567, poe2_api.toInt(mini_top) + 22, 0)
-                        api_Sleep(300)
-                        api_ClickScreen(1567, poe2_api.toInt(mini_top) + 22, 1)
                         api_Sleep(2000)
                         poe2_api.find_text({ UI_info = UI_info, text = "第 4 章", click = 2, refresh = true })
                         api_Sleep(1000)

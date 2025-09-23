@@ -191,7 +191,7 @@ local my_game_info = {
         "G_Endgame_Town", "HideoutFelled", "HideoutShrine", "HideoutLimestone",
         "HideoutCanal", "HideoutDreadnought", "HideoutTwisted",
         "HideoutRacetrack", "HideoutBeaconOfSalvation", "G1_town", "G2_town",
-        "G3_town", "C4_town", "P1_town", "P2_town","P3_town","HideoutShoreline"
+        "G3_town", "G4_town", "P1_town", "P2_town","P3_town","HideoutShoreline"
     },
 
     boss_name = {

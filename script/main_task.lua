@@ -1611,15 +1611,30 @@ local main_task= {
             interaction_object= {'艾瓦',"前往金司馬區"},
             index = 265
         },
+        ["金司馬區"] = {
+            map_name= 'G4_town',
+            index = 266
+        },
         ['與瑪寇魯交談，討論雇用船隻的事宜']= {
             map_name= 'G4_town',
-            interaction_object= {"瑪寇魯"},
-            index = 266
+            grid_y = 1410,
+            grid_x = 1032,
+            interaction_object= {'瑪寇魯'},
+            index = 267
         },
         ['與瑪寇魯對話，來前往凱吉灣']= {
             map_name= 'G4_2_1',
-            interaction_object= {'瑪寇魯'},
-            index = 267
+            index = 268
+        },
+        ['探索凱吉灣']= {
+            map_name= 'G4_2_1',
+            interaction_object= {'旅程結束'},
+            interaction_object_map_name= {'G4_2_2'},
+            index = 269
+        },
+        ['凱吉灣']= {
+            map_name= 'G4_2_1',
+            index = 270
         },
     }
 }
