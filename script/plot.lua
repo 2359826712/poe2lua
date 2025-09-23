@@ -915,7 +915,6 @@ local custom_nodes = {
             --     poe2_api.dbgp(k.flagStatus1)
             --     poe2_api.dbgp("==============================")
             -- end
-            -- poe2_api.printTable(env.current_map_info)
             -- while true do
             --     api_Sleep(1000)
             -- end

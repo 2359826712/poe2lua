@@ -1652,6 +1652,22 @@ local main_task= {
             interaction_object_map_name= {'G4_2_2_BossActive'},
             index = 273
         },
+        ['拾取維里西姆']= {
+            map_name= 'G4_2_2',
+            interaction_object= {'維里西姆'},
+            index = 274
+        },
+        ["將維里西姆交給丹尼格"]= {
+            map_name= 'G4_town',
+            interaction_object= {'丹尼格'},
+            index = 275
+        },
+        ["返回芙雷雅．哈特林身邊"]= {
+            map_name= 'G4_2_2',
+            interaction_object= {'召喚圖貞'},
+            interaction_object_map_name= {'芙雷雅．哈特林'},
+            index = 276
+        },
     }
 }
 return main_task

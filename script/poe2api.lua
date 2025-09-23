@@ -4495,7 +4495,7 @@ _M.while_click = function(UI_info,text ,mate, range_info,is_leader)
         if api_GetTickCount64() - time >= 30 * 1000 then
             break
         end
-        if not _M.find_text({UI_info = UI_info, text = text,refresh = true}) then
+        if not _M.find_text({UI_info = UI_info, text = text,max_y = 690 ,max_x = 1140,min_y = 220,refresh = true}) then
             break
         end
     end
