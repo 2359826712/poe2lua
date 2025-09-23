@@ -1642,7 +1642,15 @@ local main_task= {
         },
         ['探索末途島']= {
             map_name= 'G4_2_2',
+            Boss={'哈特林統帥'},
+            interaction_object_map_name= {'G4_2_2_BossActive'},
             index = 272
+        },
+        ['殺死哈特林船長']= {
+            map_name= 'G4_2_2',
+            Boss={'哈特林統帥'},
+            interaction_object_map_name= {'G4_2_2_BossActive'},
+            index = 273
         },
     }
 }

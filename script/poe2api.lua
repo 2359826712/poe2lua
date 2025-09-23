@@ -4395,7 +4395,7 @@ _M.is_have_boss_distance = function(range_info,player_info,boss_list,dis)
         if monster.name_utf8 ~= '' and monster.rarity == 3 
            and monster.life > 0 and not monster.is_friendly 
            and within_distance 
-           and not _M.table_contains(monster.name_utf8, {"惡魔", '複製體', "隱形", "複製之躰"})
+           and not _M.table_contains(monster.name_utf8, my_game_info.not_attact_mons_CN_name)
            and monster.isActive then
             return true
         end
@@ -4404,7 +4404,7 @@ _M.is_have_boss_distance = function(range_info,player_info,boss_list,dis)
         if monster.name_utf8 ~= '' and _M.table_contains(monster.name_utf8, boss_list)
            and monster.life > 0 and not monster.is_friendly 
            and within_distance and monster.hasLineOfSight
-           and not _M.table_contains(monster.name_utf8, {"惡魔", "隱形", "複製之躰", '複製體'})
+           and not _M.table_contains(monster.name_utf8, my_game_info.not_attact_mons_CN_name)
            and monster.isActive then
             return true
         end

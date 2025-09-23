@@ -915,8 +915,10 @@ local custom_nodes = {
             --     poe2_api.dbgp(k.flagStatus1)
             --     poe2_api.dbgp("==============================")
             -- end
-            -- api_Sleep(1000000)
             -- poe2_api.printTable(env.current_map_info)
+            -- while true do
+            --     api_Sleep(1000)
+            -- end
             poe2_api.time_p("    获取小地图周围对象信息... 耗时 --> ", api_GetTickCount64() - current_map_info_start_time)
 
             -- 队伍数据信息
@@ -1023,7 +1025,7 @@ local custom_nodes = {
             -- dumprange(env.range_info)
             -- poe2_api.printTable(api_GetQuestList(0))
             -- api_Sleep(1000000) -- 暂停程序（注意：长时间暂停可能导致游戏无响应）
-
+            
             if self.wear_items == nil then
                 self.wear_items = true
             end
@@ -8847,7 +8849,6 @@ local custom_nodes = {
             local user_config = env.user_config
             local attack_dis_map = 100
             local team_member_2 = poe2_api.get_team_info(team_info, user_config, player_info, 2)
-            
             if (poe2_api.is_have_boss_distance(range_info, player_info,boss_name, 180) 
                 or poe2_api.is_have_mos({range_info = range_info, player_info = player_info, dis = attack_dis_map, stuck_monsters = stuck_monsters,not_attack_mos = not_attack_mos}))
                 and  poe2_api.table_contains(team_member_2,{"大號名","未知"}) then
