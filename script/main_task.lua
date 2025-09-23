@@ -1547,18 +1547,18 @@ local main_task= {
             interaction_object_map_name= {'DoryaniBossActive'},
             index = 253
         },
-        ['抓住多里亞尼以取得有關巨獸的情報']= {
+        ['抓捕多里亞尼以獲得他對巨獸的知識']= {
             map_name= 'G3_17',
             Boss= { '多里亞尼','多里亞尼的凱旋'},
             interaction_object= {'艾瓦'},
             interaction_object_map_name= {'DoryaniBossActive'},
             index = 254
         },
-        ['跟艾瓦談談發生的事']= {
-            map_name= 'G3_17',
-            Boss= { '多里亞尼','多里亞尼的凱旋'},
-            interaction_object= {'艾瓦'},
-            interaction_object_map_name= {'DoryaniBossActive'},
+        ['在高地神塔營地與多里亞尼對話']= {
+            map_name= 'G3_town',
+            grid_x= 420,
+            grid_y= 846,
+            interaction_object= {'多里亞尼'},
             index = 255
         },
         ['穿過城鎮中的時空傳送門以移至殘忍難度']= {

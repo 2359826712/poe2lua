@@ -23,7 +23,7 @@ local mt = {}
 mt.__index = mt
 function mt:init(name, path)
     path = path or './script/trees/'
-
+    api_Log("path-->"..path)
     self.name = name
     self.tick = 0
     local file, err = io.open(string.format("%s%s%s", path, name, '.json'), 'r')

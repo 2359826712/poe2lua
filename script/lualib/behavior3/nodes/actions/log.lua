@@ -1,7 +1,7 @@
 -- Log
 --
 
-local bret = require "script.lualib..behavior3.behavior_ret"
+local bret = require "script.lualib.behavior3.behavior_ret"
 
 local M = {
     name = "Log",
