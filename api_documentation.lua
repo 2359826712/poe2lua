@@ -32,9 +32,10 @@
 
 
 -- 移动控制
--- api_ClickMove(x, y,  mode) - 点击移动到指定坐标
+-- api_ClickMove(x, y, world_z, mode) - 点击移动到指定坐标
 --   @param x 游戏世界X坐标（浮点型）
 --   @param y 游戏世界Y坐标（浮点型）
+--   @param world_z 游戏世界高度坐标（浮点型）
 --   @param mode 移动模式：
 --     0=只移动
 --     1=移动+左键点击, 2=移动+右键点击,
@@ -119,8 +120,7 @@
 
 -- api_UpdateMapInfo() - 刷新地图信息
 --   @return nil
--- api_InitExplorationArea() - 初始化探索地图
---   @return nil
+
 -- api_UpdateMapObstacles(range) - 更新地图障碍点
 --   @param range 更新范围（非负整数）
 --   @return nil
@@ -299,24 +299,24 @@
 -- steps： 把总滚动量拆分为几步来发，默认 6
 -- stepDelayMs：两步之间的延时（毫秒），默认 8ms，意味着滚动会在 6 × 8ms ≈ 48ms 内完成，看起来连贯
 
--- lua.set_function(
---     DECRYPT_WIDE_TO_UTF8(L"GameCore_CastSkill"),
---     [&lua](UINT32 skill_id,
---         UINT32 target_id,
---         int self_grid_x,
---         int self_grid_y,
---         int target_grid_x,
---         int target_grid_y) {
---             // 调用 C++ 的函数
---             GameCore_CastSkill(skill_id, target_id,
---                 self_grid_x, self_grid_y,
---                 target_grid_x, target_grid_y);
+lua.set_function(
+    DECRYPT_WIDE_TO_UTF8(L"GameCore_CastSkill"),
+    [&lua](UINT32 skill_id,
+        UINT32 target_id,
+        int self_grid_x,
+        int self_grid_y,
+        int target_grid_x,
+        int target_grid_y) {
+            // 调用 C++ 的函数
+            GameCore_CastSkill(skill_id, target_id,
+                self_grid_x, self_grid_y,
+                target_grid_x, target_grid_y);
 
 
---             // 返回值（这里返回 bool 或者 struct 都行）
---             return true;
---     }
--- );
+            // 返回值（这里返回 bool 或者 struct 都行）
+            return true;
+    }
+);
 
 
 
@@ -411,114 +411,76 @@
 
 ============================================================
 --]]
-----------------------------------------------------------------------
--- api_IsPointInAnyActive
---
--- 功能：
---   判定指定格子 (gx, gy) 是否处于技能 AoE 的危险范围，
---   并返回危险评估结果以及行动建议。
---
--- 调用方式：
---   local dec = api_IsPointInAnyActive(gx, gy [, searchRadius [, aoeExpand]])
---
--- 参数：
---   gx, gy        : 要判定的玩家所在格子坐标（整数）。
---   searchRadius  : （可选，默认 100）搜索安全点的最大半径（格数）。
---   aoeExpand     : （可选，默认 20.0）技能 AoE 范围外扩的容差（格）。
---
--- 返回：
---   一个 table，包含以下字段：
---     dec.inside       (bool)  是否在危险区域内。
---     dec.depthInside  (number) 深入危险区的深度（越大越危险）。
---     dec.safeTile     (table) 最近安全格 { x, y }。
---     dec.action       (int)   行动建议：
---                                0 = None（安全，无需移动）
---                                1 = Move（普通移动）
---                                2 = Roll（翻滚躲避）
---     dec.sourceName   (string) 危险来源的技能名。
---
--- 示例：
---   local d = api_IsPointInAnyActive(10, 12)
---   if d.inside then
---       if d.action == 2 then
---           print("危险！执行翻滚到", d.safeTile[1], d.safeTile[2])
---       else
---           print("危险！普通移动到", d.safeTile[1], d.safeTile[2])
---       end
---   else
---       print("安全，无需移动")
---   end
-----------------------------------------------------------------------
--- // 注册“圆形”技能
--- lua.set_function(
---     DECRYPT_WIDE_TO_UTF8(L"api_RegisterCircle"),
---     [](const std::string& name,
---         float radius,
---         sol::optional<double> defaultTTL)
---     {
---         SkillMonitor::Circle def{};
---         def.radius = radius;
+// 注册“圆形”技能
+lua.set_function(
+    DECRYPT_WIDE_TO_UTF8(L"api_RegisterCircle"),
+    [](const std::string& name,
+        float radius,
+        sol::optional<double> defaultTTL)
+    {
+        SkillMonitor::Circle def{};
+        def.radius = radius;
 
 
---      std::wstring name_wide;
---      UtilUTF8ToUnicode(name, name_wide);
+     std::wstring name_wide;
+     UtilUTF8ToUnicode(name, name_wide);
 
 
---         return g_LuaManager->m_SkillMonitor.RegisterCircle(
---             name_wide,
---             def,
---             defaultTTL.value_or(0.5)
---         );
---     }
--- );
+        return g_LuaManager->m_SkillMonitor.RegisterCircle(
+            name_wide,
+            def,
+            defaultTTL.value_or(0.5)
+        );
+    }
+);
 
 
--- // 注册“扇形”技能
--- lua.set_function(
---     DECRYPT_WIDE_TO_UTF8(L"api_RegisterSector"),
---     [](const std::string& i , float fovDeg, float radius,
---         sol::optional<double> defaultTTL)
---     {
---         SkillMonitor::Sector def{};
---         def.fovDeg = fovDeg;   // 注意：Lua 传度数
---         def.radius = radius;
+// 注册“扇形”技能
+lua.set_function(
+    DECRYPT_WIDE_TO_UTF8(L"api_RegisterSector"),
+    [](const std::string& i , float fovDeg, float radius,
+        sol::optional<double> defaultTTL)
+    {
+        SkillMonitor::Sector def{};
+        def.fovDeg = fovDeg;   // 注意：Lua 传度数
+        def.radius = radius;
 
 
---         std::wstring name_wide;
---         UtilUTF8ToUnicode(name, name_wide);
+        std::wstring name_wide;
+        UtilUTF8ToUnicode(name, name_wide);
 
 
---         return g_LuaManager->m_SkillMonitor.RegisterSector(
---             name_wide,
---             def,
---             defaultTTL.value_or(0.5)
---         );
---     }
--- );
+        return g_LuaManager->m_SkillMonitor.RegisterSector(
+            name_wide,
+            def,
+            defaultTTL.value_or(0.5)
+        );
+    }
+);
 
 
--- // 注册“矩形”技能
--- lua.set_function(
---     DECRYPT_WIDE_TO_UTF8(L"api_RegisterRect"),
---     [](const std::string& name , float length, float width,
---         sol::optional<double> defaultTTL)
---     {
---         SkillMonitor::Rect def{};
---         def.length = length;
---         def.width = width;
+// 注册“矩形”技能
+lua.set_function(
+    DECRYPT_WIDE_TO_UTF8(L"api_RegisterRect"),
+    [](const std::string& name , float length, float width,
+        sol::optional<double> defaultTTL)
+    {
+        SkillMonitor::Rect def{};
+        def.length = length;
+        def.width = width;
 
 
---         std::wstring name_wide;
---         UtilUTF8ToUnicode(name, name_wide);
+        std::wstring name_wide;
+        UtilUTF8ToUnicode(name, name_wide);
 
 
---         return g_LuaManager->m_SkillMonitor.RegisterRect(
---             name_wide,
---             def,
---             defaultTTL.value_or(0.5)
---         );
---     }
--- );
+        return g_LuaManager->m_SkillMonitor.RegisterRect(
+            name_wide,
+            def,
+            defaultTTL.value_or(0.5)
+        );
+    }
+);
 
 
 --[[
@@ -582,3 +544,43 @@
 --   @param pre_click_delay_min 移动完成到“按下”之间的最小延迟(ms)
 --   @param pre_click_delay_max 移动完成到“按下”之间的最大延迟(ms)
 --   @return nil
+
+----------------------------------------------------------------------
+-- api_IsPointInAnyActive
+--
+-- 功能：
+--   判定指定格子 (gx, gy) 是否处于技能 AoE 的危险范围，
+--   并返回危险评估结果以及行动建议。
+--
+-- 调用方式：
+--   local dec = api_IsPointInAnyActive(gx, gy [, searchRadius [, aoeExpand]])
+--
+-- 参数：
+--   gx, gy        : 要判定的玩家所在格子坐标（整数）。
+--   searchRadius  : （可选，默认 100）搜索安全点的最大半径（格数）。
+--   aoeExpand     : （可选，默认 20.0）技能 AoE 范围外扩的容差（格）。
+--
+-- 返回：
+--   一个 table，包含以下字段：
+--     dec.inside       (bool)  是否在危险区域内。
+--     dec.depthInside  (number) 深入危险区的深度（越大越危险）。
+--     dec.safeTile     (table) 最近安全格 { x, y }。
+--     dec.action       (int)   行动建议：
+--                                0 = None（安全，无需移动）
+--                                1 = Move（普通移动）
+--                                2 = Roll（翻滚躲避）
+--     dec.sourceName   (string) 危险来源的技能名。
+--
+-- 示例：
+--   local d = api_IsPointInAnyActive(10, 12)
+--   if d.inside then
+--       if d.action == 2 then
+--           print("危险！执行翻滚到", d.safeTile[1], d.safeTile[2])
+--       else
+--           print("危险！普通移动到", d.safeTile[1], d.safeTile[2])
+--       end
+--   else
+--       print("安全，无需移动")
+--   end
+----------------------------------------------------------------------
+

@@ -485,13 +485,13 @@ local main_task= {
         ['尋找祭祀神壇並淨化它們'] = {
             map_name = 'G1_12',
             Boss={'迷霧之王'},
-            interaction_object = {'祭祀神壇'},
+            interaction_object = {' 祭祀神壇'},
             index = 83
         },
         ['擊敗迷霧之王'] = {
             map_name = 'G1_12',
             Boss={'迷霧之王'},
-            interaction_object = {'祭祀神壇','寶石花顱骨'},
+            interaction_object = {' 祭祀神壇','寶石花顱骨'},
             index = 84
         },
         ['與費恩交談以獲取獎勵'] = {
@@ -1556,18 +1556,10 @@ local main_task= {
         },
         ['在高地神塔營地與多里亞尼對話']= {
             map_name= 'G3_town',
-            grid_x= 420,
-            grid_y= 846,
             interaction_object= {'多里亞尼'},
             index = 255
         },
-        ['穿過城鎮中的時空傳送門以移至殘忍難度']= {
-            map_name= 'G3_town',
-            grid_x= 420,
-            grid_y= 846,
-            interaction_object= {'崎點'},
-            index = 256
-        },
+        
         ['阿札克泥沼']= {
             map_name= 'G3_7',
             interaction_object = { "傑洛特顱骨" },
@@ -1583,7 +1575,7 @@ local main_task= {
             interaction_object= {'瑟維'},
             index = 259
         },
-        ['在卡佛村莊中找到沼澤女巫並殺掉她']= {
+        ['在阿札克村莊中找到尹娜杜克並殺掉她']= {
             map_name= 'G3_7',
             Boss={'沼澤女巫．尹娜杜克'},
             index = 260
@@ -1613,7 +1605,12 @@ local main_task= {
             grid_y= 855,
             interaction_object= {'瑟維','部落復仇獎勵'},
             index = 264
-        }
+        },
+        ['和艾瓦對話以前往金司馬區']= {
+            map_name= 'G3_town',
+            interaction_object= {'艾瓦',"前往金司馬區"},
+            index = 267
+        },
     }
 }
 return main_task

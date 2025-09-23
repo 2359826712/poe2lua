@@ -4572,20 +4572,20 @@ end
 _M.check_task_map_without = function()
     local task = api_GetQuestList(0)
     local task_maps = my_game_info.task_maps
-    
+    local map_name = nil
     if task then
         -- 创建一个表来存储未完成的任务名称
         local completed_tasks = {}
         for _, k in ipairs(task) do
-            if k.SubQuestState_utf8 == "任務完成" then
-                completed_tasks[k.MainQuestName_utf8] = true
+            if k.SubQuestState == "任務完成" then
+                completed_tasks[k.MainQuestName] = true
             end
         end
         
         local all_finished_tasks = {}  -- 用于存储所有已完成的任务
         
         for _, map_info in ipairs(task_maps) do
-            local map_name = map_info[1]
+            map_name = map_info[1]
             local tasks = map_info[2]
             
             -- 检查已完成的任务
@@ -4611,7 +4611,7 @@ _M.check_task_map_without = function()
             end
         end
         
-        return nil, all_finished_tasks  -- 如果没有未完成的任务，返回 (nil, all_finished_tasks)
+        return map_name, all_finished_tasks  -- 如果没有未完成的任务，返回 (nil, all_finished_tasks)
     else
         return nil, {}  -- 如果没有任务，返回 (nil, {})
     end
