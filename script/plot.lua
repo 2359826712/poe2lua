@@ -7945,7 +7945,7 @@ local custom_nodes = {
                     return bret.FAIL
                 end
             end
-            if (teleport_area == "G2_town" and current_map == "G2_1") or (not check_pos_dis("傳送點") and check_current_map_info_dis("Waypoint") and   check_current_map_info_dis("Waypoint") > 200) then
+            if (teleport_area == "G2_town" and current_map == "G2_1") or not check_current_map_info_dis("Waypoint") or (not check_pos_dis("傳送點") and check_current_map_info_dis("Waypoint") > 200) then
                 poe2_api.dbgp("非常规传送点处理")
                 if string.find(current_map, "G2_1$") and not check_pos_dis("札卡") then
                     poe2_api.dbgp("[teleport_area]G2_1札卡")
