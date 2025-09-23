@@ -1670,10 +1670,16 @@ local main_task= {
         },
         ["自瘋狂中存活"]= {
             map_name= 'G4_2_2',
-            interaction_object= {"芙雷雅．哈特林","卡魯圖騰",},
-            interaction_object_map_name= {'芙雷雅．哈特林',"StoryGlyph"},
+            Boss= {"恐懼造物．歐姆弗畢亞"},
+            interaction_object_map_name= {'StoryGlyph'},
             index = 276
         },
+        ["在金司馬區與圖貞對話"]= {
+            map_name= 'G4_town',
+            interaction_object= {'圖貞'},
+            index = 277
+        },
+        
     }
 }
 return main_task

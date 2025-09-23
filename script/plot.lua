@@ -1434,9 +1434,6 @@ local custom_nodes = {
             if player_info.life ~= 0 then
                 self.click_time = 0
                 self.death_time = 0
-                if poe2_api.table_contains( player_info.current_map_name_utf8,{"G4_2_2"}) then 
-                    env.leader_teleport = true
-                end
                 poe2_api.time_p("Is_Deth... 耗时 --> ", api_GetTickCount64() - start_time)
                 return bret.SUCCESS
             end
@@ -1444,9 +1441,6 @@ local custom_nodes = {
                 if poe2_api.click_text_UI({ UI_info = env.UI_info, text = "respawn_at_checkpoint_button" }) and not env.is_timeout and not env.is_timeout_exit then
                     poe2_api.dbgp1("rewyrejhgfdbnsdbvs")
                     poe2_api.click_keyboard("space")
-                end
-                if poe2_api.table_contains( player_info.current_map_name_utf8,{"G4_2_2"}) then 
-                    env.leader_teleport = false
                 end
                 poe2_api.dbgp("点击确认")
                 poe2_api.find_text({ UI_info = env.UI_info, text = "確定", click = 2, min_x = 0 })
@@ -6702,6 +6696,7 @@ local custom_nodes = {
             local team_member_3 = poe2_api.get_team_info(team_info, user_config, player_info, 3)
             local team_member_4 = poe2_api.get_team_info(team_info, user_config, player_info, 4)
             local current_map = player_info.current_map_name_utf8
+            local current_map_info = env.current_map_info
             local num = user_config["組隊設置"]["隊伍人數"]
             if self.time1 == nil then
                 poe2_api.dbgp("[Click_Leader_To_Teleport]初始化時間")
@@ -6760,7 +6755,15 @@ local custom_nodes = {
                     return nil
                 end
             end
-
+            local function mini_map_obj(name)
+                poe2_api.dbgp("[Click_Leader_To_Teleport]检测地图上是否存在物体：", name)
+                for _, item in ipairs(current_map_info) do
+                    if item.name_utf8 == name then
+                        return item  -- 直接返回第一个匹配项
+                    end
+                end
+                return nil -- 无匹配时返回nil
+            end
             local function get_range_pos(name)
                 poe2_api.dbgp("[get_range_pos]获取周围位置:")
                 local range_info_sorted = poe2_api.get_sorted_list(actors, player_info)
@@ -6883,33 +6886,44 @@ local custom_nodes = {
                 return bret.RUNNING
             end
             if task_name == "自瘋狂中存活" then
-                for _,k in ipairs(actors) do
-                    if k.name_utf8 == "芙雷雅．哈特林" and k.stateMachineList and k.stateMachineList["activated"] == 1 then
-                        env.leader_teleport = true
-                    elseif k.name_utf8 == "芙雷雅．哈特林" and k.stateMachineList and k.stateMachineList["activated"] ~= 1 then
-                        env.leader_teleport = false
+                local function npc_stateMachineList()
+                    for _,k in ipairs(actors) do
+                        if k.name_utf8 == "芙雷雅．哈特林" then
+                            if k.stateMachineList and k.stateMachineList["activated"] == 1 then
+                                poe2_api.dbgp("芙雷雅．哈特林npc")
+                                return true
+                            end
+                        end
                     end
+                    return false
+                end
+                local npc_stateMachineList = npc_stateMachineList()
+                if npc_stateMachineList then
+                    env.leader_teleport = true
+                else
+                    env.leader_teleport = false
                 end
             end
             if env.leader_teleport then
                 if team_member_2 == "隊長名" then
+                    poe2_api.dbgp(1111)
                     if task_area == "G4_2_2" then
                         if task_name == "自瘋狂中存活" then
-                            local g4_area_name = get_range_pos("凱吉灣")
+                            local g4_area_name = mini_map_obj("G4_2_1")
                             if g4_area_name then
-                                local distance = poe2_api.point_distance(g4_area_name[1], g4_area_name[2], player_info)
+                                local distance = poe2_api.point_distance(g4_area_name.grid_x, g4_area_name.grid_y, player_info)
                                 if distance < 30 then
                                     poe2_api.find_text({UI_info = env.UI_info, text ="凱吉灣", click = 2})
                                     return bret.RUNNING
                                 else                    
-                                    env.end_point= {g4_area_name[1], g4_area_name[2]}
+                                    env.end_point= {g4_area_name.grid_x, g4_area_name.grid_y}
                                     return bret.FAIL
                                 end
                             end
                         elseif task_name == "旅程結束" then
-                            local g4_area_name = get_range_pos("旅程結束")
+                            local g4_area_name = mini_map_obj("G4_2_2")
                             if g4_area_name then
-                                local distance = poe2_api.point_distance(g4_area_name[1], g4_area_name[2], player_info)
+                                local distance = poe2_api.point_distance(g4_area_name.grid_x, g4_area_name.grid_y, player_info)
                                 if distance < 30 then
                                     if not poe2_api.find_text({ UI_info = UI_info, text = "副本管理員", click = 0, refresh = true }) then
                                         api_Sleep(500)
@@ -6925,7 +6939,7 @@ local custom_nodes = {
                                     end
                                     return bret.RUNNING
                                 else                    
-                                    env.end_point= {g4_area_name[1], g4_area_name[2]}
+                                    env.end_point= {g4_area_name.grid_x, g4_area_name.grid_y}
                                     return bret.FAIL
                                 end
                             end
@@ -6943,7 +6957,7 @@ local custom_nodes = {
                 return bret.SUCCESS
             end
             if poe2_api.table_contains(current_map, { "G4_2_2" }) and poe2_api.table_contains(task_area, { "G4_2_2" }) and task_name =="自瘋狂中存活" then
-                poe2_api.dbgp("检测到任务区域:G3_1")
+                poe2_api.dbgp("检测到任务区域:G4_2_2")
                 return bret.SUCCESS
             end
             if poe2_api.table_contains(current_map, { "G3_2_2" }) and poe2_api.table_contains(task_area, { "G3_2_2" }) and
@@ -7118,16 +7132,7 @@ local custom_nodes = {
                     return distance < 80
                 end
                 if string.find(current_map, "G1_15") then
-                    local current_map_info = env.current_map_info
-                    local function mini_map_obj(name)
-                        poe2_api.dbgp("[Click_Leader_To_Teleport]检测地图上是否存在物体：", name)
-                        for _, item in ipairs(current_map_info) do
-                            if item.name_utf8 == name then
-                                return item  -- 直接返回第一个匹配项
-                            end
-                        end
-                        return nil -- 无匹配时返回nil
-                    end
+                    
                     if not mini_map_obj("GargoyleInactive") and mini_map_obj("Waypoint") then
                         return bret.SUCCESS
                     end
