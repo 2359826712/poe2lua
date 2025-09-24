@@ -1749,10 +1749,11 @@ local custom_nodes = {
             -- 领取任务奖励
             if poe2_api.find_text({ UI_info = env.UI_info, text = "獎勵", min_x = 100 }) then
                 poe2_api.dbgp("领取任务奖励")
-                if not player_info.current_map_name_utf8 == "G4_2" then
-                    poe2_api.find_text({ UI_info = env.UI_info, text = "獎勵", add_x = 100,add_y = 100 , click = 2 })
+                if player_info.current_map_name_utf8 == "G4_4_2" then
+                    poe2_api.find_text({ UI_info = env.UI_info, text = "獎勵", min_x = 100, add_x = 50,add_y = 100 , click = 2 })
+                else
+                    poe2_api.find_text({ UI_info = env.UI_info, text = "獎勵", min_x = 100, add_y = 100, click = 2 })
                 end
-                poe2_api.find_text({ UI_info = env.UI_info, text = "獎勵", min_x = 100, add_y = 100, click = 2 })
                 api_Sleep(500)
                 if poe2_api.find_text({ UI_info = env.UI_info, text = "背包" , min_x = 1020, min_y = 46, max_x = 1090, max_y = 70}) then
                     if have_roman_number() then
@@ -1760,6 +1761,10 @@ local custom_nodes = {
                     else
                         poe2_api.get_space_point({ width = 4, height = 2, click = 1 })
                     end
+                    return bret.RUNNING
+                else
+                    poe2_api.dbgp("打開背包")
+                    poe2_api.click_keyboard("i")
                     return bret.RUNNING
                 end
             end
@@ -2085,11 +2090,14 @@ local custom_nodes = {
             local function is_props(bag)
                 local QUEST_PROPS = {
                     "知識之書", "火焰核心", "寶石花顱骨", "寶石殼顱骨",
-                    "專精之書", "凜冬狼的頭顱", "燭光精髓", "傑洛特顱骨"
+                    "專精之書", "凜冬狼的頭顱", "燭光精髓", "傑洛特顱骨",
                 }
                 for _, item in ipairs(bag) do
                     if item.baseType_utf8 and item.category_utf8 then
                         if poe2_api.table_contains(QUEST_PROPS, item.baseType_utf8) and item.category_utf8 == "QuestItem" then
+                            return item
+                        end
+                        if string.find(item.baseType_utf8, "刺青") and item.category_utf8 == "QuestItem" then
                             return item
                         end
                     end
