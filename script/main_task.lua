@@ -1679,6 +1679,33 @@ local main_task= {
             interaction_object= {'圖貞'},
             index = 277
         },
+        ['金氏島']= {
+            map_name= 'G4_1_1',
+            index = 278
+        },
+        ['探索金氏島']= {
+            map_name= 'G4_1_1',
+            interaction_object= {'火山迷窟'},
+            Boss = {"眼盲巨獸"},
+            interaction_object_map_name= {'G4_1_2'},
+            index = 279
+        },
+        ['火山迷窟']= {
+            map_name= 'G4_1_2',
+            index = 280
+        },
+        ['探索火山迷窟']= {
+            map_name= 'G4_1_2',
+            interaction_object= {},
+            Boss = {},
+            interaction_object_map_name= {},
+            index = 281
+        },
+        ['悉妮蔻拉之眼']= {
+            map_name= 'G4_4_1',
+            index = 282
+        },
+        
         
     }
 }

@@ -602,6 +602,7 @@ _M.is_have_mos = function(params)
         monster.life <= 0 or                  -- 生命值检查
         monster.name_utf8 == "" or              -- 名称检查
         _M.table_contains(my_game_info.not_attact_mons_CN_name,monster.name_utf8) or
+        string.find(monster.name_utf8, "神殿") or
         _M.table_contains(my_game_info.not_attact_mons_path_name,monster.path_name_utf8)then  -- 路径名检查
             goto continue
         end
@@ -4396,6 +4397,8 @@ _M.is_have_boss_distance = function(range_info,player_info,boss_list,dis)
            and monster.life > 0 and not monster.is_friendly 
            and within_distance 
            and not _M.table_contains(monster.name_utf8, my_game_info.not_attact_mons_CN_name)
+           and not string.find(monster.name_utf8, "神殿")
+           and not _M.table_contains(monster.name_utf8, my_game_info.not_attact_mons_path_name)
            and monster.isActive then
             return true
         end
@@ -4405,6 +4408,8 @@ _M.is_have_boss_distance = function(range_info,player_info,boss_list,dis)
            and monster.life > 0 and not monster.is_friendly 
            and within_distance and monster.hasLineOfSight
            and not _M.table_contains(monster.name_utf8, my_game_info.not_attact_mons_CN_name)
+           and not string.find(monster.name_utf8, "神殿")
+           and not _M.table_contains(monster.name_utf8, my_game_info.not_attact_mons_path_name)
            and monster.isActive then
             return true
         end

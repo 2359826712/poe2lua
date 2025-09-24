@@ -6052,6 +6052,58 @@ local custom_nodes = {
                                 return bret.SUCCESS
                             end
                         end
+                    elseif self.mas == "G4_1_1" then
+                        poe2_api.dbgp("[Query_Current_Task_Information]获取G4_1_1地图任务信息")
+                        if poe2_api.get_team_info(team_info, config, player_info, 2) ~= "大號名" then
+                            if not next(self.raw) or (self.raw_time ~= 0 and api_GetTickCount64() - self.raw_time > max_time) then
+                                -- 发送任务信息
+                                local task_text = "task_name=" .. "金氏島" .. ",task_index=" .. 278 ..",map_name=" .. self.mas
+                                poe2_api.click_keyboard("enter")
+                                api_Sleep(500)
+                                paste_text(task_text)
+                                api_Sleep(500)
+                                poe2_api.click_keyboard("enter")
+                                api_Sleep(500)
+                                self.raw_time = api_GetTickCount64()
+                                self.raw = { "金氏島", 278 }
+                            end
+                            self.update = { "金氏島", 278 }
+                            if not deep_equal_unordered(self.raw, self.update) then
+                                self.raw = {}
+                                poe2_api.dbgp("[Query_Current_Task_Information]金氏島RUNNING2")
+                                return bret.RUNNING
+                            end
+                            env.map_name = self.mas
+                            poe2_api.dbgp("[Query_Current_Task_Information]金氏島SUCCESS3")
+                            poe2_api.time_p("[Query_Current_Task_Information]",(api_GetTickCount64() - current_time))
+                            return bret.SUCCESS
+                        end
+                    elseif self.mas == "G4_4_1" then
+                        poe2_api.dbgp("[Query_Current_Task_Information]获取G4_4_1地图任务信息")
+                        if poe2_api.get_team_info(team_info, config, player_info, 2) ~= "大號名" then
+                            if not next(self.raw) or (self.raw_time ~= 0 and api_GetTickCount64() - self.raw_time > max_time) then
+                                -- 发送任务信息
+                                local task_text = "task_name=" .. "悉妮蔻拉之眼" .. ",task_index=" .. 278 ..",map_name=" .. self.mas
+                                poe2_api.click_keyboard("enter")
+                                api_Sleep(500)
+                                paste_text(task_text)
+                                api_Sleep(500)
+                                poe2_api.click_keyboard("enter")
+                                api_Sleep(500)
+                                self.raw_time = api_GetTickCount64()
+                                self.raw = { "悉妮蔻拉之眼", 278 }
+                            end
+                            self.update = { "悉妮蔻拉之眼", 278 }
+                            if not deep_equal_unordered(self.raw, self.update) then
+                                self.raw = {}
+                                poe2_api.dbgp("[Query_Current_Task_Information]悉妮蔻拉之眼-RUNNING2")
+                                return bret.RUNNING
+                            end
+                            env.map_name = self.mas
+                            poe2_api.dbgp("[Query_Current_Task_Information]-悉妮蔻拉之眼-SUCCESS3")
+                            poe2_api.time_p("[Query_Current_Task_Information]",(api_GetTickCount64() - current_time))
+                            return bret.SUCCESS
+                        end
                     end
                 end
                 self.mas = nil
@@ -6187,6 +6239,7 @@ local custom_nodes = {
             poe2_api.dbgp("===[Is_Move]是否需要移动 ===")
             poe2_api.print_log("判断是否需要移动...")
             local range_info = env.range_info
+            local range_sorted = poe2_api.get_sorted_list(env.range_info, env.player_info)
             local player_info = env.player_info
             local range_info_sorted = poe2_api.get_sorted_list(range_info, player_info)
             local UI_info = env.UI_info
@@ -6217,7 +6270,9 @@ local custom_nodes = {
                             and i.hasLineOfSight and i.isActive and i.life > 0)
                         or (not i.is_friendly and i.life > 0
                             and not poe2_api.table_contains(stuck_monsters, i.id)
+                            and not string.find(i.name_utf8, "神殿")
                             and not poe2_api.table_contains(my_game_info.not_attact_mons_CN_name, i.name_utf8)
+                            and not poe2_api.table_contains(my_game_info.not_attact_mons_path_name, i.name_utf8)
                             and i.isActive and i.rarity ~= 3)
                         and not poe2_api.table_contains(relife_stuck_monsters, i.id) then
                         return i
@@ -6256,6 +6311,7 @@ local custom_nodes = {
                         return bret.RUNNING
                     end
                 end
+                
                 if monster_info then
                     poe2_api.dbgp("[Is_Move]monster_info存在")
                     away_monster_info = away_monster(range_info_sorted, monster_info.id)
@@ -6324,6 +6380,14 @@ local custom_nodes = {
                         reset_navigation_state()
                         return bret.RUNNING
                     end
+                    for _, i in ipairs(range_sorted) do
+                        if string.find(i.name_utf8, "神殿") and i.isActive and i.is_selectable then
+                            api_Sleep(500)
+                            api_ClickMove(i.grid_x, i.grid_y, 1)
+                            api_Sleep(500)
+                            return bret.RUNNING
+                        end
+                    end
                     if boss_info_mate and arena_list then
                         poe2_api.dbgp("[Is_Move]与队友距离大于25且与boss距离小于180")
                         local arena_point = api_FindNearestReachablePoint(arena_list[1].grid_x, arena_list[1].grid_y, 25,0)
@@ -6371,7 +6435,9 @@ local custom_nodes = {
                             and i.hasLineOfSight and i.isActive and i.life > 0)
                         or (not i.is_friendly and i.life > 0
                             and not poe2_api.table_contains(env.stuck_monsters, i.id)
+                            and not string.find(i.name_utf8, "神殿")
                             and not poe2_api.table_contains(my_game_info.not_attact_mons_CN_name, i.name_utf8)
+                            and not poe2_api.table_contains(my_game_info.not_attact_mons_path_name, i.name_utf8)
                             and i.isActive and i.type == 1))
                         and not poe2_api.table_contains(relife_stuck_monsters, i.id) then
                         return i
@@ -6423,8 +6489,10 @@ local custom_nodes = {
                         or ((i.name_utf8 == '多里亞尼的凱旋' or i.name_utf8 == '崛起之王．賈嫚拉')
                             and i.hasLineOfSight and i.isActive and i.life > 0)
                         or (not i.is_friendly and i.life > 0
+                            and not string.find(i.name_utf8, "神殿")
                             and not poe2_api.table_contains(env.stuck_monsters, i.id)
                             and not poe2_api.table_contains(my_game_info.not_attact_mons_CN_name, i.name_utf8)
+                            and not poe2_api.table_contains(my_game_info.not_attact_mons_path_name, i.name_utf8)
                             and i.isActive and i.type == 1)
                         and not poe2_api.table_contains(relife_stuck_monsters, i.id) then
                         return i
@@ -10281,6 +10349,17 @@ local custom_nodes = {
                         env.interaction_object_map_name = {"BlackjawBossActive"}
                         env.interaction_object_copy = {"門", "小型靈魂核心", "石陣祭壇"}
                         env.interaction_object_map_name_copy = {"BlackjawBossActive"}
+                        env.modify_interaction = true
+                    end
+                elseif player_info.current_map_name_utf8 == "G4_1_1" then
+                    if #mini_map_obj("IsleOfKinBossInactive") == 0 then
+                        poe2_api.dbgp("G4_1_1-地图没有-IsleOfKinBossInactive")
+                        interaction_object_set = nil
+                        env.interaction_object = nil 
+                        interaction_object_map_name = {"IsleOfKinBossActive"}
+                        env.interaction_object_map_name = {"IsleOfKinBossActive"}
+                        env.interaction_object_copy = nil
+                        env.interaction_object_map_name_copy = {"IsleOfKinBossActive"}
                         env.modify_interaction = true
                     end
                 elseif player_info.current_map_name_utf8 == "G3_12" and poe2_api.table_contains("艾瓦",interaction_object_set) and team_member_2 ~="大號名" then
