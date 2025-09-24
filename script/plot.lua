@@ -10417,7 +10417,7 @@ local custom_nodes = {
                         end
                     end
                 elseif player_info.current_map_name_utf8 == "G4_4_2" then
-                    if #mini_map_obj(" G4_4_2_Encounter_ValakoTribeInactive") == 0 then
+                    if #mini_map_obj("G4_4_2_Encounter_ValakoTribeInactive") == 0 then
                         poe2_api.dbgp("G4_4_2-地图没有-G4_4_2_Encounter_ValakoTribeInactive")
                         interaction_object_set = nil
                         env.interaction_object = nil
