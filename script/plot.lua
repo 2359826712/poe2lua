@@ -8267,7 +8267,7 @@ local custom_nodes = {
                     if string.find(teleport_area, "G1") and not poe2_api.find_text({UI_info = env.UI_info, text = "奧格姆郡，約恆曆", min_x = 0, match = 2, refresh = true}) then
                         poe2_api.dbgp("切层级")
                         api_ClickScreen(1567, poe2_api.toInt(mini_top) + 22, 0)
-                        api_Sleep(300)
+                        api_Sleep(600)
                         api_ClickScreen(1567, poe2_api.toInt(mini_top) + 22, 1)
                         api_Sleep(2000)
                         poe2_api.find_text({ UI_info = UI_info, text = "第 1 章", click = 2, refresh = true })
@@ -8276,7 +8276,7 @@ local custom_nodes = {
                     elseif string.find(teleport_area, "G2") and not poe2_api.find_text({UI_info = env.UI_info, text = "七大水域之地", min_x = 0, match = 2, refresh = true}) then
                         poe2_api.dbgp("切层级")
                         api_ClickScreen(1567, poe2_api.toInt(mini_top) + 22, 0)
-                        api_Sleep(300)
+                        api_Sleep(600)
                         api_ClickScreen(1567, poe2_api.toInt(mini_top) + 22, 1)
                         api_Sleep(2000)
                         poe2_api.find_text({ UI_info = UI_info, text = "第 2 章", click = 2, refresh = true })
@@ -8285,7 +8285,7 @@ local custom_nodes = {
                     elseif string.find(teleport_area, "G3") and not poe2_api.find_text({UI_info = env.UI_info, text = "奧札爾區域草稿 #", min_x = 0, match = 2, refresh = true}) and not poe2_api.find_text({UI_info = env.UI_info, text = "古奧札爾草稿", min_x = 0, match = 2, refresh = true}) then
                         poe2_api.dbgp("切层级")
                         api_ClickScreen(1567, poe2_api.toInt(mini_top) + 22, 0)
-                        api_Sleep(300)
+                        api_Sleep(600)
                         api_ClickScreen(1567, poe2_api.toInt(mini_top) + 22, 1)
                         api_Sleep(2000)
                         poe2_api.find_text({ UI_info = UI_info, text = "第 3 章", click = 2, refresh = true })
@@ -10478,7 +10478,7 @@ local custom_nodes = {
                                 end
                                 goto continue
                             end
-                            if poe2_api.table_contains(obj.name_utf8,{"受傷的男人", "水之女神", "水之女神．哈拉妮"}) and get_distance(obj.grid_x,obj.grid_y) > 15 and get_distance(obj.grid_x,obj.grid_y) < 100 then
+                            if poe2_api.table_contains(obj.name_utf8,{"受傷的男人", "水之女神", "水之女神．哈拉妮","表示敬意"}) and get_distance(obj.grid_x,obj.grid_y) > 15 and get_distance(obj.grid_x,obj.grid_y) < 150 then
                                 local obj_reach_point = api_FindNearestReachablePoint(obj.grid_x, obj.grid_y,15, 0)
                                 if obj_reach_point.x ~= -1 then
                                     env.end_point = {obj_reach_point.x,obj_reach_point.y}
