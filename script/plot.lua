@@ -10442,21 +10442,16 @@ local custom_nodes = {
                     if #mini_map_obj("G4_4_2_Encounter_NgamahuTribeInactive") ~= 0 then
                         self.pick_up_Electricity = true
                     end
+                    local task_text = {"將塔赫亞的空白紋身交給悉妮蔻拉圖騰","將塔薩里的空白紋身交給悉妮蔻拉圖騰","將拿馬乎的空白紋身交給悉妮蔻拉圖騰"}
                     if #mini_map_obj("G4_4_2_Encounter_ValakoTribeInactive") == 0 and not self.pick_up_fire then
                         if min_map_dis("G4_4_2_Encounter_ValakoTribeActive") and #min_map_dis("G4_4_2_Encounter_ValakoTribeActive") > 0 then
                             self.pick_up_fire = true
                             return bret.RUNNING
                         end    
                         poe2_api.dbgp("G4_4_2-地图没有-G4_4_2_Encounter_ValakoTribeInactive")
-                        if task_name =="將塔赫亞的空白紋身交給悉妮蔻拉圖騰" then
-                            interaction_object_set = {"悉妮蔻拉圖騰"}
-                            env.interaction_object = {"悉妮蔻拉圖騰"}
-                            env.interaction_object_copy = {"悉妮蔻拉圖騰"}
-                        else
-                            interaction_object_set = nil
-                            env.interaction_object = nil
-                            env.interaction_object_copy = nil
-                        end
+                        interaction_object_set = nil
+                        env.interaction_object = nil
+                        env.interaction_object_copy = nil
                         interaction_object_map_name = {"G4_4_2_Encounter_ValakoTribeActive"}
                         env.interaction_object_map_name = {"G4_4_2_Encounter_ValakoTribeActive"}
                         env.interaction_object_map_name_copy = {"G4_4_2_Encounter_ValakoTribeActive"}
@@ -10468,15 +10463,9 @@ local custom_nodes = {
                             return bret.RUNNING
                         end   
                         poe2_api.dbgp("G4_4_2-地图没有-G4_4_2_Encounter_TasalioTribeInactive")
-                        if task_name =="將塔薩里的空白紋身交給悉妮蔻拉圖騰" then
-                            interaction_object_set = {"悉妮蔻拉圖騰"}
-                            env.interaction_object = {"悉妮蔻拉圖騰"}
-                            env.interaction_object_copy = {"悉妮蔻拉圖騰"}
-                        else
-                            interaction_object_set = nil
-                            env.interaction_object = nil
-                            env.interaction_object_copy = nil
-                        end
+                        interaction_object_set = nil
+                        env.interaction_object = nil
+                        env.interaction_object_copy = nil
                         interaction_object_map_name = {"G4_4_2_Encounter_TasalioTribeActive"}
                         env.interaction_object_map_name = {"G4_4_2_Encounter_TasalioTribeActive"}
                         env.interaction_object_map_name_copy = {"G4_4_2_Encounter_TasalioTribeActive"}
@@ -10488,20 +10477,24 @@ local custom_nodes = {
                             return bret.RUNNING
                         end 
                         poe2_api.dbgp("G4_4_2-地图没有-G4_4_2_Encounter_NgamahuTribeInactive")
-                        if task_name =="將拿馬乎的空白紋身交給悉妮蔻拉圖騰" then
-                            interaction_object_set = {"悉妮蔻拉圖騰"}
-                            env.interaction_object = {"悉妮蔻拉圖騰"}
-                            env.interaction_object_copy = {"悉妮蔻拉圖騰"}
-                        else
-                            interaction_object_set = nil
-                            env.interaction_object = nil
-                            env.interaction_object_copy = nil
-                        end
+                        interaction_object_set = nil
+                        env.interaction_object = nil
+                        env.interaction_object_copy = nil
                         interaction_object_map_name = {"G4_4_2_Encounter_NgamahuTribeActive"}
                         env.interaction_object_map_name = {"G4_4_2_Encounter_NgamahuTribeActive"}
                         env.interaction_object_map_name_copy = {"G4_4_2_Encounter_NgamahuTribeActive"}
                         env.modify_interaction = true
-                    end                    
+                    end
+                    if poe2_api.table_contains(task_name,task_text) then
+                        interaction_object_set = {"悉妮蔻拉圖騰"}
+                        env.interaction_object = {"悉妮蔻拉圖騰"}
+                        env.interaction_object_copy = {"悉妮蔻拉圖騰"}
+                    end 
+                    if task_name == '向悉妮蔻拉圖騰領取獎勵' then
+                        interaction_object_set = {"悉妮蔻拉圖騰","塔赫亞的考驗獎勵","拿馬乎的考驗獎勵","塔薩里奧的考驗獎勵"}
+                        env.interaction_object = {"悉妮蔻拉圖騰","塔赫亞的考驗獎勵","拿馬乎的考驗獎勵","塔薩里奧的考驗獎勵"}
+                        env.interaction_object_copy = {"悉妮蔻拉圖騰","塔赫亞的考驗獎勵","拿馬乎的考驗獎勵","塔薩里奧的考驗獎勵"}
+                    end                  
                 elseif player_info.current_map_name_utf8 == "G3_12" and poe2_api.table_contains("艾瓦",interaction_object_set) and team_member_2 ~="大號名" then
                     poe2_api.dbgp("G3_12地图")
                     interaction_object_set = nil
@@ -10573,6 +10566,7 @@ local custom_nodes = {
                                 return bret.SUCCESS
                             end
                             if poe2_api.find_text({ UI_info = UI_info, text = obj.name_utf8, min_x=0}) and ( obj.hasLineOfSight or poe2_api.table_contains(obj.type,{-1,4}) or (obj.type == 3 and obj.is_selectable) or poe2_api.table_contains(obj.name_utf8, {"受傷的男人", "水之女神", "水之女神．哈拉妮"})) then
+                                poe2_api.dbgp("找到目标UI")
                                 if get_distance(obj.grid_x,obj.grid_y) > 30 then
                                     local interaction_point = api_FindNearestReachablePoint(obj.grid_x, obj.grid_y,15,0)
                                     env.end_point = {interaction_point.x,interaction_point.y}
@@ -10585,7 +10579,8 @@ local custom_nodes = {
                             if poe2_api.table_contains(player_info.current_map_name_utf8,{"G2_10_2","G4_1_2","G4_4_2"}) and poe2_api.table_contains(obj.name_utf8, {"法里登叛變者．芮蘇","馬提奇","悉妮蔻拉圖騰"}) then
                                 if get_distance(obj.grid_x,obj.grid_y) < 30 then
                                     api_ClickMove(poe2_api.toInt(obj.grid_x),poe2_api.toInt(obj.grid_y),1)
-                                    return bret.RUNNING
+                                    env.is_arrive_end = true
+                                    return bret.SUCCESS
                                 else
                                     env.end_point = {obj.grid_x,obj.grid_y}
                                     return bret.SUCCESS
