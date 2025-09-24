@@ -10468,7 +10468,7 @@ local custom_nodes = {
                             return bret.RUNNING
                         end   
                         poe2_api.dbgp("G4_4_2-地图没有-G4_4_2_Encounter_TasalioTribeInactive")
-                        if task_name =="將拿馬乎的空白紋身交給悉妮蔻拉圖騰" then
+                        if task_name =="將塔薩里的空白紋身交給悉妮蔻拉圖騰" then
                             interaction_object_set = {"悉妮蔻拉圖騰"}
                             env.interaction_object = {"悉妮蔻拉圖騰"}
                             env.interaction_object_copy = {"悉妮蔻拉圖騰"}
