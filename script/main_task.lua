@@ -1753,6 +1753,28 @@ local main_task= {
             interaction_object_map_name= {"G4_4_2"},
             index = 291
         },
+        ['亡者之殿']= {
+            map_name= 'G4_4_2',
+            index = 291
+        },
+        ['將塔赫亞的空白紋身交給悉妮蔻拉圖騰']= {
+            map_name= 'G4_4_2',
+            interaction_object={"悉妮蔻拉圖騰"},
+            interaction_object_map_name= {"G4_4_2_Encounter_ValakoTribeInactive"},
+            index = 292
+        },
+        ['向悉妮蔻拉圖騰領取獎勵']= {
+            map_name= 'G4_4_2',
+            interaction_object={"悉妮蔻拉圖騰","塔赫亞的考驗獎勵"},
+            interaction_object_map_name= {"G4_4_2_Encounter_ValakoTribeInactive"},
+            index = 293
+        },
+        ['探索亡者之殿']= {
+            map_name= 'G4_4_2',
+            interaction_object={"祖靈的試煉"},
+            interaction_object_map_name= {"G4_4_3"},
+            index = 294
+        },
         
         
     }

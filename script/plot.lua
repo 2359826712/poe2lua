@@ -10396,11 +10396,11 @@ local custom_nodes = {
                     if team_member_2 == "大號名" then
                         if #mini_map_obj("G4_4_2BossActive") == 0 then
                             poe2_api.dbgp("G4_4_1-地图没有-G4_4_2BossActive")
-                            interaction_object_set = {"表示敬意"} 
-                            env.interaction_object = {"表示敬意"}  
+                            interaction_object_set = nil
+                            env.interaction_object = nil
                             interaction_object_map_name = nil
                             env.interaction_object_map_name =nil
-                            env.interaction_object_copy = {"表示敬意"} 
+                            env.interaction_object_copy = nil
                             env.interaction_object_map_name_copy = nil
                             env.modify_interaction = true
                         end
@@ -10416,7 +10416,17 @@ local custom_nodes = {
                             env.modify_interaction = true
                         end
                     end
-                    
+                elseif player_info.current_map_name_utf8 == "G4_4_2" then
+                    if #mini_map_obj(" G4_4_2_Encounter_ValakoTribeInactive") == 0 then
+                        poe2_api.dbgp("G4_4_2-地图没有-G4_4_2_Encounter_ValakoTribeInactive")
+                        interaction_object_set = nil
+                        env.interaction_object = nil
+                        interaction_object_map_name = {"G4_4_2_Encounter_ValakoTribeActive"}
+                        env.interaction_object_map_name = {"G4_4_2_Encounter_ValakoTribeActive"}
+                        env.interaction_object_copy = nil
+                        env.interaction_object_map_name_copy = {"G4_4_2_Encounter_ValakoTribeActive"}
+                        env.modify_interaction = true
+                    end
                 elseif player_info.current_map_name_utf8 == "G3_12" and poe2_api.table_contains("艾瓦",interaction_object_set) and team_member_2 ~="大號名" then
                     poe2_api.dbgp("G3_12地图")
                     interaction_object_set = nil
@@ -10478,7 +10488,7 @@ local custom_nodes = {
                                 end
                                 goto continue
                             end
-                            if poe2_api.table_contains(obj.name_utf8,{"受傷的男人", "水之女神", "水之女神．哈拉妮","表示敬意"}) and get_distance(obj.grid_x,obj.grid_y) > 15 and get_distance(obj.grid_x,obj.grid_y) < 150 then
+                            if poe2_api.table_contains(obj.name_utf8,{"受傷的男人", "水之女神", "水之女神．哈拉妮","表示敬意"}) and get_distance(obj.grid_x,obj.grid_y) > 25 and get_distance(obj.grid_x,obj.grid_y) < 150 then
                                 local obj_reach_point = api_FindNearestReachablePoint(obj.grid_x, obj.grid_y,15, 0)
                                 if obj_reach_point.x ~= -1 then
                                     env.end_point = {obj_reach_point.x,obj_reach_point.y}
@@ -10497,7 +10507,7 @@ local custom_nodes = {
                                     return bret.SUCCESS
                                 end
                             end
-                            if poe2_api.table_contains(player_info.current_map_name_utf8,{"G2_10_2","G4_1_2"}) and poe2_api.table_contains(obj.name_utf8, {"法里登叛變者．芮蘇","馬提奇"}) then
+                            if poe2_api.table_contains(player_info.current_map_name_utf8,{"G2_10_2","G4_1_2","G4_4_2"}) and poe2_api.table_contains(obj.name_utf8, {"法里登叛變者．芮蘇","馬提奇","悉妮蔻拉圖騰"}) then
                                 if get_distance(obj.grid_x,obj.grid_y) < 30 then
                                     api_ClickMove(poe2_api.toInt(obj.grid_x),poe2_api.toInt(obj.grid_y),1)
                                     return bret.RUNNING
