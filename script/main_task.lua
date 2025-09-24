@@ -1755,25 +1755,50 @@ local main_task= {
         },
         ['亡者之殿']= {
             map_name= 'G4_4_2',
-            index = 291
+            index = 292
+        },
+        ['完成塔赫亞的試煉']= {
+            map_name= 'G4_4_2',
+            interaction_object_map_name= {"G4_4_2_Encounter_ValakoTribeActive"},
+            index = 293
+        },
+        ['拾起塔赫亞的空白紋身']= {
+            map_name= 'G4_4_2',
+            interaction_object_map_name= {"G4_4_2_Encounter_ValakoTribeInactive"},
+            index = 294
         },
         ['將塔赫亞的空白紋身交給悉妮蔻拉圖騰']= {
             map_name= 'G4_4_2',
             interaction_object={"悉妮蔻拉圖騰"},
             interaction_object_map_name= {"G4_4_2_Encounter_ValakoTribeInactive"},
-            index = 292
+            index = 295
         },
         ['向悉妮蔻拉圖騰領取獎勵']= {
             map_name= 'G4_4_2',
-            interaction_object={"悉妮蔻拉圖騰","塔赫亞的考驗獎勵"},
-            interaction_object_map_name= {"G4_4_2_Encounter_ValakoTribeInactive"},
-            index = 293
+            interaction_object={"悉妮蔻拉圖騰","塔赫亞的考驗獎勵","馬乎的考驗獎勵"},
+            index = 296
+        },
+        ['完成馬乎的試煉']= {
+            map_name= 'G4_4_2',
+            interaction_object_map_name= {"G4_4_2_Encounter_NgamahuTribeActive"},
+            index = 297
+        },
+        ['拾起拿馬乎的空白紋身']= {
+            map_name= 'G4_4_2',
+            interaction_object_map_name= {"G4_4_2_Encounter_NgamahuTribeInactive"},
+            index = 298
+        },
+        ['將拿馬乎的空白紋身交給悉妮蔻拉圖騰']= {
+            map_name= 'G4_4_2',
+            interaction_object={"悉妮蔻拉圖騰"},
+            interaction_object_map_name= {"G4_4_2_Encounter_NgamahuTribeInactive"},
+            index = 299
         },
         ['探索亡者之殿']= {
             map_name= 'G4_4_2',
             interaction_object={"祖靈的試煉"},
             interaction_object_map_name= {"G4_4_3"},
-            index = 294
+            index = 300
         },
         
         

@@ -918,6 +918,7 @@ local custom_nodes = {
             --     poe2_api.dbgp(k.flagStatus1)
             --     poe2_api.dbgp("==============================")
             -- end
+            -- poe2_api.printTable(api_GetTeamInfo())
             -- while true do
             --     api_Sleep(1000)
             -- end
@@ -2097,7 +2098,7 @@ local custom_nodes = {
                         if poe2_api.table_contains(QUEST_PROPS, item.baseType_utf8) and item.category_utf8 == "QuestItem" then
                             return item
                         end
-                        if string.find(item.baseType_utf8, "刺青") and item.category_utf8 == "QuestItem" then
+                        if  not string.find(item.baseType_utf8, "空白刺青") and string.find(item.baseType_utf8, "刺青") and item.category_utf8 == "QuestItem" then
                             return item
                         end
                     end
@@ -6207,7 +6208,7 @@ local custom_nodes = {
                 env.monster_info = nil
                 return bret.RUNNING
             end
-            if (boss_name or player_info.isInBossBattle) and not poe2_api.table_contains(player_info.current_map_name_utf8,{"G4_4_1"})  then
+            if (boss_name or player_info.isInBossBattle) and not poe2_api.table_contains(player_info.current_map_name_utf8,{"G4_4_1","G4_4_2"})  then
                 local boss_info = poe2_api.is_have_boss_distance(range_info, player_info, boss_name, 180)
                 if boss_info or player_info.isInBossBattle then
                     poe2_api.dbgp("[Is_Exception_Team]当前处于BOSS战斗中")
@@ -10427,12 +10428,34 @@ local custom_nodes = {
                 elseif player_info.current_map_name_utf8 == "G4_4_2" then
                     if #mini_map_obj("G4_4_2_Encounter_ValakoTribeInactive") == 0 then
                         poe2_api.dbgp("G4_4_2-地图没有-G4_4_2_Encounter_ValakoTribeInactive")
-                        interaction_object_set = nil
-                        env.interaction_object = nil
+                        if task_name =="將塔赫亞的空白紋身交給悉妮蔻拉圖騰" then
+                            interaction_object_set = {"悉妮蔻拉圖騰"}
+                            env.interaction_object = {"悉妮蔻拉圖騰"}
+                            env.interaction_object_copy = {"悉妮蔻拉圖騰"}
+                        else
+                            interaction_object_set = nil
+                            env.interaction_object = nil
+                            env.interaction_object_copy = nil
+                        end
                         interaction_object_map_name = {"G4_4_2_Encounter_ValakoTribeActive"}
                         env.interaction_object_map_name = {"G4_4_2_Encounter_ValakoTribeActive"}
-                        env.interaction_object_copy = nil
                         env.interaction_object_map_name_copy = {"G4_4_2_Encounter_ValakoTribeActive"}
+                        env.modify_interaction = true
+                    end
+                    if #mini_map_obj("G4_4_2_Encounter_NgamahuTribeInactive") == 0 then
+                        poe2_api.dbgp("G4_4_2-地图没有-G4_4_2_Encounter_NgamahuTribeInactive")
+                        if task_name =="將拿馬乎的空白紋身交給悉妮蔻拉圖騰" then
+                            interaction_object_set = {"悉妮蔻拉圖騰"}
+                            env.interaction_object = {"悉妮蔻拉圖騰"}
+                            env.interaction_object_copy = {"悉妮蔻拉圖騰"}
+                        else
+                            interaction_object_set = nil
+                            env.interaction_object = nil
+                            env.interaction_object_copy = nil
+                        end
+                        interaction_object_map_name = {"G4_4_2_Encounter_NgamahuTribeActive"}
+                        env.interaction_object_map_name = {"G4_4_2_Encounter_NgamahuTribeActive"}
+                        env.interaction_object_map_name_copy = {"G4_4_2_Encounter_NgamahuTribeActive"}
                         env.modify_interaction = true
                     end
                 elseif player_info.current_map_name_utf8 == "G3_12" and poe2_api.table_contains("艾瓦",interaction_object_set) and team_member_2 ~="大號名" then
