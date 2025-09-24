@@ -6199,7 +6199,7 @@ local custom_nodes = {
                 env.monster_info = nil
                 return bret.RUNNING
             end
-            if boss_name or player_info.isInBossBattle then
+            if (boss_name or player_info.isInBossBattle) and not poe2_api.table_contains(player_info.current_map_name_utf8,{"G4_4_1"})  then
                 local boss_info = poe2_api.is_have_boss_distance(range_info, player_info, boss_name, 180)
                 if boss_info or player_info.isInBossBattle then
                     poe2_api.dbgp("[Is_Exception_Team]当前处于BOSS战斗中")
@@ -10392,6 +10392,31 @@ local custom_nodes = {
                         env.interaction_object_map_name_copy = {"IsleOfKinBossActive"}
                         env.modify_interaction = true
                     end
+                elseif player_info.current_map_name_utf8 == "G4_4_1" then
+                    if team_member_2 == "大號名" then
+                        if #mini_map_obj("G4_4_2BossActive") == 0 then
+                            poe2_api.dbgp("G4_4_1-地图没有-G4_4_2BossActive")
+                            interaction_object_set = {"表示敬意"} 
+                            env.interaction_object = {"表示敬意"}  
+                            interaction_object_map_name = nil
+                            env.interaction_object_map_name =nil
+                            env.interaction_object_copy = {"表示敬意"} 
+                            env.interaction_object_map_name_copy = nil
+                            env.modify_interaction = true
+                        end
+                    else
+                        if #mini_map_obj("G4_4_2BossInactive") == 0 then
+                            poe2_api.dbgp("G4_4_1-地图没有-G4_4_2BossActive")
+                            interaction_object_set = {"表示敬意"} 
+                            env.interaction_object = {"表示敬意"}  
+                            interaction_object_map_name = nil
+                            env.interaction_object_map_name =nil
+                            env.interaction_object_copy = {"表示敬意"} 
+                            env.interaction_object_map_name_copy = nil
+                            env.modify_interaction = true
+                        end
+                    end
+                    
                 elseif player_info.current_map_name_utf8 == "G3_12" and poe2_api.table_contains("艾瓦",interaction_object_set) and team_member_2 ~="大號名" then
                     poe2_api.dbgp("G3_12地图")
                     interaction_object_set = nil
