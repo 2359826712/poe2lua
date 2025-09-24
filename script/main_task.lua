@@ -1778,7 +1778,7 @@ local main_task= {
             interaction_object={"悉妮蔻拉圖騰","塔赫亞的考驗獎勵","馬乎的考驗獎勵"},
             index = 296
         },
-        ['完成馬乎的試煉']= {
+        ['完成拿馬乎的試煉']= {
             map_name= 'G4_4_2',
             interaction_object_map_name= {"G4_4_2_Encounter_NgamahuTribeActive"},
             index = 297
@@ -1794,11 +1794,27 @@ local main_task= {
             interaction_object_map_name= {"G4_4_2_Encounter_NgamahuTribeInactive"},
             index = 299
         },
+        ['完成塔薩里的試煉']= {
+            map_name= 'G4_4_2',
+            interaction_object_map_name= {"G4_4_2_Encounter_TasalioTribeActive"},
+            index = 300
+        },
+        ['拾起塔薩里的空白紋身']= {
+            map_name= 'G4_4_2',
+            interaction_object_map_name= {"G4_4_2_Encounter_TasalioTribeInactive"},
+            index = 301
+        },
+        ['將塔薩里的空白紋身交給悉妮蔻拉圖騰']= {
+            map_name= 'G4_4_2',
+            interaction_object={"悉妮蔻拉圖騰"},
+            interaction_object_map_name= {"G4_4_2_Encounter_TasalioTribeInactive"},
+            index = 302
+        },
         ['探索亡者之殿']= {
             map_name= 'G4_4_2',
             interaction_object={"祖靈的試煉"},
             interaction_object_map_name= {"G4_4_3"},
-            index = 300
+            index = 303
         },
         
         

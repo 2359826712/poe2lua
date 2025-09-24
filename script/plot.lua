@@ -918,7 +918,6 @@ local custom_nodes = {
             --     poe2_api.dbgp(k.flagStatus1)
             --     poe2_api.dbgp("==============================")
             -- end
-            -- poe2_api.printTable(api_GetTeamInfo())
             -- while true do
             --     api_Sleep(1000)
             -- end
@@ -9944,9 +9943,17 @@ local custom_nodes = {
             local boss_name = env.boss_name
             local interaction_object_map_name = env.interaction_object_map_name
             local team_member_2 = poe2_api.get_team_info(env.team_info,env.user_config,player_info,2)
+            if player_info.current_map_name_utf8 ~= "G4_4_2" then
+                self.pick_up_fire = false
+                self.pick_up_ice = false
+                self.pick_up_Electricity = false
+            end
             if self.time1 == nil then
                 self.time1 = 0
                 self.path_result = nil
+                self.pick_up_fire = false
+                self.pick_up_ice = false
+                self.pick_up_Electricity = false
             end
             -- 小地图是否有指定对象
             local function mini_map_obj(name)
@@ -10426,7 +10433,20 @@ local custom_nodes = {
                         end
                     end
                 elseif player_info.current_map_name_utf8 == "G4_4_2" then
-                    if #mini_map_obj("G4_4_2_Encounter_ValakoTribeInactive") == 0 then
+                    if #mini_map_obj("G4_4_2_Encounter_ValakoTribeInactive") ~= 0 then
+                        self.pick_up_fire = true
+                    end
+                    if #mini_map_obj("G4_4_2_Encounter_TasalioTribeInactive") ~= 0 then
+                        self.pick_up_ice = true
+                    end
+                    if #mini_map_obj("G4_4_2_Encounter_NgamahuTribeInactive") ~= 0 then
+                        self.pick_up_Electricity = true
+                    end
+                    if #mini_map_obj("G4_4_2_Encounter_ValakoTribeInactive") == 0 and not self.pick_up_fire then
+                        if min_map_dis("G4_4_2_Encounter_ValakoTribeActive") and #min_map_dis("G4_4_2_Encounter_ValakoTribeActive") > 0 then
+                            self.pick_up_fire = true
+                            return bret.RUNNING
+                        end    
                         poe2_api.dbgp("G4_4_2-地图没有-G4_4_2_Encounter_ValakoTribeInactive")
                         if task_name =="將塔赫亞的空白紋身交給悉妮蔻拉圖騰" then
                             interaction_object_set = {"悉妮蔻拉圖騰"}
@@ -10442,7 +10462,31 @@ local custom_nodes = {
                         env.interaction_object_map_name_copy = {"G4_4_2_Encounter_ValakoTribeActive"}
                         env.modify_interaction = true
                     end
-                    if #mini_map_obj("G4_4_2_Encounter_NgamahuTribeInactive") == 0 then
+                    if #mini_map_obj("G4_4_2_Encounter_TasalioTribeInactive") == 0 and not self.pick_up_ice then
+                        if min_map_dis("G4_4_2_Encounter_ValakoTribeActive") and #min_map_dis("G4_4_2_Encounter_ValakoTribeActive") > 0 then
+                            self.pick_up_ice = true
+                            return bret.RUNNING
+                        end   
+                        poe2_api.dbgp("G4_4_2-地图没有-G4_4_2_Encounter_TasalioTribeInactive")
+                        if task_name =="將拿馬乎的空白紋身交給悉妮蔻拉圖騰" then
+                            interaction_object_set = {"悉妮蔻拉圖騰"}
+                            env.interaction_object = {"悉妮蔻拉圖騰"}
+                            env.interaction_object_copy = {"悉妮蔻拉圖騰"}
+                        else
+                            interaction_object_set = nil
+                            env.interaction_object = nil
+                            env.interaction_object_copy = nil
+                        end
+                        interaction_object_map_name = {"G4_4_2_Encounter_TasalioTribeActive"}
+                        env.interaction_object_map_name = {"G4_4_2_Encounter_TasalioTribeActive"}
+                        env.interaction_object_map_name_copy = {"G4_4_2_Encounter_TasalioTribeActive"}
+                        env.modify_interaction = true
+                    end
+                    if #mini_map_obj("G4_4_2_Encounter_NgamahuTribeInactive") == 0 and not self.pick_up_Electricity then
+                        if min_map_dis("G4_4_2_Encounter_NgamahuTribeActive") and #min_map_dis("G4_4_2_Encounter_NgamahuTribeActive") > 0 then
+                            self.pick_up_Electricity = true
+                            return bret.RUNNING
+                        end 
                         poe2_api.dbgp("G4_4_2-地图没有-G4_4_2_Encounter_NgamahuTribeInactive")
                         if task_name =="將拿馬乎的空白紋身交給悉妮蔻拉圖騰" then
                             interaction_object_set = {"悉妮蔻拉圖騰"}
@@ -10457,7 +10501,7 @@ local custom_nodes = {
                         env.interaction_object_map_name = {"G4_4_2_Encounter_NgamahuTribeActive"}
                         env.interaction_object_map_name_copy = {"G4_4_2_Encounter_NgamahuTribeActive"}
                         env.modify_interaction = true
-                    end
+                    end                    
                 elseif player_info.current_map_name_utf8 == "G3_12" and poe2_api.table_contains("艾瓦",interaction_object_set) and team_member_2 ~="大號名" then
                     poe2_api.dbgp("G3_12地图")
                     interaction_object_set = nil
