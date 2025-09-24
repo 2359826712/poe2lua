@@ -4613,7 +4613,7 @@ local custom_nodes = {
             return bret.FAIL
         end
     },
--- 组队
+    -- 组队
     Team = {
         run = function(self, env)
             poe2_api.print_log("组队")
@@ -5699,10 +5699,11 @@ local custom_nodes = {
                 -- 处理main_task_info中的反斜杠和换行符
                 for i = 1, #main_task_info do
                     if type(main_task_info[i]) == "string" then
-                        -- 移除反斜杠并将多行文本合并为单行
-                        main_task_info[i] = main_task_info[i]:gsub("\\", ""):gsub("\n", "")
+                        -- 移除反斜杠和数字序列（如\13），换行符和所有空格
+                        main_task_info[i] = main_task_info[i]:gsub("\\%d+", ""):gsub("\\", ""):gsub("[\n%s]", "")
                     end
                 end
+                -- poe2_api.printTable(main_task_info)
                 if (poe2_api.table_contains(main_task_info, "追尋傳奇人物奧爾巴拉的腳步，重鑄瓦斯提里的戰角") or poe2_api.table_contains(main_task_info, "跟艾瓦談談發生的事")) and #(main_task_info) > 1 then
                     task = poe2_api.get_task_info(main_task.tasks_data,main_task_info[2]) 
                 else
@@ -6364,6 +6365,14 @@ local custom_nodes = {
                         end
                     end
                 end
+                for _, i in ipairs(range_sorted) do
+                    if string.find(i.name_utf8, "神殿") and i.isActive and i.is_selectable then
+                        api_Sleep(500)
+                        api_ClickMove(i.grid_x, i.grid_y, 1)
+                        api_Sleep(500)
+                        return bret.RUNNING
+                    end
+                end
                 if distance > 100 and poe2_api.is_have_mos({ range_info = range_info_sorted, player_info = player_info, dis = 40 }) then
                     if monster and poe2_api.table_contains(poe2_api.get_team_info(team_info, user_config, player_info, 2), { "大號名", "未知" }) then
                         poe2_api.dbgp("[Is_Move]与死亡队友距离大于100且与怪物距离小于40")
@@ -6379,14 +6388,6 @@ local custom_nodes = {
                         poe2_api.find_text({ UI_info = UI_info, text = "競技場", min_x = 0, click = 2 })
                         reset_navigation_state()
                         return bret.RUNNING
-                    end
-                    for _, i in ipairs(range_sorted) do
-                        if string.find(i.name_utf8, "神殿") and i.isActive and i.is_selectable then
-                            api_Sleep(500)
-                            api_ClickMove(i.grid_x, i.grid_y, 1)
-                            api_Sleep(500)
-                            return bret.RUNNING
-                        end
                     end
                     if boss_info_mate and arena_list then
                         poe2_api.dbgp("[Is_Move]与队友距离大于25且与boss距离小于180")
@@ -6832,6 +6833,15 @@ local custom_nodes = {
                 end
                 return nil -- 无匹配时返回nil
             end
+            local function mini_map_obj_flagStatus(name)
+                poe2_api.dbgp("[Is_Team_leader]检测地图上是否存在物体：", name)
+                for _, item in ipairs(current_map_info) do
+                    if item.name_utf8 == name and item.flagStatus1 == 1 then
+                        return item  -- 直接返回第一个匹配项
+                    end
+                end
+                return nil -- 无匹配时返回nil
+            end
             local function get_range_pos(name)
                 poe2_api.dbgp("[get_range_pos]获取周围位置:")
                 local range_info_sorted = poe2_api.get_sorted_list(actors, player_info)
@@ -7160,6 +7170,12 @@ local custom_nodes = {
                     end
                 end
             end
+            if current_map == task_area and task_area == "G4_4_1" then
+                if poe2_api.find_text({UI_info = env.UI_info, text = "通道", min_x = 0}) and mini_map_obj_flagStatus("Waypoint") then
+                    poe2_api.find_text({UI_info = env.UI_info, text = "通道", min_x = 0,click = 2})
+                    return bret.RUNNING
+                end
+            end
             if check_pos_dis(team_member_3) then
                 local point = get_range_pos(team_member_3)
                 local arena_list = poe2_api.get_sorted_obj("競技場", env.range_info, player_info)
@@ -7449,7 +7465,15 @@ local custom_nodes = {
                 end
                 return nil -- 无匹配时返回nil
             end
-
+            local function mini_map_obj_flagStatus(name)
+                poe2_api.dbgp("[Is_Team_leader]检测地图上是否存在物体：", name)
+                for _, item in ipairs(current_map_info) do
+                    if item.name_utf8 == name and item.flagStatus1 == 1 then
+                        return item  -- 直接返回第一个匹配项
+                    end
+                end
+                return nil -- 无匹配时返回nil
+            end
             local function check_pos_dis(names)
                 poe2_api.dbgp("[check_pos_dis]获取位置距离:", names)
                 
@@ -7744,6 +7768,12 @@ local custom_nodes = {
                             env.end_point= {g4_area_name[1], g4_area_name[2]}
                             return bret.SUCCESS
                         end
+                    end
+                end
+                if task_area == "G4_4_1" then
+                    if poe2_api.find_text({UI_info = env.UI_info, text = "通道", min_x = 0}) and mini_map_obj_flagStatus("Waypoint") then
+                        poe2_api.find_text({UI_info = env.UI_info, text = "通道", min_x = 0,click = 2})
+                        return bret.RUNNING
                     end
                 end
                 if not string.find(me_area, "own") then
@@ -10442,7 +10472,7 @@ local custom_nodes = {
                                     return bret.SUCCESS
                                 end
                             end
-                            if poe2_api.table_contains(player_info.current_map_name_utf8,{"G2_10_2"}) and obj.name_utf8 == "法里登叛變者．芮蘇" then
+                            if poe2_api.table_contains(player_info.current_map_name_utf8,{"G2_10_2","G4_1_2"}) and poe2_api.table_contains(obj.name_utf8, {"法里登叛變者．芮蘇","馬提奇"}) then
                                 if get_distance(obj.grid_x,obj.grid_y) < 30 then
                                     api_ClickMove(poe2_api.toInt(obj.grid_x),poe2_api.toInt(obj.grid_y),1)
                                     return bret.RUNNING

@@ -1696,14 +1696,46 @@ local main_task= {
         },
         ['探索火山迷窟']= {
             map_name= 'G4_1_2',
-            interaction_object= {},
-            Boss = {},
-            interaction_object_map_name= {},
+            Boss = {"金氏領主．克魯托克"},
+            interaction_object_map_name= {"VolcanicWarrensBossActive"},
             index = 281
+        },
+        ['擊殺克魯托克']= {
+            map_name= 'G4_1_2',
+            Boss = {"金氏領主．克魯托克"},
+            interaction_object_map_name= {"VolcanicWarrensBossActive"},
+            index = 282
+        },
+        ['與馬提奇對話']= {
+            map_name= 'G4_1_2',
+            Boss = {"金氏領主．克魯托克"},
+            interaction_object= {"馬提奇"},
+            interaction_object_map_name= {"VolcanicWarrensBossInactive"},
+            index = 283
         },
         ['悉妮蔻拉之眼']= {
             map_name= 'G4_4_1',
-            index = 282
+            index = 284
+        },
+        ['與馬提奇會面']= {
+            map_name= 'G4_4_1',
+            interaction_object= {"馬提奇"},
+            index = 285
+        },
+        ['與馬提基對話']= {
+            map_name= 'G4_4_1',
+            interaction_object= {"馬提奇"},
+            index = 286
+        },
+        ['窺探傳承之井']= {
+            map_name= 'G4_4_1',
+            interaction_object= {"傳承之井"},
+            index = 287
+        },
+        ['完成岡姆的精神試煉完成瑪塔的精神試煉完成萊基亞塔的精神試煉']= {
+            map_name= 'G4_4_1',
+            interaction_object= {"傳承之井"},
+            index = 288
         },
         
         
