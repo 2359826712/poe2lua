@@ -1750,7 +1750,7 @@ local custom_nodes = {
                     poe2_api.find_text({ UI_info = env.UI_info, text = "獎勵", min_x = 100, add_y = 100, click = 2 })
                 end
                 api_Sleep(500)
-                if poe2_api.find_text({ UI_info = env.UI_info, text = "背包" , min_x = 1020, min_y = 46, max_x = 1090, max_y = 70}) then
+                if poe2_api.find_text({text = "背包",UI_info = env.UI_info, min_x = 1020,min_y=32,max_x=1600,max_y=81}) then
                     if have_roman_number() then
                         poe2_api.get_space_point({ width = 1, height = 1, click = 1 })
                     else
@@ -1901,7 +1901,7 @@ local custom_nodes = {
                             .end_y - item[1].start_y
                     })
                     if point then
-                        if poe2_api.find_text({ UI_info = env.UI_info, text = "背包" , min_x = 1020, min_y = 46, max_x = 1090, max_y = 70}) then
+                        if poe2_api.find_text({text = "背包",UI_info = env.UI_info, min_x = 1020,min_y=32,max_x=1600,max_y=81}) then
                             api_ClickScreen(poe2_api.toInt(point[1]), poe2_api.toInt(point[2]), 1)
                             api_Sleep(500)
                             return bret.RUNNING
@@ -2105,7 +2105,7 @@ local custom_nodes = {
                     return bret.SUCCESS
                 end
                 if props and next(props) then
-                    if not poe2_api.find_text({ UI_info = env.UI_info, text = "背包",  min_x = 1020, min_y = 46, max_x = 1090, max_y = 70 }) then
+                    if not poe2_api.find_text({text = "背包",UI_info = env.UI_info, min_x = 1020,min_y=32,max_x=1600,max_y=81}) then
                         poe2_api.click_keyboard("i")
                         return bret.RUNNING
                     end
@@ -2880,7 +2880,7 @@ local custom_nodes = {
                     return bret.RUNNING
                 end
             end
-            if not poe2_api.find_text({ text = "背包", UI_info = env.UI_info,  min_x = 1020, min_y = 46, max_x = 1090, max_y = 70}) then
+            if not poe2_api.find_text({text = "背包",UI_info = env.UI_info, min_x = 1020,min_y=32,max_x=1600,max_y=81}) then
                 poe2_api.click_keyboard("i")
                 poe2_api.dbgp("开背包5")
                 self.is_wait = true
@@ -3281,7 +3281,7 @@ local custom_nodes = {
                 end
             end
             if type(is_not_item) == "table" then
-                if not poe2_api.find_text({text = "背包",UI_info = env.UI_info, min_x = 1020, min_y = 46, max_x = 1090, max_y = 70}) then
+                if not poe2_api.find_text({text = "背包",UI_info = env.UI_info, min_x = 1020,min_y=32,max_x=1600,max_y=81}) then
                     poe2_api.click_keyboard("i")
                     api_Sleep(300)
                     poe2_api.dbgp("开背包,刷新词条")
@@ -3312,7 +3312,7 @@ local custom_nodes = {
                     poe2_api.time_p("物品丢弃（RUNNING5）... 耗时 --> ", api_GetTickCount64() - start_time)
                     return bret.RUNNING
                 end
-                if not poe2_api.find_text({text = "背包",UI_info = env.UI_info, min_x = 1020, min_y = 46, max_x = 1090, max_y = 70}) then
+                if not poe2_api.find_text({text = "背包",UI_info = env.UI_info, min_x = 1020,min_y=32,max_x=1600,max_y=81}) then
                     poe2_api.click_keyboard("i")
                     api_Sleep(300)
                     poe2_api.dbgp("开背包,丢弃1")
@@ -3372,7 +3372,7 @@ local custom_nodes = {
                     end
                 end
                 if point then
-                    if poe2_api.find_text({text = "背包",UI_info = env.UI_info, min_x = 1020, min_y = 46, max_x = 1090, max_y = 70}) then
+                    if poe2_api.find_text({text = "背包",UI_info = env.UI_info, min_x = 1020,min_y=32,max_x=1600,max_y=81}) then
                         api_ClickScreen(poe2_api.toInt(point[1]),poe2_api.toInt(point[2]),1)
                         api_Sleep(100)
                         poe2_api.time_p("物品丢弃（RUNNING8）... 耗时 --> ", api_GetTickCount64() - start_time)
@@ -3402,7 +3402,7 @@ local custom_nodes = {
                         self.index = self.index + 1
                     end
                     if self.index > 8 then
-                        if poe2_api.find_text({text = "背包",UI_info = env.UI_info, min_x = 1020, min_y = 46, max_x = 1090, max_y = 70}) then
+                        if poe2_api.find_text({text = "背包",UI_info = env.UI_info, min_x = 1020,min_y=32,max_x=1600,max_y=81}) then
                             poe2_api.click_keyboard("i")
                             poe2_api.dbgp("关背包6")
                             api_Sleep(300)
@@ -3871,7 +3871,7 @@ local custom_nodes = {
                         poe2_api.dbgp(string.format("鉴定物品: %s (类型: %s)", 
                             items.name_utf8 or "无名", items.category_utf8 or "无类型"))
                         
-                        if not poe2_api.find_text({UI_info = env.UI_info, text = "背包",  min_x = 1020, min_y = 46, max_x = 1090, max_y = 70}) then
+                        if not poe2_api.find_text({text = "背包",UI_info = env.UI_info, min_x = 1020,min_y=32,max_x=1600,max_y=81}) then
                             poe2_api.dbgp("未检测到背包UI，尝试打开背包...")
                             poe2_api.click_keyboard("i")
                             api_Sleep(500)
@@ -4364,7 +4364,7 @@ local custom_nodes = {
                 end
                 
             end
-            if poe2_api.find_text({text = "背包" ,UI_info = env.UI_info,min_x = 1020,min_y=32,max_x=1600,max_y=81}) then
+            if poe2_api.find_text({text = "背包",UI_info = env.UI_info, min_x = 1020,min_y=32,max_x=1600,max_y=81}) then
                 poe2_api.click_keyboard("i")
                 poe2_api.dbgp("关背包7")
                 api_Sleep(200)
@@ -4574,7 +4574,7 @@ local custom_nodes = {
             local npc_names = env.npc_names
             local player_info = env.player_info
             local current_time = api_GetTickCount64()
-            if poe2_api.find_text({ UI_info = env.UI_info, text = "背包", min_x = 1020, min_y = 46, max_x = 1090, max_y = 70}) then
+            if poe2_api.find_text({text = "背包",UI_info = env.UI_info, min_x = 1020,min_y=32,max_x=1600,max_y=81}) then
                 poe2_api.click_keyboard("space")
                 poe2_api.dbgp("The_Interactive_Npc_Exist(RUNNING1)")
                 return bret.RUNNING
@@ -6648,7 +6648,7 @@ local custom_nodes = {
                 return false
             end
 
-            if poe2_api.find_text({ UI_info = UI_info, text = "背包", min_x = 1020, min_y = 46, max_x = 1090, max_y = 70 }) then
+            if poe2_api.find_text({text = "背包",UI_info = env.UI_info, min_x = 1020,min_y=32,max_x=1600,max_y=81}) then
                 poe2_api.click_keyboard("i")
                 poe2_api.dbgp("开背包2")
             end
@@ -6683,7 +6683,7 @@ local custom_nodes = {
             local current_time = api_GetTickCount64()
             local my_profession = poe2_api.get_team_info(team_info, user_config, player_info, 2)
             if string.find(player_info.current_map_name_utf8, "town") and special_map_point and not poe2_api.table_contains(my_profession, { "大號名", "未知" }) then
-                if poe2_api.find_text({ UI_info = env.UI_info, text = "背包", min_x = 1020, min_y = 46, max_x = 1090, max_y = 70}) then
+                if poe2_api.find_text({text = "背包",UI_info = env.UI_info, min_x = 1020,min_y=32,max_x=1600,max_y=81}) then
                     poe2_api.click_keyboard("space")
                     return bret.RUNNING
                 end
@@ -6782,7 +6782,7 @@ local custom_nodes = {
                 poe2_api.time_p("Click_Leader_To_Teleport",api_GetTickCount64() - current_time ) 
                 return bret.SUCCESS
             end
-            if poe2_api.find_text({ UI_info = env.UI_info, text = "背包", min_x = 1020, min_y = 46, max_x = 1090, max_y = 70}) then
+            if poe2_api.find_text({text = "背包",UI_info = env.UI_info, min_x = 1020,min_y=32,max_x=1600,max_y=81}) then
                 poe2_api.click_keyboard("space")
                 return bret.RUNNING
             end
@@ -8245,7 +8245,7 @@ local custom_nodes = {
                 return min_top
             end
             if current_map ~= teleport_area then
-                if poe2_api.find_text({ UI_info = UI_info, text = "背包", min_x = 1020, min_y = 46, max_x = 1090, max_y = 70, click = 0, refresh = true }) then
+                if poe2_api.find_text({text = "背包",UI_info = env.UI_info, min_x = 1020,min_y=32,max_x=1600,max_y=81,refresh = true}) then
                     poe2_api.click_keyboard("i")
                 end
                 if poe2_api.find_text({ UI_info = UI_info, text = "傳送點", refresh = true,min_x = 0 }) then
@@ -8914,7 +8914,7 @@ local custom_nodes = {
             poe2_api.dbgp("开始检查背包和技能文本")
 
             -- 检查背包文本
-            if not poe2_api.find_text({UI_info = env.UI_info, text = "背包"}) then
+            if not poe2_api.find_text({text = "背包",UI_info = env.UI_info, min_x = 1020,min_y=32,max_x=1600,max_y=81}) then
                 poe2_api.dbgp("未找到背包文本，按下I键打开背包")
                 poe2_api.click_keyboard("i")
                 return bret.RUNNING
@@ -9838,7 +9838,7 @@ local custom_nodes = {
                     end
                     poe2_api.find_text({ UI_info = env.UI_info, text = "獎勵", min_x = 100, add_y = 100 , click = 2 })
                     api_Sleep(500)
-                    if poe2_api.find_text({UI_info = env.UI_info, text = "背包",  min_x = 1020, min_y = 46, max_x = 1090, max_y = 70}) then
+                    if poe2_api.find_text({text = "背包",UI_info = env.UI_info, min_x = 1020,min_y=32,max_x=1600,max_y=81}) then
                         if have_roman_number() then
                             poe2_api.get_space_point({ width = 1, height = 1, click = 1 })
                         else
@@ -9849,12 +9849,12 @@ local custom_nodes = {
                         return bret.RUNNING
                     end
                     poe2_api.get_space_point({ width = 4, height = 2, click = 1 })
-                    if not poe2_api.find_text({UI_info = env.UI_info, text = "背包",  min_x = 1020, min_y = 46, max_x = 1090, max_y = 70}) then
+                    if not poe2_api.find_text({text = "背包",UI_info = env.UI_info, min_x = 1020,min_y=32,max_x=1600,max_y=81}) then
                         poe2_api.click_keyboard("i")
                         return bret.RUNNING
                     end
                 end
-                if poe2_api.find_text({UI_info = env.UI_info, text = "背包",  min_x = 1020, min_y = 46, max_x = 1090, max_y = 70}) then
+                if poe2_api.find_text({text = "背包",UI_info = env.UI_info, min_x = 1020,min_y=32,max_x=1600,max_y=81}) then
                     poe2_api.click_keyboard("i")
                     return bret.RUNNING
                 end
@@ -11711,7 +11711,7 @@ local custom_nodes = {
             end
 
 
-            if poe2_api.find_text({ UI_info = env.UI_info, text = "背包",  min_x = 1020, min_y = 46, max_x = 1090, max_y = 70 }) then
+            if poe2_api.find_text({text = "背包",UI_info = env.UI_info, min_x = 1020,min_y=32,max_x=1600,max_y=81}) then
                 poe2_api.click_keyboard("i")
                 api_Sleep(500)
                 return bret.RUNNING
@@ -11783,7 +11783,7 @@ local custom_nodes = {
                 if poe2_api.find_text({ UI_info = env.UI_info, text = reward_click, min_x = 100 }) then
                     poe2_api.dbgp("检测到奖励提示，将执行点击操作")
                     poe2_api.find_text({ UI_info = env.UI_info, text = reward_click, min_x = 0, add_y = 100, click = 2 })
-                    if poe2_api.find_text({ UI_info = env.UI_info, text = "背包" , min_x = 1020, min_y = 46, max_x = 1090, max_y = 70}) then
+                    if poe2_api.find_text({text = "背包",UI_info = env.UI_info, min_x = 1020,min_y=32,max_x=1600,max_y=81}) then
                         local point = poe2_api.get_space_point({ width = 2, height = 2, index = 1 })
                         if point then
                             api_ClickScreen(poe2_api.toInt(point[1]), poe2_api.toInt(point[2]), 1)
