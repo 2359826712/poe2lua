@@ -1695,7 +1695,7 @@ local custom_nodes = {
             end
             -- 大号，小号更新障碍
             if poe2_api.get_team_info(env.team_info, env.user_config, player_info, 2) == "大號名" then
-                if not poe2_api.table_contains(player_info.current_map_name_utf8, { "G2_3", "G3_17"}) or poe2_api.find_text({ UI_info = env.UI_info, text = "競技場", min_x = 0 }) then
+                if not poe2_api.table_contains(player_info.current_map_name_utf8, { "G2_3","G3_17"}) or poe2_api.find_text({ UI_info = env.UI_info, text = "競技場", min_x = 0 }) then
                     if player_info.current_map_name_utf8 == "G2_2" then
                         api_UpdateMapObstacles(180)
                     else
@@ -6363,21 +6363,34 @@ local custom_nodes = {
                             if not away_monster_info then
                                 poe2_api.dbgp("[Is_Move]没有远距离怪物信息")
                                 point_monster = api_FindNearestReachablePoint(monster.grid_x, monster.grid_y, 25, 0)
-                                env.end_point = { point_monster.x, point_monster.y }
+                                if monster_path and #monster_path > 0 then
+                                    env.end_point = { point_monster.x, point_monster.y }
+                                else
+                                    table.insert(relife_stuck_monsters, monster.id)
+                                    return bret.RUNNING
+                                end
                             else
                                 poe2_api.dbgp("[Is_Move]有远距离怪物信息")
                                 env.monster_info = away_monster_info
                                 point_monster = api_FindNearestReachablePoint(away_monster_info.grid_x,away_monster_info.grid_y, 25, 0)
-                                env.end_point = { point_monster.x, point_monster.y }
+                                local monster_path = api_FindPath(player_info.grid_x, player_info.grid_y, point_monster.x, point_monster.y)
+                                if monster_path and #monster_path > 0 then
+                                    env.end_point = { point_monster.x, point_monster.y }
+                                else
+                                    table.insert(relife_stuck_monsters, monster.id)
+                                    return bret.RUNNING
+                                end
                             end
                             if poe2_api.point_distance(monster_info.grid_x, monster_info.grid_y, player_info) < env.min_attack_dis and monster_info.life <= 0 then
-                                env.monster_info = nil
+                                table.insert(relife_stuck_monsters, monster.id)
+                                return bret.RUNNING
                             end
                         end
                         if point_monster.x ~= -1 and point_monster.y ~= -1 then
                             env.life_time = nil
                             if poe2_api.point_distance(monster_info.grid_x, monster_info.grid_y, player_info) < env.min_attack_dis and monster_info.hasLineOfSight == true then
                                 env.is_arrive_end = true
+                                table.insert(relife_stuck_monsters, monster.id)
                             end
                             poe2_api.dbgp("[Is_Move]怪物坐标合法")
                             return bret.FAIL
@@ -10091,8 +10104,8 @@ local custom_nodes = {
                     local target = min_map_dis("WaterwaysLever")
                     local range_target = poe2_api.get_sorted_obj("壓桿",range_info,player_info)
                     if target and #target > 0 then
-                        local target_point = api_FindNearestReachablePoint(target[1].grid_x, target[1].grid_y,20,1)
-                        if get_distance(target[1].grid_x, target[1].grid_y) < 25 then
+                        local target_point = api_FindNearestReachablePoint(target[1].grid_x, target[1].grid_y,20,0)
+                        if get_distance(target[1].grid_x, target[1].grid_y) < 30 then
                             poe2_api.dbgp("距离压杆小于30，点击压杆")
                             poe2_api.find_text({ UI_info = UI_info, text = "壓桿", min_x = 200, click = 2})
                             api_Sleep(5000)
@@ -10160,6 +10173,7 @@ local custom_nodes = {
                                 env.path_list = {}
                                 return bret.RUNNING
                             else
+                                poe2_api.dbgp("距离核心大于25，找核心")
                                 env.end_point = {core.grid_x,core.grid_y}
                                 return bret.SUCCESS
                             end
@@ -11037,7 +11051,7 @@ local custom_nodes = {
                 poe2_api.dbgp("没有目标：大号")
                 return bret.RUNNING
             end
-            local reachable_point = api_FindNearestReachablePoint(player_info.grid_x, player_info.grid_y,50, 1)
+            local reachable_point = api_FindNearestReachablePoint(player_info.grid_x, player_info.grid_y,50, 0)
             local target_reachable_point = api_FindNearestReachablePoint(target.grid_x, target.grid_y,40,0)
             local result = api_FindPath(reachable_point.x, reachable_point.y, target_reachable_point.x, target_reachable_point.y)
             if result and #result > 0 then
@@ -12277,7 +12291,7 @@ local custom_nodes = {
             end
 
             -- 计算最近可到达的点
-            local arrive_point = api_FindNearestReachablePoint(point[1], point[2], 15, 1)
+            local arrive_point = api_FindNearestReachablePoint(point[1], point[2], 40, 0)
             poe2_api.dbgp("计算最近可到达的点")
             poe2_api.dbgp(arrive_point.x, arrive_point.y)
             poe2_api.dbgp(env.end_point[1], env.end_point[2])
