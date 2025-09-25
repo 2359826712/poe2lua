@@ -6355,31 +6355,18 @@ local custom_nodes = {
 
                             env.monster_info = monster
                             monster_info = monster
-                            point_monster = api_FindNearestReachablePoint(monster.grid_x, monster.grid_y, 25, 0)
-                            env.end_point = { point_monster.x, point_monster.y }
+                            env.end_point = { monster.grid_x, monster.grid_y }
                         end
                         if monster_info then
                             poe2_api.dbgp("[Is_Move]有黑板参怪物")
                             if not away_monster_info then
                                 poe2_api.dbgp("[Is_Move]没有远距离怪物信息")
-                                point_monster = api_FindNearestReachablePoint(monster.grid_x, monster.grid_y, 25, 0)
-                                if monster_path and #monster_path > 0 then
-                                    env.end_point = { point_monster.x, point_monster.y }
-                                else
-                                    table.insert(relife_stuck_monsters, monster.id)
-                                    return bret.RUNNING
-                                end
+                                env.end_point = { monster.grid_x, monster.grid_y }
                             else
                                 poe2_api.dbgp("[Is_Move]有远距离怪物信息")
                                 env.monster_info = away_monster_info
                                 point_monster = api_FindNearestReachablePoint(away_monster_info.grid_x,away_monster_info.grid_y, 25, 0)
-                                local monster_path = api_FindPath(player_info.grid_x, player_info.grid_y, point_monster.x, point_monster.y)
-                                if monster_path and #monster_path > 0 then
-                                    env.end_point = { point_monster.x, point_monster.y }
-                                else
-                                    table.insert(relife_stuck_monsters, monster.id)
-                                    return bret.RUNNING
-                                end
+                                env.end_point = { monster.grid_x, monster.grid_y }
                             end
                             if poe2_api.point_distance(monster_info.grid_x, monster_info.grid_y, player_info) < env.min_attack_dis and monster_info.life <= 0 then
                                 table.insert(relife_stuck_monsters, monster.id)
@@ -6390,7 +6377,6 @@ local custom_nodes = {
                             env.life_time = nil
                             if poe2_api.point_distance(monster_info.grid_x, monster_info.grid_y, player_info) < env.min_attack_dis and monster_info.hasLineOfSight == true then
                                 env.is_arrive_end = true
-                                table.insert(relife_stuck_monsters, monster.id)
                             end
                             poe2_api.dbgp("[Is_Move]怪物坐标合法")
                             return bret.FAIL
