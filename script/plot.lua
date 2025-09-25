@@ -898,11 +898,6 @@ local custom_nodes = {
                 end
                 poe2_api.time_p("    获取周围对象信息... 耗时 --> ", api_GetTickCount64() - range_info_start_time)
             end
-            -- for _,k in ipairs(env.range_info) do
-            --     if k.name_utf8 == "芙雷雅．哈特林" then
-            --         poe2_api.printTable(k)
-            --     end
-            -- end
             -- api_GetMinimapActorInfo() - 获取小地图周围对象信息
             local current_map_info_start_time = api_GetTickCount64()
             env.current_map_info = api_GetMinimapActorInfo()
@@ -6162,7 +6157,7 @@ local custom_nodes = {
                 -- 查找符合条件的怪物
                 for _, i in ipairs(range_info) do
                     if not i.is_friendly and i.life > 0 and i.name_utf8 ~= ""
-                        and i.name_utf8 == "撕裂者"
+                        and (i.name_utf8 == "撕裂者" or i.name_utf8 == "白之亞瑪")
                         and poe2_api.get_point_distance(mate.grid_x, mate.grid_y, i.grid_x, i.grid_y) < 200 then
                         return i
                     end
@@ -6218,7 +6213,7 @@ local custom_nodes = {
                 end
             end
             if is_monster(range_info, player_info) then
-                poe2_api.dbgp("[Is_Exception_Team]玩家当前有撕裂者")
+                poe2_api.dbgp("[Is_Exception_Team]玩家当前有撕裂者或白之亞瑪")
                 env.life_time = nil
                 env.relife_stuck_monsters = {}
                 env.monster_info = nil
@@ -6620,6 +6615,7 @@ local custom_nodes = {
             if range_items then
                 for _, item in ipairs(range_items) do
                     if player_info.current_map_name_utf8 == "G1_1" and user_new_item[item.category_utf8] and item.grid_x ~= 0 then
+                        env.mouse_check = true
                         return processItem(item, player_info)
                     elseif poe2_api.table_contains(item.category_utf8, { 'QuestItem', "Active Skill Gem" }) and not poe2_api.table_contains(item.baseType_utf8, { "黃金", "金幣", "紅色蘑菇", "綠色蘑菇", "藍色蘑菇", "龍蜥最後通牒雕刻" }) and item.grid_x ~= 0 then
                         return processItem(item, player_info)
@@ -9005,7 +9001,7 @@ local custom_nodes = {
             local team_member_2 = poe2_api.get_team_info(team_info, user_config, player_info, 2)
             if (poe2_api.is_have_boss_distance(range_info, player_info,boss_name, 180) 
                 or poe2_api.is_have_mos({range_info = range_info, player_info = player_info, dis = attack_dis_map, stuck_monsters = stuck_monsters,not_attack_mos = not_attack_mos}))
-                and  poe2_api.table_contains(team_member_2,{"大號名","未知"}) then
+                and (team_member_2 == "大號名" or player_info.current_map_name_utf8 == "G1_1") then
                 poe2_api.dbgp("需要攻击")
                 poe2_api.time_p("[Check_Is_Need_Attack]",(api_GetTickCount64() - current_time))
 
@@ -9561,6 +9557,19 @@ local custom_nodes = {
                 if valid_monsters.name_utf8 == "憎惡者．賈嫚拉" or valid_monsters.name_utf8 == "國王的侍從" then
                     for _,k in ipairs(env.range_info) do
                         if k.name_utf8 == "絲克瑪．阿薩拉" and k.stateMachineList and k.stateMachineList["sandstorm_defence"] == 1 then
+                            if poe2_api.point_distance(k.grid_x,k.grid_y,player_info) > 25 then
+                                env.attack_move = true
+                                env.end_point = {k.grid_x, k.grid_y}
+                                return bret.FAIL
+                            elseif poe2_api.point_distance(k.grid_x,k.grid_y,player_info) > 20 then
+                                return bret.RUNNING
+                            end
+                        end
+                    end
+                end
+                if valid_monsters.name_utf8 == "白之亞瑪" then
+                    for _,k in ipairs(env.range_info) do
+                        if string.find(k.animated_name_utf8,"Metadata/Characters/Dex/DexFourB") and k.stateMachineList and k.stateMachineList["chosen_one"] == 1 then
                             if poe2_api.point_distance(k.grid_x,k.grid_y,player_info) > 25 then
                                 env.attack_move = true
                                 env.end_point = {k.grid_x, k.grid_y}

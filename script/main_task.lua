@@ -1813,8 +1813,21 @@ local main_task= {
         ['探索亡者之殿']= {
             map_name= 'G4_4_2',
             interaction_object={"祖靈的試煉"},
+            Boss = {"白之亞瑪"},
             interaction_object_map_name= {"G4_4_3"},
             index = 303
+        },
+        ["拾起銀幣"] ={
+            map_name= 'G4_4_2',
+            interaction_object={"白之亞瑪","銀幣"},
+            interaction_object_map_name= {"G4_4_2_YamaInactive"},
+            index = 304
+        },
+        ['進一步探索亡者之殿']= {
+            map_name= 'G4_4_2',
+            interaction_object={"祖靈的試煉"},
+            interaction_object_map_name= {"G4_4_3"},
+            index = 305
         },
         
         

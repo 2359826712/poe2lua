@@ -277,7 +277,8 @@ local my_game_info = {
             20
         }, -- 女巫水球
         {1, "Metadata/Monsters/LeagueRitual/Daemons/volatile.ao", 10}, -- 祭坛追踪紫色爆炸球
-        {1, "Metadata/Monsters/MonsterMods/VolatilePlants/volatile.ao", 10} -- 追踪紫色爆炸球
+        {1, "Metadata/Monsters/MonsterMods/VolatilePlants/volatile.ao", 10}, -- 追踪紫色爆炸球
+        {1, "Metadata/Effects/Spells/monsters_effects/Act4_FOUR/Yama/AOs/EyeSlamGroundEffect.ao", 35} -- 白之亞瑪 眼球技能
     },
 
     MonitoringSkills_Circle = {
