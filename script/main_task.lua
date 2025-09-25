@@ -97,13 +97,13 @@ local main_task= {
             interaction_object_map_name = {'RustObeliskActive'},
             index = 17
         },
-        ["尋找 3 個力量魔符"] = {
+        ["尋找3個力量魔符"] = {
             map_name = 'G1_5',
             interaction_object = {'鐵鏽方尖碑'},
             interaction_object_map_name = {'RustObeliskActive'},
             index = 18
         },
-        ["收集全部 3 個力量魔符"] = {
+        ["收集全部3個力量魔符"] = {
             map_name = 'G1_5',
             interaction_object = {'鐵鏽方尖碑'},
             interaction_object_map_name = {'RustObeliskActive'},
@@ -115,7 +115,7 @@ local main_task= {
             interaction_object_map_name = {'RustObeliskActive'},
             index = 20
         },
-        ["收集剩餘的 2 個力量魔符"] = {
+        ["收集剩餘的2個力量魔符"] = {
             map_name = 'G1_5',
             Boss = {'鐵鏽之王'},
             interaction_object = {'鐵鏽方尖碑'},
@@ -168,7 +168,7 @@ local main_task= {
             interaction_object = {'符文之印'},
             index = 29
         },
-        ['將剩餘 2 根魔符尖矢戳進攝魂之樹'] = {
+        ['將剩餘2根魔符尖矢戳進攝魂之樹'] = {
             map_name = 'G1_4',
             interaction_object = {'符文之印'},
             interaction_object_map_name = {'Checkpoint'}, 

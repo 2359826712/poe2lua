@@ -1176,6 +1176,7 @@ local custom_nodes = {
                         api_ClickScreen(1230, 815, 0)
                         api_Sleep(500)
                         api_ClickScreen(1230, 815, 1)
+                        api_Sleep(2000)
                         return bret.RUNNING
                     end
                     
@@ -1873,6 +1874,7 @@ local custom_nodes = {
                     api_ClickScreen(1230, 815, 0)
                     api_Sleep(500)
                     api_ClickScreen(1230, 815, 1)
+                    api_Sleep(2000)
                     return bret.RUNNING
                 end
             else
@@ -6782,10 +6784,6 @@ local custom_nodes = {
                 poe2_api.time_p("Click_Leader_To_Teleport",api_GetTickCount64() - current_time ) 
                 return bret.SUCCESS
             end
-            if poe2_api.find_text({text = "背包",UI_info = env.UI_info, min_x = 1020,min_y=32,max_x=1600,max_y=81}) then
-                poe2_api.click_keyboard("space")
-                return bret.RUNNING
-            end
             if poe2_api.table_contains(team_member_2, { "大號名", "未知" }) then
                 poe2_api.time_p("Click_Leader_To_Teleport",api_GetTickCount64() - current_time ) 
                 return bret.FAIL
@@ -6935,6 +6933,7 @@ local custom_nodes = {
                         api_ClickScreen(1230, 815, 0)
                         api_Sleep(500)
                         api_ClickScreen(1230, 815, 1)
+                        api_Sleep(2000)
                         return bret.RUNNING
                     end
                 else
@@ -6958,6 +6957,7 @@ local custom_nodes = {
                 api_ClickScreen(1230, 815, 0)
                 api_Sleep(500)
                 api_ClickScreen(1230, 815, 1)
+                api_Sleep(2000)
                 return bret.RUNNING
             end
             if (string.find(current_map, "a") and special_map_point) or (string.find(current_map, "own") and task_area and current_map == task_area) then
@@ -7394,7 +7394,8 @@ local custom_nodes = {
 
                     -- 检查路径是否可达
                     local point = api_FindNearestReachablePoint(actor.grid_x, actor.grid_y, 25, 0)
-                    if api_FindPath(player_info.grid_x, player_info.grid_y, point.x, point.y) then
+                    local path =  api_FindPath(player_info.grid_x, player_info.grid_y, point.x, point.y)
+                    if path and #path > 0 then
                         match_count = match_count + 1
                         if match_count == num - 1 then
                             return match_count
@@ -7618,18 +7619,23 @@ local custom_nodes = {
                     end
                 end
             end
-            if poe2_api.table_contains(me_area, { "G1_15" }) and poe2_api.table_contains(task_area, { "G1_15"}) then
-                if poe2_api.is_have_mos({ range_info = range_info, player_info = player_info }) then
+            poe2_api.time_p("Is_Teleport",(api_GetTickCount64() - current_time))
+            if poe2_api.table_contains(me_area, { "G1_15" }) and poe2_api.table_contains(task_area, { "G1_15"}) and next_level() then
+                if poe2_api.is_have_mos({ range_info = range_info, player_info = player_info ,dis = 50}) then
                     env.not_move = true
                     return bret.SUCCESS
                 end
-                if next_level() and not check_pos_dis(boss_name) and party_dis_memember(range_info) and not party_path_memember() then
+                if not check_pos_dis(boss_name) and party_dis_memember(range_info) and not party_path_memember() then
+                    poe2_api.dbgp("G1_15-小号没下楼梯")
                     self.follow = true
                     if not poe2_api.click_text_UI({ text = "respawn_at_checkpoint_button", UI_info = UI_info }) and not self.bool1 then
-                        local walkpoint = api_FindRandomWalkablePosition(player_info.grid_x, player_info.grid_y, 50)
-                        api_ClickMove(poe2_api.toInt(walkpoint.x), poe2_api.toInt(walkpoint.y), 0)
-                        api_Sleep(500)
-                        poe2_api.click_keyboard("space")
+                        poe2_api.dbgp("向記錄點翻滚")
+                        local walkpoint = poe2_api.find_text({ UI_info = UI_info, text = "記錄點", position = 3 })
+                        if walkpoint then
+                            api_ClickScreen(poe2_api.toInt(walkpoint[1]), poe2_api.toInt(walkpoint[2]),0)
+                            api_Sleep(500)
+                            poe2_api.click_keyboard("space")
+                        end
                         self.bool1 = true
                     end
                     if self.time1 == 0 then
@@ -7646,23 +7652,28 @@ local custom_nodes = {
                         api_ClickScreen(1230, 815, 0)
                         api_Sleep(500)
                         api_ClickScreen(1230, 815, 1)
+                        api_Sleep(2000)
                     end
                     return bret.RUNNING
                 else
                     self.follow = false
                 end
             end
-            if poe2_api.table_contains(me_area, { "G2_4_3" }) and poe2_api.table_contains(task_area, { "G2_4_3"}) then
-                if poe2_api.is_have_mos({ range_info = range_info, player_info = player_info }) then
+            poe2_api.time_p("Is_Teleport-G1_15",(api_GetTickCount64() - current_time))
+            if poe2_api.table_contains(me_area, { "G2_4_3" }) and poe2_api.table_contains(task_area, { "G2_4_3"}) and poe2_api.find_text({ UI_info = UI_info, text = "掩埋神殿", min_x = 0 }) then
+                if poe2_api.is_have_mos({ range_info = range_info, player_info = player_info,dis = 50 }) then
                     env.not_move = true
                     return bret.SUCCESS
                 end
-                if poe2_api.find_text({ UI_info = UI_info, text = "掩埋神殿", min_x = 0 }) and not party_path_memember() then
+                if not party_path_memember() then
                     if not poe2_api.click_text_UI({ text = "respawn_at_checkpoint_button", UI_info = UI_info }) and not self.bool1 then
-                        local walkpoint = api_FindRandomWalkablePosition(player_info.grid_x, player_info.grid_y, 50)
-                        api_ClickMove(poe2_api.toInt(walkpoint.x), poe2_api.toInt(walkpoint.y), 0)
-                        api_Sleep(500)
-                        poe2_api.click_keyboard("space")
+                        poe2_api.dbgp("向記錄點翻滚")
+                        local walkpoint = poe2_api.find_text({ UI_info = UI_info, text = "記錄點", position = 3 })
+                        if walkpoint then
+                            api_ClickScreen(poe2_api.toInt(walkpoint[1]), poe2_api.toInt(walkpoint[2]),0)
+                            api_Sleep(500)
+                            poe2_api.click_keyboard("space")
+                        end
                         self.bool1 = true
                     end
                     if self.time1 == 0 then
@@ -7679,6 +7690,7 @@ local custom_nodes = {
                         api_ClickScreen(1230, 815, 0)
                         api_Sleep(500)
                         api_ClickScreen(1230, 815, 1)
+                        api_Sleep(2000)
                     end
                     return bret.RUNNING
                 else
@@ -7720,6 +7732,7 @@ local custom_nodes = {
                         api_ClickScreen(1230, 815, 0)
                         api_Sleep(500)
                         api_ClickScreen(1230, 815, 1)
+                        api_Sleep(2000)
                     end
                     return bret.RUNNING
                 elseif not check_pos_dis(team_member_4) then
@@ -7799,6 +7812,7 @@ local custom_nodes = {
                             api_ClickScreen(1230, 815, 0)
                             api_Sleep(500)
                             api_ClickScreen(1230, 815, 1)
+                            api_Sleep(2000)
                         end
                         return bret.RUNNING
                     else
@@ -7827,7 +7841,7 @@ local custom_nodes = {
                         if arena then
                             local near_point = api_FindNearestReachablePoint(arena[1], arena[2], 40, 1)
                             env.end_point = { near_point.x, near_point.y }
-                            return bret.FAIL
+                            return bret.SUCCESS
                         end
                     end
                     poe2_api.find_text({ UI_info = UI_info, text = "競技場", click = 2 })
@@ -7909,7 +7923,7 @@ local custom_nodes = {
             end
             if poe2_api.task_area_list_data(task_area)[2] == "有" and poe2_api.Waypoint_is_open(task_area, waypoint) then
                 if string.find(task_area, "G2") and not string.find(current_map, "G2") and task_area~="G2_1" then
-                    env.teleport_area = "G2_towm"
+                    env.teleport_area = "G2_town"
                     return bret.SUCCESS
                 end
 
@@ -7957,7 +7971,7 @@ local custom_nodes = {
                         poe2_api.find_text({ UI_info = env.UI_info, text = "間歇", click = 2, refresh = true })
                         api_Sleep(500)
                         env.waypoint = api_GetTeleportationPoint()
-                    end                        
+                    end
                     api_Sleep(200)
                     poe2_api.click_keyboard("u")
                     poe2_api.print_log("任务地区" .. task_area_name .. "传送点未打开")
@@ -8071,6 +8085,7 @@ local custom_nodes = {
                     api_ClickScreen(1230, 815, 0)
                     api_Sleep(500)
                     api_ClickScreen(1230, 815, 1)
+                    api_Sleep(2000)
                     return bret.RUNNING
                 end
             end
@@ -8087,6 +8102,7 @@ local custom_nodes = {
                     api_ClickScreen(1230, 815, 0)
                     api_Sleep(500)
                     api_ClickScreen(1230, 815, 1)
+                    api_Sleep(2000)
                     return bret.RUNNING
                 else
                     local point = get_actor_pos("傳送點")
@@ -8145,6 +8161,7 @@ local custom_nodes = {
                     api_ClickScreen(1230, 815, 0)
                     api_Sleep(500)
                     api_ClickScreen(1230, 815, 1)
+                    api_Sleep(2000)
                     return bret.RUNNING
                 end
 
@@ -8270,6 +8287,7 @@ local custom_nodes = {
                     self.s_time = 0
                     if string.find(teleport_area, "G1") and not poe2_api.find_text({UI_info = env.UI_info, text = "奧格姆郡，約恆曆", min_x = 0, match = 2, refresh = true}) then
                         poe2_api.dbgp("切层级")
+                        api_Sleep(1000)
                         api_ClickScreen(1567, poe2_api.toInt(mini_top) + 22, 0)
                         api_Sleep(600)
                         api_ClickScreen(1567, poe2_api.toInt(mini_top) + 22, 1)
@@ -8279,6 +8297,7 @@ local custom_nodes = {
                         return bret.RUNNING
                     elseif string.find(teleport_area, "G2") and not poe2_api.find_text({UI_info = env.UI_info, text = "七大水域之地", min_x = 0, match = 2, refresh = true}) then
                         poe2_api.dbgp("切层级")
+                        api_Sleep(1000)
                         api_ClickScreen(1567, poe2_api.toInt(mini_top) + 22, 0)
                         api_Sleep(600)
                         api_ClickScreen(1567, poe2_api.toInt(mini_top) + 22, 1)
@@ -8288,6 +8307,7 @@ local custom_nodes = {
                         return bret.RUNNING
                     elseif string.find(teleport_area, "G3") and not poe2_api.find_text({UI_info = env.UI_info, text = "奧札爾區域草稿 #", min_x = 0, match = 2, refresh = true}) and not poe2_api.find_text({UI_info = env.UI_info, text = "古奧札爾草稿", min_x = 0, match = 2, refresh = true}) then
                         poe2_api.dbgp("切层级")
+                        api_Sleep(1000)
                         api_ClickScreen(1567, poe2_api.toInt(mini_top) + 22, 0)
                         api_Sleep(600)
                         api_ClickScreen(1567, poe2_api.toInt(mini_top) + 22, 1)
@@ -9545,11 +9565,9 @@ local custom_nodes = {
                 end
                 if valid_monsters.name_utf8 == "撕裂者" then
                     for _,v in ipairs(current_map_info) do
-                        if v.name_utf8 == "RathbreakerActive" and math.sqrt((v.grid_x - player_info.grid_x) * 2 + (v.grid_y - player_info.grid_y) * 2)>50 then
-                            valid_monsters.grid_x = v.grid_x
-                            valid_monsters.grid_y = v.grid_y
+                        if v.name_utf8 == "RathbreakerActive" and math.sqrt((v.grid_x - player_info.grid_x) * 2 + (v.grid_y - player_info.grid_y) * 2)>25 then
                             env.attack_move = true
-                            env.end_point = {valid_monsters.grid_x, valid_monsters.grid_y}
+                            env.end_point = {v.grid_x, v.grid_y}
                             return bret.FAIL
                         end
                     end
@@ -10335,7 +10353,7 @@ local custom_nodes = {
                     if handle and #handle > 0 and player_info.current_map_name_utf8 == "G1_13_2" then
                         for _,h in ipairs(handle) do
                             if h.stateMachineList and h.stateMachineList.helper_state ~= 2 then
-                                if get_distance(h.grid_x,h.grid_y) < 40 then
+                                if get_distance(h.grid_x,h.grid_y) < 30 then
                                     poe2_api.find_text({ UI_info = UI_info, text = "把手", max_x=1347, min_x=200, click = 1})
                                     api_Sleep(500)
                                     poe2_api.find_text({ UI_info = UI_info, text = "把手", max_x=1347, min_x=200, click = 2})
@@ -10350,7 +10368,7 @@ local custom_nodes = {
                                     env.not_need_active = true
                                     return bret.RUNNING
                                 else
-                                    local handle_point = api_FindNearestReachablePoint(h.grid_x, h.grid_y,40,1)
+                                    local handle_point = api_FindNearestReachablePoint(h.grid_x, h.grid_y,30,1)
                                     env.end_point = {handle_point.x,handle_point.y}
                                     return bret.SUCCESS
                                 end
@@ -10362,9 +10380,9 @@ local custom_nodes = {
                     poe2_api.dbgp("没有检测到周围对象")
                     return bret.RUNNING
                 end
-                if player_info.current_map_name_utf8 == "G2_1" then
+                if player_info.current_map_name_utf8 == "G1_2" then
                     if  #mini_map_obj("CroneInactive") == 0 then
-                        poe2_api.dbgp("G2_1小地图没有CroneInactive")
+                        poe2_api.dbgp("G1_2-小地图没有-CroneInactive")
                         interaction_object_set = nil 
                         env.interaction_object = nil
                         interaction_object_map_name = {"CroneActive"}
@@ -10795,9 +10813,11 @@ local custom_nodes = {
             if poe2_api.find_text({UI_info = UI_info,text = "繼續", min_x = 160,refresh = true,click = 2}) then
                 poe2_api.click_keyboard("space")
                 env.interaction_object = nil
+                api_Sleep(500)
                 return bret.SUCCESS
             end
             if poe2_api.find_text({UI_info = UI_info,text = "接受任務", min_x = 160,refresh = true,click = 2}) then
+                api_Sleep(500)
                 return bret.RUNNING
             end
             local ac = poe2_api.find_text({UI_info = UI_info,text = interaction_object[1], max_x=1347,min_x=160,position = 3,refresh = true})
@@ -10819,6 +10839,7 @@ local custom_nodes = {
                     self.last_click_time = 0
                 end
                 poe2_api.find_text({UI_info = UI_info,text = interaction_object[1], click = 2, max_x=1347,max_y=775,min_x=160,refresh = true})
+                api_Sleep(500)
                 return bret.RUNNING
             end
             self.last_click_time = 0
@@ -12293,6 +12314,7 @@ local custom_nodes = {
                         api_ClickScreen(1230, 815, 0)
                         api_Sleep(500)
                         api_ClickScreen(1230, 815, 1)
+                        api_Sleep(2000)
                         return bret.RUNNING
                     end
                 end
