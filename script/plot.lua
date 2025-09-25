@@ -1264,7 +1264,7 @@ local custom_nodes = {
             local take_rest = env.take_rest
             local player_info = env.player_info
         -- 特殊情况跳出
-            if poe2_api.get_team_info(env.team_info, env.user_config, player_info, 2) ~= "大號名" then
+            if player_info.isInBossBattle and poe2_api.get_team_info(env.team_info, env.user_config, player_info, 2) ~= "大號名" then
                 return bret.SUCCESS
             end
             --- 辅助函数
@@ -1695,7 +1695,7 @@ local custom_nodes = {
             end
             -- 大号，小号更新障碍
             if poe2_api.get_team_info(env.team_info, env.user_config, player_info, 2) == "大號名" then
-                if not poe2_api.table_contains(player_info.current_map_name_utf8, { "G2_3", "G2_9_1","G3_17"}) or poe2_api.find_text({ UI_info = env.UI_info, text = "競技場", min_x = 0 }) then
+                if not poe2_api.table_contains(player_info.current_map_name_utf8, { "G2_3", "G3_17"}) or poe2_api.find_text({ UI_info = env.UI_info, text = "競技場", min_x = 0 }) then
                     if player_info.current_map_name_utf8 == "G2_2" then
                         api_UpdateMapObstacles(180)
                     else
@@ -5520,6 +5520,11 @@ local custom_nodes = {
                     env.map_name = "G3_6_2"
                     env.interaction_object_map_name = { "艾瓦" }
                     env.interaction_object = { "艾瓦" }
+                elseif party_member_map({ "G3_6_1"}) and task.task_name == "召喚艾瓦詢問她的建議" then
+                    poe2_api.dbgp("[Query_Current_Task_Information_Local]召喚艾瓦詢問她的建議")
+                    env.map_name = "G3_6_1"
+                    env.interaction_object_map_name = {'艾瓦'}
+                    env.interaction_object = {'召喚艾瓦', '艾瓦', '門'}
                 elseif party_member_map({ "G3_6_2"}) and task.task_name == "召喚艾瓦，尋求她的意見" then
                     poe2_api.dbgp("[Query_Current_Task_Information_Local]召喚艾瓦，尋求她的意見")
                     env.map_name = "G3_6_2"
@@ -5804,6 +5809,11 @@ local custom_nodes = {
                     poe2_api.dbgp("[Query_Current_Task_Information]召喚艾瓦，尋求她的意見")
                     env.map_name = "G3_6_2"
                     env.interaction_object = { '中型靈魂核心', ' <questitem>{發電機}', '門' }
+                elseif player_info.current_map_name_utf8 == "G3_6_1" and task.task_name == "召喚艾瓦詢問她的建議" then
+                    poe2_api.dbgp("[Query_Current_Task_Information_Local]召喚艾瓦詢問她的建議")
+                    env.map_name = "G3_6_1"
+                    env.interaction_object_map_name = {'艾瓦'}
+                    env.interaction_object = {'召喚艾瓦', '艾瓦', '門'}
                 elseif player_info.current_map_name_utf8 == "G2_3a" and task.task_name == "使用貧脊之地的地圖前往哈拉妮關口所在之處" then
                     poe2_api.dbgp("[Query_Current_Task_Information]G2_3a使用貧脊之地的地圖前往哈拉妮關口所在之處")
                     env.map_name = "G2_3a"
@@ -6317,7 +6327,6 @@ local custom_nodes = {
                     if poe2_api.find_text({ UI_info = UI_info, text = "門", min_x = 0 }) and door_list[1].is_selectable
                         and not poe2_api.table_contains(player_info.current_map_name_utf8, { "G1_15", "G3_8", "G3_14"}) then
                         api_ClickMove(door_list[1].grid_x, door_list[1].grid_y, 1)
-                        api_UpdateMapObstacles(50)
                         reset_navigation_state()
                         return bret.RUNNING
                     end
@@ -10049,11 +10058,11 @@ local custom_nodes = {
                                 if get_distance(door.grid_x,door.grid_y) < 25 then
                                     poe2_api.dbgp("距离门小于25，点击门")
                                     api_ClickMove(poe2_api.toInt(door.grid_x),poe2_api.toInt(door.grid_y),1)
-                                    api_UpdateMapObstacles(50)
                                     return bret.RUNNING
                                 else
                                     poe2_api.dbgp("距离门大于25，找门")
-                                    if api_FindPath(local_x,local_y,door_point.x,door_point.y) then
+                                    local door_path = api_FindPath(local_x,local_y,door_point.x,door_point.y)
+                                    if door_path and #door_path > 0 then
                                         poe2_api.dbgp("找到门的路径")
                                         env.end_point = {door_point.x,door_point.y}
                                         if poe2_api.table_contains(player_info.current_map_name_utf8,{"G3_6_1"}) then
@@ -10090,7 +10099,8 @@ local custom_nodes = {
                             api_UpdateMapObstacles(100)
                             return bret.RUNNING
                         else
-                            if api_FindPath(local_x,local_y,target_point.x,target_point.y) then
+                            local target_point_path = api_FindPath(local_x,local_y,target_point.x,target_point.y)
+                            if target_point_path and #target_point_path > 0 then
                                 poe2_api.dbgp("找到压杆的路径",get_distance(target[1].grid_x, target[1].grid_y))
                                 env.end_point = {target_point.x,target_point.y}
                                 return bret.SUCCESS
@@ -10122,7 +10132,8 @@ local custom_nodes = {
                                         return bret.RUNNING
                                     end
                                     local target_point = api_FindNearestReachablePoint(target.grid_x, target.grid_y,20,0)
-                                    if api_FindPath(local_x,local_y,target_point.x,target_point.y) then
+                                    local target_path = api_FindPath(local_x,local_y,target_point.x,target_point.y)
+                                    if target_path and #target_path > 0 then
                                         env.end_point = {target_point.x,target_point.y}
                                         return bret.SUCCESS
                                     end
@@ -11349,11 +11360,11 @@ local custom_nodes = {
             if poe2_api.table_contains(team_member_2,{"大號名","未知"}) then
                 poe2_api.dbgp("设置大号探索范围")
                 special_map = {"G1_2","G1_12","G1_13_1","G1_13_2","G1_15",
-                        "G2_2","G2_4_1","G2_6","G2_8","G2_9_2",
+                        "G2_2","G2_4_1","G2_6","G2_8","G2_9_2","G2_9_1",
                         "G3_2_2","G3_3","G3_6_1","G3_7","G3_12","G3_17",
                 }
                 if poe2_api.table_contains(special_map,current_map) then
-                    if poe2_api.table_contains(current_map,{"G3_2_2"}) then
+                    if poe2_api.table_contains(current_map,{"G3_2_2","G2_9_1","G3_6_1"}) then
                         poe2_api.dbgp("大号探索范围50")
                         point = api_GetUnexploredArea(50)
                     end

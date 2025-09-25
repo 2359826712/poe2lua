@@ -1192,6 +1192,12 @@ local main_task= {
             interaction_object_map_name= {'G3_5'},
             index = 196
         },
+        ['召喚艾瓦詢問她的建議']= {
+            map_name= 'G3_2_1',
+            interaction_object= {'龍蜥濕地'},
+            interaction_object_map_name= {'G3_5'},
+            index = 196
+        },
         ['沿著運河尋找水道']= {
             map_name= 'G3_2_1',
             interaction_object= {'龍蜥濕地'},
