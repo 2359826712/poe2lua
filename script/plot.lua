@@ -11145,10 +11145,8 @@ local custom_nodes = {
 
             env.roll_time = math.abs(current_time - self.current_time)
             env.exit_time = math.abs(current_time - self.last_point_time)
-            local last_pos = env.last_position_story or {player_info.grid_x, player_info.grid_y}
-            local distance = poe2_api.point_distance(last_pos[1], last_pos[2], player_info)
 
-            if env.roll_time > self.timeout and distance < self.movement_threshold and player_info.life > 0 then
+            if env.roll_time > self.timeout and not player_info.isMoving and player_info.life > 0 then
                 poe2_api.dbgp("移动到远点大号位置模块超时翻滚")
                 
                 local function get_range()
@@ -11213,24 +11211,21 @@ local custom_nodes = {
                 local leader = check_pos(team_member_3)
                 if leader then
                     local leader_point = poe2_api.move_towards({player_info.grid_x, player_info.grid_y}, {leader.grid_x, leader.grid_y}, 20)
-                    poe2_api.dbgp(string.format("向队长移动: 从(%d,%d)到(%d,%d)", 
-                        player_info.grid_x, player_info.grid_y, leader_point[1], leader_point[2]))
                     api_ClickMove(poe2_api.toInt(leader_point[1]), poe2_api.toInt(leader_point[2]),  0)
                     api_Sleep(500)
                     poe2_api.click_keyboard("space")
                 end
                 
-                env.roll_time = nil
                 env.path_list_follow = {}
                 env.target_point_follow = nil
                 return bret.RUNNING
                 
-            elseif distance >= self.movement_threshold or player_info.life == 0 then
+            elseif player_info.isMoving or player_info.life == 0 then
                 poe2_api.dbgp("重置翻滚时间: 移动距离超过阈值或玩家死亡")
                 env.roll_time = nil                
             end
 
-            if env.exit_time > 60 * 1000 and distance < self.movement_threshold and player_info.life > 0 then
+            if env.exit_time > 60 * 1000 and not player_info.isMoving and player_info.life > 0 then
                 poe2_api.dbgp("移动到远点大号位置模块超时小退")
                 env.exit_time = nil
                 if not poe2_api.table_contains(self.special_maps, player_info.current_map_name_utf8) and 
@@ -11243,7 +11238,7 @@ local custom_nodes = {
                 else
                     poe2_api.dbgp("不满足小退条件")
                 end
-            elseif distance >= self.movement_threshold or player_info.life == 0 then
+            elseif player_info.isMoving or player_info.life == 0 then
                 poe2_api.dbgp("重置退出时间: 移动距离超过阈值或玩家死亡")
                 env.exit_time = nil    
             end
@@ -11290,7 +11285,6 @@ local custom_nodes = {
                         table.remove(env.path_list_follow, 1)
                         poe2_api.dbgp(string.format("新目标点: (%d,%d)", new_point[1], new_point[2]))
                     end
-                    env.roll_time = nil
                     poe2_api.time_p("[Move_To_Far_Leader_Point]",(api_GetTickCount64() - current_time))
                     return bret.RUNNING
                 end
@@ -12424,10 +12418,8 @@ local custom_nodes = {
                 return bret.RUNNING
             end
             local range_info = env.range_info
-            local last_pos = env.last_position_story
             env.roll_time = start_time - self.current_time
             local roll_time = env.roll_time
-            local distance = poe2_api.point_distance(last_pos[1], last_pos[2], player_info)
 
             -- 检查终点是否变化
             local end_point = env.end_point
@@ -12437,7 +12429,7 @@ local custom_nodes = {
             end
 
             -- 超时翻滚逻辑
-            if roll_time > 5 * 1000 and distance < self.movement_threshold then
+            if roll_time > 5 * 1000 and not player_info.isMoving and player_info.life > 0 then
                 poe2_api.dbgp("超时翻滚")
                 -- 获取可交互对象
                 local function get_range()
@@ -12512,12 +12504,11 @@ local custom_nodes = {
                 end
                 poe2_api.click_keyboard("space")
                 poe2_api.dbgp("超时翻滚-清理path_list")
-                env.roll_time = nil
                 env.end_point = nil
                 env.path_list = {}
                 env.target_point = nil
                 return bret.RUNNING
-            elseif distance >= self.movement_threshold then
+            elseif player_info.isMoving or player_info.life == 0 then
                 env.roll_time = nil
             end
 
@@ -12551,7 +12542,6 @@ local custom_nodes = {
                         -- poe2_api.dbgp("len 5604 移除已使用的点")
                         table.remove(env.path_list, 1)  
                     end
-                    env.roll_time = nil
                     poe2_api.time_p("执行移动(RUNNING5) 耗时 -->", api_GetTickCount64() - start_time)
                     return bret.RUNNING
                 end
