@@ -2687,6 +2687,10 @@ local custom_nodes = {
                     end
                 end
                 env.exchange_status = false
+                if poe2_api.find_text({ UI_info = env.UI_info, text = "強調物品", min_y = 700, min_x = 250 }) then
+                    poe2_api.click_keyboard('space')
+                    api_Sleep(500)
+                end
                 poe2_api.time_p("Is_Store_Items", api_GetTickCount64() - current_map)
                 return bret.SUCCESS
             end
@@ -6313,6 +6317,7 @@ local custom_nodes = {
                     if poe2_api.find_text({ UI_info = UI_info, text = "門", min_x = 0 }) and door_list[1].is_selectable
                         and not poe2_api.table_contains(player_info.current_map_name_utf8, { "G1_15", "G3_8", "G3_14"}) then
                         api_ClickMove(door_list[1].grid_x, door_list[1].grid_y, 1)
+                        api_UpdateMapObstacles(50)
                         reset_navigation_state()
                         return bret.RUNNING
                     end
@@ -8329,12 +8334,18 @@ local custom_nodes = {
                         if not poe2_api.find_text({ UI_info = UI_info, text = task_area_name, click = 0, refresh = true }) then
                             if #(poe2_api.task_area_list_data(teleport_area)) < 3 then
                                 waypoint_screen = poe2_api.waypoint_pos(teleport_area,env.waypoint)
-                                if waypoint_screen[1] <= 0 or waypoint_screen[2] <= 0 then
+                                if waypoint_screen[1] <= 0 or waypoint_screen[2] <= 0  then
                                     poe2_api.dbgp("获取传送点失败，重新获取传送点")
                                     api_Sleep(1000)
                                     env.waypoint = api_GetTeleportationPoint()
                                     api_Sleep(1000)
                                     return bret.RUNNING
+                                end
+                                if teleport_area == "G2_town" then
+                                    api_Sleep(1000)
+                                    env.waypoint = api_GetTeleportationPoint()
+                                    api_Sleep(1000)
+                                    waypoint_screen = poe2_api.waypoint_pos(teleport_area,env.waypoint)
                                 end
                                 api_ClickScreen(poe2_api.toInt(waypoint_screen[1]), poe2_api.toInt(waypoint_screen[2]), 0)
                                 api_Sleep(1000)
@@ -10038,6 +10049,7 @@ local custom_nodes = {
                                 if get_distance(door.grid_x,door.grid_y) < 25 then
                                     poe2_api.dbgp("距离门小于25，点击门")
                                     api_ClickMove(poe2_api.toInt(door.grid_x),poe2_api.toInt(door.grid_y),1)
+                                    api_UpdateMapObstacles(50)
                                     return bret.RUNNING
                                 else
                                     poe2_api.dbgp("距离门大于25，找门")
