@@ -493,8 +493,6 @@ local my_game_info = {
 
     MonitoringSkills_Rect = {
         {"Metadata/Effects/Spells/monsters_effects/Act1_FOUR/FungalArtillery/ao/abysslightning_projectile_impact.ao",20,5},
-        {"TCSwollenMillerCharge",95,30},
-        {"TCSwollenMillerChargeEnraged",95,30},
         {"SwollenMillerSlam",95,30}
     },
 

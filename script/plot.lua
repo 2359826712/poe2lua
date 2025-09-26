@@ -9750,8 +9750,9 @@ local custom_nodes = {
                     break
                 end
             end
-            
+            local space_check_dis = env.space_config["躲避距离"]
             local _handle_space_action = function(monster, space_flag, space_monsters, space_time, player_info)
+                poe2_api.dbgp("_handle_space_action")
                 -- 处理空格键操作
                 if not space_time then
                     space_time = 1500
@@ -9781,6 +9782,7 @@ local custom_nodes = {
 
             local _handle_space_action_path_name = function(player_info, space_time)
                 -- 处理空格键操作（添加20单位距离限制）
+                poe2_api.dbgp("_handle_space_action_path_name")
                 space_time = space_time or 1500
                 local ret = nil
                 local danger = api_IsPointInAnyActive(player_info.grid_x , player_info.grid_y , 100)
@@ -9814,7 +9816,7 @@ local custom_nodes = {
             if not monsters or not player_info then
                 return bret.SUCCESS
             end
-            local space_check_dis = env.space_config["躲避距离"]
+            
             local min_attack_range = env.min_attack_range or 70
             if space then
                 for _, monster in ipairs(monsters) do
