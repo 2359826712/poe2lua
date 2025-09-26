@@ -878,7 +878,7 @@ local custom_nodes = {
 
             local player_info_start_time = api_GetTickCount64()
             env.player_info = api_GetLocalPlayer()
-            -- poe2_api.printTable(env.player_info)
+            poe2_api.printTable(env.player_info)
             if poe2_api.countTableItems(env.player_info) < 1 then
                 poe2_api.dbgp("空人物信息")
                 return bret.RUNNING
@@ -5520,6 +5520,13 @@ local custom_nodes = {
                     env.map_name = "G3_6_2"
                     env.interaction_object_map_name = { "艾瓦" }
                     env.interaction_object = { "艾瓦" }
+                elseif party_member_map({ "G3_town"}) and task.task_name == "與艾瓦對話" then
+                    poe2_api.dbgp("[Query_Current_Task_Information_Local]與艾瓦對話")
+                    env.map_name = "G3_town"
+                    env.grid_x = 494
+                    env.grid_x = 823
+                    env.interaction_object_map_name = { "艾瓦" }
+                    env.interaction_object = { "艾瓦" }
                 elseif party_member_map({ "G3_6_1"}) and task.task_name == "召喚艾瓦詢問她的建議" then
                     poe2_api.dbgp("[Query_Current_Task_Information_Local]召喚艾瓦詢問她的建議")
                     env.map_name = "G3_6_1"
@@ -5800,6 +5807,13 @@ local custom_nodes = {
                     env.map_name = "G3_town"
                     task.task_name = "高地神塔營地"
                     env.task_name = task.task_name
+                elseif player_info.current_map_name_utf8 ==  "G3_town" and task.task_name == "與艾瓦對話" then
+                    poe2_api.dbgp("[Query_Current_Task_Information_Local]與艾瓦對話")
+                    env.map_name = "G3_town"
+                    env.interaction_object_map_name = { "艾瓦" }
+                    env.grid_x = 494
+                    env.grid_x = 823
+                    env.interaction_object = { "艾瓦" }
                 elseif poe2_api.table_contains(player_info.current_map_name_utf8, { "G3_6_2" }) and task.task_name == "與艾瓦對話" then
                     poe2_api.dbgp("[Query_Current_Task_Information]與艾瓦對話")
                     env.map_name = "G3_6_2"
@@ -7608,6 +7622,13 @@ local custom_nodes = {
                             api_Sleep(100)
                             poe2_api.click_keyboard("space")
                             return bret.RUNNING
+                        end
+                    else
+                        local waypoint_point_mini = mini_map_obj_flagStatus("Waypoint")
+                        local point_mini = mini_map_obj_flagStatus("StashPlayer")
+                        if waypoint_point_mini and point_mini and not point then
+                            env.end_point = {point_mini.grid_x, point_mini.grid_y}
+                            return bret.SUCCESS
                         end
                     end
                 end
@@ -9903,6 +9924,7 @@ local custom_nodes = {
                 end
                 if poe2_api.find_text({text = "背包",UI_info = env.UI_info, min_x = 1020,min_y=32,max_x=1600,max_y=81}) then
                     poe2_api.click_keyboard("i")
+                    api_Sleep(600)
                     return bret.RUNNING
                 end
                 if poe2_api.find_text({ UI_info = env.UI_info, text = "繼續"}) then
