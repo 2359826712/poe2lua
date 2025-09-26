@@ -1264,7 +1264,7 @@ local custom_nodes = {
             local take_rest = env.take_rest
             local player_info = env.player_info
         -- 特殊情况跳出
-            if player_info.isInBossBattle and poe2_api.get_team_info(env.team_info, env.user_config, player_info, 2) ~= "大號名" then
+            if player_info.isInBossBattle or poe2_api.get_team_info(env.team_info, env.user_config, player_info, 2) ~= "大號名" then
                 return bret.SUCCESS
             end
             --- 辅助函数
@@ -6344,7 +6344,7 @@ local custom_nodes = {
                         poe2_api.dbgp("[Is_Move]大號打怪")
                         if monster and monster_distacne < 180 then
                             poe2_api.dbgp("[Is_Move]怪物存在且距离小于180")
-                            if not env.path_list or not next(env.path_list) then
+                            if env.path_list and #env.path_list == 0 then
                                 local point = is_point(monster.grid_x, monster.grid_y)
                                 if not point or #point == 0 then
                                     poe2_api.dbgp("[Is_Move]怪物坐标非法")
@@ -6355,22 +6355,31 @@ local custom_nodes = {
 
                             env.monster_info = monster
                             monster_info = monster
-                            env.end_point = { monster.grid_x, monster.grid_y }
+                            point_monster = api_FindNearestReachablePoint(monster.grid_x, monster.grid_y, 25, 0)
+                            env.end_point = { point_monster.x, point_monster.y }
                         end
                         if monster_info then
                             poe2_api.dbgp("[Is_Move]有黑板参怪物")
                             if not away_monster_info then
                                 poe2_api.dbgp("[Is_Move]没有远距离怪物信息")
-                                env.end_point = { monster.grid_x, monster.grid_y }
+                                point_monster = api_FindNearestReachablePoint(monster.grid_x, monster.grid_y, 25, 0)
+                                env.end_point = { point_monster.x, point_monster.y }
                             else
                                 poe2_api.dbgp("[Is_Move]有远距离怪物信息")
                                 env.monster_info = away_monster_info
                                 point_monster = api_FindNearestReachablePoint(away_monster_info.grid_x,away_monster_info.grid_y, 25, 0)
-                                env.end_point = { monster.grid_x, monster.grid_y }
+                                if env.path_list and #env.path_list == 0 then
+                                    local point = is_point(away_monster_info.grid_x, away_monster_info.grid_y)
+                                    if not point or #point == 0 then
+                                        poe2_api.dbgp("[Is_Move]怪物坐标非法")
+                                        table.insert(relife_stuck_monsters, monster.id)
+                                        return bret.RUNNING
+                                    end
+                                end
+                                env.end_point = { point_monster.x, point_monster.y }
                             end
                             if poe2_api.point_distance(monster_info.grid_x, monster_info.grid_y, player_info) < env.min_attack_dis and monster_info.life <= 0 then
-                                table.insert(relife_stuck_monsters, monster.id)
-                                return bret.RUNNING
+                                env.monster_info = nil
                             end
                         end
                         if point_monster.x ~= -1 and point_monster.y ~= -1 then
@@ -10913,6 +10922,8 @@ local custom_nodes = {
                 poe2_api.dbgp("与队长距离小与80")
                 env.path_list_follow = {}
                 env.end_point_follow = nil
+                env.roll_time = nil
+                env.exit_time = nil
                 return bret.SUCCESS
             else
                 poe2_api.dbgp("与队长距离过远")
@@ -10937,7 +10948,7 @@ local custom_nodes = {
             if self.current_time == 0 then
                 self.current_time = api_GetTickCount64()
             end
-            if api_GetTickCount64() - self.current_time > self.timeout then
+            if api_GetTickCount64() - self.current_time > self.timeout and not player_info.isMoving then
                 poe2_api.dbgp("移动到近点大号位置模块执行超时")
                 local safe_point = api_GetSafeAreaLocation(env.player_info.grid_x, env.player_info.grid_y, 60, 10, 0, 0.5)
                 api_ClickMove(poe2_api.toInt(safe_point.x), poe2_api.toInt(safe_point.y) , 0)
