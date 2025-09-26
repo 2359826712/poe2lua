@@ -878,7 +878,7 @@ local custom_nodes = {
 
             local player_info_start_time = api_GetTickCount64()
             env.player_info = api_GetLocalPlayer()
-            poe2_api.printTable(env.player_info)
+            -- poe2_api.printTable(env.player_info)
             if poe2_api.countTableItems(env.player_info) < 1 then
                 poe2_api.dbgp("空人物信息")
                 return bret.RUNNING
@@ -5524,9 +5524,7 @@ local custom_nodes = {
                     poe2_api.dbgp("[Query_Current_Task_Information_Local]與艾瓦對話")
                     env.map_name = "G3_town"
                     env.grid_x = 494
-                    env.grid_x = 823
-                    env.interaction_object_map_name = { "艾瓦" }
-                    env.interaction_object = { "艾瓦" }
+                    env.grid_y = 823
                 elseif party_member_map({ "G3_6_1"}) and task.task_name == "召喚艾瓦詢問她的建議" then
                     poe2_api.dbgp("[Query_Current_Task_Information_Local]召喚艾瓦詢問她的建議")
                     env.map_name = "G3_6_1"
@@ -5812,7 +5810,7 @@ local custom_nodes = {
                     env.map_name = "G3_town"
                     env.interaction_object_map_name = { "艾瓦" }
                     env.grid_x = 494
-                    env.grid_x = 823
+                    env.grid_y = 823
                     env.interaction_object = { "艾瓦" }
                 elseif poe2_api.table_contains(player_info.current_map_name_utf8, { "G3_6_2" }) and task.task_name == "與艾瓦對話" then
                     poe2_api.dbgp("[Query_Current_Task_Information]與艾瓦對話")
@@ -9991,7 +9989,6 @@ local custom_nodes = {
                 end
                 poe2_api.dbgp("进入周围是否有交互对象")
                 poe2_api.time_p("[Is_Have_Interaction_Object]",(api_GetTickCount64() - current_time))
-
                 return bret.FAIL
             end
             poe2_api.time_p("[Is_Have_Interaction_Object]",(api_GetTickCount64() - current_time))
