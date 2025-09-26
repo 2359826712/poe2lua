@@ -134,41 +134,35 @@
         "children": [
           {
             "id": 28,
-            "name": "Click_Leader_To_Teleport",
-            "desc": "点击传送"
-          },
-          {
-            "id": 29,
             "name": "Sequence",
-            "desc": "follow_Interactive",
             "children": [
               {
-                "id": 30,
-                "name": "Follow_Interactive",
-                "desc": "点击进入"
+                "id": 29,
+                "name": "Click_Leader_To_Teleport",
+                "desc": "点击传送"
               },
               {
-                "id": 31,
+                "id": 30,
                 "name": "Sequence",
                 "desc": "Path_Move",
                 "children": [
                   {
-                    "id": 32,
+                    "id": 31,
                     "name": "Game_Block",
                     "desc": "清除遮挡"
                   },
                   {
-                    "id": 33,
+                    "id": 32,
                     "name": "Is_Arrive",
                     "desc": "是否到点"
                   },
                   {
-                    "id": 34,
+                    "id": 33,
                     "name": "GET_Path",
                     "desc": "获取路径"
                   },
                   {
-                    "id": 35,
+                    "id": 34,
                     "name": "Move_To_Target_Point",
                     "desc": "移动至目标点"
                   }
@@ -177,37 +171,76 @@
             ]
           },
           {
-            "id": 36,
+            "id": 35,
             "name": "Sequence",
-            "desc": "Area_Move",
+            "desc": "follow_Interactive",
             "children": [
               {
+                "id": 36,
+                "name": "Follow_Interactive",
+                "desc": "点击进入"
+              },
+              {
                 "id": 37,
-                "name": "Game_Block",
-                "desc": "清除遮挡"
-              },
-              {
-                "id": 38,
-                "name": "Check_Leader_Position",
-                "desc": "检查大号位置"
-              },
-              {
-                "id": 39,
                 "name": "Sequence",
                 "desc": "Path_Move",
                 "children": [
                   {
-                    "id": 40,
+                    "id": 38,
+                    "name": "Game_Block",
+                    "desc": "清除遮挡"
+                  },
+                  {
+                    "id": 39,
                     "name": "Is_Arrive",
                     "desc": "是否到点"
                   },
                   {
-                    "id": 41,
+                    "id": 40,
                     "name": "GET_Path",
                     "desc": "获取路径"
                   },
                   {
-                    "id": 42,
+                    "id": 41,
+                    "name": "Move_To_Target_Point",
+                    "desc": "移动至目标点"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "id": 42,
+            "name": "Sequence",
+            "desc": "Area_Move",
+            "children": [
+              {
+                "id": 43,
+                "name": "Game_Block",
+                "desc": "清除遮挡"
+              },
+              {
+                "id": 44,
+                "name": "Check_Leader_Position",
+                "desc": "检查大号位置"
+              },
+              {
+                "id": 45,
+                "name": "Sequence",
+                "desc": "Path_Move",
+                "children": [
+                  {
+                    "id": 46,
+                    "name": "Is_Arrive",
+                    "desc": "是否到点"
+                  },
+                  {
+                    "id": 47,
+                    "name": "GET_Path",
+                    "desc": "获取路径"
+                  },
+                  {
+                    "id": 48,
                     "name": "Move_To_Target_Point",
                     "desc": "移动至目标点"
                   }
