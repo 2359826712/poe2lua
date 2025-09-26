@@ -9759,7 +9759,7 @@ local custom_nodes = {
                 else
                     space_time = space_time
                 end
-                local result_60 = api_GetSafeAreaLocation(env.player_info.grid_x, env.player_info.grid_y, 100, space_check_dis, 1, 0.5)
+                local result_60 = api_GetSafeAreaLocation(env.player_info.grid_x, env.player_info.grid_y, 100, space_check_dis, 1, 0)
                 if ((space_flag and poe2_api.table_contains(space_monsters,monster.rarity))) and
                 api_GetTickCount64() - self.last_space_time >= space_time  then
                     local result = nil
@@ -9795,6 +9795,7 @@ local custom_nodes = {
                             env.end_point = {safe_point.x, safe_point.y}
                             return bret.FAIL
                         end
+                        api_ClickMove(poe2_api.toInt(safe_point.x), poe2_api.toInt(safe_point.y), 0)
                         api_Sleep(200)
                         env.end_point = nil
                         env.path_list = nil

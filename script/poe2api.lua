@@ -425,7 +425,7 @@ _M.check_NCStorageLocalData_config = function(config_path)
             for _, value1 in ipairs(file) do
                 if value1 == value then return true end
             end
-            return false
+            -- return false
         end
         return false
     end

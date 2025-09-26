@@ -10220,41 +10220,6 @@ local custom_nodes = {
                 end
             end   
 
-            local _handle_space_action_path_name1 = function(player_info, space_time)
-                -- 处理空格键操作（添加20单位距离限制）
-                space_time = space_time or 1500
-                if player_info.isInDangerArea then
-                    local rct = api_GetSafeAreaLocation(player_info.grid_x, player_info.grid_y, 60, 10, 0, 0.5)
-                    -- if is_bird then
-                    --     local ret = api_GetSafeAreaLocationNoMonsters(60)
-                    -- else
-                    --     local ret = api_GetSafeAreaLocationNoMonsters(40)
-                    -- end
-                    if ret and ret.x ~= -1 and ret.y ~= -1 then
-                        api_ClickMove(poe2_api.toInt(ret.x), poe2_api.toInt(ret.y), 0)
-                        api_Sleep(200)
-                        poe2_api.dbgp1("sdgbvsadgavagbzgbaz")
-                        -- if is_bird then
-                        --     api_ClickMove(poe2_api.toInt(result.x), poe2_api.toInt(result.y), poe2_api.toInt(player_info.world_z), 7)
-                        -- else
-                        poe2_api.click_keyboard("space")
-                        -- end
-                        return true
-                    else
-                        local rct = api_GetSafeAreaLocation(player_info.grid_x, player_info.grid_y, 60, 10, 0, 0.5)
-                        api_ClickMove(poe2_api.toInt(rct.x),poe2_api.toInt(rct.y), 0)
-                        api_Sleep(200)
-                        poe2_api.dbgp1("aFEWFGDSVBDSGBSDFGB")
-                        -- if is_bird then
-                        --     api_ClickMove(poe2_api.toInt(result.x), poe2_api.toInt(result.y), poe2_api.toInt(player_info.world_z), 7)
-                        -- else
-                        poe2_api.click_keyboard("space")
-                        -- end
-                        return true
-                    end
-                end
-                return false
-            end
 
             local _handle_space_action_path_name = function(player_info, space_time)
                 -- 处理空格键操作（添加20单位距离限制）
