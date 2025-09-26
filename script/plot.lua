@@ -1751,7 +1751,7 @@ local custom_nodes = {
                     poe2_api.find_text({ UI_info = env.UI_info, text = "獎勵", min_x = 100, add_y = 100, click = 2 })
                 end
                 api_Sleep(500)
-                if poe2_api.find_text({text = "背包",UI_info = env.UI_info, min_x = 1020,min_y=32,max_x=1600,max_y=81}) then
+                if poe2_api.find_text({text = "背包",UI_info = env.UI_info, min_x = 1020,min_y=32,max_x=1600,max_y=81,refresh = true}) then
                     if have_roman_number() then
                         poe2_api.get_space_point({ width = 1, height = 1, click = 1 })
                     else
@@ -4641,7 +4641,7 @@ local custom_nodes = {
             end
             local num = env.user_config["組隊設置"]["隊伍人數"]
             if team_info_data and #team_info_data == num then
-                if self.bool then
+                if env.bool then
                     if poe2_api.find_text({ text = "社交", UI_info = env.UI_info, min_x=0, min_y=32, max_x=381, max_y=81}) then
                         poe2_api.click_keyboard("j")
                         api_Sleep(500)
@@ -4671,7 +4671,7 @@ local custom_nodes = {
                     
                     if not is_consistent then
                         poe2_api.dbgp("队伍数据不一致，需要重新组队")
-                        self.bool = false  -- 重置状态，触发重新组队
+                        env.bool = false  -- 重置状态，触发重新组队
                         env.team_info_data = nil  -- 清除旧的队伍数据
                         return bret.RUNNING  -- 返回RUNNING让行为树重新执行组队逻辑
                     end
@@ -4702,7 +4702,7 @@ local custom_nodes = {
                         poe2_api.time_p("Team", api_GetTickCount64() - current_time)
                         return bret.RUNNING
                     end
-                    self.bool = true
+                    env.bool = true
                     env.team_info_data = api_GetTeamInfo()
                     poe2_api.dbgp("Team(SUCCESS2)")
                     poe2_api.time_p("Team", api_GetTickCount64() - current_time)
@@ -9911,7 +9911,7 @@ local custom_nodes = {
                     end
                     poe2_api.find_text({ UI_info = env.UI_info, text = "獎勵", min_x = 100, add_y = 100 , click = 2 })
                     api_Sleep(500)
-                    if poe2_api.find_text({text = "背包",UI_info = env.UI_info, min_x = 1020,min_y=32,max_x=1600,max_y=81}) then
+                    if poe2_api.find_text({text = "背包",UI_info = env.UI_info, min_x = 1020,min_y=32,max_x=1600,max_y=81,refresh = true}) then
                         if have_roman_number() then
                             poe2_api.get_space_point({ width = 1, height = 1, click = 1 })
                         else
