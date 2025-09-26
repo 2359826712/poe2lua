@@ -378,13 +378,13 @@ local custom_nodes = {
                 env.account_state = nil
                 env.time_out = 0
                 env.error_kill = false
-                env.game_window = 0
+                
                 env.hwrd_time = 0
                 local pid = api_EnumProcess(process_name)
 
                 if pid and next(pid) and pid[1] ~= 0 then
                     api_SetWindowState(env.game_window, 13)
-                    -- poe2_api.terminate_process(pid)
+                    env.game_window = 0
                     api_Sleep(10000)
                     return bret.RUNNING
                 end
@@ -6883,7 +6883,7 @@ local custom_nodes = {
                 local range_info_sorted = poe2_api.get_sorted_list(actors, player_info)
                 for _, actor in ipairs(range_info_sorted) do
                     if actor.name_utf8 == name then
-                        return { actor.grid_x, actor.grid_y }
+                        return { actor.grid_x, actor.grid_y,actor.id }
                     end
                 end
                 return nil
@@ -7263,8 +7263,12 @@ local custom_nodes = {
                 if check_pos_dis("崛起之王．賈嫚拉") == nil and string.find(current_map, "G2_3") then
                     return bret.SUCCESS
                 elseif poe2_api.find_text({ UI_info = UI_info, text = "樓梯", min_x = 0 }) and poe2_api.find_text({ UI_info = UI_info, text = "記錄點", min_x = 0}) then
+                    self.louti = ladder[3]
                     return bret.SUCCESS
                 elseif not next_level() and ladder then
+                    if self.louti ==  ladder[3] then
+                        return bret.SUCCESS
+                    end
                     if ladder and (poe2_api.table_contains(current_map, { "G1_15", "C_G1_15" }) or not poe2_api.find_text({ UI_info = UI_info, text = "樓梯", min_x = 0 })) then
                         if check_pos_dis("樓梯") > 50 then
                             local ladder_point = api_FindNearestReachablePoint(ladder[1], ladder[2], 40, 0)
