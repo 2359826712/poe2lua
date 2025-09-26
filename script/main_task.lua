@@ -1638,6 +1638,12 @@ local main_task= {
             interaction_object_map_name= {'G4_2_2'},
             index = 269
         },
+        ['進入末途島']= {
+            map_name= 'G4_2_1',
+            interaction_object= {'旅程結束'},
+            interaction_object_map_name= {'G4_2_2'},
+            index = 269
+        },
         ['凱吉灣']= {
             map_name= 'G4_2_1',
             index = 270
