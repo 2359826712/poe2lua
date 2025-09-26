@@ -6209,13 +6209,23 @@ _M.get_team_info = function(team_info ,config ,player_info, index)
     local team_members = team_info
     local captain = config["組隊設置"]["隊長名"]
     local leader = config["組隊設置"]["大號名"]
-
     local my_profession = '未知' -- 初始化您的職業为未知
     if player_info and team_members then
-        for role, name in pairs(team_members) do
-            if player_info.name_utf8 and name == player_info.name_utf8 then
-                my_profession = role
-                break
+        for role, name_data in pairs(team_members) do
+            if type(name_data) == "table" then
+                -- 处理表类型（如小號名）
+                for _, name in ipairs(name_data) do
+                    if player_info.name_utf8 and name == player_info.name_utf8 then
+                        my_profession = role
+                        break
+                    end
+                end
+            else
+                -- 处理字符串类型
+                if player_info.name_utf8 and name_data == player_info.name_utf8 then
+                    my_profession = role
+                    break
+                end
             end
         end
     end
