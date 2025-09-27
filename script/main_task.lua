@@ -509,6 +509,10 @@ local main_task= {
             grid_y = 272,
             index = 86
         },
+        ["瓦斯提里郊區"] = {
+            map_name = 'G2_1',
+            index = 87
+        },
         ['與黑衣幽魂對話'] = {
             map_name = 'G2_1',
             index = 87

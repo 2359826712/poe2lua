@@ -285,6 +285,10 @@ _M.find_text = function(params)
         --     _M.dbgp(actor.left, actor.right)
         --     _M.dbgp(actor.top, actor.bottom)
         -- end
+        -- _M.dbgp(actor.text_utf8)
+        -- _M.dbgp(defaults.min_x)
+        -- _M.dbgp(actor.left)
+        -- _M.dbgp(defaults.min_x <= actor.left)
         if defaults.min_x <= actor.left and actor.left <= defaults.max_x and
            defaults.min_y <= actor.top and actor.top <= defaults.max_y then
             

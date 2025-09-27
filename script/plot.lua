@@ -859,13 +859,13 @@ local custom_nodes = {
                 api_Sleep(4000)
                 return bret.RUNNING
             end
-            -- for _,k in ipairs(env.UI_info) do
-            --     if k.text_utf8 ~= "" then
-            --         poe2_api.dbgp(k.text_utf8)
-            --     end
-            -- end
+            for _,k in ipairs(env.UI_info) do
+                if k.text_utf8 ~= "" then
+                    poe2_api.dbgp(k.text_utf8)
+                end
+            end
             poe2_api.time_p("Get_UI_Info... 耗时 --> ", api_GetTickCount64() - start_time)
-            -- api_Sleep(4000)
+            api_Sleep(4000)
             return bret.SUCCESS
         end
     },
@@ -1054,9 +1054,9 @@ local custom_nodes = {
         run = function(self, env)
             poe2_api.print_log("执行清理...")
             local start_time = api_GetTickCount64()
-            if not self.time1 then
-                self.bool = false
-                self.time1 = 0
+            if not env.clear_time then
+                env.clear_bool = false
+                env.clear_time = 0
                 poe2_api.dbgp("初始化")
             end
             local player_info = env.player_info
@@ -1064,17 +1064,20 @@ local custom_nodes = {
                 poe2_api.dbgp("人物信息为空")
                 return bret.RUNNING
             end
-            if self.time1 == 0 then
-                self.time1 = api_GetTickCount64()
+            if env.clear_time == 0 then
+                env.clear_time = api_GetTickCount64()
             end
             if poe2_api.find_text({ UI_info = env.UI_info, text = "私訊", add_x = 265, min_x = 0, max_x = 400, click = 2 }) then
                 return bret.RUNNING
             end
+            if not env.clear_click_bool then
+                env.clear_click_bool = true
+                poe2_api.dbgp("点击清理")
+                api_ClickMove(poe2_api.toInt(player_info.grid_x), poe2_api.toInt(player_info.grid_y),7)
+            end
             if player_info.life ~= 0 and not poe2_api.click_text_UI({ text = "respawn_at_checkpoint_button", UI_info = env.UI_info }) then
-                if (string.match(player_info.current_map_name_utf8, "town") and not self.bool) or start_time - self.time1 > 5 * 60 * 1000 then
+                if (string.match(player_info.current_map_name_utf8, "town") and not env.clear_bool) or start_time - env.clear_time > 5 * 60 * 1000 then
                     if not poe2_api.find_text({ UI_info = env.UI_info, text = "/clear", min_x = 0 }) then
-                        api_ClickMove(poe2_api.toInt(player_info.grid_x), poe2_api.toInt(player_info.grid_y),7)
-                        api_Sleep(1000)
                         poe2_api.click_keyboard("enter")
                         api_Sleep(500)
                         poe2_api.click_keyboard("backspace")
@@ -1083,12 +1086,12 @@ local custom_nodes = {
                         api_Sleep(500)
                         poe2_api.click_keyboard("enter")
                         api_Sleep(500)
-                        self.bool = true
-                        self.time1 = 0
+                        env.clear_bool = true
+                        env.clear_time = 0
                         return bret.RUNNING
                     end
                 elseif not string.match(player_info.current_map_name_utf8, "town") then
-                    self.bool = false
+                    env.clear_bool = false
                 end
             end
             poe2_api.time_p("执行清理... 耗时 --> ", api_GetTickCount64() - start_time)
@@ -5355,6 +5358,7 @@ local custom_nodes = {
             poe2_api.dbgp(max_time)
             -- 解析日志获取成员任务信息
             local member_task_info = process_recent_logs_unique(log_path, max_time)
+            poe2_api.printTable(member_task_info)
             if not member_task_info or next(member_task_info) == nil then
                 poe2_api.dbgp("没有找到队友发送的任务信息")
                 poe2_api.time_p("Check_Role",api_GetTickCount64()- current_time)
@@ -5726,7 +5730,7 @@ local custom_nodes = {
                         main_task_info[i] = main_task_info[i]:gsub("\\%d+", ""):gsub("\\", ""):gsub("[\n%s]", "")
                     end
                 end
-                -- poe2_api.printTable(main_task_info)
+                poe2_api.printTable(main_task_info)
                 if (poe2_api.table_contains(main_task_info, "追尋傳奇人物奧爾巴拉的腳步，重鑄瓦斯提里的戰角") or poe2_api.table_contains(main_task_info, "跟艾瓦談談發生的事")) and #(main_task_info) > 1 then
                     task = poe2_api.get_task_info(main_task.tasks_data,main_task_info[2]) 
                 else
@@ -5735,7 +5739,8 @@ local custom_nodes = {
             else
                 task = nil
             end
-            if poe2_api.find_text({UI_info = env.UI_info, text = "私訊", add_x = 265, min_x = 0, max_x = 400, click = 2}) then
+            if poe2_api.find_text({UI_info = env.UI_info, text = "私訊", add_x = 265, min_x = 0, max_x = 400, click = 2, refresh = true}) then
+                poe2_api.dbgp("[Query_Current_Task_Information]关闭私信")
                 return bret.RUNNING
             end
             
@@ -6008,7 +6013,7 @@ local custom_nodes = {
                     elseif self.mas == "G1_12" then
                         poe2_api.dbgp("[Query_Current_Task_Information]获取G1_12地图任务信息")
                         if poe2_api.get_team_info(team_info, config, player_info, 2) ~= "大號名" then
-                            if not next(self.raw) or (self.raw_time ~= 0 and api_GetTickCount64() - self.raw_time > max_time) then
+                            if not next(env.raw) or (self.raw_time ~= 0 and api_GetTickCount64() - self.raw_time > max_time) then
                                 -- 发送任务信息
                                 local task_text = "task_name=" .. "尋找祭祀神壇並淨化它們" .. ",task_index=" .. 80 ..",map_name=" .. self.mas
                                 poe2_api.click_keyboard("enter")
@@ -6038,7 +6043,7 @@ local custom_nodes = {
                             env.grid_y = nil
                             env.interaction_object = { "召喚瑟維", "瑟維" }
                             if poe2_api.get_team_info(team_info, config, player_info, 2) ~= "大號名" then
-                                if not next(self.raw) or (self.raw_time ~= 0 and api_GetTickCount64() - self.raw_time > max_time) then
+                                if not next(env.raw) or (self.raw_time ~= 0 and api_GetTickCount64() - self.raw_time > max_time) then
                                     -- 发送任务信息
                                     local task_text = "task_name=" .. "阿札克泥沼" .. ",task_index=" .. 250 ..",map_name=" .. self.mas
                                     poe2_api.click_keyboard("enter")
@@ -6064,7 +6069,7 @@ local custom_nodes = {
                         else
                             poe2_api.dbgp("[Query_Current_Task_Information]前往G3_7,先前往G3_town地图")
                             if poe2_api.get_team_info(team_info, config, player_info, 2) ~= "大號名" then
-                                if not next(self.raw) or (self.raw_time ~= 0 and api_GetTickCount64() - self.raw_time > max_time) then
+                                if not next(env.raw) or (self.raw_time ~= 0 and api_GetTickCount64() - self.raw_time > max_time) then
                                     -- 发送任务信息
                                     local task_text = "task_name=" .. "高地神塔營地" .. ",task_index=" .. 0 ..",map_name=" .. "G3_town"
                                     poe2_api.click_keyboard("enter")
@@ -6091,7 +6096,7 @@ local custom_nodes = {
                     elseif self.mas == "G4_1_1" then
                         poe2_api.dbgp("[Query_Current_Task_Information]获取G4_1_1地图任务信息")
                         if poe2_api.get_team_info(team_info, config, player_info, 2) ~= "大號名" then
-                            if not next(self.raw) or (self.raw_time ~= 0 and api_GetTickCount64() - self.raw_time > max_time) then
+                            if not next(env.raw) or (self.raw_time ~= 0 and api_GetTickCount64() - self.raw_time > max_time) then
                                 -- 发送任务信息
                                 local task_text = "task_name=" .. "金氏島" .. ",task_index=" .. 278 ..",map_name=" .. self.mas
                                 poe2_api.click_keyboard("enter")
@@ -6117,7 +6122,7 @@ local custom_nodes = {
                     elseif self.mas == "G4_4_1" then
                         poe2_api.dbgp("[Query_Current_Task_Information]获取G4_4_1地图任务信息")
                         if poe2_api.get_team_info(team_info, config, player_info, 2) ~= "大號名" then
-                            if not next(self.raw) or (self.raw_time ~= 0 and api_GetTickCount64() - self.raw_time > max_time) then
+                            if not next(env.raw) or (self.raw_time ~= 0 and api_GetTickCount64() - self.raw_time > max_time) then
                                 -- 发送任务信息
                                 local task_text = "task_name=" .. "悉妮蔻拉之眼" .. ",task_index=" .. 278 ..",map_name=" .. self.mas
                                 poe2_api.click_keyboard("enter")
@@ -6645,9 +6650,8 @@ local custom_nodes = {
             local function processItem(item, player_info)
                 env.item_name = item.baseType_utf8
                 env.end_point = { item.grid_x, item.grid_y }
-
                 if poe2_api.point_distance(item.grid_x, item.grid_y, player_info) < 25 and
-                    (api_HasObstacleBetween(item.grid_x, item.grid_y) or item.baseType_utf8 == "水之精髓") then
+                    (api_HasObstacleBetween(item.grid_x, item.grid_y) or poe2_api.table_contains(item.baseType_utf8 , {"水之精髓","鍛造工具"})) then
                     return bret.FAIL
                 end
                 return bret.SUCCESS
@@ -9347,8 +9351,11 @@ local custom_nodes = {
                 if self.attack_last_time == nil then
                     self.attack_last_time = api_GetTickCount64()
                 end
-
-                api_ClickMove(math.floor(move_x), math.floor(move_y), 0)
+                if monster.name_utf8 == "巨像．札爾瑪拉斯" then
+                    api_ClickMove(math.floor(move_x), math.floor(move_y), 0,math.floor(player_info.world_z))
+                else
+                    api_ClickMove(math.floor(move_x), math.floor(move_y), 0)
+                end
                 
                 -- 设置冷却时间
                 local skill_start = api_GetTickCount64()
