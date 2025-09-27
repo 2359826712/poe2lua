@@ -405,46 +405,47 @@ local main_task= {
             grid_y = 306,
             index = 69
         },
-        ['奧格姆村'] = {
-            map_name = 'G1_13_2',
-            index = 70
-        },
+        
         ['搜尋腐化種子'] = {
             map_name = 'G1_13_2',
             interaction_object = {'ExecutionerActive'},
             interaction_object_map_name = {'ExecutionerActive', 'ExecutionerInactive'},
-            index = 71
+            index = 70
         },
         ['殺死劊子手'] = {
             map_name = 'G1_13_2',
             Boss = {'劊子手'},
             interaction_object = {'ExecutionerActive'},
             interaction_object_map_name = {'ExecutionerActive', 'ExecutionerInactive'},
-            index = 72
-        },
-        ['找到倫利的工具'] = {
-            map_name = 'G1_13_2',
-            interaction_object = {'鍛造工具'},
-            index = 73
+            index = 71
         },
         ['釋放囚犯'] = {
             map_name = 'G1_13_2',
             interaction_object = {'把手','蕾堤絲'},
             Boss = {'劊子手'},
             interaction_object_map_name = {'G1_14'},
-            index = 74
+            index = 72
         },
         ['與蕾堤絲交談'] = {
             map_name = 'G1_13_2',
             interaction_object = {'蕾堤絲'},
             interaction_object_map_name = {'G1_14'},
-            index = 75
+            index = 73
         },
         ['將工具帶回給倫利'] = {
             map_name = 'G1_town',
             interaction_object = {'倫利'},
             grid_x = 386,
             grid_y = 397,
+            index = 74
+        },
+        ['找到倫利的工具'] = {
+            map_name = 'G1_13_2',
+            interaction_object = {'鍛造工具'},
+            index = 75
+        },
+        ['奧格姆村'] = {
+            map_name = 'G1_13_2',
             index = 76
         },
         ['奧格姆宅第'] = {

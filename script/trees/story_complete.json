@@ -767,103 +767,102 @@
           },
           {
             "id": 144,
+            "name": "Identify_designated_equipment",
+            "desc": "城外鉴定"
+          },
+          {
+            "id": 145,
             "name": "Selector",
-            "desc": "Pick_Up",
             "children": [
               {
-                "id": 145,
-                "name": "Is_Pick_UP",
-                "desc": "是否需要拾取"
+                "id": 146,
+                "name": "Is_Have_Interaction_Object",
+                "desc": "是否要交互"
               },
               {
-                "id": 146,
+                "id": 147,
                 "name": "Sequence",
-                "desc": "Interactive",
                 "children": [
                   {
-                    "id": 147,
+                    "id": 148,
                     "name": "Game_Block",
-                    "desc": "清理遮挡"
+                    "desc": "清除遮挡"
                   },
                   {
-                    "id": 148,
+                    "id": 149,
+                    "name": "The_Interactive_Object_Exist",
+                    "desc": "是否要交互"
+                  },
+                  {
+                    "id": 150,
                     "name": "Selector",
-                    "desc": "move_to_object",
                     "children": [
                       {
-                        "id": 149,
-                        "name": "Click_Item_Text",
-                        "desc": "点击交互"
+                        "id": 151,
+                        "name": "Is_Path_Move",
+                        "desc": "是否需要移动"
                       },
                       {
-                        "id": 150,
+                        "id": 152,
                         "name": "Sequence",
                         "desc": "Path_Move",
                         "children": [
                           {
-                            "id": 151,
-                            "name": "Game_Block",
-                            "desc": "清除遮挡"
-                          },
-                          {
-                            "id": 152,
+                            "id": 153,
                             "name": "Is_Arrive",
                             "desc": "是否到点"
                           },
                           {
-                            "id": 153,
+                            "id": 154,
                             "name": "GET_Path",
                             "desc": "获取路径"
                           },
                           {
-                            "id": 154,
+                            "id": 155,
                             "name": "Move_To_Target_Point",
                             "desc": "移动至目标点"
                           }
                         ]
                       }
                     ]
+                  },
+                  {
+                    "id": 156,
+                    "name": "Interactive"
                   }
                 ]
               }
             ]
           },
           {
-            "id": 155,
-            "name": "Identify_designated_equipment",
-            "desc": "城外鉴定"
-          },
-          {
-            "id": 156,
+            "id": 157,
             "name": "Selector",
+            "desc": "Pick_Up",
             "children": [
               {
-                "id": 157,
-                "name": "Is_Have_Interaction_Object",
-                "desc": "是否要交互"
+                "id": 158,
+                "name": "Is_Pick_UP",
+                "desc": "是否需要拾取"
               },
               {
-                "id": 158,
+                "id": 159,
                 "name": "Sequence",
+                "desc": "Interactive",
                 "children": [
                   {
-                    "id": 159,
-                    "name": "Game_Block",
-                    "desc": "清除遮挡"
-                  },
-                  {
                     "id": 160,
-                    "name": "The_Interactive_Object_Exist",
-                    "desc": "是否要交互"
+                    "name": "Game_Block",
+                    "desc": "清理遮挡"
                   },
                   {
                     "id": 161,
                     "name": "Selector",
+                    "desc": "move_to_object",
                     "children": [
                       {
                         "id": 162,
-                        "name": "Is_Path_Move",
-                        "desc": "是否需要移动"
+                        "name": "Click_Item_Text",
+                        "desc": "点击交互"
                       },
                       {
                         "id": 163,
@@ -872,26 +871,27 @@
                         "children": [
                           {
                             "id": 164,
+                            "name": "Game_Block",
+                            "desc": "清除遮挡"
+                          },
+                          {
+                            "id": 165,
                             "name": "Is_Arrive",
                             "desc": "是否到点"
                           },
                           {
-                            "id": 165,
+                            "id": 166,
                             "name": "GET_Path",
                             "desc": "获取路径"
                           },
                           {
-                            "id": 166,
+                            "id": 167,
                             "name": "Move_To_Target_Point",
                             "desc": "移动至目标点"
                           }
                         ]
                       }
                     ]
-                  },
-                  {
-                    "id": 167,
-                    "name": "Interactive"
                   }
                 ]
               }

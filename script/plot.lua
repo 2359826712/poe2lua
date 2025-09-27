@@ -4160,8 +4160,8 @@ local custom_nodes = {
                 self.currte_time = api_GetTickCount64()
             end
             if api_GetTickCount64() - self.currte_time > 10*1000 then
-                local path = api_FindNearestReachablePoint(need_item.grid_x, need_item.grid_y,50,0)
-                if path.x == path.y == -1 then
+                local path = api_FindPath(need_item.grid_x, need_item.grid_y,player_info.grid_x,player_info.grid_y)
+                if not path or #path == 0  then
                     poe2_api.dbgp("物品无路径")
                     env.need_item = nil
                     env.interactive = nil
@@ -4377,6 +4377,7 @@ local custom_nodes = {
                 poe2_api.time_p("检查是否拾取（RUNNING10）... 耗时 --> ", api_GetTickCount64() - start_time)
                 return bret.RUNNING
             end
+            self.currte_time = 0
             poe2_api.dbgp("背包已關閉*********************************************************")
             poe2_api.time_p("检查是否拾取（FAIL1）... 耗时 --> ", api_GetTickCount64() - start_time)
             return bret.FAIL
@@ -4639,9 +4640,13 @@ local custom_nodes = {
                 poe2_api.time_p("Team", api_GetTickCount64() - current_time)
                 return bret.SUCCESS
             end
+            if not self.current_time then
+                self.current_time = 0
+            end
             local num = env.user_config["組隊設置"]["隊伍人數"]
             if team_info_data and #team_info_data == num then
                 if env.bool then
+                    self.current_time = 0
                     if poe2_api.find_text({ text = "社交", UI_info = env.UI_info, min_x=0, min_y=32, max_x=381, max_y=81}) then
                         poe2_api.click_keyboard("j")
                         api_Sleep(500)
@@ -4853,13 +4858,12 @@ local custom_nodes = {
                 
                 poe2_api.dbgp("找到的小号名: " .. table.concat(small_account_names, ", "))
             elseif player_info.name_utf8 ~= leader_name then
-                local current_time = 0
-                if current_time == 0  then
-                    current_time = api_GetTickCount64()
+                if self.current_time == 0  then
+                    self.current_time = api_GetTickCount64()
                 end
-                if (not self.bool1) or (api_GetTickCount64() - current_time > 1000*60) then
+                if (not env.bool1) or (api_GetTickCount64() - self.current_time > 1000*10) then
                     poe2_api.dbgp("发送名字给队长")
-                    self.bool1 = true
+                    env.bool1 = true
                     poe2_api.click_keyboard("enter")
                     api_Sleep(200)
                     poe2_api.paste_text("@"..captain_name.." "..player_info.name_utf8)
@@ -5346,7 +5350,7 @@ local custom_nodes = {
             local expected_mission_count = num - 1
 
             -- 设置超时时间（如果在藏身处则30秒，否则5分钟）
-            local max_time = 1000 * 60 * 10  -- 5分钟
+            local max_time = 1000 * 60 * 10  -- 10分钟
 
             poe2_api.dbgp(max_time)
             -- 解析日志获取成员任务信息
@@ -5586,7 +5590,7 @@ local custom_nodes = {
             local current_time = api_GetTickCount64()
             poe2_api.dbgp("[Query_Current_Task_Information]小号查询任务信息")
             if self.raw_time == nil then
-                self.raw = {}
+                env.raw = {}
                 self.raw_time = 0
                 self.update = {}
                 self.mas = nil
@@ -5712,7 +5716,7 @@ local custom_nodes = {
                 
                 return quest_details
             end
-            -- poe2_api.printTable(api_GetQuestList(0))
+            poe2_api.printTable(api_GetQuestList(0))
             local main_task_info = get_ordered_quest_status(api_GetQuestList(0), my_game_info.mian_task)
             if next(main_task_info) then
                 -- 处理main_task_info中的反斜杠和换行符
@@ -5883,13 +5887,13 @@ local custom_nodes = {
                     env.map_name = "G3_7"
                     env.interaction_object = { "傑洛特顱骨" }
                     env.interaction_object_map_name = nil
-                elseif player_info.current_map_name_utf8 == "G2_1" and env.map_name ~="G2_1" then
+                elseif player_info.current_map_name_utf8 == "G2_1" and env.map_name ~="G2_1" and string.find(env.map_name, "G2") then
                     task.task_name = "進入阿杜拉車隊"
                     env.task_name = task.task_name
                     env.map_name = "G2_1"
                     env.interaction_object = {'阿杜拉車隊'}
                     env.interaction_object_map_name = {'G2_town'}
-                elseif player_info.current_map_name_utf8 == "G3_1" and env.map_name ~="G3_1" then
+                elseif player_info.current_map_name_utf8 == "G3_1" and env.map_name ~="G3_1" and string.find(env.map_name, "G3") then
                     task.task_name = "高地神塔營地"
                     env.task_name = task.task_name
                     env.map_name = "G3_town"
@@ -5897,7 +5901,7 @@ local custom_nodes = {
                 if poe2_api.get_team_info(team_info, config, player_info, 1) ~= "大號名" then
                     poe2_api.dbgp("[Query_Current_Task_Information]有task发送任务信息")
                     if not poe2_api.table_contains(player_info.current_map_name_utf8, { "G1_1" }) and not poe2_api.find_text({ UI_info = env.UI_info, text = "抵達皆伐" }) then
-                        if not next(self.raw) or (self.raw_time ~= 0 and api_GetTickCount64() - self.raw_time > max_time) then
+                        if not next(env.raw) or (self.raw_time ~= 0 and api_GetTickCount64() - self.raw_time > max_time) then
                             -- 发送任务信息
                             local task_text = "task_name=" .. task.task_name .. ",task_index=" .. task.index ..",map_name=" .. env.map_name
                             poe2_api.click_keyboard("enter")
@@ -5909,11 +5913,11 @@ local custom_nodes = {
                             poe2_api.click_keyboard("enter")
                             api_Sleep(500)
                             self.raw_time = api_GetTickCount64()
-                            self.raw = { task.task_name, task.index }
+                            env.raw = { task.task_name, task.index }
                         end
-                        self.update = { task.task_name, task.index }
-                        if not deep_equal_unordered(self.raw, self.update) then
-                            self.raw = {}
+                        env.update = { task.task_name, task.index }
+                        if not deep_equal_unordered(env.raw, env.update) then
+                            env.raw = {}
                             poe2_api.dbgp("[Query_Current_Task_Information]RUNNING2")
                             return bret.RUNNING
                         end
@@ -5978,7 +5982,7 @@ local custom_nodes = {
                     elseif self.mas == "G3_town" then
                         poe2_api.dbgp("[Query_Current_Task_Information]获取G3_town地图任务信息")
                         if poe2_api.get_team_info(team_info, config, player_info, 2) ~= "大號名" then
-                            if not next(self.raw) or (self.raw_time ~= 0 and api_GetTickCount64() - self.raw_time > max_time) then
+                            if not next(env.raw) or (self.raw_time ~= 0 and api_GetTickCount64() - self.raw_time > max_time) then
                                 -- 发送任务信息
                                 local task_text = "task_name=" .. "高地神塔營地" .. ",task_index=" .. 179 ..",map_name=" .. self.mas
                                 poe2_api.click_keyboard("enter")
@@ -5988,11 +5992,11 @@ local custom_nodes = {
                                 poe2_api.click_keyboard("enter")
                                 api_Sleep(500)
                                 self.raw_time = api_GetTickCount64()
-                                self.raw = { "高地神塔營地", 179 }
+                                env.raw = { "高地神塔營地", 179 }
                             end
-                            self.update = { "高地神塔營地", 179 }
-                            if not deep_equal_unordered(self.raw, self.update) then
-                                self.raw = {}
+                            env.update = { "高地神塔營地", 179 }
+                            if not deep_equal_unordered(env.raw, env.update) then
+                                env.raw = {}
                                 poe2_api.dbgp("[Query_Current_Task_Information]RUNNING2")
                                 return bret.RUNNING
                             end
@@ -6014,11 +6018,11 @@ local custom_nodes = {
                                 poe2_api.click_keyboard("enter")
                                 api_Sleep(500)
                                 self.raw_time = api_GetTickCount64()
-                                self.raw = { "尋找祭祀神壇並淨化它們", 80 }
+                                env.raw = { "尋找祭祀神壇並淨化它們", 80 }
                             end
-                            self.update = { "尋找祭祀神壇並淨化它們", 80 }
-                            if not deep_equal_unordered(self.raw, self.update) then
-                                self.raw = {}
+                            env.update = { "尋找祭祀神壇並淨化它們", 80 }
+                            if not deep_equal_unordered(env.raw, env.update) then
+                                env.raw = {}
                                 poe2_api.dbgp("[Query_Current_Task_Information]RUNNING2")
                                 return bret.RUNNING
                             end
@@ -6044,11 +6048,11 @@ local custom_nodes = {
                                     poe2_api.click_keyboard("enter")
                                     api_Sleep(500)
                                     self.raw_time = api_GetTickCount64()
-                                    self.raw = { "阿札克泥沼", 250 }
+                                    env.raw = { "阿札克泥沼", 250 }
                                 end
-                                self.update = { "阿札克泥沼", 250 }
-                                if not deep_equal_unordered(self.raw, self.update) then
-                                    self.raw = {}
+                                env.update = { "阿札克泥沼", 250 }
+                                if not deep_equal_unordered(env.raw, env.update) then
+                                    env.raw = {}
                                     poe2_api.dbgp("[Query_Current_Task_Information]RUNNING2")
                                     return bret.RUNNING
                                 end
@@ -6070,11 +6074,11 @@ local custom_nodes = {
                                     poe2_api.click_keyboard("enter")
                                     api_Sleep(500)
                                     self.raw_time = api_GetTickCount64()
-                                    self.raw = { "高地神塔營地", 0 }
+                                    env.raw = { "高地神塔營地", 0 }
                                 end
-                                self.update = { "高地神塔營地", 0 }
-                                if not deep_equal_unordered(self.raw, self.update) then
-                                    self.raw = {}
+                                env.update = { "高地神塔營地", 0 }
+                                if not deep_equal_unordered(env.raw, env.update) then
+                                    env.raw = {}
                                     poe2_api.dbgp("[Query_Current_Task_Information]RUNNING2")
                                     return bret.RUNNING
                                 end
@@ -6097,11 +6101,11 @@ local custom_nodes = {
                                 poe2_api.click_keyboard("enter")
                                 api_Sleep(500)
                                 self.raw_time = api_GetTickCount64()
-                                self.raw = { "金氏島", 278 }
+                                env.raw = { "金氏島", 278 }
                             end
-                            self.update = { "金氏島", 278 }
-                            if not deep_equal_unordered(self.raw, self.update) then
-                                self.raw = {}
+                            env.update = { "金氏島", 278 }
+                            if not deep_equal_unordered(env.raw, env.update) then
+                                env.raw = {}
                                 poe2_api.dbgp("[Query_Current_Task_Information]金氏島RUNNING2")
                                 return bret.RUNNING
                             end
@@ -6123,11 +6127,11 @@ local custom_nodes = {
                                 poe2_api.click_keyboard("enter")
                                 api_Sleep(500)
                                 self.raw_time = api_GetTickCount64()
-                                self.raw = { "悉妮蔻拉之眼", 278 }
+                                env.raw = { "悉妮蔻拉之眼", 278 }
                             end
-                            self.update = { "悉妮蔻拉之眼", 278 }
-                            if not deep_equal_unordered(self.raw, self.update) then
-                                self.raw = {}
+                            env.update = { "悉妮蔻拉之眼", 278 }
+                            if not deep_equal_unordered(env.raw, self.update) then
+                                env.raw = {}
                                 poe2_api.dbgp("[Query_Current_Task_Information]悉妮蔻拉之眼-RUNNING2")
                                 return bret.RUNNING
                             end
@@ -12772,6 +12776,10 @@ local env_params = {
     full_map = false,                  -- 地图是否已满
     min_attack_dis = nil,
     in_exchange = false,               --在兑换状态
+    raw = {},                          -- 任务原始数据
+    update = {},                       -- 任务更新数据
+
+
     -- 新增性能监控配置
     debug_tree_time = true,            -- 打印整棵树耗时
     debug_all_nodes = false,           -- 不打印所有节点调试信息(避免日志过多)
