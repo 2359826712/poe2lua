@@ -794,6 +794,8 @@ local main_task= {
         ['在凱斯城中心尋找聖域'] = {
             map_name = 'G2_4_3', 
             interaction_object = {'凱斯之心', '哈拉妮神殿','門'},
+            Boss = {'遺忘之子．阿齊瑞爾'},
+            interaction_object_map_name = {'大廳'},
             index = 131
         },
         ['擊敗遺忘之子．阿薩里恩以獲得水之精髓'] = {

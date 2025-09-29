@@ -859,13 +859,13 @@ local custom_nodes = {
                 api_Sleep(4000)
                 return bret.RUNNING
             end
-            for _,k in ipairs(env.UI_info) do
-                if k.text_utf8 ~= "" then
-                    poe2_api.dbgp(k.text_utf8)
-                end
-            end
+            -- for _,k in ipairs(env.UI_info) do
+            --     if k.text_utf8 ~= "" then
+            --         poe2_api.dbgp(k.text_utf8)
+            --     end
+            -- end
             poe2_api.time_p("Get_UI_Info... 耗时 --> ", api_GetTickCount64() - start_time)
-            api_Sleep(4000)
+            -- api_Sleep(4000)
             return bret.SUCCESS
         end
     },
@@ -935,20 +935,6 @@ local custom_nodes = {
             poe2_api.time_p("    获取背包信息信息... 耗时 --> ", api_GetTickCount64() - bag_info_start_time)
 
             -- api_GetTeleportationPoint() - 获取传送点信息
-            if not env.waypoint and env.player_info.name_utf8 ==  env.user_config["組隊設置"]["大號名"] then --and env.player_info.name_utf8 ==  env.user_config["組隊設置"]["大號名"]
-                local waypoint_start_time = api_GetTickCount64()
-                if not poe2_api.find_text({UI_info = env.UI_info, text = "世界地圖",refresh = true}) then
-                    api_Sleep(800)
-                    poe2_api.click_keyboard("u")
-                end
-                api_Sleep(200)
-                env.waypoint = api_GetTeleportationPoint()
-                api_Sleep(200)
-                -- poe2_api.printTable(env.waypoint)
-                poe2_api.click_keyboard("u")
-
-                poe2_api.time_p("    获取传送点信息... 耗时 --> ", api_GetTickCount64() - waypoint_start_time)
-            end
 
             -- 测试函数
             local function dumpInventory(inventory)
@@ -1300,7 +1286,7 @@ local custom_nodes = {
             local function get_range()
                 local valid_objects = {
                     "甕", "壺", "屍體", "巢穴", "籃子", "小雕像", "石塊",
-                    "鬆動碎石", "瓶子", "盒子", "腐爛木材", "保險箱", "腐爛木材"
+                    "鬆動碎石", "瓶子", "盒子", "腐爛木材", "保險箱", "腐爛木材","祕寶"
                 }
                 
                 -- 对范围对象进行排序
@@ -1698,7 +1684,7 @@ local custom_nodes = {
             end
             -- 大号，小号更新障碍
             if poe2_api.get_team_info(env.team_info, env.user_config, player_info, 2) == "大號名" then
-                if not poe2_api.table_contains(player_info.current_map_name_utf8, { "G2_3","G3_17"}) or poe2_api.find_text({ UI_info = env.UI_info, text = "競技場", min_x = 0 }) then
+                if not poe2_api.table_contains(player_info.current_map_name_utf8, { "G2_3","G2_9_1","G3_17"}) or poe2_api.find_text({ UI_info = env.UI_info, text = "競技場", min_x = 0 }) then
                     if player_info.current_map_name_utf8 == "G2_2" then
                         api_UpdateMapObstacles(180)
                     else
@@ -5542,6 +5528,12 @@ local custom_nodes = {
                     poe2_api.dbgp("[Query_Current_Task_Information_Local]召喚艾瓦，尋求她的意見")
                     env.map_name = "G3_6_2"
                     env.interaction_object = { '中型靈魂核心', ' <questitem>{發電機}', '門' }
+                elseif party_member_map({ "G2_3a"}) and task.task_name == "使用貧脊之地的地圖前往哈拉妮關口所在之處" then
+                    poe2_api.dbgp("[Query_Current_Task_Information]G2_3a使用貧脊之地的地圖前往哈拉妮關口所在之處")
+                    env.map_name = "G2_3a"
+                    env.grid_x = 587
+                    env.grid_y = 733
+                    env.interaction_object = { "絲克瑪．阿薩拉" }
                 elseif (party_member_map({ "G2_town"}) or player_info.current_map_name_utf8 =="G2_3a") and task.task_name == "返回車隊，與芮蘇討論封閉的古老關口" then
                     poe2_api.dbgp("[Query_Current_Task_Information_Local]返回車隊，與芮蘇討論封閉的古老關口")
                     env.map_name = "G2_town"
@@ -5912,11 +5904,15 @@ local custom_nodes = {
                             poe2_api.click_keyboard("enter")
                             api_Sleep(200)
                             poe2_api.click_keyboard("backspace")
-                            api_Sleep(200)
+                            api_Sleep(500)
                             paste_text(task_text)
                             api_Sleep(500)
+                            if not poe2_api.find_text({UI_info = env.UI_info, text = "私訊", min_x = 0, max_x = 400, refresh = true}) then
+                                poe2_api.dbgp("[Query_Current_Task_Information]私訊")
+                                return bret.RUNNING
+                            end
                             poe2_api.click_keyboard("enter")
-                            api_Sleep(500)
+                            api_Sleep(200)
                             self.raw_time = api_GetTickCount64()
                             env.raw = { task.task_name, task.index }
                         end
@@ -5977,6 +5973,10 @@ local custom_nodes = {
                             api_Sleep(500)
                             paste_text(task_text)
                             api_Sleep(500)
+                            if not poe2_api.find_text({UI_info = env.UI_info, text = "私訊", min_x = 0, max_x = 400, refresh = true}) then
+                                poe2_api.dbgp("[Query_Current_Task_Information]私訊")
+                                return bret.RUNNING
+                            end
                             poe2_api.click_keyboard("enter")
                             api_Sleep(500)
                             env.map_name = self.mas
@@ -5994,6 +5994,10 @@ local custom_nodes = {
                                 api_Sleep(500)
                                 paste_text(task_text)
                                 api_Sleep(500)
+                                if not poe2_api.find_text({UI_info = env.UI_info, text = "私訊", min_x = 0, max_x = 400, refresh = true}) then
+                                    poe2_api.dbgp("[Query_Current_Task_Information]私訊")
+                                    return bret.RUNNING
+                                end
                                 poe2_api.click_keyboard("enter")
                                 api_Sleep(500)
                                 self.raw_time = api_GetTickCount64()
@@ -6020,6 +6024,10 @@ local custom_nodes = {
                                 api_Sleep(500)
                                 paste_text(task_text)
                                 api_Sleep(500)
+                                if not poe2_api.find_text({UI_info = env.UI_info, text = "私訊", min_x = 0, max_x = 400, refresh = true}) then
+                                    poe2_api.dbgp("[Query_Current_Task_Information]私訊")
+                                    return bret.RUNNING
+                                end
                                 poe2_api.click_keyboard("enter")
                                 api_Sleep(500)
                                 self.raw_time = api_GetTickCount64()
@@ -6050,6 +6058,10 @@ local custom_nodes = {
                                     api_Sleep(500)
                                     paste_text(task_text)
                                     api_Sleep(500)
+                                    if not poe2_api.find_text({UI_info = env.UI_info, text = "私訊", min_x = 0, max_x = 400, refresh = true}) then
+                                        poe2_api.dbgp("[Query_Current_Task_Information]私訊")
+                                        return bret.RUNNING
+                                    end
                                     poe2_api.click_keyboard("enter")
                                     api_Sleep(500)
                                     self.raw_time = api_GetTickCount64()
@@ -6076,6 +6088,10 @@ local custom_nodes = {
                                     api_Sleep(500)
                                     paste_text(task_text)
                                     api_Sleep(500)
+                                    if not poe2_api.find_text({UI_info = env.UI_info, text = "私訊", min_x = 0, max_x = 400, refresh = true}) then
+                                        poe2_api.dbgp("[Query_Current_Task_Information]私訊")
+                                        return bret.RUNNING
+                                    end
                                     poe2_api.click_keyboard("enter")
                                     api_Sleep(500)
                                     self.raw_time = api_GetTickCount64()
@@ -6103,6 +6119,10 @@ local custom_nodes = {
                                 api_Sleep(500)
                                 paste_text(task_text)
                                 api_Sleep(500)
+                                if not poe2_api.find_text({UI_info = env.UI_info, text = "私訊", min_x = 0, max_x = 400, refresh = true}) then
+                                    poe2_api.dbgp("[Query_Current_Task_Information]私訊")
+                                    return bret.RUNNING
+                                end
                                 poe2_api.click_keyboard("enter")
                                 api_Sleep(500)
                                 self.raw_time = api_GetTickCount64()
@@ -6129,6 +6149,10 @@ local custom_nodes = {
                                 api_Sleep(500)
                                 paste_text(task_text)
                                 api_Sleep(500)
+                                if not poe2_api.find_text({UI_info = env.UI_info, text = "私訊", min_x = 0, max_x = 400, refresh = true}) then
+                                    poe2_api.dbgp("[Query_Current_Task_Information]私訊")
+                                    return bret.RUNNING
+                                end
                                 poe2_api.click_keyboard("enter")
                                 api_Sleep(500)
                                 self.raw_time = api_GetTickCount64()
@@ -7157,6 +7181,7 @@ local custom_nodes = {
                 end
             end
             if string.find(current_map, "G3_12") and ((interaction_object and poe2_api.table_contains(interaction_object, "召瓦尔") and check_pos_dis(team_member_3)) or (check_pos_dis("艾瓦") and check_pos_dis("艾瓦") < 25) or not check_pos_dis("競技場")) then
+                poe2_api.dbgp("在G3_12")
                 return bret.RUNNING
             end
             local count = 3 
@@ -10116,7 +10141,7 @@ local custom_nodes = {
                                         return bret.SUCCESS
                                     else
                                         poe2_api.dbgp("未找到门的路径")
-                                        door_point = api_FindRandomWalkablePosition(door.grid_x, door.grid_y,50)
+                                        door_point = api_FindRandomWalkablePosition(player_info.grid_x, player_info.grid_y,50)
                                         api_ClickMove(poe2_api.toInt(door_point.x),poe2_api.toInt(door_point.y),0)
                                         poe2_api.click_keyboard("space")
                                         env.not_need_active = true
@@ -10825,8 +10850,9 @@ local custom_nodes = {
                 env.is_not_ui = true
                 return bret.RUNNING
             end
-            if team_member_2 == "小號名" and poe2_api.table_contains(interaction_object,"調查平台") then
+            if team_member_2 == "大號名" and poe2_api.table_contains(interaction_object,"調查平台") then
                 if not party_dis(range_info,"艾瓦") then
+                    poe2_api.dbgp("小号未到調查平台")
                     return bret.RUNNING
                 end
             end
@@ -11010,8 +11036,8 @@ local custom_nodes = {
             end
             local target = check_pos(team_member_3)
             if target then
-                if poe2_api.point_distance(target.grid_x, target.grid_y, player_info) <= 10 then
-                    poe2_api.dbgp("与队长距离小于10")
+                if poe2_api.point_distance(target.grid_x, target.grid_y, player_info) <= 20 then
+                    poe2_api.dbgp("与队长距离小于20")
                     env.path_list_follow = {}
                     local player_walk_point = api_FindRandomWalkablePosition(player_info.grid_x, player_info.grid_y, 30)
                     local dis = poe2_api.point_distance(player_walk_point.x, player_walk_point.y, player_info)
@@ -11186,7 +11212,7 @@ local custom_nodes = {
                 local function get_range()
                     local valid_objects = {
                         "甕", "壺", "屍體", "巢穴", "籃子", "小雕像", "石塊",
-                        "鬆動碎石", "瓶子", "盒子", "腐爛木材", "保險箱", "腐爛木材"
+                        "鬆動碎石", "瓶子", "盒子", "腐爛木材", "保險箱", "腐爛木材","祕寶"
                     }
                     
                     poe2_api.dbgp("开始查找可交互对象")
@@ -11401,12 +11427,12 @@ local custom_nodes = {
             end
             if poe2_api.table_contains(team_member_2,{"大號名","未知"}) then
                 poe2_api.dbgp("设置大号探索范围")
-                special_map = {"G1_2","G1_12","G1_13_1","G1_13_2","G1_15",
-                        "G2_2","G2_4_1","G2_6","G2_8","G2_9_2","G2_9_1",
+                special_map = {"G1_2","G1_12","G1_13_1","G1_13_2","G1_15","G2_3",
+                        "G2_2","G2_4_1","G2_6","G2_8","G2_9_2",
                         "G3_2_2","G3_3","G3_6_1","G3_7","G3_12","G3_17",
                 }
                 if poe2_api.table_contains(special_map,current_map) then
-                    if poe2_api.table_contains(current_map,{"G3_2_2","G2_9_1","G3_6_1"}) then
+                    if poe2_api.table_contains(current_map,{"G3_2_2","G3_6_1"}) then
                         poe2_api.dbgp("大号探索范围50")
                         point = api_GetUnexploredArea(50)
                     end
@@ -11426,192 +11452,6 @@ local custom_nodes = {
             end
             if point.x == -1 and point.y == -1 then
                 poe2_api.dbgp("探索区域已探索完毕")
-                -- while true do
-                --     api_Sleep(1)
-                -- end
-                -- if poe2_api.table_contains(current_map, special_maps_1) then
-                --     poe2_api.dbgp("检测到特殊地图[special_maps_1]，重新设置探索区域")
-                    
-                --     if not entrancelist or #entrancelist == 0 then
-                --         poe2_api.dbgp("入口列表为空，开始收集入口和检查点信息")
-                --         local chickpointlist = {}
-                        
-                --         -- 获取入口和检查点actor
-                --         local entr_actors = {}
-                --         local chk_actors = {}
-                        
-                --         for _, a in ipairs(current_map_info) do
-                --             if a.name_utf8 == "Entrance" and a.grid_x and a.grid_y then
-                --                 table.insert(entr_actors, a)
-                --             elseif a.name_utf8 == "Checkpoint" and a.grid_x and a.grid_y then
-                --                 table.insert(chk_actors, a)
-                --             end
-                --         end
-                        
-                --         poe2_api.dbgp("找到 " .. #entr_actors .. " 个入口点和 " .. #chk_actors .. " 个检查点")
-                        
-                --         -- 填充入口列表
-                --         entrancelist = {}
-                --         for _, a in ipairs(entr_actors) do
-                --             table.insert(entrancelist, {a.grid_x, a.grid_y})
-                --         end
-                        
-                --         -- 填充检查点列表
-                --         for _, a in ipairs(chk_actors) do
-                --             table.insert(chickpointlist, {a.grid_x, a.grid_y})
-                --         end
-                        
-                --         poe2_api.dbgp("入口列表数量: " .. #entrancelist .. ", 检查点列表数量: " .. #chickpointlist)
-                        
-                --         -- 移除靠近检查点的入口点
-                --         local remove_points = {}
-                --         for _, p1 in ipairs(entrancelist) do
-                --             for _, p2 in ipairs(chickpointlist) do
-                --                 if poe2_api.get_point_distance(p1[1], p1[2], p2[1], p2[2]) < 100 then
-                --                     table.insert(remove_points, p1)
-                --                     poe2_api.dbgp("移除靠近检查点的入口: (" .. p1[1] .. ", " .. p1[2] .. ")")
-                --                     break
-                --                 end
-                --             end
-                --         end
-                        
-                --         if #remove_points > 0 then
-                --             poe2_api.dbgp("需要移除 " .. #remove_points .. " 个靠近检查点的入口")
-                --             local new_entrancelist = {}
-                --             for _, p in ipairs(entrancelist) do
-                --                 local should_remove = false
-                --                 for _, rp in ipairs(remove_points) do
-                --                     if p[1] == rp[1] and p[2] == rp[2] then
-                --                         should_remove = true
-                --                         break
-                --                     end
-                --                 end
-                --                 if not should_remove then
-                --                     table.insert(new_entrancelist, p)
-                --                 end
-                --             end
-                --             entrancelist = new_entrancelist
-                --             poe2_api.dbgp("移除后剩余入口数量: " .. #entrancelist)
-                --         end
-                --     else
-                --         poe2_api.dbgp("使用现有入口列表，数量: " .. #entrancelist)
-                --     end
-                    
-                --     -- 入口路径处理
-                --     poe2_api.dbgp("开始处理 " .. #entrancelist .. " 个入口路径")
-                --     local processed_entrances = {}
-                    
-                --     for i, entrance in ipairs(entrancelist) do
-                --         if not entrance or #entrance ~= 2 then
-                --             poe2_api.dbgp("跳过无效入口点 #" .. i)
-                --             goto continue
-                --         end
-                        
-                --         poe2_api.dbgp("处理入口点 #" .. i .. ": (" .. entrance[1] .. ", " .. entrance[2] .. ")")
-                        
-                --         -- 路径查找
-                --         local path_result = api_FindPath(player_info.grid_x, player_info.grid_y, entrance[1], entrance[2])
-                --         if path_result and #path_result > 0 then
-                --             poe2_api.dbgp("找到到入口点 #" .. i .. " 的路径")
-                --             env.end_point = {entrance[1], entrance[2]}
-                --             env.is_arrive_end = false
-                            
-                --             -- 距离和UI检测
-                --             local dist_check = poe2_api.point_distance(entrance[1], entrance[2], player_info) < 50
-                --             local ui_check = false
-                            
-                --             -- 检查UI文本
-                --             local ui_texts = {"樓梯", "門", "競技場"}
-                --             for _, text in ipairs(ui_texts) do
-                --                 if poe2_api.find_text({UI_info = UI_info, text = text}) then
-                --                     ui_check = true
-                --                     poe2_api.dbgp("检测到UI文本: " .. text)
-                --                     break
-                --                 end
-                --             end
-                            
-                --             if dist_check and ui_check then
-                --                 poe2_api.dbgp("到达入口点 #" .. i .. " 并检测到UI，移除该入口")
-                --                 table.insert(processed_entrances, i)
-                --                 if #entrancelist == #processed_entrances then
-                --                     poe2_api.dbgp("所有入口点都已处理，重新初始化探索区域")
-                --                     api_InitExplorationArea()
-                --                 end
-                --                 env.entrancelist = entrancelist
-                --                 return bret.RUNNING
-                --             elseif dist_check and not ui_check then
-                --                 poe2_api.dbgp("到达入口点 #" .. i .. " 但未检测到UI，移除该入口")
-                --                 table.insert(processed_entrances, i)
-                --                 if #entrancelist == #processed_entrances then
-                --                     poe2_api.dbgp("所有入口点都已处理，重新初始化探索区域")
-                --                     api_InitExplorationArea()
-                --                 end
-                --                 env.entrancelist = entrancelist
-                --                 return bret.RUNNING
-                --             else
-                --                 poe2_api.dbgp("未到达入口点 #" .. i .. "，继续移动")
-                --                 env.entrancelist = entrancelist
-                --             end
-                            
-                --             return bret.SUCCESS
-                --         else
-                --             poe2_api.dbgp("无法找到到入口点 #" .. i .. " 的直接路径，尝试寻找附近可达点")
-                            
-                --             -- 随机移动处理
-                --             local round_pos = api_FindNearestReachablePoint(entrance[1], entrance[2], 50, 0)
-                --             if round_pos then
-                --                 local rx, ry = round_pos.x, round_pos.y
-                --                 poe2_api.dbgp("找到附近可达点: (" .. rx .. ", " .. ry .. ")")
-                                
-                --                 local round_result = api_FindPath(player_info.grid_x, player_info.grid_y, rx, ry)
-                                
-                --                 if not round_result then
-                --                     poe2_api.dbgp("无法到达附近可达点，移除入口点 #" .. i)
-                --                     table.insert(processed_entrances, i)
-                --                     if #entrancelist == #processed_entrances then
-                --                         poe2_api.dbgp("所有入口点都已处理，重新初始化探索区域")
-                --                         api_InitExplorationArea()
-                --                     end
-                --                     env.entrancelist = entrancelist
-                --                     return bret.RUNNING
-                --                 else
-                --                     poe2_api.dbgp("设置目标点为附近可达点: (" .. rx .. ", " .. ry .. ")")
-                --                     env.end_point = {rx, ry}
-                --                 end
-                                
-                --                 return bret.SUCCESS
-                --             else
-                --                 poe2_api.dbgp("无法找到入口点 #" .. i .. " 的附近可达点")
-                --             end
-                --         end
-                        
-                --         ::continue::
-                --     end
-                    
-                --     -- 移除已处理的入口
-                --     if #processed_entrances > 0 then
-                --         poe2_api.dbgp("移除 " .. #processed_entrances .. " 个已处理的入口点")
-                --         local new_entrancelist = {}
-                --         for i, entrance in ipairs(entrancelist) do
-                --             local should_remove = false
-                --             for _, idx in ipairs(processed_entrances) do
-                --                 if i == idx then
-                --                     should_remove = true
-                --                     break
-                --                 end
-                --             end
-                --             if not should_remove then
-                --                 table.insert(new_entrancelist, entrance)
-                --             end
-                --         end
-                --         entrancelist = new_entrancelist
-                --         poe2_api.dbgp("移除后剩余入口数量: " .. #entrancelist)
-                --     end
-                    
-                --     env.entrancelist = entrancelist
-                --     poe2_api.dbgp("入口路径处理完成，继续运行")
-                --     return bret.RUNNING
-                -- end
                 if poe2_api.table_contains(current_map, special_maps_3) then
                     api_RestoreOriginalMap()
                     local walk_point = api_FindRandomWalkablePosition(player_info.grid_x, player_info.grid_y, 200)
@@ -12474,7 +12314,7 @@ local custom_nodes = {
 
                     local valid_objects = {
                         "甕", "壺", "屍體", "巢穴", "籃子", "小雕像", "石塊",
-                        "鬆動碎石", "瓶子", "盒子", "腐爛木材", "保險箱", "腐爛木材"
+                        "鬆動碎石", "瓶子", "盒子", "腐爛木材", "保險箱", "腐爛木材","祕寶"
                     }
 
                     -- 对范围对象进行排序
