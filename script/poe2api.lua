@@ -5744,6 +5744,9 @@ end
 -- area (string/number): 要查询的任务区域标识符（键名）
 -- waypoint (table): 传送点总表
 _M.Waypoint_is_open = function(area, waypoint)
+    if not waypoint or #waypoint == 0 then
+        return false
+    end
     for _,v in ipairs(waypoint) do
         if v.name == area and v.is_open == true then
             return true

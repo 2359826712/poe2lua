@@ -4544,6 +4544,10 @@ local custom_nodes = {
 
             if string.find(player_info.current_map_name_utf8, "own") then
                 local npc_names = is_have_active_npc(range_info)
+                if npc_names and player_info.current_map_name_utf8 == "G1_town" and npc_names.name_utf8 == "黑衣幽魂" then
+                    poe2_api.dbgp("[The_Interactive_Npc_Exist]城镇任务npc为黑衣幽魂")
+                    return bret.FAIL
+                end
                 if npc_names and not string.find(npc_names.name_utf8, '沙漠') then
                     env.npc_names = npc_names
                     poe2_api.dbgp("Interactive_Npc_In_Town(SUCCESS1)")
@@ -7026,7 +7030,7 @@ local custom_nodes = {
                 api_Sleep(2000)
                 return bret.RUNNING
             end
-            if (string.find(current_map, "a") and special_map_point) or (string.find(current_map, "own") and task_area and current_map == task_area) then
+            if (string.find(current_map, "a") and special_map_point) or (string.find(current_map, "own") and task_area and current_map == task_area and task_name ~= "前往東邊") then
                 return bret.SUCCESS
             end
             if not special_map_point and poe2_api.find_text({ UI_info = UI_info, text = "快行" }) then
@@ -7254,8 +7258,8 @@ local custom_nodes = {
                 if poe2_api.find_text({UI_info = env.UI_info, text = "你確定要傳送至此玩家的位置？"}) then
                     poe2_api.click_keyboard("space")
                 end
-                
-                if arena_list and #arena_list > 0  and arena_list[1].hasLineOfSight and arena_list[1].is_selectable and api_FindPath(player_info.grid_x, player_info.grid_y, point[1], point[2]) then
+                -- poe2_api.printTable(arena_list)
+                if arena_list and #arena_list > 0 and arena_list[1].is_selectable and api_FindPath(player_info.grid_x, player_info.grid_y, point[1], point[2]) then
                     if not poe2_api.find_text({UI_info = env.UI_info, text = "競技場"}) then
                         local arena = get_range_pos("競技場")
                         if arena then
@@ -7273,7 +7277,7 @@ local custom_nodes = {
                     return bret.RUNNING
                 end
             end
-            if check_pos_dis(team_member_3) and check_pos_dis(team_member_3) > 100 and poe2_api.table_contains(current_map, { "G1_15", "G2_3"}) then
+            if check_pos_dis(team_member_3) and check_pos_dis(team_member_3) > 30 and poe2_api.table_contains(current_map, { "G1_15", "G2_3"}) then
                 local function next_level()
                     local entrance = get_range_pos("樓梯")
                     local checkpoint_pos = get_range_pos("記錄點")
@@ -9377,6 +9381,7 @@ local custom_nodes = {
                     self.attack_last_time = api_GetTickCount64()
                 end
                 if monster.name_utf8 == "巨像．札爾瑪拉斯" then
+                    poe2_api.dbgp("巨像．札爾瑪拉斯")
                     api_ClickMove(math.floor(move_x), math.floor(move_y), 0,math.floor(player_info.world_z))
                 else
                     api_ClickMove(math.floor(move_x), math.floor(move_y), 0)

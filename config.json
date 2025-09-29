@@ -43,6 +43,7 @@
         },
         "内存模式": true,
         "刷图通用設置": {
+            "地图是否鉴黄": false,
             "多少秒無怪回城": {
                 "是否開啟": false,
                 "閾值": 6
@@ -553,7 +554,7 @@
         "日志路径": "D:\\SteamLibrary\\steamapps\\common\\Path of Exile 2\\logs\\Client.txt",
         "職業": "遊俠",
         "隊伍人數": 3,
-        "隊長名": "king_gggg"
+        "隊長名": "king_fd"
     },
     "通貨交換設置": null
 }

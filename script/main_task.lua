@@ -450,32 +450,33 @@ local main_task= {
         },
         ['奧格姆宅第'] = {
             map_name = 'G1_15',
-            index = 77
-        },
-        ['潛入村外的宅第奧格姆伯爵'] = {
-            map_name = 'G1_15', 
-            interaction_object = {'奧格姆宅第'},
             index = 78
-        },
-        ['在宅第中尋找奧格姆伯爵'] = {
-            map_name = 'G1_15',
-            interaction_object = {'瘋狂讚美詩','燭光精髓'},
-            Boss = {'鋼鐵伯爵', '腐敗巨狼．吉恩諾','存活儀式．燭光'},
-            interaction_object_map_name = {'GargoyleActive'},
-            index = 79
-        },
-        ['擊殺奧格姆伯爵'] = {
-            map_name = 'G1_15',
-            Boss = {'鋼鐵伯爵', '腐敗巨狼．吉恩諾'},
-            index = 80
         },
         ['返回皆伐營地並與黑衣幽魂交談'] = {
             map_name = 'G1_town',
             grid_x = 359,
             grid_y = 288,
             interaction_object = {'黑衣幽魂'},
+            index = 77
+        },
+        ['潛入村外的宅第奧格姆伯爵'] = {
+            map_name = 'G1_15', 
+            interaction_object = {'奧格姆宅第'},
+            index = 79
+        },
+        ['在宅第中尋找奧格姆伯爵'] = {
+            map_name = 'G1_15',
+            interaction_object = {'瘋狂讚美詩','燭光精髓'},
+            Boss = {'鋼鐵伯爵', '腐敗巨狼．吉恩諾','存活儀式．燭光'},
+            interaction_object_map_name = {'GargoyleActive'},
+            index = 80
+        },
+        ['擊殺奧格姆伯爵'] = {
+            map_name = 'G1_15',
+            Boss = {'鋼鐵伯爵', '腐敗巨狼．吉恩諾'},
             index = 81
         },
+        
         ['前往東邊'] = {
             map_name = 'G1_town',
             interaction_object = {'黑衣幽魂', '追尋巨獸的蹤跡'},
