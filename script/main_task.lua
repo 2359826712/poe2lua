@@ -1666,6 +1666,12 @@ local main_task= {
             interaction_object_map_name= {'G4_2_2_BossActive'},
             index = 272
         },
+        ['召喚圖貞']= {
+            map_name= 'G4_2_2',
+            Boss={'哈特林統帥'},
+            interaction_object_map_name= {'G4_2_2_BossActive'},
+            index = 272
+        },
         ['殺死哈特林船長']= {
             map_name= 'G4_2_2',
             Boss={'哈特林統帥'},
@@ -1679,6 +1685,8 @@ local main_task= {
         },
         ["將維里西姆交給丹尼格"]= {
             map_name= 'G4_town',
+            grid_x = 1094,
+            grid_y = 1599,
             interaction_object= {'丹尼格'},
             index = 275
         },
@@ -1697,6 +1705,13 @@ local main_task= {
         ["在金司馬區與圖貞對話"]= {
             map_name= 'G4_town',
             interaction_object= {'圖貞'},
+            index = 277
+        },
+        ["向圖貞領取獎勵"]= {
+            map_name= 'G4_town',
+            grid_x = 947,
+            grid_y = 1608,
+            interaction_object= {'圖貞',"暗黑迷霧獎勵"},
             index = 277
         },
         ['金氏島']= {
