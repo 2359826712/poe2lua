@@ -5744,6 +5744,17 @@ local custom_nodes = {
                 else
                     task = poe2_api.get_task_info(main_task.tasks_data,main_task_info[1])
                 end
+                if task and next(task) and task.task_name == "金司馬區" then
+                    local rel_task = nil
+                    for _, task in ipairs(api_GetQuestList(0)) do
+                        if task.MainQuestName == "部落復仇" then
+                            rel_task = true
+                        end
+                    end
+                    if not rel_task then
+                        task = nil
+                    end
+                end
             else
                 task = nil
             end
@@ -8357,7 +8368,6 @@ local custom_nodes = {
                 local controls = poe2_api.get_game_control_by_rect({
                     UI_info = env.UI_info, 
                     min_x = 1525, 
-                    min_y = 230, 
                     max_x = 1600,
                     max_y = 560,
                     refresh = true
@@ -8410,33 +8420,33 @@ local custom_nodes = {
                     end
                     self.s_time = 0
                     if string.find(teleport_area, "G1") and not poe2_api.find_text({UI_info = env.UI_info, text = "奧格姆郡，約恆曆", min_x = 0, match = 2, refresh = true}) then
+                        poe2_api.find_text({ UI_info = UI_info, text = "第 1 章", click = 2, refresh = true })
+                        api_Sleep(600)
                         poe2_api.dbgp("切层级")
                         api_Sleep(600)
                         api_ClickScreen(1567, poe2_api.toInt(mini_top) + 22, 0)
                         api_Sleep(600)
                         api_ClickScreen(1567, poe2_api.toInt(mini_top) + 22, 1)
-                        api_Sleep(600)
-                        poe2_api.find_text({ UI_info = UI_info, text = "第 1 章", click = 2, refresh = true })
                         api_Sleep(600)
                         return bret.RUNNING
                     elseif string.find(teleport_area, "G2") and not poe2_api.find_text({UI_info = env.UI_info, text = "七大水域之地", min_x = 0, match = 2, refresh = true}) then
+                        poe2_api.find_text({ UI_info = UI_info, text = "第 2 章", click = 2, refresh = true })
+                        api_Sleep(600)
                         poe2_api.dbgp("切层级")
                         api_Sleep(600)
                         api_ClickScreen(1567, poe2_api.toInt(mini_top) + 22, 0)
                         api_Sleep(600)
                         api_ClickScreen(1567, poe2_api.toInt(mini_top) + 22, 1)
-                        api_Sleep(600)
-                        poe2_api.find_text({ UI_info = UI_info, text = "第 2 章", click = 2, refresh = true })
                         api_Sleep(600)
                         return bret.RUNNING
                     elseif string.find(teleport_area, "G3") and not poe2_api.find_text({UI_info = env.UI_info, text = "奧札爾區域草稿 #", min_x = 0, match = 2, refresh = true}) and not poe2_api.find_text({UI_info = env.UI_info, text = "古奧札爾草稿", min_x = 0, match = 2, refresh = true}) then
+                        poe2_api.find_text({ UI_info = UI_info, text = "第 3 章", click = 2, refresh = true })
+                        api_Sleep(600)
                         poe2_api.dbgp("切层级")
                         api_Sleep(600)
                         api_ClickScreen(1567, poe2_api.toInt(mini_top) + 22, 0)
                         api_Sleep(600)
                         api_ClickScreen(1567, poe2_api.toInt(mini_top) + 22, 1)
-                        api_Sleep(600)
-                        poe2_api.find_text({ UI_info = UI_info, text = "第 3 章", click = 2, refresh = true })
                         api_Sleep(600)
                         return bret.RUNNING
                     elseif string.find(teleport_area, "G4") and not poe2_api.find_text({UI_info = env.UI_info, text = "金司馬區港", min_x = 0, match = 2, refresh = true}) then

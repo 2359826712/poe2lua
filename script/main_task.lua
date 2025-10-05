@@ -1611,6 +1611,7 @@ local main_task= {
             map_name= 'G3_town',
             grid_x= 516,
             grid_y= 855,
+            interaction_object= {'瑟維'},
             index = 263
         },
         ['跟瑟維領取獎勵']= {
