@@ -2080,6 +2080,7 @@ local custom_nodes = {
                 local QUEST_PROPS = {
                     "知識之書", "火焰核心", "寶石花顱骨", "寶石殼顱骨",
                     "專精之書", "凜冬狼的頭顱", "燭光精髓", "傑洛特顱骨",
+                    "染怒之書"
                 }
                 for _, item in ipairs(bag) do
                     if item.baseType_utf8 and item.category_utf8 then
@@ -5919,6 +5920,13 @@ local custom_nodes = {
                     env.map_name = "G3_7"
                     env.interaction_object = { "傑洛特顱骨" }
                     env.interaction_object_map_name = nil
+                elseif poe2_api.table_contains(player_info.current_map_name_utf8, { "G4_3_1" }) and not poe2_api.check_item_in_inventory("鯊魚鰭", bag_info) then
+                    poe2_api.dbgp("[Query_Current_Task_Information]收集-鯊魚鰭")
+                    task.task_name = "擊敗大白鯊"
+                    env.task_name = task.task_name
+                    env.map_name = "G4_3_1"
+                    env.interaction_object = { "鯊魚鰭" }
+                    env.interaction_object_map_name = {"G4_3_1_BossActive"}
                 elseif player_info.current_map_name_utf8 == "G2_1" and env.map_name ~="G2_1" and string.find(env.map_name, "G2") then
                     task.task_name = "進入阿杜拉車隊"
                     env.task_name = task.task_name
@@ -6194,13 +6202,43 @@ local custom_nodes = {
                                 env.raw = { "悉妮蔻拉之眼", 278 }
                             end
                             env.update = { "悉妮蔻拉之眼", 278 }
-                            if not deep_equal_unordered(env.raw, self.update) then
+                            if not deep_equal_unordered(env.raw, env.update) then
                                 env.raw = {}
                                 poe2_api.dbgp("[Query_Current_Task_Information]悉妮蔻拉之眼-RUNNING2")
                                 return bret.RUNNING
                             end
                             env.map_name = self.mas
                             poe2_api.dbgp("[Query_Current_Task_Information]-悉妮蔻拉之眼-SUCCESS3")
+                            poe2_api.time_p("[Query_Current_Task_Information]",(api_GetTickCount64() - current_time))
+                            return bret.SUCCESS
+                        end
+                    elseif self.mas == "G4_3_1" then
+                        poe2_api.dbgp("[Query_Current_Task_Information]获取-G4_3_1-地图任务信息")
+                        if poe2_api.get_team_info(team_info, config, player_info, 2) ~= "大號名" then
+                            if not next(env.raw) or (self.raw_time ~= 0 and api_GetTickCount64() - self.raw_time > max_time) then
+                                -- 发送任务信息
+                                local task_text = "task_name=" .. "瓦卡帕努島" .. ",task_index=" .. 308 ..",map_name=" .. self.mas
+                                poe2_api.click_keyboard("enter")
+                                api_Sleep(500)
+                                paste_text(task_text)
+                                api_Sleep(500)
+                                if not poe2_api.find_text({UI_info = env.UI_info, text = "私訊", min_x = 0, max_x = 400, refresh = true}) then
+                                    poe2_api.dbgp("[Query_Current_Task_Information]私訊")
+                                    return bret.RUNNING
+                                end
+                                poe2_api.click_keyboard("enter")
+                                api_Sleep(500)
+                                self.raw_time = api_GetTickCount64()
+                                env.raw = { "瓦卡帕努島", 308 }
+                            end
+                            env.update = { "瓦卡帕努島", 308 }
+                            if not deep_equal_unordered(env.raw, env.update) then
+                                env.raw = {}
+                                poe2_api.dbgp("[Query_Current_Task_Information]瓦卡帕努島-RUNNING2")
+                                return bret.RUNNING
+                            end
+                            env.map_name = self.mas
+                            poe2_api.dbgp("[Query_Current_Task_Information]-瓦卡帕努島-SUCCESS3")
                             poe2_api.time_p("[Query_Current_Task_Information]",(api_GetTickCount64() - current_time))
                             return bret.SUCCESS
                         end
@@ -6692,6 +6730,9 @@ local custom_nodes = {
                 end
             end
             if is_items() then
+                if poe2_api.find_text({ UI_info = env.UI_info, text = "再會", click = 0}) then
+                    poe2_api.find_text({ UI_info = env.UI_info, text = "再會", click = 2 })
+                end
                 poe2_api.dbgp("进入[Traverse_and_check_equipment]遍历周围装备")
                 poe2_api.time_p("[Is_Pick_Up_Task_Props]FAIL",api_GetTickCount64() - current_time)
                 return bret.FAIL
@@ -7287,6 +7328,9 @@ local custom_nodes = {
                 if poe2_api.find_text({UI_info = env.UI_info, text = "通道", min_x = 0}) and mini_map_obj_flagStatus("Waypoint") then
                     poe2_api.find_text({UI_info = env.UI_info, text = "通道", min_x = 0,click = 2})
                     return bret.RUNNING
+                elseif not poe2_api.find_text({UI_info = env.UI_info, text = "通道", min_x = 0}) and mini_map_obj_flagStatus("Waypoint") then
+                    env.end_point = {1279, 964}
+                    return bret.FAIL
                 end
             end
             if check_pos_dis(team_member_3) then
@@ -7922,6 +7966,9 @@ local custom_nodes = {
                     if poe2_api.find_text({UI_info = env.UI_info, text = "通道", min_x = 0}) and mini_map_obj_flagStatus("Waypoint") then
                         poe2_api.find_text({UI_info = env.UI_info, text = "通道", min_x = 0,click = 2})
                         return bret.RUNNING
+                    elseif not poe2_api.find_text({UI_info = env.UI_info, text = "通道", min_x = 0}) and mini_map_obj_flagStatus("Waypoint")  then
+                        env.end_point = {1279, 964}
+                        return bret.SUCCESS
                     end
                 end
                 if not string.find(me_area, "own") then
@@ -9701,6 +9748,9 @@ local custom_nodes = {
                 if string.find(valid_monsters.name_utf8, "多里亞尼") and valid_monsters.stateMachineList and valid_monsters.stateMachineList["boss_life_bar"] == 0 then
                     return bret.SUCCESS
                 end
+                if string.find(valid_monsters.name_utf8, "白之亞瑪") and valid_monsters.stateMachineList and valid_monsters.stateMachineList["dead"] == 1 then
+                    return bret.SUCCESS
+                end
                 if valid_monsters.name_utf8 == '異界．干擾女王．卡巴拉' then
                     if distance > 50 then
                         env.end_point = {valid_monsters.grid_x, valid_monsters.grid_y}
@@ -10587,7 +10637,7 @@ local custom_nodes = {
                         env.interaction_object_map_name_copy = {"IsleOfKinBossActive"}
                         env.modify_interaction = true
                     end
-                elseif player_info.current_map_name_utf8 == "G4_4_1" then
+                elseif player_info.current_map_name_utf8 == "G4_4_1" and task_name == "找出亡者之殿" then
                     if team_member_2 == "大號名" then
                         if #mini_map_obj("G4_4_2BossActive") == 0 then
                             poe2_api.dbgp("G4_4_1-地图没有-G4_4_2BossActive")
@@ -10670,9 +10720,9 @@ local custom_nodes = {
                         env.interaction_object_copy = {"悉妮蔻拉圖騰"}
                     end 
                     if task_name == '向悉妮蔻拉圖騰領取獎勵' then
-                        interaction_object_set = {"悉妮蔻拉圖騰","塔赫亞的考驗獎勵","拿馬乎的考驗獎勵","塔薩里奧的考驗獎勵"}
-                        env.interaction_object = {"悉妮蔻拉圖騰","塔赫亞的考驗獎勵","拿馬乎的考驗獎勵","塔薩里奧的考驗獎勵"}
-                        env.interaction_object_copy = {"悉妮蔻拉圖騰","塔赫亞的考驗獎勵","拿馬乎的考驗獎勵","塔薩里奧的考驗獎勵"}
+                        interaction_object_set = {"悉妮蔻拉圖騰","塔赫亞的考驗獎勵","努葛瑪呼的考驗獎勵","拿馬乎的考驗獎勵","塔薩里奧的考驗獎勵"}
+                        env.interaction_object = {"悉妮蔻拉圖騰","塔赫亞的考驗獎勵","努葛瑪呼的考驗獎勵","拿馬乎的考驗獎勵","塔薩里奧的考驗獎勵"}
+                        env.interaction_object_copy = {"悉妮蔻拉圖騰","塔赫亞的考驗獎勵","努葛瑪呼的考驗獎勵","拿馬乎的考驗獎勵","塔薩里奧的考驗獎勵"}
                     end                  
                 elseif player_info.current_map_name_utf8 == "G3_12" and poe2_api.table_contains("艾瓦",interaction_object_set) and team_member_2 ~="大號名" then
                     poe2_api.dbgp("G3_12地图")
@@ -10757,6 +10807,11 @@ local custom_nodes = {
                             end
                             if poe2_api.table_contains(player_info.current_map_name_utf8,{"G2_10_2","G4_1_2","G4_4_2"}) and poe2_api.table_contains(obj.name_utf8, {"法里登叛變者．芮蘇","馬提奇","悉妮蔻拉圖騰"}) then
                                 if get_distance(obj.grid_x,obj.grid_y) < 30 then
+                                    if obj.name_utf8 == "馬提奇" then
+                                        api_ClickMove(poe2_api.toInt(obj.grid_x),poe2_api.toInt(obj.grid_y),1,poe2_api.toInt(obj.world_z))
+                                        env.is_arrive_end = true
+                                        return bret.SUCCESS
+                                    end
                                     api_ClickMove(poe2_api.toInt(obj.grid_x),poe2_api.toInt(obj.grid_y),1)
                                     env.is_arrive_end = true
                                     return bret.SUCCESS
@@ -10783,10 +10838,11 @@ local custom_nodes = {
                             goto continue 
                         end
                         if not record_map then
-                            env.record_map = {map_obj.grid_x, map_obj.grid_y}
+                            env.record_map = map_obj
                         end
                         record_map = env.record_map
-                        if record_map and name and poe2_api.table_contains(name,interaction_object_map_name) and record_map[1] ~= map_obj.grid_x and record_map[2] ~= map_obj.grid_y then
+                        if record_map and name and poe2_api.table_contains(name,interaction_object_map_name) and record_map.grid_x ~= map_obj.grid_x and record_map.grid_y ~= map_obj.grid_y then
+                            poe2_api.dbgp("未找到目标地图")
                             env.record_map = nil
                             env.map_result = nil
                             return bret.RUNNING
@@ -10795,7 +10851,39 @@ local custom_nodes = {
                         if team_member_2 ~= "大號名" and poe2_api.table_contains(player_info.current_map_name_utf8,{"G3_12"}) then
                             map_distance = 25
                         end
-                        if get_distance(record_map[1],record_map[2]) < map_distance then
+                        if record_map.name_utf8 == "G4_3_1_BossActive" and record_map.flagStatus1 == 1 then
+                            poe2_api.dbgp("G4_3_1_BossActive")
+                            local player_position = api_FindNearestReachablePoint(record_map.grid_x, record_map.grid_y, 50, 0)
+                            if not env.prestore_boss_list or not next(env.prestore_boss_list) then
+                                local result_list = api_GetCalculateCircleGridPoints(poe2_api.toInt(player_position.x),poe2_api.toInt(player_position.y),100,math.floor(15))
+                                if result_list then
+                                    poe2_api.dbgp("22222:",#result_list)
+                                    env.prestore_boss_list = result_list
+                                    poe2_api.dbgp("获取圆点列表")
+                                    return "刷新"
+                                else
+                                    local point = api_FindRandomWalkablePosition(math.floor(player_position.x),math.floor(player_position.y),80)
+                                    if point then
+                                        env.end_point = {point.x,point.y}
+                                    else
+                                        poe2_api.dbgp("获取圆形范围内均匀分布的网格点失败,随机移动")
+                                        return "刷新"
+                                    end
+                                    
+                                end
+                            else
+                                local distance = poe2_api.point_distance(env.prestore_boss_list[1].x,env.prestore_boss_list[1].y,player_info)
+                                if distance and distance < 25 then
+                                    table.remove(env.prestore_boss_list,1)
+                                    poe2_api.dbgp("移动到圆点列表第一个点完成")
+                                    return "刷新"
+                                end
+                                poe2_api.dbgp("移动到圆形范围内第一个点")
+                                env.end_point = {env.prestore_boss_list[1].x,env.prestore_boss_list[1].y}
+                            end
+                            return bret.SUCCESS
+                        end
+                        if get_distance(record_map.grid_x, record_map.grid_y) < map_distance then
                             if team_member_2 ~= "大號名" and poe2_api.table_contains(player_info.current_map_name_utf8,{"G3_12"}) then
                                 return bret.SUCCESS
                             end
@@ -10809,7 +10897,7 @@ local custom_nodes = {
                                     api_Sleep(100)
                                     poe2_api.click_keyboard("space")
                                 end
-                                local toward_record_map = poe2_api.move_towards({local_x,local_y},{record_map[1],record_map[2]},20)
+                                local toward_record_map = poe2_api.move_towards({local_x,local_y},{record_map.grid_x, record_map.grid_y},20)
                                 api_ClickMove(poe2_api.toInt(toward_record_map[1]),poe2_api.toInt(toward_record_map[2]),0)
                                 api_Sleep(100)
                                 poe2_api.click_keyboard("space")
@@ -10817,7 +10905,7 @@ local custom_nodes = {
                             env.is_arrive_end = true
                             return bret.SUCCESS
                         end
-                        local record_map_near_point = api_FindNearestReachablePoint(record_map[1], record_map[2], 30, 0)
+                        local record_map_near_point = api_FindNearestReachablePoint(record_map.grid_x, record_map.grid_y, 30, 0)
                         local player_near_point = api_FindNearestReachablePoint(local_x, local_y, 30, 0)
                         if not map_result then
                             map_result = true

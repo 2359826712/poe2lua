@@ -6179,6 +6179,10 @@ _M.is_have_boss_distance = function(range_info,player_info,boss_list,dis)
            and monster.stateMachineList['boss_life_bar'] == 0 then
             return false
         end
+        if monster.name_utf8 == '白之亞瑪' and  monster.life > 0 
+            and monster.stateMachineList and monster.stateMachineList['dead'] == 1 then
+            return false
+        end
         
         -- 计算距离平方(优化性能，避免math.sqrt)
         local dx = monster.grid_x - player_info.grid_x

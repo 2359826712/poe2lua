@@ -1811,7 +1811,7 @@ local main_task= {
         },
         ['向悉妮蔻拉圖騰領取獎勵']= {
             map_name= 'G4_4_2',
-            interaction_object={"悉妮蔻拉圖騰","塔赫亞的考驗獎勵","拿馬乎的考驗獎勵","塔薩里奧的考驗獎勵"},
+            interaction_object={"悉妮蔻拉圖騰","塔赫亞的考驗獎勵","努葛瑪呼的考驗獎勵","拿馬乎的考驗獎勵","塔薩里奧的考驗獎勵"},
             index = 296
         },
         ['完成拿馬乎的試煉']= {
@@ -1853,6 +1853,13 @@ local main_task= {
             interaction_object_map_name= {"G4_4_3"},
             index = 303
         },
+        ['擊敗白之亞瑪']= {
+            map_name= 'G4_4_2',
+            interaction_object={"白之亞瑪"},
+            Boss = {"白之亞瑪"},
+            interaction_object_map_name= {"G4_4_2_YamaActive"},
+            index = 303
+        },
         ["拾起銀幣"] ={
             map_name= 'G4_4_2',
             interaction_object={"白之亞瑪","銀幣"},
@@ -1864,6 +1871,45 @@ local main_task= {
             interaction_object={"祖靈的試煉"},
             interaction_object_map_name= {"G4_4_3"},
             index = 305
+        },
+        ['祖靈的試煉']= {
+            map_name= 'G4_4_3',
+            index = 306
+        },
+        ["與娜瓦莉交談"] = {
+            map_name= 'G4_4_3',
+            interaction_object={"娜瓦莉"},
+            interaction_object_map_name= {"娜瓦莉"},
+            index = 307
+        },
+        ["瓦卡帕努島"] = {
+            map_name= 'G4_3_1',
+            index = 308
+        },
+        ["探索瓦卡帕努島"] = {
+            map_name= 'G4_3_1',
+            interaction_object= {'吟謠洞窟'},
+            Boss = {"大白鯊"},
+            interaction_object_map_name= {'G4_3_2'},
+            index = 309
+        },
+        ["擊敗大白鯊"] = {
+            map_name= 'G4_3_1',
+            interaction_object= {'鯊魚鰭'},
+            Boss = {"大白鯊"},
+            interaction_object_map_name= {'G4_3_1_BossActive'},
+            index = 310
+        },
+        ["吟謠洞窟"] = {
+            map_name= 'G4_3_2',
+            index = 311
+        },
+        ["探索吟謠洞窟"] = {
+            map_name= 'G4_3_2',
+            interaction_object= {'吟謠洞窟'},
+            Boss = {"大白鯊"},
+            interaction_object_map_name= {'G4_3_2'},
+            index = 312
         },
         
         
