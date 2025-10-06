@@ -1906,10 +1906,62 @@ local main_task= {
         },
         ["探索吟謠洞窟"] = {
             map_name= 'G4_3_2',
-            interaction_object= {'吟謠洞窟'},
-            Boss = {"大白鯊"},
-            interaction_object_map_name= {'G4_3_2'},
+            interaction_object_map_name= {'G4_3_2_BossActive'},
             index = 312
+        },
+        ["擊殺死亡之謠，黛莫拉"] = {
+            map_name= 'G4_3_2',
+            Boss = {"擊殺死亡之謠．黛莫拉"},
+            interaction_object_map_name= {'G4_3_2_BossActive'},
+            index = 313
+        },
+        ["廢棄監獄"] = {
+            map_name= 'G4_5_1',
+            index = 314
+        },
+        ["探索監獄"] = {
+            map_name= 'G4_5_1',
+            interaction_object= {'單獨禁閉',"把手"},
+            interaction_object_map_name= {'G4_5_2'},
+            index = 315
+        },
+        ["進入單獨禁閉室"] = {
+            map_name= 'G4_5_1',
+            interaction_object= {'單獨禁閉',"把手"},
+            interaction_object_map_name= {'G4_5_2'},
+            index = 315
+        },
+        ["單獨禁閉"] = {
+            map_name= 'G4_5_2',
+            index = 316
+        },
+        ["探索單獨禁閉室"] = {
+            map_name= 'G4_5_2',
+            interaction_object= {'門',"把手"},
+            interaction_object_map_name= {'SolitaryConfinementBossActive'},
+            index = 317
+        },
+        ["打開加固的門"] = {
+            map_name= 'G4_5_2',
+            interaction_object= {'門',"把手"},
+            Boss = {"囚犯"},
+            interaction_object_map_name= {'SolitaryConfinementBossActive'},
+            index = 318
+        },
+        ["殺死囚犯"] = {
+            map_name= 'G4_5_2',
+            interaction_object= {'門',"把手"},
+            Boss = {"囚犯"},
+            interaction_object_map_name= {'SolitaryConfinementBossActive'},
+            index = 319
+        },
+        ["伯勞鳥之島"] = {
+            map_name= 'G4_7',
+            index = 320
+        },
+        ["探索伯勞鳥之島"] = {
+            map_name= 'G4_7',
+            index = 321
         },
         
         

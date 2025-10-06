@@ -929,7 +929,6 @@ local custom_nodes = {
             -- 周围装备信息
             local range_items_start_time = api_GetTickCount64()
             env.range_items = WorldItems:Update()
-            -- poe2_api.printTable(env.range_items)
             poe2_api.time_p("    获取周围装备信息... 耗时 --> ", api_GetTickCount64() - range_items_start_time)
 
             -- 背包信息（主背包）
@@ -1687,7 +1686,7 @@ local custom_nodes = {
             end
             -- 大号，小号更新障碍
             if poe2_api.get_team_info(env.team_info, env.user_config, player_info, 2) == "大號名" then
-                if not poe2_api.table_contains(player_info.current_map_name_utf8, { "G2_3","G2_9_1","G3_17"}) or poe2_api.find_text({ UI_info = env.UI_info, text = "競技場", min_x = 0 }) then
+                if not poe2_api.table_contains(player_info.current_map_name_utf8, { "G2_3","G2_9_1","G3_17","G4_5_2"}) or poe2_api.find_text({ UI_info = env.UI_info, text = "競技場", min_x = 0 }) then
                     if player_info.current_map_name_utf8 == "G2_2" then
                         api_UpdateMapObstacles(180)
                     else
@@ -5745,11 +5744,23 @@ local custom_nodes = {
                 else
                     task = poe2_api.get_task_info(main_task.tasks_data,main_task_info[1])
                 end
+                poe2_api.printTable(task)
                 if task and next(task) and task.task_name == "金司馬區" then
                     local rel_task = nil
                     for _, task in ipairs(api_GetQuestList(0)) do
                         if task.MainQuestName == "部落復仇" then
                             rel_task = true
+                        end
+                    end
+                    if not rel_task then
+                        task = nil
+                    end
+                end
+                if task and next(task) and task.task_name == "與黑衣幽魂對話" then
+                    local rel_task = true
+                    for _, task in ipairs(api_GetQuestList(0)) do
+                        if task.MainQuestName == "大搜索" then
+                            rel_task = false
                         end
                     end
                     if not rel_task then
@@ -6242,6 +6253,66 @@ local custom_nodes = {
                             poe2_api.time_p("[Query_Current_Task_Information]",(api_GetTickCount64() - current_time))
                             return bret.SUCCESS
                         end
+                    elseif self.mas == "G4_5_1" then
+                        poe2_api.dbgp("[Query_Current_Task_Information]获取-G4_3_1-地图任务信息")
+                        if poe2_api.get_team_info(team_info, config, player_info, 2) ~= "大號名" then
+                            if not next(env.raw) or (self.raw_time ~= 0 and api_GetTickCount64() - self.raw_time > max_time) then
+                                -- 发送任务信息
+                                local task_text = "task_name=" .. "廢棄監獄" .. ",task_index=" .. 314 ..",map_name=" .. self.mas
+                                poe2_api.click_keyboard("enter")
+                                api_Sleep(500)
+                                paste_text(task_text)
+                                api_Sleep(500)
+                                if not poe2_api.find_text({UI_info = env.UI_info, text = "私訊", min_x = 0, max_x = 400, refresh = true}) then
+                                    poe2_api.dbgp("[Query_Current_Task_Information]私訊")
+                                    return bret.RUNNING
+                                end
+                                poe2_api.click_keyboard("enter")
+                                api_Sleep(500)
+                                self.raw_time = api_GetTickCount64()
+                                env.raw = { "廢棄監獄", 314 }
+                            end
+                            env.update = { "廢棄監獄", 314 }
+                            if not deep_equal_unordered(env.raw, env.update) then
+                                env.raw = {}
+                                poe2_api.dbgp("[Query_Current_Task_Information]廢棄監獄-RUNNING2")
+                                return bret.RUNNING
+                            end
+                            env.map_name = self.mas
+                            poe2_api.dbgp("[Query_Current_Task_Information]-廢棄監獄-SUCCESS3")
+                            poe2_api.time_p("[Query_Current_Task_Information]",(api_GetTickCount64() - current_time))
+                            return bret.SUCCESS
+                        end
+                    elseif self.mas == "G4_7" then
+                        poe2_api.dbgp("[Query_Current_Task_Information]获取-G4_7-地图任务信息")
+                        if poe2_api.get_team_info(team_info, config, player_info, 2) ~= "大號名" then
+                            if not next(env.raw) or (self.raw_time ~= 0 and api_GetTickCount64() - self.raw_time > max_time) then
+                                -- 发送任务信息
+                                local task_text = "task_name=" .. "伯勞鳥之島" .. ",task_index=" .. 320 ..",map_name=" .. self.mas
+                                poe2_api.click_keyboard("enter")
+                                api_Sleep(500)
+                                paste_text(task_text)
+                                api_Sleep(500)
+                                if not poe2_api.find_text({UI_info = env.UI_info, text = "私訊", min_x = 0, max_x = 400, refresh = true}) then
+                                    poe2_api.dbgp("[Query_Current_Task_Information]私訊")
+                                    return bret.RUNNING
+                                end
+                                poe2_api.click_keyboard("enter")
+                                api_Sleep(500)
+                                self.raw_time = api_GetTickCount64()
+                                env.raw = { "伯勞鳥之島", 320 }
+                            end
+                            env.update = { "伯勞鳥之島", 320 }
+                            if not deep_equal_unordered(env.raw, env.update) then
+                                env.raw = {}
+                                poe2_api.dbgp("[Query_Current_Task_Information]伯勞鳥之島-RUNNING2")
+                                return bret.RUNNING
+                            end
+                            env.map_name = self.mas
+                            poe2_api.dbgp("[Query_Current_Task_Information]-伯勞鳥之島-SUCCESS3")
+                            poe2_api.time_p("[Query_Current_Task_Information]",(api_GetTickCount64() - current_time))
+                            return bret.SUCCESS
+                        end
                     end
                 end
                 self.mas = nil
@@ -6291,7 +6362,7 @@ local custom_nodes = {
                 -- 查找符合条件的怪物
                 for _, i in ipairs(range_info) do
                     if not i.is_friendly and i.life > 0 and i.name_utf8 ~= ""
-                        and (i.name_utf8 == "撕裂者" or i.name_utf8 == "白之亞瑪")
+                        and poe2_api.table_contains(i.name_utf8 ,{"撕裂者","白之亞瑪","擊殺死亡之謠．黛莫拉"})
                         and poe2_api.get_point_distance(mate.grid_x, mate.grid_y, i.grid_x, i.grid_y) < 200 then
                         return i
                     end
@@ -6541,12 +6612,13 @@ local custom_nodes = {
                             return bret.FAIL
                         end
                     end
-                    if boss_info_mate and arena_list then
+                    if boss_info_mate and arena_list and #arena_list > 0 then
                         poe2_api.dbgp("[Is_Move]与队友距离大于25且与boss距离小于180")
                         local arena_point = api_FindNearestReachablePoint(arena_list[1].grid_x, arena_list[1].grid_y, 25,0)
                         poe2_api.dbgp(arena_point.x, arena_point.y)
                         env.end_point = { arena_point.x, arena_point.y }
                     else
+                        api_RestoreOriginalMap()
                         local mate_point = api_FindNearestReachablePoint(mate.grid_x, mate.grid_y, 15, 0)
                         env.end_point = { mate_point.x, mate_point.y }
                     end
@@ -6925,6 +6997,7 @@ local custom_nodes = {
             if self.time1 == nil then
                 poe2_api.dbgp("[Click_Leader_To_Teleport]初始化時間")
                 self.time1 = 0
+                self.time2 = 0
             end
             local condition_met = (current_map == "C_G1_1" and string.find(task_area, "C")) or
                 (current_map ~= "G1_1" and not poe2_api.find_text({ UI_info = UI_info, text = "抵達皆伐" }))
@@ -7313,10 +7386,20 @@ local custom_nodes = {
             if current_map == task_area and string.find(current_map, "G4") and string.find(task_area, "G4") then 
                 local g4_area_name = get_range_pos(poe2_api.task_area_list_data(task_area)[1][2])
                 if g4_area_name then
+                    if self.time2 == 0 then
+                        self.time2 = api_GetTickCount()
+                    end
                     local distance = poe2_api.point_distance(g4_area_name[1], g4_area_name[2], player_info)
                     poe2_api.dbgp(g4_area_name,distance)
                     if distance < 30 then
                         poe2_api.find_text({UI_info = env.UI_info, text = poe2_api.task_area_list_data(task_area)[1][2], click = 2})
+                        if api_GetTickCount() - self.time2 > 2*1000 then
+                            self.time2 = 0
+                            local handle_point = api_FindRandomWalkablePosition(player_info.grid_x, player_info.grid_y,40)
+                            api_ClickMove(poe2_api.toInt(handle_point.x),poe2_api.toInt(handle_point.y),0)
+                            api_Sleep(300)
+                            poe2_api.click_keyboard("space")
+                        end
                         return bret.RUNNING
                     else                    
                         env.end_point= {g4_area_name[1], g4_area_name[2]}
@@ -7324,6 +7407,7 @@ local custom_nodes = {
                     end
                 end
             end
+            self.time2 = 0
             if current_map == task_area and task_area == "G4_4_1" then
                 if poe2_api.find_text({UI_info = env.UI_info, text = "通道", min_x = 0}) and mini_map_obj_flagStatus("Waypoint") then
                     poe2_api.find_text({UI_info = env.UI_info, text = "通道", min_x = 0,click = 2})
@@ -9742,7 +9826,7 @@ local custom_nodes = {
                 poe2_api.dbgp("血量：", valid_monsters.life )
                 -- poe2_api.print_log("type --> ", type(valid_monsters))
                 poe2_api.dbgp("++++++++++++++++++++++++++++++++++")
-                if poe2_api.table_contains(valid_monsters.name_utf8, {'鋼鐵伯爵','巨像．札爾瑪拉斯','崛起之王．賈嫚拉'}) and not valid_monsters.isActive then
+                if poe2_api.table_contains(valid_monsters.name_utf8, {'鋼鐵伯爵','巨像．札爾瑪拉斯','崛起之王．賈嫚拉',"擊殺死亡之謠．黛莫拉"}) and not valid_monsters.isActive then
                     return bret.SUCCESS
                 end
                 if string.find(valid_monsters.name_utf8, "多里亞尼") and valid_monsters.stateMachineList and valid_monsters.stateMachineList["boss_life_bar"] == 0 then
@@ -9793,7 +9877,23 @@ local custom_nodes = {
                         end
                     end
                 end
-                
+                if valid_monsters.name_utf8 == "囚犯" then
+                    local range_sorted = poe2_api.get_sorted_obj("砲塔",env.range_info, env.player_info)
+                    if range_sorted and #range_sorted > 0 then
+                        if poe2_api.point_distance(range_sorted[1].grid_x,range_sorted[1].grid_y,player_info) > 35 then
+                            env.attack_move = true
+                            env.end_point = {range_sorted[1].grid_x,range_sorted[1].grid_y}
+                            return bret.FAIL
+                        end
+                        if valid_monsters and valid_monsters.stateMachineList and valid_monsters.stateMachineList["kneeling"] == 1 then
+                            api_Sleep(500)
+                            poe2_api.find_text({UI_info = env.UI_info, text = "砲塔", min_x = 0,click = 2 })
+                            api_Sleep(500)
+                            env.space = false
+                            return bret.RUNNING
+                        end
+                    end
+                end
                 -- 特殊Boss处理
                 local special_bosses = {'巨蛇女王．瑪娜莎', '被遺忘的囚犯．帕拉薩'}
                 if poe2_api.table_contains(valid_monsters.name_utf8, special_bosses) and distance > 50 and not valid_monsters.isActive then
@@ -10509,6 +10609,16 @@ local custom_nodes = {
                         return bret.RUNNING
                     end
                 end
+                if player_info.current_map_name_utf8 == "G4_5_2" and task_name == "殺死囚犯" then
+                    local boss = poe2_api.get_sorted_obj("砲塔", range_info, player_info)
+                    if boss and #boss > 0  and player_info.isInBossBattle then
+                        env.record_map = nil
+                        if get_distance(boss[1].grid_x,boss[1].grid_y) < 35 then
+                            poe2_api.dbgp("砲塔距离<35")
+                            return bret.RUNNING
+                        end
+                    end
+                end
                 if poe2_api.table_contains("瘋狂讚美詩",interaction_object_set) then
                     poe2_api.dbgp("瘋狂讚美詩")
                     local handle = poe2_api.get_sorted_obj("瘋狂讚美詩", range_info, player_info)
@@ -11009,6 +11119,18 @@ local custom_nodes = {
                         poe2_api.find_text({UI_info = UI_info,text = interaction_object[1], click = 2, min_x = 160,refresh = true})
                         api_Sleep(500)
                     end
+                end
+                if interaction_object[2] == "把手" and player_info.current_map_name_utf8 == "G4_5_2" then
+                    if poe2_api.find_text({UI_info = UI_info,text = interaction_object[2], min_x = 160,refresh = true}) then
+                        poe2_api.find_text({UI_info = UI_info,text = interaction_object[2], click = 2, min_x = 160,refresh = true})
+                        if poe2_api.find_text({UI_info = UI_info,text = "記錄點",  min_x = 160,refresh = true}) then
+                            api_Sleep(12000)
+                            api_UpdateMapObstacles(100)
+                        else
+                            api_Sleep(5000)
+                        end
+                        return bret.RUNNING
+                    end         
                 end
                 if poe2_api.find_text({UI_info = UI_info,text = interaction_object[2], min_x = 160,refresh = true}) then
                     api_Sleep(500)
