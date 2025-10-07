@@ -1963,6 +1963,44 @@ local main_task= {
             map_name= 'G4_7',
             index = 321
         },
+        ["在金司馬區與黑衣幽魂對話"] = {
+            map_name= 'G4_town',
+            interaction_object= {'黑衣幽魂'},
+            grid_x = 1023,
+            grid_y = 1635,
+            index = 322
+        },
+        ["與瑪寇魯對話"] = {
+            map_name= 'G4_town',
+            interaction_object= {'瑪寇魯'},
+            grid_x = 1025,
+            grid_y = 1407,
+            index = 323
+        },
+        ["前往阿拉塔斯"] = {
+            map_name= 'G4_town',
+            interaction_object= {"阿拉塔斯",'瑪寇魯',"啟航"},
+            special_map_point = {587,733},
+            grid_x = 1025,
+            grid_y = 1407,
+            index = 324
+        },
+        ["詢問某人關於武器的事"] = {
+            map_name= 'G4_8b',
+            interaction_object= {'傳道士羅蘭迪斯'},
+            interaction_object_map_name= {'傳道士羅蘭迪斯'},
+            index = 325
+        },
+        ["阿拉塔斯"] = {
+            map_name= 'G4_8b',
+            index = 326
+        },
+        ["調查教堂外的騷動"] = {
+            map_name= 'G4_8b',
+            interaction_object= {'門'},
+            index = 327
+        },
+        
         
         
     }

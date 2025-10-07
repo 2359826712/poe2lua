@@ -880,7 +880,7 @@ local custom_nodes = {
 
             local player_info_start_time = api_GetTickCount64()
             env.player_info = api_GetLocalPlayer()
-            -- poe2_api.printTable(env.player_info)
+            poe2_api.printTable(env.player_info)
             if poe2_api.countTableItems(env.player_info) < 1 then
                 poe2_api.dbgp("空人物信息")
                 return bret.RUNNING
@@ -4554,7 +4554,7 @@ local custom_nodes = {
                     poe2_api.dbgp("[The_Interactive_Npc_Exist]城镇任务npc为黑衣幽魂")
                     return bret.FAIL
                 end
-                if npc_names and not string.find(npc_names.name_utf8, '沙漠') then
+                if npc_names and not poe2_api.table_contains(npc_names.name_utf8, {'沙漠',"安潔"}) then
                     env.npc_names = npc_names
                     poe2_api.dbgp("Interactive_Npc_In_Town(SUCCESS1)")
                     poe2_api.time_p("Interactive_Npc_In_Town",api_GetTickCount64() - current_time)
@@ -5764,7 +5764,7 @@ local custom_nodes = {
                         end
                     end
                     if not rel_task then
-                        task = nil
+                        task = poe2_api.get_task_info(main_task.tasks_data,"金司馬區") 
                     end
                 end
             else
@@ -6910,18 +6910,23 @@ local custom_nodes = {
                     poe2_api.click_keyboard("space")
                     return bret.RUNNING
                 end
-                if special_map_point and poe2_api.find_text({ UI_info = env.UI_info, text = interaction_object[1], min_x = 195, refresh = true }) then
+                if special_map_point and poe2_api.find_text({ UI_info = env.UI_info, text = "哈拉妮關口", min_x = 195, refresh = true }) then
                     if poe2_api.find_text({ UI_info = env.UI_info, text = "快行" }) then
                         poe2_api.click_keyboard("space")
                     end
                     poe2_api.find_text({ UI_info = env.UI_info, text = interaction_object[1], click = 2, min_x = 195, refresh = true })
                     return bret.RUNNING
                 end
-                if special_map_point and not poe2_api.find_text({ UI_info = env.UI_info, text = interaction_object[1], min_x = 195, refresh = true }) then
+                if special_map_point and not poe2_api.find_text({ UI_info = env.UI_info, text = "哈拉妮關口", min_x = 195, refresh = true }) then
                     if env.waypoint ~= nil and #env.waypoint > 0 then
-                        waypoint_screen = poe2_api.waypoint_pos("G2_town_marker_lockedgates",env.waypoint)
+                        if task_area == "G2_town" then
+                            waypoint_screen_text = "G2_town_marker_lockedgates"
+                        elseif task_area == "G4_town" then
+                            waypoint_screen_text = "G4_ShipMarker_TwilightEnclave_b"
+                        end
+                        waypoint_screen = poe2_api.waypoint_pos(waypoint_screen_text,env.waypoint)
                         if waypoint_screen[1] == 0 and waypoint_screen[2] == 0 then
-                            waypoint_screen = poe2_api.waypoint_pos("G2_town_marker_gates",env.waypoint)
+                            waypoint_screen = poe2_api.waypoint_pos(waypoint_screen_text,env.waypoint)
                         end
                     end
                     if (not waypoint_screen) or (waypoint_screen[1] == 0 and waypoint_screen[2] == 0) then
@@ -6958,6 +6963,17 @@ local custom_nodes = {
                                 end
                             end
                             return bret.RUNNING
+                        end
+                    end
+                    if string.find(player_info.current_map_name_utf8, "G4_town") then
+                        if poe2_api.find_text({ UI_info = env.UI_info, text = "快行", refresh = true }) then
+                            api_ClickScreen(poe2_api.toInt(waypoint_screen[1]), poe2_api.toInt(waypoint_screen[2]), 0)
+                            api_Sleep(600)
+                            api_ClickScreen(poe2_api.toInt(waypoint_screen[1]), poe2_api.toInt(waypoint_screen[2]), 1)
+                            api_Sleep(600)
+                            if poe2_api.find_text({ UI_info = env.UI_info, text = "快行" }) then
+                                poe2_api.click_keyboard("space")
+                            end
                         end
                     end
                 end
@@ -7332,6 +7348,7 @@ local custom_nodes = {
                             return bret.SUCCESS
                         end
                     end
+                    return bret.RUNNING
                 else
                     return bret.SUCCESS
                 end
@@ -7356,7 +7373,7 @@ local custom_nodes = {
             if poe2_api.table_contains(task_area, {"G3_12"}) and not waypoint_name_utf8 then
                 waypoint_name_utf8  = poe2_api.task_area_list_data(task_area)[1][2]
             end
-            if  poe2_api.find_text({ UI_info = UI_info, text = waypoint_name_utf8, min_x = 0, min_y = 0, max_x = 195, max_y = 590 }) then
+            if poe2_api.find_text({ UI_info = UI_info, text = waypoint_name_utf8, min_x = 0, min_y = 0, max_x = 195, max_y = 590 }) then
                 for i = 0, count - 1 do
                     if not poe2_api.find_text({ UI_info = UI_info, text = "你確定要傳送至此玩家的位置？" }) then
                         if poe2_api.find_text({ UI_info = UI_info, text = "快行" }) then
@@ -7387,13 +7404,13 @@ local custom_nodes = {
                 local g4_area_name = get_range_pos(poe2_api.task_area_list_data(task_area)[1][2])
                 if g4_area_name then
                     if self.time2 == 0 then
-                        self.time2 = api_GetTickCount()
+                        self.time2 = api_GetTickCount64()
                     end
                     local distance = poe2_api.point_distance(g4_area_name[1], g4_area_name[2], player_info)
                     poe2_api.dbgp(g4_area_name,distance)
                     if distance < 30 then
                         poe2_api.find_text({UI_info = env.UI_info, text = poe2_api.task_area_list_data(task_area)[1][2], click = 2})
-                        if api_GetTickCount() - self.time2 > 2*1000 then
+                        if api_GetTickCount64() - self.time2 > 2*1000 then
                             self.time2 = 0
                             local handle_point = api_FindRandomWalkablePosition(player_info.grid_x, player_info.grid_y,40)
                             api_ClickMove(poe2_api.toInt(handle_point.x),poe2_api.toInt(handle_point.y),0)
@@ -10843,6 +10860,17 @@ local custom_nodes = {
                     env.interaction_object_copy = nil
                     env.interaction_object_map_name_copy = {"艾瓦"}
                     env.modify_interaction = true
+                elseif player_info.current_map_name_utf8 == "G4_8b" and task_name == "詢問某人關於武器的事" then
+                    if not min_map_dis("傳道士羅蘭迪斯") or #min_map_dis("傳道士羅蘭迪斯") == 0 then
+                        poe2_api.dbgp("G4_8b-地图")
+                        interaction_object_set = nil
+                        env.interaction_object = nil
+                        interaction_object_map_name = nil
+                        env.interaction_object_map_name = nil
+                        env.interaction_object_copy = nil
+                        env.interaction_object_map_name_copy = nil
+                        env.modify_interaction = true
+                    end
                 end
                 if interaction_object_set and not poe2_api.table_contains("Per",interaction_object_set) then
                     for _,obj in ipairs(sorted_range_info) do
