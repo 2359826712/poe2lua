@@ -267,8 +267,8 @@ local custom_nodes = {
 
                 -- 加载躲避技能
 
-                if not self.open_mos_skill then
-                    self.open_mos_skill = true
+                if not env.open_mos_skill then
+                    env.open_mos_skill = true
                     local skills = config["全局設置"]["刷图通用設置"]["是否躲避技能"]
                     if skills then
                         -- 圆形

@@ -280,7 +280,7 @@ local my_game_info = {
         {1, "Metadata/Monsters/MonsterMods/VolatilePlants/volatile.ao", 10}, -- 追踪紫色爆炸球
         {1, "Metadata/Effects/Spells/monsters_effects/Act4_FOUR/Yama/AOs/EyeSlamGroundEffect.ao", 35} -- 白之亞瑪 眼球技能
     },
-
+    
     MonitoringSkills_Circle = {
         -- 祭坛
         {
@@ -493,7 +493,8 @@ local my_game_info = {
 
     MonitoringSkills_Rect = {
         {"Metadata/Effects/Spells/monsters_effects/Act1_FOUR/FungalArtillery/ao/abysslightning_projectile_impact.ao",20,5},
-        {"SwollenMillerSlam",95,30}
+        {"SwollenMillerSlam",95,30},
+        
     },
 
     -- # 商人npc
@@ -578,6 +579,7 @@ local my_game_info = {
         G4_8a = { {"阿拉塔斯", "阿拉塔斯"}, "有" },
         G4_8b = { {"阿拉塔斯", "阿拉塔斯"}, "有" },
         G4_10 = { {"挖掘", "挖掘"}, "有" },
+        G4_10_1 = { {"挖掘", "挖掘"}, "有" },
         G4_11_1a = { {"尼加卡努", "尼加卡努"}, "有" },
         G4_11_1b = { {"尼加卡努", "尼加卡努"}, "有" },
         G4_11_2 = { {"部族之心", "部族之心"}, "有" },
@@ -628,7 +630,7 @@ local my_game_info = {
         "不祥祭壇", "獲得通行許可", "腐化痕跡",
         "七大水域之都", "象牙盜匪", "石皇冠", "瓦爾的傳承",
         "部落復仇","暗黑迷霧","金氏族地","塔赫亞的考驗","努葛瑪呼的考驗","塔薩里奧的考驗",
-        "祖靈的試煉","瓦卡帕努島","廢棄監獄","伯勞鳥之島","大搜索"
+        "祖靈的試煉","瓦卡帕努島","廢棄監獄","伯勞鳥之島","跟隨塔瓦凱","大搜索"
     },
 
     type_conversion = {

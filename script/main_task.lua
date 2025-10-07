@@ -1987,7 +1987,7 @@ local main_task= {
         },
         ["詢問某人關於武器的事"] = {
             map_name= 'G4_8b',
-            interaction_object= {'傳道士羅蘭迪斯'},
+            interaction_object= {'傳道士羅蘭迪斯',"介紹"},
             interaction_object_map_name= {'傳道士羅蘭迪斯'},
             index = 325
         },
@@ -2000,9 +2000,96 @@ local main_task= {
             interaction_object= {'門'},
             index = 327
         },
+        ["尋找重鑄武器的方法"] = {
+            map_name= 'G4_8b',
+            interaction_object= {'挖掘',"晚鐘"},
+            interaction_object_map_name= {'G4_10',"ExaltedBellActive"},
+            index = 330
+        },
+        ["擊敗救贖者之手．托維安"] = {
+            map_name= 'G4_8b',
+            Boss={"救贖者之手．托維安"},
+            interaction_object_map_name= {'G4_8b_BossActive'},
+            index = 331
+        },
+        ["進入挖掘場"] = {
+            map_name= 'G4_10',
+            index = 332
+        },
+        ["挖掘"] = {
+            map_name= 'G4_10',
+            index = 333
+        },
+        ["面對卡努與第一使者"] = {
+            map_name= 'G4_10',
+            Boss={"烏托邦的第一使者．本篤特斯"},
+            interaction_object_map_name= {'G4_10_BossActive'},
+            index = 334
+        },
+        ["擊敗烏托邦的第一使者．本篤特斯"] = {
+            map_name= 'G4_10',
+            Boss={"烏托邦的第一使者．本篤特斯"},
+            interaction_object_map_name= {'G4_10_BossActive',"G4_10_BossInactive"},
+            index = 335
+        },
+        ["進入挖掘場遺址"] = {
+            map_name= 'G4_10',
+            interaction_object= {'黑衣幽魂'},
+            Boss={"烏托邦的第一使者．本篤特斯"},
+            interaction_object_map_name= {'G4_10_BossActive','黑衣幽魂'},
+            index = 336
+        },
+        ["目睹黑衣幽魂重鑄出武器"] = {
+            map_name= 'G4_10',
+            interaction_object= {'黑衣幽魂'},
+            Boss={"烏托邦的第一使者．本篤特斯"},
+            interaction_object_map_name= {'G4_10_BossActive','黑衣幽魂'},
+            index = 337
+        },
+        ["與拉卓里對話"] = {
+            map_name= 'G4_town',
+            interaction_object= {'拉卓里'},
+            grid_x = 1025,
+            grid_y = 1407,
+            index = 338
+        },
+        ["與拉卓里對話以前往尼加卡努"] = {
+            map_name= 'G4_11_1b',
+            index = 339
+        },
+        ["尼加卡努"] = {
+            map_name= 'G4_11_1b',
+            index = 339
+        },
+        ["找到部族之心"] = {
+            map_name= 'G4_11_1b',
+            interaction_object= {'部族之心'},
+            interaction_object_map_name= {'G4_11_2'},
+            index = 340
+        },
+        ["部族之心"] = {
+            map_name= 'G4_11_2',
+            index = 341
+        },
+        ["找到塔瓦凱"] = {
+            map_name= 'G4_11_2',
+            Boss = {"酋長．塔瓦凱"},
+            interaction_object_map_name= {'G4_11_2_BossActive'},
+            index = 342
+        },
+        ["跟隨塔瓦凱"] = {
+            map_name= 'G4_11_2',
+            Boss = {"墮落者．塔瓦凱"},
+            interaction_object_map_name= {'瑪寇魯'},
+            index = 343
+        },
+        ["擊敗塔瓦凱"] = {
+            map_name= 'G4_11_2',
+            Boss = {"酋長．塔瓦凱","墮落者．塔瓦凱"},
+            index = 344
+        },
         
-        
-        
+
     }
 }
 return main_task

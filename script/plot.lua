@@ -915,7 +915,7 @@ local custom_nodes = {
             --     poe2_api.dbgp(k.flagStatus1)
             --     poe2_api.dbgp("==============================")
             -- end
-            -- -- poe2_api.printTable(api_GetTeamInfo())
+            -- -- poe2_api.printTable(api_GetTeleportationPoint())
             -- while true do
             --     api_Sleep(1000)
             -- end
@@ -1686,7 +1686,7 @@ local custom_nodes = {
             end
             -- 大号，小号更新障碍
             if poe2_api.get_team_info(env.team_info, env.user_config, player_info, 2) == "大號名" then
-                if not poe2_api.table_contains(player_info.current_map_name_utf8, { "G2_3","G2_9_1","G3_17","G4_5_2"}) or poe2_api.find_text({ UI_info = env.UI_info, text = "競技場", min_x = 0 }) then
+                if not poe2_api.table_contains(player_info.current_map_name_utf8, { "G2_3","G2_9_1","G3_17","G4_5_2","G4_10"}) or poe2_api.find_text({ UI_info = env.UI_info, text = "競技場", min_x = 0 }) then
                     if player_info.current_map_name_utf8 == "G2_2" then
                         api_UpdateMapObstacles(180)
                     else
@@ -5534,6 +5534,11 @@ local custom_nodes = {
                     env.map_name = "G3_6_1"
                     env.interaction_object_map_name = {'艾瓦'}
                     env.interaction_object = {'召喚艾瓦', '艾瓦', '門'}
+                elseif party_member_map({ "G4_10"}) and task.task_name == "尋找重鑄武器的方法" then
+                    poe2_api.dbgp("[Query_Current_Task_Information_Local]尋找重鑄武器的方法")
+                    env.map_name = "G4_10"
+                    env.interaction_object_map_name = nil
+                    env.interaction_object = nil
                 elseif party_member_map({ "G3_6_2"}) and task.task_name == "召喚艾瓦，尋求她的意見" then
                     poe2_api.dbgp("[Query_Current_Task_Information_Local]召喚艾瓦，尋求她的意見")
                     env.map_name = "G3_6_2"
@@ -5866,6 +5871,11 @@ local custom_nodes = {
                     env.map_name = "G3_6_1"
                     env.interaction_object_map_name = {'艾瓦'}
                     env.interaction_object = {'召喚艾瓦', '艾瓦', '門'}
+                elseif player_info.current_map_name_utf8 == "G4_10" and task.task_name == "尋找重鑄武器的方法" then
+                    poe2_api.dbgp("[Query_Current_Task_Information_Local]尋找重鑄武器的方法")
+                    env.map_name = "G4_10"
+                    env.interaction_object_map_name = nil
+                    env.interaction_object = nil
                 elseif player_info.current_map_name_utf8 == "G2_3a" and task.task_name == "使用貧脊之地的地圖前往哈拉妮關口所在之處" then
                     poe2_api.dbgp("[Query_Current_Task_Information]G2_3a使用貧脊之地的地圖前往哈拉妮關口所在之處")
                     env.map_name = "G2_3a"
@@ -6361,8 +6371,8 @@ local custom_nodes = {
                 local mx, my = mate.grid_x, mate.grid_y
                 -- 查找符合条件的怪物
                 for _, i in ipairs(range_info) do
-                    if not i.is_friendly and i.life > 0 and i.name_utf8 ~= ""
-                        and poe2_api.table_contains(i.name_utf8 ,{"撕裂者","白之亞瑪","擊殺死亡之謠．黛莫拉"})
+                    if not i.is_friendly and i.life > 0 and i.name_utf8 ~= "" and i.isActive
+                        and poe2_api.table_contains(i.name_utf8 ,{"撕裂者","白之亞瑪","擊殺死亡之謠．黛莫拉","酋長．塔瓦凱"})
                         and poe2_api.get_point_distance(mate.grid_x, mate.grid_y, i.grid_x, i.grid_y) < 200 then
                         return i
                     end
@@ -6407,7 +6417,7 @@ local custom_nodes = {
                 env.monster_info = nil
                 return bret.RUNNING
             end
-            if (boss_name or player_info.isInBossBattle) and not poe2_api.table_contains(player_info.current_map_name_utf8,{"G4_4_1","G4_4_2"})  then
+            if (boss_name or player_info.isInBossBattle) and not poe2_api.table_contains(player_info.current_map_name_utf8,{"G4_4_1","G4_4_2","G4_11_2"})  then
                 local boss_info = poe2_api.is_have_boss_distance(range_info, player_info, boss_name, 180)
                 if boss_info or player_info.isInBossBattle then
                     poe2_api.dbgp("[Is_Exception_Team]当前处于BOSS战斗中")
@@ -6618,7 +6628,9 @@ local custom_nodes = {
                         poe2_api.dbgp(arena_point.x, arena_point.y)
                         env.end_point = { arena_point.x, arena_point.y }
                     else
-                        api_RestoreOriginalMap()
+                        if player_info.current_map_name_utf8 ~= "G4_11_2" then
+                            api_RestoreOriginalMap()
+                        end
                         local mate_point = api_FindNearestReachablePoint(mate.grid_x, mate.grid_y, 15, 0)
                         env.end_point = { mate_point.x, mate_point.y }
                     end
@@ -7410,7 +7422,7 @@ local custom_nodes = {
                     poe2_api.dbgp(g4_area_name,distance)
                     if distance < 30 then
                         poe2_api.find_text({UI_info = env.UI_info, text = poe2_api.task_area_list_data(task_area)[1][2], click = 2})
-                        if api_GetTickCount64() - self.time2 > 2*1000 then
+                        if api_GetTickCount64() - self.time2 > 8*1000 then
                             self.time2 = 0
                             local handle_point = api_FindRandomWalkablePosition(player_info.grid_x, player_info.grid_y,40)
                             api_ClickMove(poe2_api.toInt(handle_point.x),poe2_api.toInt(handle_point.y),0)
@@ -8202,6 +8214,10 @@ local custom_nodes = {
             local current_map = player_info.current_map_name_utf8
             if current_map == task_area then
                 return bret.RUNNING
+            end
+            if task_area == "G4_10" then
+                task_area = "G4_10_1"
+                env.map_name = "G4_10_1"
             end
             if poe2_api.task_area_list_data(task_area)[2] == "有" and poe2_api.Waypoint_is_open(task_area, waypoint) then
                 if string.find(task_area, "G2") and not string.find(current_map, "G2") and task_area~="G2_1" then
@@ -9894,6 +9910,9 @@ local custom_nodes = {
                         end
                     end
                 end
+                if valid_monsters.name_utf8 == "烏托邦的第一使者．本篤特斯" then
+                    env.space = false
+                end
                 if valid_monsters.name_utf8 == "囚犯" then
                     local range_sorted = poe2_api.get_sorted_obj("砲塔",env.range_info, env.player_info)
                     if range_sorted and #range_sorted > 0 then
@@ -10863,11 +10882,11 @@ local custom_nodes = {
                 elseif player_info.current_map_name_utf8 == "G4_8b" and task_name == "詢問某人關於武器的事" then
                     if not min_map_dis("傳道士羅蘭迪斯") or #min_map_dis("傳道士羅蘭迪斯") == 0 then
                         poe2_api.dbgp("G4_8b-地图")
-                        interaction_object_set = nil
-                        env.interaction_object = nil
+                        interaction_object_set = {"門"}
+                        env.interaction_object = {"門"}
                         interaction_object_map_name = nil
                         env.interaction_object_map_name = nil
-                        env.interaction_object_copy = nil
+                        env.interaction_object_copy = {"門"}
                         env.interaction_object_map_name_copy = nil
                         env.modify_interaction = true
                     end
@@ -10890,6 +10909,28 @@ local custom_nodes = {
                             goto continue
                         end
                         if poe2_api.table_contains(obj.name_utf8,interaction_object_set) then
+                            if player_info.current_map_name_utf8 == "G4_8b" and obj.name_utf8 == "門" and task_name == "詢問某人關於武器的事" then
+                                if not obj.is_selectable then
+                                    local door_toward = poe2_api.move_towards({local_x,local_y},{obj.grid_x,obj.grid_y},40)
+                                    if  door_toward and #door_toward > 0 then
+                                        api_ClickMove(door_toward[1],door_toward[2],0)
+                                        poe2_api.click_keyboard("space")
+                                        api_Sleep(500)
+                                        return bret.RUNNING
+                                    end
+                                end
+                            end
+                            if player_info.current_map_name_utf8 == "G4_10" and obj.name_utf8 == "塔瓦凱" and task_name == "進入挖掘場遺址" then
+                                if obj.is_selectable then
+                                    local door_toward = poe2_api.move_towards({local_x,local_y},{obj.grid_x,obj.grid_y},40)
+                                    if  door_toward and #door_toward > 0 then
+                                        api_ClickMove(door_toward[1],door_toward[2],0)
+                                        poe2_api.click_keyboard("space")
+                                        api_Sleep(500)
+                                        return bret.RUNNING
+                                    end
+                                end
+                            end
                             if task_name == "擊敗憎惡者．賈嫚拉" and player_info.current_map_name_utf8 == "G2_12_2" and not poe2_api.find_text({ UI_info = UI_info, text = obj.name_utf8, min_x=200}) then
                                 if get_distance(obj.grid_x,obj.grid_y) > 30 then
                                     local interaction_point = api_FindNearestReachablePoint(obj.grid_x, obj.grid_y,29,1)
