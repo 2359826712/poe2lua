@@ -2085,11 +2085,234 @@ local main_task= {
         },
         ["擊敗塔瓦凱"] = {
             map_name= 'G4_11_2',
-            Boss = {"酋長．塔瓦凱","墮落者．塔瓦凱"},
+            Boss = {"酋長．塔瓦凱","墮落者．塔瓦凱","被吞噬者．塔瓦凱"},
             index = 344
         },
+        ["目睹黑衣幽魂治療塔瓦凱和瑪寇魯"] = {
+            map_name= 'G4_11_2',
+            interaction_object_map_name= {'黑衣幽魂'},
+            index = 345
+        },
+        ["回到金司馬區"] = {
+            map_name= 'G4_town',
+            interaction_object= {'黑衣幽魂'},
+            index = 346
+        },
+        ["與黑衣幽魂對話來前往奧格姆"] = {
+            map_name= 'G4_town',
+            interaction_object= {'黑衣幽魂',"前往奧格姆"},
+            grid_x = 1023,
+            grid_y = 1635,
+            index = 347
+        },
+        ['庇護所'] = {
+            map_name= 'P1_Town',
+            index = 347
+        },
+        ['與倫利對話'] = {
+            map_name= 'P1_Town',
+            interaction_object= {'倫利'},
+            index = 348
+        },
+        ['前往火噬農地'] = {
+            map_name= 'P1_1',
+            interaction_object= {'倫利'},
+            index = 349
+        },
+        ['火噬農地'] = {
+            map_name= 'P1_1',
+            index = 350
+        },
+        ['探索火噬農地'] = {
+            map_name= 'P1_1',
+            interaction_object= {'瑟雷之石'},
+            interaction_object_map_name= {'P1_2'},
+            index = 351
+        },
+        ['瑟雷之石'] = {
+            map_name= 'P1_2',
+            index = 352
+        },
+        ['尋求亡靈們的協助'] = {
+            map_name= 'P1_2',
+            index = 353
+        },
+        ['啟動符文石陣'] = {
+            map_name= 'P1_2',
+            interaction_object= {'符文巨石'},
+            interaction_object_map_name= {'RuneMarkersInactive'},
+            index = 354
+        },
+        ['啟動剩餘的石陣'] = {
+            map_name= 'P1_2',
+            interaction_object= {'符文巨石'},
+            interaction_object_map_name= {'RuneMarkersInactive'},
+            index = 355
+        },
+        ['找出石陣提供力量的對象'] = {
+            map_name= 'P1_2',
+            interaction_object_map_name= {'BossSummoningLocationInactive'},
+            index = 356
+        },
+        ['擊敗迷霧之刃．希奧拉'] = {
+            map_name= 'P1_2',
+            Boss = {"迷霧之刃．希奧拉"},
+            interaction_object_map_name= {'BossSummoningLocationInactive'},
+            index = 357
+        },
+        ['與烏娜對話'] = {
+            map_name= 'P1_2',
+            interaction_object= {'烏娜'},
+            interaction_object_map_name= {'BossSummoningLocationInactive'},
+            index = 358
+        },
+        ['返回火噬農地的黑暗之中'] = {
+            map_name= 'P1_1',
+            interaction_object_map_name= {'P1_3'},
+            index = 359
+        },
+        ['進入黑木林'] = {
+            map_name= 'P1_1',
+            interaction_object= {'黑木林'},
+            interaction_object_map_name= {'P1_3'},
+            index = 360
+        },
+        ['黑木林'] = {
+            map_name= 'P1_3',
+            index = 361
+        },
+        ['在黑木林中殺出一條血路'] = {
+            map_name= 'P1_3',
+            interaction_object= {'霍爾登'},
+            interaction_object_map_name= {'P1_4'},
+            index = 362
+        },
+        ['霍爾登'] = {
+            map_name= 'P1_4',
+            index = 363
+        },
+        ['探索霍爾登'] = {
+            map_name= 'P1_4',
+            interaction_object= {'霍爾登宅第'},
+            interaction_object_map_name= {'P1_6'},
+            index = 364
+        },
+        ['霍爾登宅第'] = {
+            map_name= 'P1_6',
+            index = 365
+        },
+        ['找出領主和夫人'] = {
+            map_name= 'P1_6',
+            interaction_object= {'門'},
+            interaction_object_map_name= {'P1_6'},
+            index = 366
+        },
+        ['擊敗領主和夫人'] = {
+            map_name= 'P1_6',
+            interaction_object= {'門'},
+            Boss = {"艾兒薇絲女士","沃夫里克領主"},
+            index = 367
+        },
+        ["回到奧格姆和倫利見面"] = {
+            map_name= 'P1_Town',
+            interaction_object= {'倫利'},
+            index = 368
+        },
+        ["狼之要塞"] = {
+            map_name= 'P1_5',
+            index = 368
+        },
+        ["與黑衣幽魂對話來前往市集"] = {
+            map_name= 'P1_Town',
+            interaction_object= {'黑衣幽魂','前往瓦斯提里'},
+            grid_x = 414,
+            grid_y = 465,
+            index = 369
+        },
+        ["卡里市集"] = {
+            map_name= 'P2_Town',
+            index = 370
+        },
+        ["卡里交匯道"] = {
+            map_name= 'P2_1',
+            index = 371
+        },
+        ["前往卡里交匯道"] = {
+            map_name= 'P2_1',
+            index = 372
+        },
+        ["尋找毒蠍與沙蟲"] = {
+            map_name= 'P2_1',
+            Boss = {"最終之刺．艾克提","沙蟲．艾能德"},
+            index = 373
+        },
+        ["擊敗艾克提與艾能德"] = {
+            map_name= 'P2_1',
+            Boss = {"最終之刺．艾克提","沙蟲．艾能德"},
+            index = 374
+        },
+        ["回去卡里市集找芮蘇"] = {
+            map_name= 'P2_Town',
+            interaction_object= {'卡里交匯道'},
+            index = 375
+        },
+        ["跟芮蘇領取專精之書"] = {
+            map_name= 'P2_Town',
+            grid_x = 284,
+            grid_y = 448,
+            interaction_object= {'芮蘇','開闢道路獎勵'},
+            index = 375
+        },
+        ["骨顎階梯"] = {
+            map_name= 'P2_1',
+            interaction_object= {'骨顎階梯'},
+            index = 376
+        },
+        ["找到塞爾卡里庇護所"] = {
+            map_name= 'P2_1',
+            interaction_object= {'卡塔爾之塘'},
+            interaction_object_map_name= {'P2_2'},
+            index = 377
+        },
+        ["卡塔爾之塘"] = {
+            map_name= 'P2_2',
+            index = 378
+        },
+        ["探索卡塔爾之塘"] = {
+            map_name= 'P2_3',
+            index = 379
+        },
+        ["塞爾卡里庇護所"] = {
+            map_name= 'P2_3',
+            index = 379
+        },
+        ["尋找水衛使者和雄偉巨靈之幣"] = {
+            map_name= 'P2_3',
+            interaction_object= {'賈多'},
+            interaction_object_map_name= {'賈多'},
+            index = 380
+        },
+        ['擊敗眼鏡蛇領主．艾爾札拉'] = {
+            map_name= 'P2_3',
+            Boss = {"眼鏡蛇領主．艾爾札拉"},
+            interaction_object_map_name= {'賈多'},
+            index = 381
+        },
+        ["在卡里交匯道尋找賈萊關口"] = {
+            map_name= 'P2_1',
+            interaction_object= {'賈萊關口'},
+            interaction_object_map_name= {'P2_5'},
+            index = 376
+        },
+        ["賈萊關口"] = {
+            map_name= 'P2_5',
+            index = 377
+        },
+        ["探索賈萊關口"] = {
+            map_name= 'P2_5',
+            index = 378
+        },
         
-
     }
 }
 return main_task

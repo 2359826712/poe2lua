@@ -191,7 +191,7 @@ local my_game_info = {
         "G_Endgame_Town", "HideoutFelled", "HideoutShrine", "HideoutLimestone",
         "HideoutCanal", "HideoutDreadnought", "HideoutTwisted",
         "HideoutRacetrack", "HideoutBeaconOfSalvation", "G1_town", "G2_town",
-        "G3_town", "G4_town", "P1_town", "P2_town","P3_town","HideoutShoreline"
+        "G3_town", "G4_town", "P1_Town", "P2_Town","P3_Town","HideoutShoreline"
     },
 
     boss_name = {
@@ -479,10 +479,15 @@ local my_game_info = {
             20
         }, -- 邪魔毒蛇納普阿茲
         {2,"Metadata/Effects/Spells/monsters_effects/Act4_FOUR/GreatWhiteOne/ao/piranha_puddle_01.ao", 20}, --大白鲨boss
-
         {2,"Metadata/Effects/Spells/monsters_effects/Act4_FOUR/TwilightOrderGuardBoss/ao/SkyBeam.ao", 30}, --勇士-卜拉克斯
-
-
+        {2,"Metadata/Effects/Spells/monsters_effects/Act4_FOUR/GreatWhiteOne/ao/piranha_puddle_01.ao", 20}, --大白鲨boss
+        {2,"Metadata/Effects/Spells/monsters_effects/Act4_FOUR/TwilightOrderGuardBoss/ao/SkyBeam.ao", 30}, --勇士-卜拉克斯
+        {2,"Metadata/Effects/Spells/monsters_effects/League_Abyss/Cocoon3/fireTornado.ao",15}, --深渊精英怪火旋风
+        {2,"Metadata/Effects/Spells/monsters_effects/League_Abyss/ExplodingRunes/Blackblood_rune.ao", 30}, --深渊符文技能
+        {2,"Metadata/Effects/Spells/monsters_effects/Act2_FOUR/VultureRegurgitator/gas_cloud.ao", 30}, --毒气
+        {2,"Metadata/Effects/Spells/monsters_effects/Act4_FOUR/Tavakai/moon_beam.ao", 50}, -- 塔瓦凱-月光光束
+        {2,"Metadata/Effects/Spells/monsters_effects/Act4_FOUR/CaptainRoth/Sand/sand_tornado.ao", 30}, -- boss沙龙卷风
+        {2,"Metadata/Effects/Spells/monsters_effects/Act1_FOUR/GuillotineExec/ao/guillotine_drop/guillotine_drop_marker.ao", 50}, -- 刽子手船锚标记
         
 
     },
@@ -619,7 +624,12 @@ local my_game_info = {
         {"G4_3_1",{"瓦卡帕努島"}},
         {"G4_5_1",{"廢棄監獄"}},
         {"G4_7",{"伯勞鳥之島"}},
-        {"G4_town",{"大搜索"}}
+        {"G4_town",{"大搜索"}},
+        {"G4_town",{"招募艾茲麥人"}},
+        {"P1_5",{"狼之要塞"}},
+        {"P1_Town",{"招募馬拉克斯人"}},
+        {"P2_1",{"骨顎階梯"}},
+        {"P2_Town",{"招募瓦爾人"}}
     },
 
 
@@ -630,7 +640,8 @@ local my_game_info = {
         "不祥祭壇", "獲得通行許可", "腐化痕跡",
         "七大水域之都", "象牙盜匪", "石皇冠", "瓦爾的傳承",
         "部落復仇","暗黑迷霧","金氏族地","塔赫亞的考驗","努葛瑪呼的考驗","塔薩里奧的考驗",
-        "祖靈的試煉","瓦卡帕努島","廢棄監獄","伯勞鳥之島","跟隨塔瓦凱","大搜索"
+        "祖靈的試煉","瓦卡帕努島","廢棄監獄","伯勞鳥之島","跟隨塔瓦凱","大搜索",
+        "招募艾茲麥人","狼之要塞","開闢道路","骨顎階梯","招募馬拉克斯人","招募瓦爾人"
     },
 
     type_conversion = {
