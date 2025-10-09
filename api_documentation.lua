@@ -318,8 +318,44 @@ lua.set_function(
     }
 );
 
+-- 新增      //在半径内寻找最近可达格 相当与 离目标点最近的api_FindNearestReachablePoint(0)
+-- api_FindNearestReachableInRange
+-- lua.set_function(DECRYPT_WIDE_TO_UTF8(L"api_FindNearestReachableInRange"), [&lua](int dx , int dy , int radius) {
+--     GridPoint result = g_LuaManager->m_map_info->FindNearestReachableInRange(dx, dy, radius);
+--     return result;
+--     });
+-- 新增 api_CollectReachableInCircleSimple 离自身最近的
+-- // 在以 (cx, cy) 为圆心、半径 radius 的圆内，返回所有可走点到 Lua：[{x=..,y=..,z=..}, ...]
+-- lua.set_function(
+--     DECRYPT_WIDE_TO_UTF8(L"api_CollectReachableInCircleSimple"),
+--     [&lua](int cx, int cy, int radius, sol::optional<uint8_t> layer_opt) -> sol::table {
+--         // 防御：环境不就绪时返回空表
+--         if (!g_LuaManager || !g_LuaManager->m_map_info) {
+--             return lua.create_table(0, 0);
+--         }
 
 
+--         UINT8 layer = layer_opt.value_or(0);
+
+
+--         // 调用你已经实现的收集函数（不检查连通性）
+--         auto& map = *g_LuaManager->m_map_info;
+--         std::vector<GridPoint> pts = map.CollectReachableInCircleSimple(cx, cy, radius, layer);
+
+
+--         // 构造 Lua 数组（1-based）
+--         sol::table arr = lua.create_table(static_cast<int>(pts.size()), 0);
+--         for (size_t i = 0; i < pts.size(); ++i) {
+--             const auto& p = pts[i];
+--             sol::table t = lua.create_table();
+--             t["x"] = p.x;
+--             t["y"] = p.y;
+--             t["z"] = map.GetGridZInt(p.x, p.y);  // 这里计算 z
+--             arr[static_cast<int>(i) + 1] = t;    // Lua 下标从 1 开始
+--         }
+--         return arr;
+--     }
+-- );
 --[[
 ============================================================
  SkillMonitor Lua API 简易说明文档

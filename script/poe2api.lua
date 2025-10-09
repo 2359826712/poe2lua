@@ -3142,330 +3142,37 @@ _M.get_map = function(params)
     return nil
 end
 
--- 选择异界地图
--- _M.get_map = function(params)
---     -- 解析参数表
---     local otherworld_info = params.otherworld_info or {}
---     local sorted_map = params.sorted_map or {}
---     local not_enter_map = params.not_enter_map or {}
---     local bag_info = params.bag_info or {}
---     local key_level_threshold = params.key_level_threshold
---     local not_use_map = params.not_use_map or {}
---     local priority_map = params.priority_map or {}
---     local entry_length = params.entry_length
---     local error_other_map = params.error_other_map or {}
---     local not_have_stackableCurrency = params.not_have_stackableCurrency or false
---     local current_position = params.current_position or {x = 0, y = 0}
+-- 根据目标点排序最近列表   
+_M.sort_recent_point_list = function(point_list, x, y)
+    -- 计算每个点与目标点的距离，并存储到临时表
+    local points_with_distance = {}
+    for _, point in ipairs(point_list) do
+        local dx = point.x - x
+        local dy = point.y - y
+        local distance = math.sqrt(dx * dx + dy * dy)
+        table.insert(points_with_distance, {
+            point = point,
+            distance = distance
+        })
+    end
 
---     local PRIORITY_MAPS = {
---         'MapBluff', -- 绝壁
---         'MapBluff_NoBoss', 'MapSwampTower', -- 沉溺尖塔
---         'MapSwampTower_NoBoss', 'MapLostTowers', -- 失落尖塔
---         'MapLostTowers_NoBoss', 'MapAlpineRidge', 'MapAlpineRidge_NoBoss',
---         'MapMesa', -- 平顶荒漠
---         'MapMesa_NoBoss'
---     }
 
---     -- 获取有效的sorted_map（过滤掉0值）
---     local effective_sorted_map = {}
---     if sorted_map then
---         for _, mode in ipairs(sorted_map) do
---             if mode ~= 0 then
---                 table.insert(effective_sorted_map, mode)
---             end
---         end
---     end
+    -- 按距离从小到大排序
+    table.sort(points_with_distance, function(a, b)
+        return a.distance < b.distance
+    end)
 
---     -- 第一步：找到最近的优先地图位置（不管能否进入）
---     local center_x, center_y = current_position.x, current_position.y
---     local nearest_priority_map = nil
---     local min_distance = math.huge
 
---     for _, map_data in ipairs(otherworld_info) do
---         -- 检查是否满足优先级条件
---         local has_priority = false
---         if #effective_sorted_map > 0 then
---             for _, mode in ipairs(effective_sorted_map) do
---                 if _M.table_contains(map_data.mapPlayModes or {}, mode) then
---                     has_priority = true
---                     break
---                 end
---             end
---         end
+    -- 提取排序后的坐标点（去掉临时存储的距离）
+    local sorted_points = {}
+    for _, item in ipairs(points_with_distance) do
+        table.insert(sorted_points, item.point)
+    end
 
---         if has_priority then
---             local distance = math.sqrt((map_data.index_x - current_position.x)^2 + 
---                                       (map_data.index_y - current_position.y)^2)
---             if distance < min_distance then
---                 min_distance = distance
---                 center_x = map_data.index_x
---                 center_y = map_data.index_y
---                 nearest_priority_map = map_data
---             end
---         end
---     end
 
---     _M.dbgp(string.format("[DEBUG] 最近优先地图中心: (%d, %d)", center_x, center_y))
---     _M.printTable(nearest_priority_map)
---     if nearest_priority_map then
---         _M.dbgp(string.format("[DEBUG] 最近优先地图: %s", nearest_priority_map.name_cn_utf8 or "未知"))
---     end
+    return sorted_points
+end
 
---     -- 计算地图得分的内部函数（现在接收center_x和center_y作为参数）
---     local function calculate_score(map_data, required_modes, center_x, center_y)
---         -- 基础条件检查（一票否决）
---         if not map_data.name_utf8 then
---             return -1
---         end
---         if _M.table_contains(my_game_info.trash_map, map_data.name_utf8) then
---             return -1
---         end
---         if _M.table_contains(map_data.mapPlayModes, "腐化聖域") then
---             local map_level = _M.select_best_map_key({
---                 inventory = bag_info,
---                 key_level_threshold = key_level_threshold,
---                 not_use_map = not_use_map,
---                 priority_map = priority_map,
---                 color = 2,
---                 entry_length = 4
---             })
---             if not map_level or not_have_stackableCurrency then
---                 return -1
---             else
---                 return 9999
---             end
---         end
---         if _M.table_contains(map_data.mapPlayModes, "傳奇地圖") then
---             if _M.table_contains(map_data.name_cn_utf8, "純净樂園") then
---                 return 9999
---             end
---             return -1
---         end
---         if not_enter_map and _M.table_contains(not_enter_map, map_data.name_cn_utf8) then
---             return -1
---         end
---         if not (map_data.isMapAccessible or true) or map_data.isCompleted then
---             return -1
---         end
-
---         -- 检查必须包含的模式（如果有）
---         if required_modes then
---             -- 单独处理"先行者高塔"的特殊判断
---             if _M.table_contains(required_modes, "先行者高塔") then
---                 if not _M.table_contains(PRIORITY_MAPS, map_data.name_utf8) then
---                     return -1
---                 end
---                 -- 如果匹配则继续检查其他模式
---                 local new_required_modes = {}
---                 for _, mode in ipairs(required_modes) do
---                     if mode ~= "先行者高塔" then
---                         table.insert(new_required_modes, mode)
---                     end
---                 end
---                 required_modes = new_required_modes
---             end
-
---             -- 检查剩余的模式（不包括"先行者高塔"）
---             if #required_modes > 0 then
---                 local has_required = false
---                 for _, mode in ipairs(required_modes) do
---                     if _M.table_contains(map_data.mapPlayModes, mode) then
---                         has_required = true
---                         break
---                     end
---                 end
---                 if not has_required then
---                     return -1
---                 end
---             end
---         end
-
---         -- 初始化评分项
---         local score = 0
---         local play_modes = map_data.mapPlayModes or {}
-
---         -- 1. 计算sorted_map中的玩法模式匹配
---         if #sorted_map > 0 and #play_modes > 0 then
---             local matched_score = 0
---             local matched_count = 0
---             for i, mode in ipairs(sorted_map) do
---                 if _M.table_contains(play_modes, mode) then
---                     local mode_score = 100 - i
---                     matched_score = matched_score + mode_score
---                     matched_count = matched_count + 1
---                 end
---             end
-
---             local count_bonus = matched_count * 100
---             score = score + matched_score + count_bonus
---         end
-
---         -- 2. 玩法模式总数（基础分）
---         local mode_count_score = #play_modes * 100
---         score = score + mode_count_score
-
---         -- 3. 距离得分（距离中心越近得分越高）
---         if map_data.index_x and map_data.index_y and center_x and center_y then
---             local distance_to_center = math.sqrt((map_data.index_x - center_x)^2 + (map_data.index_y - center_y)^2)
---             local distance_score = math.max(0, 500 - distance_to_center * 10)  -- 最大500分，每单位距离减10分
---             score = score + distance_score
---         end
-
---         return score
---     end
-
---     -- 第二步：以中心位置为基准，辐射寻找可进入的地图
---     local valid_maps = {}
-
---     -- 按距离排序所有地图
---     local sorted_by_distance = {}
---     for _, map_data in ipairs(otherworld_info) do
---         if map_data.index_x and map_data.index_y then
---             local distance = math.sqrt((map_data.index_x - center_x)^2 + 
---                                       (map_data.index_y - center_y)^2)
---             table.insert(sorted_by_distance, {
---                 map = map_data,
---                 distance = distance
---             })
---         end
---     end
-
---     table.sort(sorted_by_distance, function(a, b)
---         return a.distance < b.distance
---     end)
-
---     -- 分阶段查找最佳地图（按距离从近到远）
---     for i = 0, #effective_sorted_map do
---         local required_modes = {}
---         if i < #effective_sorted_map then
---             for j = 1, i + 1 do
---                 table.insert(required_modes, effective_sorted_map[j])
---             end
---         end
-
---         -- 调整"先行者高塔"的特殊处理
---         if #required_modes > 0 and _M.table_contains(required_modes, "先行者高塔") then
---             if required_modes[#required_modes] ~= "先行者高塔" then
---                 local new_required_modes = {}
---                 for _, mode in ipairs(required_modes) do
---                     if mode ~= "先行者高塔" then
---                         table.insert(new_required_modes, mode)
---                     end
---                 end
---                 required_modes = new_required_modes
---                 if #required_modes == 0 then
---                     required_modes = nil
---                 end
---             end
---         end
-
---         -- 在当前距离范围内查找
---         for _, item in ipairs(sorted_by_distance) do
---             local map_data = item.map
-            
---             -- 检查错误地图
---             if #error_other_map > 0 then
---                 local is_error = false
---                 for _, m in ipairs(error_other_map) do
---                     if map_data.index_x == m.index_x and map_data.index_y == m.index_y then
---                         is_error = true
---                         break
---                     end
---                 end
---                 if is_error then
---                     goto continue
---                 end
---             end
-
---             -- 检查禁止进入的地图
---             if #not_enter_map > 0 and _M.table_contains(not_enter_map, map_data.name_cn_utf8) then
---                 goto continue
---             end
-
---             local score = calculate_score(map_data, #required_modes > 0 and required_modes or nil, center_x, center_y)
---             if score >= 0 then
---                 table.insert(valid_maps, {
---                     score = score,
---                     map = map_data,
---                     distance = item.distance
---                 })
---             end
-
---             ::continue::
---         end
-
---         if #valid_maps > 0 then
---             _M.dbgp(string.format("[DEBUG] 阶段 %d 找到 %d 个有效地图", i + 1, #valid_maps))
---             -- 按总分降序排序，距离作为次要排序条件
---             table.sort(valid_maps, function(a, b)
---                 if a.score ~= b.score then
---                     return a.score > b.score
---                 else
---                     return a.distance < b.distance
---                 end
---             end)
-
---             return valid_maps[1].map
---         end
---     end
-
---     -- 如果没有找到符合条件的地图，尝试不要求任何特定模式
---     if #valid_maps == 0 then
---         for _, item in ipairs(sorted_by_distance) do
---             local map_data = item.map
-            
---             if not map_data.isMapAccessible then
---                 goto continue
---             end
-
---             -- 检查错误地图
---             if #error_other_map > 0 then
---                 local is_error = false
---                 for _, m in ipairs(error_other_map) do
---                     if map_data.index_x == m.index_x and map_data.index_y == m.index_y then
---                         is_error = true
---                         break
---                     end
---                 end
---                 if is_error then
---                     goto continue
---                 end
---             end
-
---             -- 检查禁止进入的地图
---             if #not_enter_map > 0 and _M.table_contains(not_enter_map, map_data.name_cn_utf8) then
---                 goto continue
---             end
-
---             local score = calculate_score(map_data, nil, center_x, center_y)
---             if score >= 0 then
---                 table.insert(valid_maps, {
---                     score = score,
---                     map = map_data,
---                     distance = item.distance
---                 })
---             end
-
---             ::continue::
---         end
-
---         if #valid_maps > 0 then
---             -- 按总分降序排序，距离作为次要排序条件
---             table.sort(valid_maps, function(a, b)
---                 if a.score ~= b.score then
---                     return a.score > b.score
---                 else
---                     return a.distance < b.distance
---                 end
---             end)
-
---             return valid_maps[1].map
---         end
---     end
-
---     _M.dbgp("[DEBUG] 最终未找到合适地图，返回nil")
---     return nil
--- end
 
 -- 从钥匙名称中提取等级数字（UTF-8安全）
 _M.extract_key_level = function(key_name)

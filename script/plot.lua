@@ -4021,7 +4021,7 @@ local custom_nodes = {
                                     end
                                     local distance = poe2_api.point_distance(item.grid_x,item.grid_y,player_info)
                                     local function is_point(grid_x,grid_y)
-                                        local point = api_FindNearestReachablePoint(math.floor(grid_x),math.floor(grid_y),15,0)
+                                        local point = api_FindNearestReachableInRange(math.floor(grid_x),math.floor(grid_y),15)
                                         local ralet = api_FindPath(player_info.grid_x,player_info.grid_y,math.floor(point.x),math.floor(point.y))
                                         return ralet
                                     end
@@ -4590,7 +4590,7 @@ local custom_nodes = {
             end
             if npc_names and string.find(player_info.current_map_name_utf8, "own") then
                 local distance = poe2_api.point_distance(npc_names.grid_x, npc_names.grid_y, player_info)
-                local point = api_FindNearestReachablePoint(npc_names.grid_x, npc_names.grid_y, 15, 0)
+                local point = api_FindNearestReachableInRange(npc_names.grid_x, npc_names.grid_y, 15)
                 if distance <= 25 then
                     poe2_api.dbgp("[The_Interactive_Npc_Exist]与城镇npcdistance:", distance)
                     if poe2_api.find_text({ UI_info = env.UI_info, text = npc_names.name_utf8}) then
@@ -6387,66 +6387,6 @@ local custom_nodes = {
                             poe2_api.time_p("[Query_Current_Task_Information]",(api_GetTickCount64() - current_time))
                             return bret.SUCCESS
                         end
-                    elseif self.mas == "P1_5" then
-                        poe2_api.dbgp("[Query_Current_Task_Information]获取-P1_5-地图任务信息")
-                        if poe2_api.get_team_info(team_info, config, player_info, 2) ~= "大號名" then
-                            if not next(env.raw) or (self.raw_time ~= 0 and api_GetTickCount64() - self.raw_time > max_time) then
-                                -- 发送任务信息
-                                local task_text = "task_name=" .. "狼之要塞" .. ",task_index=" .. 368 ..",map_name=" .. self.mas
-                                poe2_api.click_keyboard("enter")
-                                api_Sleep(500)
-                                paste_text(task_text)
-                                api_Sleep(500)
-                                if not poe2_api.find_text({UI_info = env.UI_info, text = "私訊", min_x = 0, max_x = 400, refresh = true}) then
-                                    poe2_api.dbgp("[Query_Current_Task_Information]私訊")
-                                    return bret.RUNNING
-                                end
-                                poe2_api.click_keyboard("enter")
-                                api_Sleep(500)
-                                self.raw_time = api_GetTickCount64()
-                                env.raw = { "狼之要塞", 368 }
-                            end
-                            env.update = { "狼之要塞", 368 }
-                            if not deep_equal_unordered(env.raw, env.update) then
-                                env.raw = {}
-                                poe2_api.dbgp("[Query_Current_Task_Information]狼之要塞-RUNNING2")
-                                return bret.RUNNING
-                            end
-                            env.map_name = self.mas
-                            poe2_api.dbgp("[Query_Current_Task_Information]-狼之要塞-SUCCESS3")
-                            poe2_api.time_p("[Query_Current_Task_Information]",(api_GetTickCount64() - current_time))
-                            return bret.SUCCESS
-                        end
-                    elseif self.mas == "P2_1" then
-                        poe2_api.dbgp("[Query_Current_Task_Information]获取-P2_1-地图任务信息")
-                        if poe2_api.get_team_info(team_info, config, player_info, 2) ~= "大號名" then
-                            if not next(env.raw) or (self.raw_time ~= 0 and api_GetTickCount64() - self.raw_time > max_time) then
-                                -- 发送任务信息
-                                local task_text = "task_name=" .. "骨顎階梯" .. ",task_index=" .. 376 ..",map_name=" .. self.mas
-                                poe2_api.click_keyboard("enter")
-                                api_Sleep(500)
-                                paste_text(task_text)
-                                api_Sleep(500)
-                                if not poe2_api.find_text({UI_info = env.UI_info, text = "私訊", min_x = 0, max_x = 400, refresh = true}) then
-                                    poe2_api.dbgp("[Query_Current_Task_Information]私訊")
-                                    return bret.RUNNING
-                                end
-                                poe2_api.click_keyboard("enter")
-                                api_Sleep(500)
-                                self.raw_time = api_GetTickCount64()
-                                env.raw = { "骨顎階梯", 376 }
-                            end
-                            env.update = { "骨顎階梯", 376 }
-                            if not deep_equal_unordered(env.raw, env.update) then
-                                env.raw = {}
-                                poe2_api.dbgp("[Query_Current_Task_Information]骨顎階梯-RUNNING2")
-                                return bret.RUNNING
-                            end
-                            env.map_name = self.mas
-                            poe2_api.dbgp("[Query_Current_Task_Information]-骨顎階梯-SUCCESS3")
-                            poe2_api.time_p("[Query_Current_Task_Information]",(api_GetTickCount64() - current_time))
-                            return bret.SUCCESS
-                        end
                     elseif self.mas == "P1_Town" then
                         local area_name = "庇護所"
                         if string.find(player_info.current_map_name_utf8 ,"P2") then
@@ -6660,7 +6600,7 @@ local custom_nodes = {
             end
 
             local function is_point(grid_x, grid_y)
-                local point = api_FindNearestReachablePoint(grid_x, grid_y, 50, 0)
+                local point = api_FindNearestReachableInRange(grid_x, grid_y, 50)
                 local ralet = api_FindPath(player_info.grid_x, player_info.grid_y, point.x, point.y)
                 return ralet
             end
@@ -6713,19 +6653,19 @@ local custom_nodes = {
 
                             env.monster_info = monster
                             monster_info = monster
-                            point_monster = api_FindNearestReachablePoint(monster.grid_x, monster.grid_y, 25, 0)
+                            point_monster = api_FindNearestReachableInRange(monster.grid_x, monster.grid_y, 25)
                             env.end_point = { point_monster.x, point_monster.y }
                         end
                         if monster_info then
                             poe2_api.dbgp("[Is_Move]有黑板参怪物")
                             if not away_monster_info then
                                 poe2_api.dbgp("[Is_Move]没有远距离怪物信息")
-                                point_monster = api_FindNearestReachablePoint(monster.grid_x, monster.grid_y, 25, 0)
+                                point_monster = api_FindNearestReachableInRange(monster.grid_x, monster.grid_y, 25)
                                 env.end_point = { point_monster.x, point_monster.y }
                             else
                                 poe2_api.dbgp("[Is_Move]有远距离怪物信息")
                                 env.monster_info = away_monster_info
-                                point_monster = api_FindNearestReachablePoint(away_monster_info.grid_x,away_monster_info.grid_y, 25, 0)
+                                point_monster = api_FindNearestReachableInRange(away_monster_info.grid_x,away_monster_info.grid_y, 25)
                                 if env.path_list and #env.path_list == 0 then
                                     local point = is_point(away_monster_info.grid_x, away_monster_info.grid_y)
                                     if not point or #point == 0 then
@@ -6761,7 +6701,7 @@ local custom_nodes = {
                 if distance > 100 and poe2_api.is_have_mos({ range_info = range_info_sorted, player_info = player_info, dis = 40 }) then
                     if monster and poe2_api.table_contains(poe2_api.get_team_info(team_info, user_config, player_info, 2), { "大號名", "未知" }) then
                         poe2_api.dbgp("[Is_Move]与死亡队友距离大于100且与怪物距离小于40")
-                        point_monster = api_FindNearestReachablePoint(monster.grid_x, monster.grid_y, 25, 0)
+                        point_monster = api_FindNearestReachableInRange(monster.grid_x, monster.grid_y, 25)
                         env.end_point = { point_monster.x, point_monster.y }
                         return bret.FAIL
                     end
@@ -6783,14 +6723,14 @@ local custom_nodes = {
                     end
                     if boss_info_mate and arena_list and #arena_list > 0 then
                         poe2_api.dbgp("[Is_Move]与队友距离大于25且与boss距离小于180")
-                        local arena_point = api_FindNearestReachablePoint(arena_list[1].grid_x, arena_list[1].grid_y, 25,0)
+                        local arena_point = api_FindNearestReachableInRange(arena_list[1].grid_x, arena_list[1].grid_y, 25)
                         poe2_api.dbgp(arena_point.x, arena_point.y)
                         env.end_point = { arena_point.x, arena_point.y }
                     else
                         if player_info.current_map_name_utf8 ~= "G4_11_2" then
                             api_RestoreOriginalMap()
                         end
-                        local mate_point = api_FindNearestReachablePoint(mate.grid_x, mate.grid_y, 15, 0)
+                        local mate_point = api_FindNearestReachableInRange(mate.grid_x, mate.grid_y, 15)
                         env.end_point = { mate_point.x, mate_point.y }
                     end
                     return bret.FAIL
@@ -6955,14 +6895,14 @@ local custom_nodes = {
                 if range_items then
                     for _, item in ipairs(range_items) do
                         if player_info.current_map_name_utf8 == "G1_1" and user_new_item[item.category_utf8] and item.grid_x ~= 0 then
-                            local point = api_FindNearestReachablePoint(item.grid_x, item.grid_y, 20, 0)
+                            local point = api_FindNearestReachableInRange(item.grid_x, item.grid_y, 20)
                             if not api_FindPath(player_info.grid_x, player_info.grid_y, point.x, point.y) then
                                 poe2_api.dbgp("[Is_Pick_Up_Task_Props]无法到达點位")
                                 return false
                             end
                             return true
                         elseif poe2_api.table_contains(item.category_utf8, { 'QuestItem', "Active Skill Gem" }) and not poe2_api.table_contains(item.baseType_utf8, { "黃金", "金幣", "紅色蘑菇", "綠色蘑菇", "藍色蘑菇", "龍蜥最後通牒雕刻" }) and item.grid_x ~= 0 then
-                            local point = api_FindNearestReachablePoint(item.grid_x, item.grid_y, 20, 0)
+                            local point = api_FindNearestReachableInRange(item.grid_x, item.grid_y, 20)
                             if not api_FindPath(player_info.grid_x, player_info.grid_y, point.x, point.y) then
                                 return false
                             end
@@ -7309,13 +7249,14 @@ local custom_nodes = {
                         return false
                     end
 
-                    local point = api_FindNearestReachablePoint(player_info.grid_x, player_info.grid_y, 25, 0)
+                    local point = api_FindNearestReachableInRange(player_info.grid_x, player_info.grid_y, 25)
 
                     -- 遍历所有actor检查是否有符合条件的
                     for _, actor in ipairs(actors) do
                         if actor.name_utf8 == names then
-                            local target = api_FindNearestReachablePoint(actor.grid_x, actor.grid_y, 25, 1)
-                            local result = api_FindPath(point.x, point.y, target.x, target.y)
+                            local target = api_CollectReachableInCircleSimple(actor.grid_x, actor.grid_y, 25)
+                            local sorted_target = poe2_api.sort_recent_point_list(target,point.x, point.y)
+                            local result = api_FindPath(point.x, point.y, sorted_target[1].x, sorted_target[1].y)
                             if result and #result > 0 then
                                 return true
                             end
@@ -7624,8 +7565,9 @@ local custom_nodes = {
                         if not poe2_api.find_text({UI_info = env.UI_info, text = "競技場"}) then
                             local arena = get_range_pos("競技場")
                             if arena then
-                                local NearestReachablePoint = api_FindNearestReachablePoint(arena[1], arena[2], 40, 1)
-                                env.end_point = {NearestReachablePoint.x, NearestReachablePoint.y}
+                                local NearestReachablePoint = api_CollectReachableInCircleSimple(arena[1], arena[2], 40)
+                                local reachable_sorted = poe2_api.sort_recent_point_list(NearestReachablePoint,player_info.grid_x, player_info.grid_y)
+                                env.end_point = {reachable_sorted[1].x, reachable_sorted[2].y}
                                 return bret.FAIL
                             end
                         end
@@ -7673,7 +7615,7 @@ local custom_nodes = {
                     poe2_api.dbgp("点击楼梯")
                     if ladder and (poe2_api.table_contains(current_map, { "G1_15", "C_G1_15" }) or not poe2_api.find_text({ UI_info = UI_info, text = "樓梯", min_x = 0 })) then
                         if check_pos_dis("樓梯") > 50 then
-                            local ladder_point = api_FindNearestReachablePoint(ladder[1], ladder[2], 40, 0)
+                            local ladder_point = api_FindNearestReachableInRange(ladder[1], ladder[2], 40)
                             env.end_point = { ladder_point.x, ladder_point.y }
                             return bret.FAIL
                         end
@@ -7833,7 +7775,7 @@ local custom_nodes = {
                     end
 
                     -- 检查路径是否可达
-                    local point = api_FindNearestReachablePoint(actor.grid_x, actor.grid_y, 25, 0)
+                    local point = api_FindNearestReachableInRange(actor.grid_x, actor.grid_y, 25)
                     local path =  api_FindPath(player_info.grid_x, player_info.grid_y, point.x, point.y)
                     if path and #path > 0 then
                         match_count = match_count + 1
@@ -7850,7 +7792,7 @@ local custom_nodes = {
             -- 指定对象路径
             local function check_role_path(names)
                 -- 获取范围内的角色信息
-                local near_point = api_FindNearestReachablePoint(player_info.grid_x, player_info.grid_y, 25, 0)
+                local near_point = api_FindNearestReachableInRange(player_info.grid_x, player_info.grid_y, 25)
 
                 if range_info == nil then
                     poe2_api.dbgp("警告：未找到范围内的角色信息")
@@ -7859,8 +7801,9 @@ local custom_nodes = {
 
                 -- 遍历角色
                 for _, actor in ipairs(range_info) do
-                    local near_point_actor = api_FindNearestReachablePoint(actor.grid_x, actor.grid_y, 25, 1)
-                    local result = api_FindPath(near_point.x, near_point.y, near_point_actor.x, near_point_actor.y)
+                    local near_point_actor = api_CollectReachableInCircleSimple(actor.grid_x, actor.grid_y, 25)
+                    local near_sorted = poe2_api.sort_recent_point_list(near_point_actor, player_info.grid_x, player_info.grid_y)
+                    local result = api_FindPath(near_point.x, near_point.y, near_sorted[1].x, near_sorted[2].y)
                     if actor.name_utf8 == names and result and #result > 0 then
                         return true
                     end
@@ -8301,8 +8244,9 @@ local custom_nodes = {
                         if not poe2_api.find_text({ UI_info = UI_info, text = "競技場" }) then
                             local arena = get_range_pos("競技場")
                             if arena then
-                                local near_point = api_FindNearestReachablePoint(arena[1], arena[2], 40, 1)
-                                env.end_point = { near_point.x, near_point.y }
+                                local near_point = api_CollectReachableInCircleSimple(arena[1], arena[2], 40)
+                                local near_sorted = poe2_api.sort_recent_point_list(near_point,player_info.grid_x, player_info.grid_y)
+                                env.end_point = { near_sorted[1].x, near_sorted[1].y }
                                 return bret.SUCCESS
                             end
                         end
@@ -8347,7 +8291,7 @@ local custom_nodes = {
                         if louti and (not poe2_api.table_contains(me_area, { "G2_3" }) or not poe2_api.find_text({ UI_info = UI_info, text = "樓梯", min_x = 0 })) then
                             if check_pos_dis("樓梯") > 50 then
                                 poe2_api.dbgp("樓梯距离太远")
-                                local nearest_point = api_FindNearestReachablePoint(louti[1], louti[2], 40, 0)
+                                local nearest_point = api_FindNearestReachableInRange(louti[1], louti[2], 40)
                                 env.end_point = { nearest_point.x, nearest_point.y }
                                 return bret.SUCCESS
                             end
@@ -9733,12 +9677,7 @@ local custom_nodes = {
                     -- 对友方召唤物释放
                     local fr_ob = poe2_api.friendly_target_object({env.range_info,env.player_info})
                     if fr_ob then
-                        move_x, move_y = api_FindNearestReachablePoint(
-                            fr_ob.grid_x,
-                            fr_ob.grid_y,
-                            20,
-                            0
-                        )
+                        move_x, move_y = api_FindNearestReachableInRange(fr_ob.grid_x,fr_ob.grid_y,20)
                     end
                 end
                 
@@ -9814,12 +9753,7 @@ local custom_nodes = {
                 local target_y = boss.grid_y - safe_distance * math.sin(angle)
                 
                 -- 寻找可达点
-                local reachable_x, reachable_y = api_FindNearestReachablePoint(
-                    target_x, 
-                    target_y,
-                    safe_distance * 0.7,  -- radius
-                    0  -- z
-                )
+                local reachable_x, reachable_y = api_FindNearestReachableInRange(target_x, target_y,safe_distance * 0.7 )
                 
                 -- 设置移动目标
                 env.attack_move = true
@@ -10549,17 +10483,18 @@ local custom_nodes = {
                                 return bret.RUNNING
                             end
                             if door.is_selectable then
-                                local door_point = api_FindNearestReachablePoint(door.grid_x, door.grid_y,10,1)
+                                local door_point = api_CollectReachableInCircleSimple(door.grid_x, door.grid_y,10)
+                                local door_sorted = poe2_api.sort_recent_point_list(door_point,local_x,local_y)
                                 if get_distance(door.grid_x,door.grid_y) < 25 then
                                     poe2_api.dbgp("距离门小于25，点击门")
                                     api_ClickMove(poe2_api.toInt(door.grid_x),poe2_api.toInt(door.grid_y),1)
                                     return bret.RUNNING
                                 else
                                     poe2_api.dbgp("距离门大于25，找门")
-                                    local door_path = api_FindPath(local_x,local_y,door_point.x,door_point.y)
+                                    local door_path = api_FindPath(local_x,local_y,door_sorted[1].x,door_sorted[1].y)
                                     if door_path and #door_path > 0 then
                                         poe2_api.dbgp("找到门的路径")
-                                        env.end_point = {door_point.x,door_point.y}
+                                        env.end_point = {door_sorted[1].x,door_sorted[1].y}
                                         if poe2_api.table_contains(player_info.current_map_name_utf8,{"G3_6_1"}) then
                                             env.interaction_object = {'門'}
                                         end
@@ -10586,7 +10521,7 @@ local custom_nodes = {
                     local target = min_map_dis("WaterwaysLever")
                     local range_target = poe2_api.get_sorted_obj("壓桿",range_info,player_info)
                     if target and #target > 0 then
-                        local target_point = api_FindNearestReachablePoint(target[1].grid_x, target[1].grid_y,20,0)
+                        local target_point = api_FindNearestReachableInRange(target[1].grid_x, target[1].grid_y,20)
                         if get_distance(target[1].grid_x, target[1].grid_y) < 30 then
                             poe2_api.dbgp("距离压杆小于30，点击压杆")
                             poe2_api.find_text({ UI_info = UI_info, text = "壓桿", min_x = 200, click = 2})
@@ -10626,7 +10561,7 @@ local custom_nodes = {
                                         api_UpdateMapObstacles(100)
                                         return bret.RUNNING
                                     end
-                                    local target_point = api_FindNearestReachablePoint(target.grid_x, target.grid_y,20,0)
+                                    local target_point = api_FindNearestReachableInRange(target.grid_x, target.grid_y,20)
                                     local target_path = api_FindPath(local_x,local_y,target_point.x,target_point.y)
                                     if target_path and #target_path > 0 then
                                         env.end_point = {target_point.x,target_point.y}
@@ -10674,8 +10609,9 @@ local custom_nodes = {
                                 env.is_not_ui = true
                                 return bret.RUNNING
                             elseif get_distance(core.grid_x,core.grid_y) < 150 then
-                                local core_point = api_FindNearestReachablePoint(core.grid_x, core.grid_y,20,1)
-                                env.end_point = {core_point.x,core_point.y}
+                                local core_point = api_CollectReachableInCircleSimple(core.grid_x, core.grid_y,20)
+                                local core_sorted = poe2_api.sort_recent_point_list(core_point,local_x,local_y)
+                                env.end_point = {core_sorted[1].x,core_sorted[1].y}
                                 return bret.SUCCESS
                             end
                         end
@@ -10694,8 +10630,9 @@ local custom_nodes = {
                                         env.path_list = {}
                                         return bret.RUNNING
                                     else
-                                        local generator_point = api_FindNearestReachablePoint(generator.grid_x, generator.grid_y,20,1)
-                                        env.end_point = {generator_point.x,generator_point.y}
+                                        local generator_point = api_CollectReachableInCircleSimple(generator.grid_x, generator.grid_y,20)
+                                        local generator_sorted = poe2_api.sort_recent_point_list(generator_point,local_x,local_y)
+                                        env.end_point = {generator_sorted[1].x,generator_sorted[1].y}
                                         return bret.SUCCESS
                                     end
                                 end
@@ -10739,7 +10676,7 @@ local custom_nodes = {
                                 env.path_list = {}
                                 return bret.RUNNING
                             else
-                                local sister_point = api_FindNearestReachablePoint(sister[1].grid_x, sister[1].grid_y,20,0)
+                                local sister_point = api_FindNearestReachableInRange(sister[1].grid_x, sister[1].grid_y,20)
                                 env.end_point = {sister_point.x,sister_point.y}
                                 return bret.SUCCESS
                             end 
@@ -10782,8 +10719,9 @@ local custom_nodes = {
                                 env.path_list = {}
                                 return bret.RUNNING
                             else
-                                local seals_point = api_FindNearestReachablePoint(seals[1].grid_x, seals[1].grid_y,20,1)
-                                env.end_point = {seals_point.x,seals_point.y}
+                                local seals_point = api_CollectReachableInCircleSimple(seals[1].grid_x, seals[1].grid_y,20)
+                                local seals_sorted = poe2_api.sort_recent_point_list(seals_point,local_x,local_y)
+                                env.end_point = {seals_sorted[1].x,seals_sorted[1].y}
                                 return bret.SUCCESS
                             end
                         end
@@ -10801,8 +10739,9 @@ local custom_nodes = {
                                     env.path_list = {}
                                     return bret.RUNNING
                                 else
-                                    local rune_point = api_FindNearestReachablePoint(rune.grid_x, rune.grid_y,20,1)
-                                    env.end_point = {rune_point.x,rune_point.y}
+                                    local rune_point = api_CollectReachableInCircleSimple(rune.grid_x, rune.grid_y,20)
+                                    local rune_sorted = poe2_api.sort_recent_point_list(rune_point,local_x,local_y)
+                                    env.end_point = {rune_sorted[1].x,rune_sorted[1].y}
                                     return bret.SUCCESS
                                 end
                             end
@@ -10853,8 +10792,9 @@ local custom_nodes = {
                                         return bret.RUNNING
                                     end
                                 else
-                                    local handle_point = api_FindNearestReachablePoint(h.grid_x, h.grid_y,20,1)
-                                    env.end_point = {handle_point.x,handle_point.y}
+                                    local handle_point = api_CollectReachableInCircleSimple(h.grid_x, h.grid_y,20)
+                                    local handle_sorted = poe2_api.sort_recent_point_list(handle_point,local_x,local_y)
+                                    env.end_point = {handle_sorted[1].x,handle_sorted[1].y}
                                     return bret.SUCCESS
                                 end
                             else
@@ -10898,8 +10838,9 @@ local custom_nodes = {
                                     env.not_need_active = true
                                     return bret.RUNNING
                                 else
-                                    local handle_point = api_FindNearestReachablePoint(h.grid_x, h.grid_y,30,1)
-                                    env.end_point = {handle_point.x,handle_point.y}
+                                    local handle_point = api_CollectReachableInCircleSimple(h.grid_x, h.grid_y,30)
+                                    local handle_sorted = poe2_api.sort_recent_point_list(handle_point,local_x,local_y)
+                                    env.end_point = {handle_sorted[1].x,handle_sorted[1].y}
                                     return bret.SUCCESS
                                 end
                             end
@@ -10989,6 +10930,17 @@ local custom_nodes = {
                             env.modify_interaction = true
                         end
                     end
+                elseif player_info.current_map_name_utf8 == "P2_6" then
+                    if #mini_map_obj("P2_6_SevenSekhemasActive") == 0 then
+                        poe2_api.dbgp("P2_6-地图没有-P2_6_SevenSekhemasActive")
+                        interaction_object_set = {"塔巴納的恩惠"}
+                        env.interaction_object = {"塔巴納的恩惠"} 
+                        interaction_object_map_name = {"P2_6_SevenSekhemasInactive"}
+                        env.interaction_object_map_name = {"P2_6_SevenSekhemasInactive"}
+                        env.interaction_object_copy = {"塔巴納的恩惠"}
+                        env.interaction_object_map_name_copy = {"P2_6_SevenSekhemasInactive"}
+                        env.modify_interaction = true
+                    end
                 elseif player_info.current_map_name_utf8 == "G4_4_2" then
                     if #mini_map_obj("G4_4_2_Encounter_ValakoTribeInactive") ~= 0 then
                         self.pick_up_fire = true
@@ -11076,7 +11028,7 @@ local custom_nodes = {
                     for _,obj in ipairs(sorted_range_info) do
                         if obj.animated_name_utf8 == "Metadata/Effects/Spells/monsters_effects/Act4_FOUR/Verona/ao/rune_light.ao" then
                             if get_distance(obj.grid_x,obj.grid_y) > 25 then
-                                local rune_point = api_FindNearestReachablePoint(obj.grid_x, obj.grid_y,15, 0)
+                                local rune_point = api_FindNearestReachableInRange(obj.grid_x, obj.grid_y,15)
                                 env.end_point = {rune_point.x,rune_point.y}
                                 return bret.SUCCESS 
                             else
@@ -11091,7 +11043,7 @@ local custom_nodes = {
                         if poe2_api.table_contains(' 祭祀神壇',interaction_object_set) then 
                             if poe2_api.table_contains({"Metadata/Terrain/Leagues/Ritual/RitualRuneLight"},obj.path_name_utf8) and poe2_api.find_text({ UI_info = UI_info, text = " 祭祀神壇", min_x=200}) and obj.hasLineOfSight then
                                 if get_distance(obj.grid_x,obj.grid_y) > 30 then
-                                    local rune_point = api_FindNearestReachablePoint(obj.grid_x, obj.grid_y,15, 0)
+                                    local rune_point = api_FindNearestReachableInRange(obj.grid_x, obj.grid_y,15)
                                     env.end_point = {rune_point.x,rune_point.y}
                                     return bret.SUCCESS 
                                 else
@@ -11100,6 +11052,18 @@ local custom_nodes = {
                                 end
                             end   
                         end
+                        if poe2_api.table_contains('塔巴納的恩惠',interaction_object_set) then 
+                            if poe2_api.table_contains({"Metadata/Terrain/Gallows/Act4_Interlude/Part2/P2_6/Objects/SekhemaShrine_01"},obj.path_name_utf8) and poe2_api.find_text({ UI_info = UI_info, text = "塔巴納的恩惠", min_x=200}) and obj.hasLineOfSight then
+                                if get_distance(obj.grid_x,obj.grid_y) > 30 then
+                                    local rune_point = api_FindNearestReachableInRange(obj.grid_x, obj.grid_y,15)
+                                    env.end_point = {rune_point.x,rune_point.y}
+                                    return bret.SUCCESS 
+                                else
+                                    env.is_arrive_end = true
+                                    return bret.SUCCESS
+                                end
+                            end   
+                        end 
                         if not obj.name_utf8 then
                             goto continue
                         end
@@ -11128,8 +11092,9 @@ local custom_nodes = {
                             end
                             if task_name == "擊敗憎惡者．賈嫚拉" and player_info.current_map_name_utf8 == "G2_12_2" and not poe2_api.find_text({ UI_info = UI_info, text = obj.name_utf8, min_x=200}) then
                                 if get_distance(obj.grid_x,obj.grid_y) > 30 then
-                                    local interaction_point = api_FindNearestReachablePoint(obj.grid_x, obj.grid_y,29,1)
-                                    env.end_point = {interaction_point.x,interaction_point.y}
+                                    local interaction_point = api_CollectReachableInCircleSimple(obj.grid_x, obj.grid_y,29)
+                                    local interaction_sorted = poe2_api.sort_recent_point_list(interaction_point,local_x,local_y)
+                                    env.end_point = {interaction_sorted[1].x,interaction_sorted[1].y}
                                     return bret.SUCCESS
                                 else
                                     env.is_arrive_end = true
@@ -11152,7 +11117,7 @@ local custom_nodes = {
                                         return bret.RUNNING
                                     else
                                         self.time1 = 0
-                                        local obj_reach_point = api_FindNearestReachablePoint(obj.grid_x, obj.grid_y,10,0)
+                                        local obj_reach_point = api_FindNearestReachableInRange(obj.grid_x, obj.grid_y,10)
                                         env.end_point = {obj_reach_point.x,obj_reach_point.y}  
                                         return bret.SUCCESS
                                     end
@@ -11160,7 +11125,7 @@ local custom_nodes = {
                                 goto continue
                             end
                             if poe2_api.table_contains(obj.name_utf8,{"受傷的男人", "水之女神", "水之女神．哈拉妮","表示敬意"}) and get_distance(obj.grid_x,obj.grid_y) > 25 and get_distance(obj.grid_x,obj.grid_y) < 150 then
-                                local obj_reach_point = api_FindNearestReachablePoint(obj.grid_x, obj.grid_y,15, 0)
+                                local obj_reach_point = api_FindNearestReachableInRange(obj.grid_x, obj.grid_y,15)
                                 if obj_reach_point.x ~= -1 then
                                     env.end_point = {obj_reach_point.x,obj_reach_point.y}
                                 else
@@ -11171,7 +11136,7 @@ local custom_nodes = {
                             if poe2_api.find_text({ UI_info = UI_info, text = obj.name_utf8, min_x=0}) and ( obj.hasLineOfSight or poe2_api.table_contains(obj.type,{-1,4}) or (obj.type == 3 and obj.is_selectable) or poe2_api.table_contains(obj.name_utf8, {"受傷的男人", "水之女神", "水之女神．哈拉妮"})) then
                                 poe2_api.dbgp("找到目标UI")
                                 if get_distance(obj.grid_x,obj.grid_y) > 30 then
-                                    local interaction_point = api_FindNearestReachablePoint(obj.grid_x, obj.grid_y,15,0)
+                                    local interaction_point = api_FindNearestReachableInRange(obj.grid_x, obj.grid_y,15)
                                     env.end_point = {interaction_point.x,interaction_point.y}
                                     return bret.SUCCESS
                                 else
@@ -11227,7 +11192,7 @@ local custom_nodes = {
                         end
                         if record_map.name_utf8 == "G4_3_1_BossActive" and record_map.flagStatus1 == 1 then
                             poe2_api.dbgp("G4_3_1_BossActive")
-                            local player_position = api_FindNearestReachablePoint(record_map.grid_x, record_map.grid_y, 50, 0)
+                            local player_position = api_FindNearestReachableInRange(record_map.grid_x, record_map.grid_y, 50)
                             if not env.prestore_boss_list or not next(env.prestore_boss_list) then
                                 local result_list = api_GetCalculateCircleGridPoints(poe2_api.toInt(player_position.x),poe2_api.toInt(player_position.y),100,math.floor(15))
                                 if result_list then
@@ -11279,8 +11244,8 @@ local custom_nodes = {
                             env.is_arrive_end = true
                             return bret.SUCCESS
                         end
-                        local record_map_near_point = api_FindNearestReachablePoint(record_map.grid_x, record_map.grid_y, 30, 0)
-                        local player_near_point = api_FindNearestReachablePoint(local_x, local_y, 30, 0)
+                        local record_map_near_point = api_FindNearestReachableInRange(record_map.grid_x, record_map.grid_y, 30)
+                        local player_near_point = api_FindNearestReachableInRange(local_x, local_y, 30)
                         if not map_result then
                             map_result = true
                             env.map_result = true
@@ -11642,8 +11607,8 @@ local custom_nodes = {
                 poe2_api.dbgp("没有目标：大号")
                 return bret.RUNNING
             end
-            local reachable_point = api_FindNearestReachablePoint(player_info.grid_x, player_info.grid_y,50, 0)
-            local target_reachable_point = api_FindNearestReachablePoint(target.grid_x, target.grid_y,40,0)
+            local reachable_point = api_FindNearestReachableInRange(player_info.grid_x, player_info.grid_y,50)
+            local target_reachable_point = api_FindNearestReachableInRange(target.grid_x, target.grid_y,40)
             local result = api_FindPath(reachable_point.x, reachable_point.y, target_reachable_point.x, target_reachable_point.y)
             if result and #result > 0 then
                 poe2_api.dbgp("跟随移动获取路径成功")
@@ -11864,8 +11829,9 @@ local custom_nodes = {
 
             if point then
                 poe2_api.dbgp("检查是否到达目标点")
-                local reach_point = api_FindNearestReachablePoint(point[1], point[2], 15, 1)
-                local reach_distance = poe2_api.point_distance(reach_point.x, reach_point.y, player_info)
+                local reach_point = api_CollectReachableInCircleSimple(point[1], point[2], 15)
+                local reach_sorted = poe2_api.sort_recent_point_list(reach_point,player_info.grid_x,player_info.grid_y)
+                local reach_distance = poe2_api.point_distance(reach_sorted[1].x, reach_sorted[1].y, player_info)
                 poe2_api.dbgp(string.format("最近可达点距离: %.2f", reach_distance or 0))
                 
                 if reach_distance < 25 then
@@ -12076,7 +12042,7 @@ local custom_nodes = {
                         else
                             -- 无法找到路径，尝试寻找附近可达点
                             poe2_api.dbgp("无法直接到达目标点，寻找附近可达点")
-                            local round_pos = api_FindNearestReachablePoint(entrance[1], entrance[2], 50, 0)
+                            local round_pos = api_FindNearestReachableInRange(entrance[1], entrance[2], 50)
                             
                             if round_pos then
                                 local rx, ry = round_pos.x, round_pos.y
@@ -12381,17 +12347,18 @@ local custom_nodes = {
                 local x, y
                 local point
                 if text == "門" then
-                    point = api_FindNearestReachablePoint(obj.grid_x, obj.grid_y, 15, 1)
-                    local ralet = api_FindPath(player_info.grid_x, player_info.grid_y, point.x, point.y)
+                    point = api_CollectReachableInCircleSimple(obj.grid_x, obj.grid_y, 15)
+                    local point_sorted = poe2_api.sort_recent_point_list(point, player_info.grid_x, player_info.grid_y)
+                    local ralet = api_FindPath(player_info.grid_x, player_info.grid_y, point_sorted[1].x, point_sorted[1].y)
                     if not ralet then
                         point = api_FindRandomWalkablePosition(obj.grid_x, obj.grid_y, 15)
                         x, y = point.x, point.y
                     else
-                        x, y = point.x, point.y
+                        x, y = point_sorted[1].x, point_sorted[1].y
                     end
                 else
                     if not need_item then
-                        point = api_FindNearestReachablePoint(obj.grid_x, obj.grid_y, 50, 0)
+                        point = api_FindNearestReachableInRange(obj.grid_x, obj.grid_y, 50)
                         x, y = point.x, point.y
                     else
                         poe2_api.dbgp("dgdvjinbvdijsknvijbiihjbjkdv")
@@ -12693,7 +12660,7 @@ local custom_nodes = {
             end
 
             -- 计算最近可到达的点
-            local arrive_point = api_FindNearestReachablePoint(point[1], point[2], 40, 0)
+            local arrive_point = api_FindNearestReachableInRange(point[1], point[2], 40)
             poe2_api.dbgp("计算最近可到达的点")
             poe2_api.dbgp(arrive_point.x, arrive_point.y)
             poe2_api.dbgp(env.end_point[1], env.end_point[2])
@@ -12705,7 +12672,7 @@ local custom_nodes = {
             poe2_api.dbgp("计算起点",player_info.grid_x, player_info.grid_y)
 
             poe2_api.dbgp(player_info.grid_x, player_info.grid_y)
-            local player_position = api_FindNearestReachablePoint(player_info.grid_x, player_info.grid_y, 50, 0)
+            local player_position = api_FindNearestReachableInRange(player_info.grid_x, player_info.grid_y, 50)
 
             local result = api_FindPath(player_position.x, player_position.y, arrive_point.x, arrive_point.y)
             poe2_api.time_p("计算路径成功 耗时 -->", api_GetTickCount64() - start_current_time,
@@ -12788,7 +12755,7 @@ local custom_nodes = {
                 end
                 -- 城镇处理
                 if poe2_api.table_contains(player_info.current_map_name_utf8, "own") then
-                    local result = api_FindNearestReachablePoint(point.x, point.y, 50, 0)
+                    local result = api_FindNearestReachableInRange(point.x, point.y, 50)
                     api_ClickMove(poe2_api.toInt(result.x), poe2_api.toInt(result.y),0)
                     poe2_api.click_keyboard("space")
                 end

@@ -2306,11 +2306,37 @@ local main_task= {
         },
         ["賈萊關口"] = {
             map_name= 'P2_5',
+            interaction_object= {'奇瑪'},
+            interaction_object_map_name= {'P2_6'},
             index = 377
         },
-        ["探索賈萊關口"] = {
+        ["穿越賈萊關口"] = {
             map_name= 'P2_5',
+            interaction_object= {'奇瑪'},
+            interaction_object_map_name= {'P2_6'},
             index = 378
+        },
+        ["擊敗墮炎．沃納斯"] = {
+            map_name= 'P2_5',
+            Boss = {"墮炎．沃納斯"},
+            interaction_object_map_name= {'P2_6'},
+            index = 379
+        },
+        ["進入奇瑪"] = {
+            map_name= 'P2_5',
+            interaction_object= {'奇瑪'},
+            interaction_object_map_name= {'P2_6'},
+            index = 380
+        },
+        ["奇瑪"] = {
+            map_name= 'P2_6',
+            index = 381
+        },
+        ["探索奇瑪並尋找儀式場所"] = {
+            map_name= 'P2_6',
+            interaction_object= {'奇瑪水源地'},
+            interaction_object_map_name= {'P2_7'},
+            index = 382
         },
         
     }
