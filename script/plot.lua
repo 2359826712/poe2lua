@@ -916,6 +916,7 @@ local custom_nodes = {
             --     poe2_api.dbgp("==============================")
             -- end
             -- -- poe2_api.printTable(api_GetTeleportationPoint())
+            -- --poe2_api.printTable(api_GetQuestList())
             -- while true do
             --     api_Sleep(1000)
             -- end
@@ -5780,7 +5781,7 @@ local custom_nodes = {
                 if task and next(task) and task.task_name == "與黑衣幽魂對話" then
                     local rel_task = true
                     for _, task in ipairs(api_GetQuestList(0)) do
-                        if task.MainQuestName == "大搜索" then
+                        if poe2_api.table_contains(task.MainQuestName , {"大搜索","奧瑞亞圍城戰"}) then
                             rel_task = false
                         end
                     end
@@ -5880,12 +5881,26 @@ local custom_nodes = {
                     env.grid_x = 326
                     env.interaction_object = { "絲克瑪．阿薩拉" } 
                 elseif player_info.current_map_name_utf8 == "P2_3" and task.task_name == "與阿薩拉對話" then
-                    poe2_api.dbgp("[Query_Current_Task_Information_Local]與阿薩拉對話")
+                    poe2_api.dbgp("[Query_Current_Task_Information]與阿薩拉對話")
                     env.map_name = "P2_3"
                     env.grid_y = nil
                     env.grid_x = nil
                     env.interaction_object = { "絲克瑪．阿薩拉" } 
                     env.interaction_object_map_name= {'賈多'}
+                elseif player_info.current_map_name_utf8 == "P3_7" and task.task_name == "與多里亞尼對話" then
+                    poe2_api.dbgp("[Query_Current_Task_Information]與多里亞尼對話")
+                    env.map_name = "P3_7"
+                    env.grid_y = nil
+                    env.grid_x = nil
+                    env.interaction_object = { "多里亞尼" } 
+                    env.interaction_object_map_name= {'多里亞尼'}
+                elseif player_info.current_map_name_utf8 == "P3_2" and task.map_name == "P3_2" and not poe2_api.check_item_in_inventory("寶石殼顱骨", bag_info) then
+                    poe2_api.dbgp("[Query_Current_Task_Information]收集寶石殼顱骨-P3_2")
+                    task.task_name = "擊敗瘋狂的阿茲莫里人"
+                    env.task_name = task.task_name
+                    env.map_name = "P3_2"
+                    env.boss_name = { "迷失長矛．萊塔拉" }
+                    env.interaction_object = { "寶石殼顱骨" }
                 elseif poe2_api.table_contains(player_info.current_map_name_utf8, { "G3_6_2" }) and task.task_name == "與艾瓦對話" then
                     poe2_api.dbgp("[Query_Current_Task_Information]與艾瓦對話")
                     env.map_name = "G3_6_2"
@@ -6419,6 +6434,36 @@ local custom_nodes = {
                             end
                             env.map_name = self.mas
                             poe2_api.dbgp("[Query_Current_Task_Information]-卡里市集-SUCCESS3")
+                            poe2_api.time_p("[Query_Current_Task_Information]",(api_GetTickCount64() - current_time))
+                            return bret.SUCCESS
+                        end
+                    elseif self.mas == "P3_4" then
+                        poe2_api.dbgp("[Query_Current_Task_Information]获取-P3_4-地图任务信息")
+                        if poe2_api.get_team_info(team_info, config, player_info, 2) ~= "大號名" then
+                            if not next(env.raw) or (self.raw_time ~= 0 and api_GetTickCount64() - self.raw_time > max_time) then
+                                -- 发送任务信息
+                                local task_text = "task_name=" .. "找到狂嗥洞穴" .. ",task_index=" .. 417 ..",map_name=" .. self.mas
+                                poe2_api.click_keyboard("enter")
+                                api_Sleep(500)
+                                paste_text(task_text)
+                                api_Sleep(500)
+                                if not poe2_api.find_text({UI_info = env.UI_info, text = "私訊", min_x = 0, max_x = 400, refresh = true}) then
+                                    poe2_api.dbgp("[Query_Current_Task_Information]私訊")
+                                    return bret.RUNNING
+                                end
+                                poe2_api.click_keyboard("enter")
+                                api_Sleep(500)
+                                self.raw_time = api_GetTickCount64()
+                                env.raw = { "狂嗥洞穴", 417 }
+                            end
+                            env.update = { "狂嗥洞穴", 417 }
+                            if not deep_equal_unordered(env.raw, env.update) then
+                                env.raw = {}
+                                poe2_api.dbgp("[Query_Current_Task_Information]狂嗥洞穴-RUNNING2")
+                                return bret.RUNNING
+                            end
+                            env.map_name = self.mas
+                            poe2_api.dbgp("[Query_Current_Task_Information]-狂嗥洞穴-SUCCESS3")
                             poe2_api.time_p("[Query_Current_Task_Information]",(api_GetTickCount64() - current_time))
                             return bret.SUCCESS
                         end
@@ -7229,7 +7274,7 @@ local custom_nodes = {
                 -- 返回结果
                 return match_count == num - 1
             end
-            if poe2_api.table_contains(current_map, { "G1_12", "G3_7" }) then
+            if poe2_api.table_contains(current_map, { "G1_12", "G3_7","P3_2" }) then
                 local SPECIAL_SKULL_NAMES = { ['寶石花顱骨'] = true, ['寶石殼顱骨'] = true, ['傑洛特顱骨'] = true }
                 for _, i in ipairs(actors) do
                     if SPECIAL_SKULL_NAMES[i.name_utf8] then
@@ -8164,6 +8209,16 @@ local custom_nodes = {
                     return bret.RUNNING
                 end
             end
+            if string.find(me_area, "P3_Town") and task_area == "P3_1" then
+                if not poe2_api.find_text({ UI_info = UI_info, text = "灰燼森林",max_x =1360}) then
+                    env.end_point = { 525, 569 }
+                    return bret.SUCCESS
+                else
+                    poe2_api.find_text({ UI_info = UI_info, text = "灰燼森林",click = 2,max_x =1360 })
+                    api_Sleep(500)
+                    return bret.RUNNING
+                end
+            end
             if task_name == "科佩克神殿" and string.find(me_area, "G3_12") then
                 return bret.RUNNING
             end
@@ -8353,6 +8408,10 @@ local custom_nodes = {
                 if task_area == "P2_1" then
                     env.teleport_area = "P2_Town"
                     task_area = "P2_Town"
+                end
+                if task_area == "P3_1" then
+                    env.teleport_area = "P3_Town"
+                    task_area = "P3_Town"
                 end
                 if not poe2_api.Waypoint_is_open(task_area, waypoint) and task_area ~= "G3_2_2"  then
                     if not poe2_api.find_text({UI_info = env.UI_info, text = "世界地圖",refresh = true}) then
@@ -10372,6 +10431,8 @@ local custom_nodes = {
                     end
                 end
             end
+            poe2_api.dbgp(me_area == task_area)
+            poe2_api.printTable(interaction_object)
             if (interaction_object or interaction_object_map_name ) and me_area == task_area then
                 if env.modify_interaction then
                     poe2_api.dbgp("修改交互对象")
@@ -11053,14 +11114,16 @@ local custom_nodes = {
                             end   
                         end
                         if poe2_api.table_contains('塔巴納的恩惠',interaction_object_set) then 
-                            if poe2_api.table_contains({"Metadata/Terrain/Gallows/Act4_Interlude/Part2/P2_6/Objects/SekhemaShrine_01"},obj.path_name_utf8) and poe2_api.find_text({ UI_info = UI_info, text = "塔巴納的恩惠", min_x=200}) and obj.hasLineOfSight then
+                            if poe2_api.table_contains({"Metadata/Terrain/Gallows/Act4_Interlude/Part2/P2_6/Objects/SekhemaShrine_01"},obj.path_name_utf8)  then
+                                poe2_api.dbgp(get_distance(obj.grid_x,obj.grid_y))
                                 if get_distance(obj.grid_x,obj.grid_y) > 30 then
                                     local rune_point = api_FindNearestReachableInRange(obj.grid_x, obj.grid_y,15)
                                     env.end_point = {rune_point.x,rune_point.y}
                                     return bret.SUCCESS 
                                 else
-                                    env.is_arrive_end = true
-                                    return bret.SUCCESS
+                                    poe2_api.find_text({ UI_info = UI_info, text = "塔巴納的恩惠", min_x=200,click = 2})
+                                    api_Sleep(5000)
+                                    return bret.RUNNING
                                 end
                             end   
                         end 
@@ -11077,6 +11140,16 @@ local custom_nodes = {
                                         api_Sleep(500)
                                         return bret.RUNNING
                                     end
+                                end
+                            end
+                            if player_info.current_map_name_utf8 == "P2_7" and obj.name_utf8 == "宏偉巨靈之幣" then
+                                if get_distance(obj.grid_x,obj.grid_y) > 30 then
+                                    local rune_point = api_FindNearestReachableInRange(obj.grid_x, obj.grid_y,50)
+                                    env.end_point = {rune_point.x,rune_point.y}
+                                    return bret.SUCCESS 
+                                else
+                                    env.is_arrive_end = true
+                                    return bret.SUCCESS
                                 end
                             end
                             if player_info.current_map_name_utf8 == "G4_10" and obj.name_utf8 == "塔瓦凱" and task_name == "進入挖掘場遺址" then

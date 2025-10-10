@@ -2338,6 +2338,222 @@ local main_task= {
             interaction_object_map_name= {'P2_7'},
             index = 382
         },
+        ["召喚賈多"] = {
+            map_name= 'P2_6',
+            interaction_object= {'召喚賈多'},
+            interaction_object_map_name= {'P2_7'},
+            index = 383
+        },
+        ["和賈多對話"] = {
+            map_name= 'P2_6',
+            interaction_object= {'賈多'},
+            interaction_object_map_name= {'賈多'},
+            index = 384
+        },
+        ["進入奇瑪水源地"] = {
+            map_name= 'P2_6',
+            interaction_object= {'奇瑪水源地'},
+            interaction_object_map_name= {'P2_7'},
+            index = 385
+        },
+        ["奇瑪水源地"] = {
+            map_name= 'P2_7',
+            index = 386
+        },
+        ["探索奇瑪水源地"] = {
+            map_name= 'P2_7',
+            index = 387
+        },
+        ["擊敗法里登王子．亞茲馬迪"] = {
+            map_name= 'P2_7',
+            Boss = {"法里登王子．亞茲馬迪"},
+            index = 388
+        },
+        ["與雄偉巨靈之幣互動"] = {
+            map_name= 'P2_7',
+            interaction_object = {"宏偉巨靈之幣"},
+            index = 389
+        },
+        ["與賈多對話"] = {
+            map_name= 'P2_7',
+            interaction_object= {'賈多'},
+            interaction_object_map_name= {'賈多'},
+            index = 390
+        },
+        ["與黑衣幽魂對話來前往庫萊亞山。"] = {
+            map_name= 'P2_Town',
+            interaction_object= {'黑衣幽魂','前往庫萊亞山'},
+            grid_x = 307,
+            grid_y = 313,
+            index = 391
+        },
+        ["林間空地"] = {
+            map_name= 'P3_Town',
+            index = 392
+        },
+        ["與多里亞尼對話"] = {
+            map_name= 'P3_Town',
+            interaction_object= {'多里亞尼'},
+            index = 392
+        },
+        ["進入灰燼森林"] = {
+            map_name= 'P3_Town',
+            interaction_object= {'灰燼森林'},
+            interaction_object_map_name= {'P3_1'},
+            index = 393
+        },
+        ["灰燼森林"] = {
+            map_name= 'P3_1',
+            index = 394
+        },
+        ["探索灰燼森林"] = {
+            map_name= 'P3_1',
+            interaction_object= {'庫萊亞村'},
+            interaction_object_map_name= {'P3_2'},
+            index = 395
+        },
+        ["進入庫萊亞村"] = {
+            map_name= 'P3_1',
+            interaction_object= {'庫萊亞村'},
+            interaction_object_map_name= {'P3_2'},
+            index = 396
+        },
+        ["庫萊亞村"] = {
+            map_name= 'P3_2',
+            index = 397
+        },
+        ["探索庫萊亞村"] = {
+            map_name= 'P3_2',
+            interaction_object= {'冰川湖泊'},
+            interaction_object_map_name= {'P3_3'},
+            index = 398
+        },
+        ["擊敗瘋狂的阿茲莫里人"] = {
+            map_name = 'P3_2',
+            Boss = {"迷失長矛．萊塔拉"},
+            interaction_object_map_name = {'P3_3'},
+            index = 399
+        },
+        ["進入冰川湖泊"] = {
+            map_name= 'P3_2',
+            interaction_object= {'冰川湖泊'},
+            interaction_object_map_name= {'P3_3'},
+            index = 401
+        },
+        ["冰川湖泊"] = {
+            map_name= 'P3_3',
+            index = 402
+        },
+        ["探索冰川湖泊"] = {
+            map_name= 'P3_3',
+            interaction_object= {'庫萊亞山巔'},
+            interaction_object_map_name= {'P3_5'},
+            index = 403
+        },
+        ["擊敗凍結之爪．拉卡爾"] = {
+            map_name = 'P3_3',
+            Boss = {"凍結之爪．拉卡爾"},
+            interaction_object_map_name = {'P3_5'},
+            index = 404
+        },
+        ["進入庫萊亞山巔"] = {
+            map_name= 'P3_3',
+            interaction_object= {'庫萊亞山巔'},
+            interaction_object_map_name= {'P3_5'},
+            index = 405
+        },
+        ["庫萊亞山巔"] = {
+            map_name= 'P3_5',
+            index = 406
+        },
+        ["探索庫萊亞山巔"] = {
+            map_name= 'P3_5',
+            interaction_object= {'蝕刻溪谷'},
+            interaction_object_map_name= {'P3_6'},
+            index = 407
+        },
+        ["進入蝕刻溪谷"] = {
+            map_name= 'P3_5',
+            interaction_object= {'蝕刻溪谷'},
+            interaction_object_map_name= {'P3_6'},
+            index = 408
+        },
+        ["蝕刻溪谷"] = {
+            map_name= 'P3_6',
+            index = 409
+        },
+        ["探索蝕刻溪谷"] = {
+            map_name= 'P3_6',
+            interaction_object= {'庫阿西克寶庫'},
+            interaction_object_map_name= {'P3_7'},
+            index = 410
+        },
+        ["擊敗風暴血獸"] = {
+            map_name = 'P3_6',
+            Boss = {"守護者．風暴血獸"},
+            interaction_object_map_name = {'P3_7'},
+            index = 411
+        },
+        ["進入庫阿西克寶庫"] = {
+            map_name= 'P3_6',
+            interaction_object= {'庫阿西克寶庫'},
+            interaction_object_map_name= {'P3_7'},
+            index = 412
+        },
+        ["庫阿西克寶庫"] = {
+            map_name= 'P3_7',
+            index = 413
+        },
+        ["探索庫阿西克寶庫"] = {
+            map_name= 'P3_7',
+            interaction_object= {'門'},
+            index = 414
+        },
+        ["擊敗佐林和澤莉娜"] = {
+            map_name= 'P3_7',
+            Boss={"鮮血女祭司．澤莉娜","鮮血祭司．佐林"},
+            interaction_object= {'門'},
+            index = 415
+        },
+        ["召喚多里亞尼"] = {
+            map_name= 'P3_7',
+            interaction_object= {"召喚多里亞尼"},
+            index = 416
+        },
+        ["找到狂嗥洞穴"] = {
+            map_name= 'P3_4',
+            index = 417
+        },
+        ["狂嗥洞穴"] = {
+            map_name= 'P3_4',
+            index = 418
+        },
+        ["找到雪獸"] = {
+            map_name= 'P3_4',
+            index = 419
+        },
+        ["擊敗雪獸"] = {
+            map_name= 'P3_4',
+            Boss = {"怪異雪獸"},
+            index = 420
+        },
+        ["拾起寒冰獠牙"] = {
+            map_name= 'P3_4',
+            interaction_object= {"寒冰獠牙"},
+            index = 421
+        },
+        ["將寒冰獠牙交給希爾妲"] = {
+            map_name= 'P3_Town',
+            interaction_object= {"希爾妲"},
+            index = 422
+        },
+        ["向希爾妲領取獎勵"] = {
+            map_name= 'P3_Town',
+            interaction_object= {"希爾妲","狂嗥之風獎勵"},
+            grid_x = 534,
+            grid_y = 393,
+            index = 423
+        },
         
     }
 }
