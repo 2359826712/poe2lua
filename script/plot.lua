@@ -9509,6 +9509,14 @@ local custom_nodes = {
             local user_config = env.user_config
             local attack_dis_map = 100
             local team_member_2 = poe2_api.get_team_info(team_info, user_config, player_info, 2)
+            if player_info.current_map_name_utf8 == "G4_8b" and team_member_2 == "大號名" then
+                for _, v in ipairs(range_info) do
+                    if v.name_utf8 == "骨牆" and v.hasLineOfSight and v.isActive and v.life > 0 then
+                        poe2_api.dbgp("[Check_Is_Need_Attack] G4_8b-发现骨牆，需要攻击")
+                        return bret.FAIL
+                    end
+                end
+            end
             if (poe2_api.is_have_boss_distance(range_info, player_info,boss_name, 180) 
                 or poe2_api.is_have_mos({range_info = range_info, player_info = player_info, dis = attack_dis_map, stuck_monsters = stuck_monsters,not_attack_mos = not_attack_mos}))
                 and (team_member_2 == "大號名" or player_info.current_map_name_utf8 == "G1_1") then
@@ -9853,7 +9861,16 @@ local custom_nodes = {
             local valid_monsters = nil
             local boss_name = env.boss_name
             local current_map_info = env.current_map_info
-            
+            local not_attact_mons_CN_name = my_game_info.not_attact_mons_CN_name
+            if player_info.current_map_name_utf8 == "G4_8b" then
+                 -- 移除 "骨牆"
+                for i, name in ipairs(not_attact_mons_CN_name) do
+                    if name == "骨牆" then
+                        table.remove(not_attact_mons_CN_name, i)
+                        break
+                    end
+                end
+            end
             local range_info = env.range_info
             -- 怪物筛选和处理逻辑
             for _, monster in ipairs(env.range_info) do
@@ -9863,7 +9880,7 @@ local custom_nodes = {
                 monster.is_friendly or                -- 友方检查
                 monster.life <= 0 or                  -- 生命值检查
                 monster.name_utf8 == "" or              -- 名称检查
-                poe2_api.table_contains(my_game_info.not_attact_mons_CN_name, monster.name_utf8) or
+                poe2_api.table_contains(not_attact_mons_CN_name, monster.name_utf8) or
                 poe2_api.table_contains(my_game_info.not_attact_mons_path_name , monster.path_name_utf8) then  -- 路径名检查
                     goto continue
                 end
@@ -9941,7 +9958,7 @@ local custom_nodes = {
                         end
 
                         -- 黑名单检查
-                        if poe2_api.table_contains(my_game_info.not_attact_mons_CN_name, monster.name_utf8) or
+                        if poe2_api.table_contains(not_attact_mons_CN_name, monster.name_utf8) or
                             poe2_api.table_contains(my_game_info.not_attact_mons_path_name, monster.path_name_utf8) or
                         string.find(monster.name_utf8 or "", "神殿") then
                             goto continue_second

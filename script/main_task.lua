@@ -1726,6 +1726,12 @@ local main_task= {
             interaction_object_map_name= {'G4_1_2'},
             index = 279
         },
+        ['進入火山迷窟']= {
+            map_name= 'G4_1_1',
+            interaction_object= {'火山迷窟'},
+            interaction_object_map_name= {'G4_1_2'},
+            index = 280
+        },
         ['火山迷窟']= {
             map_name= 'G4_1_2',
             index = 280
@@ -1867,9 +1873,11 @@ local main_task= {
             index = 304
         },
         ['進一步探索亡者之殿']= {
-            map_name= 'G4_4_2',
-            interaction_object={"祖靈的試煉"},
-            interaction_object_map_name= {"G4_4_3"},
+            map_name= 'G4_4_3',
+            index = 305
+        },
+        ['進入傳送門並和死亡之母會面']= {
+            map_name= 'G4_4_3',
             index = 305
         },
         ['祖靈的試煉']= {
@@ -1999,6 +2007,10 @@ local main_task= {
             map_name= 'G4_8b',
             interaction_object= {'門'},
             index = 327
+        },
+        ["攻擊並破壞力場"] = {
+            map_name= 'G4_8b',
+            index = 328
         },
         ["尋找重鑄武器的方法"] = {
             map_name= 'G4_8b',
