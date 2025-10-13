@@ -1628,6 +1628,10 @@ local main_task= {
         },
         ["金司馬區"] = {
             map_name= 'G4_town',
+            interaction_object= {'黑衣幽魂'},
+            grid_x = 1023,
+            grid_y = 1635,
+            interaction_object_map_name= {'黑衣幽魂'},
             index = 266
         },
         ['與瑪寇魯交談，討論雇用船隻的事宜']= {
@@ -2172,9 +2176,14 @@ local main_task= {
             interaction_object_map_name= {'BossSummoningLocationInactive'},
             index = 357
         },
+        ['等待烏娜的到來'] = {
+            map_name= 'P1_2',
+            interaction_object_map_name= {'BossSummoningLocationInactive'},
+            index = 357
+        },
         ['與烏娜對話'] = {
             map_name= 'P1_2',
-            interaction_object= {'烏娜'},
+            interaction_object= {'烏娜',"亡靈"},
             interaction_object_map_name= {'BossSummoningLocationInactive'},
             index = 358
         },
@@ -2565,6 +2574,13 @@ local main_task= {
             grid_x = 534,
             grid_y = 393,
             index = 423
+        },
+        ["跟黑衣幽魂領取獎勵"] = {
+            map_name= 'G4_town',
+            interaction_object= {'黑衣幽魂'},
+            grid_x = 1023,
+            grid_y = 1635,
+            index = 424
         },
         
     }

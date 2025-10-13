@@ -5541,7 +5541,8 @@ local custom_nodes = {
                 elseif party_member_map({ "G4_10"}) and task.task_name == "尋找重鑄武器的方法" then
                     poe2_api.dbgp("[Query_Current_Task_Information_Local]尋找重鑄武器的方法")
                     env.map_name = "G4_10"
-                    env.interaction_object_map_name = nil
+                    env.interaction_object_map_name = {'G4_10_BossActive'}
+                    env.boss_name={"烏托邦的第一使者．本篤特斯"}
                     env.interaction_object = nil
                 elseif party_member_map({ "G3_6_2"}) and task.task_name == "召喚艾瓦，尋求她的意見" then
                     poe2_api.dbgp("[Query_Current_Task_Information_Local]召喚艾瓦，尋求她的意見")
@@ -5918,7 +5919,8 @@ local custom_nodes = {
                 elseif player_info.current_map_name_utf8 == "G4_10" and task.task_name == "尋找重鑄武器的方法" then
                     poe2_api.dbgp("[Query_Current_Task_Information_Local]尋找重鑄武器的方法")
                     env.map_name = "G4_10"
-                    env.interaction_object_map_name = nil
+                    env.interaction_object_map_name = {'G4_10_BossActive'}
+                    env.boss_name={"烏托邦的第一使者．本篤特斯"}
                     env.interaction_object = nil
                 elseif player_info.current_map_name_utf8 == "G2_3a" and task.task_name == "使用貧脊之地的地圖前往哈拉妮關口所在之處" then
                     poe2_api.dbgp("[Query_Current_Task_Information]G2_3a使用貧脊之地的地圖前往哈拉妮關口所在之處")
@@ -6515,8 +6517,8 @@ local custom_nodes = {
                 local mx, my = mate.grid_x, mate.grid_y
                 -- 查找符合条件的怪物
                 for _, i in ipairs(range_info) do
-                    if not i.is_friendly and i.life > 0 and i.name_utf8 ~= "" and i.isActive
-                        and poe2_api.table_contains(i.name_utf8 ,{"撕裂者","白之亞瑪","擊殺死亡之謠．黛莫拉","酋長．塔瓦凱"})
+                    if not i.is_friendly and i.life > 1 and i.name_utf8 ~= "" and i.isActive
+                        and poe2_api.table_contains(i.name_utf8 ,{"撕裂者","白之亞瑪","擊殺死亡之謠．黛莫拉","酋長．塔瓦凱","墮落者．塔瓦凱","被吞噬者．塔瓦凱"})
                         and poe2_api.get_point_distance(mate.grid_x, mate.grid_y, i.grid_x, i.grid_y) < 200 then
                         return i
                     end
@@ -6754,16 +6756,19 @@ local custom_nodes = {
                     poe2_api.dbgp("[Is_Move]与队友距离大于25")
                     local boss_info_mate = poe2_api.is_have_boss_distance(range_info, mate, boss_name, 180)
                     if arena_list and #arena_list > 0 and arena_list[1].is_selectable then
-                        if poe2_api.find_text({ UI_info = UI_info, text = "競技場", min_x = 0 }) and arena_list[1].hasLineOfSight then
-                            poe2_api.find_text({ UI_info = UI_info, text = "競技場", min_x = 0, click = 2 })
-                            reset_navigation_state()
-                            return bret.RUNNING
-                        end
-                        local arena_path = api_FindPath(player_info.grid_x, player_info.grid_y, arena_list[1].grid_x, arena_list[1].grid_y)
-                        if arena_path and #arena_path > 0 then
-                            poe2_api.dbgp("[Is_Move]与队友距离大于25且与竞技场距离小于180")
-                            env.end_point = { arena_list[1].grid_x, arena_list[1].grid_y }
-                            return bret.FAIL
+                        local arena_list_distance = poe2_api.point_distance(arena_list[1].grid_x, arena_list[1].grid_y, player_info)
+                        if distance > arena_list_distance then
+                            if poe2_api.find_text({ UI_info = UI_info, text = "競技場", min_x = 0 }) and arena_list[1].hasLineOfSight then
+                                poe2_api.find_text({ UI_info = UI_info, text = "競技場", min_x = 0, click = 2 })
+                                reset_navigation_state()
+                                return bret.RUNNING
+                            end
+                            local arena_path = api_FindPath(player_info.grid_x, player_info.grid_y, arena_list[1].grid_x, arena_list[1].grid_y)
+                            if arena_path and #arena_path > 0 then
+                                poe2_api.dbgp("[Is_Move]与队友距离大于25且与竞技场距离小于180")
+                                env.end_point = { arena_list[1].grid_x, arena_list[1].grid_y }
+                                return bret.FAIL
+                            end
                         end
                     end
                     if boss_info_mate and arena_list and #arena_list > 0 then
@@ -8201,11 +8206,18 @@ local custom_nodes = {
             end
             if string.find(me_area, "P2_Town") and task_area == "P2_1" then
                 if not poe2_api.find_text({ UI_info = UI_info, text = "卡里交匯道",max_x =1360}) then
-                    env.end_point = { 292, 242 }
+                    env.end_point = { 451, 382 }
                     return bret.SUCCESS
                 else
-                    poe2_api.find_text({ UI_info = UI_info, text = "卡里交匯道",click = 2,max_x =1360 })
-                    api_Sleep(500)
+                    if not poe2_api.find_text({ UI_info = UI_info, text = "副本管理員", click = 0, refresh = true }) then
+                        api_Sleep(500)
+                        poe2_api.find_text({UI_info = env.UI_info, text ="卡里交匯道", click = 4})
+                        api_Sleep(500)
+                    else
+                        api_Sleep(500)
+                        poe2_api.find_text({ UI_info = UI_info, text = "新副本", click = 2, min_x = 0, refresh = true })
+                        api_Sleep(500)
+                    end
                     return bret.RUNNING
                 end
             end
@@ -9513,6 +9525,7 @@ local custom_nodes = {
                 for _, v in ipairs(range_info) do
                     if v.name_utf8 == "骨牆" and v.hasLineOfSight and v.isActive and v.life > 0 then
                         poe2_api.dbgp("[Check_Is_Need_Attack] G4_8b-发现骨牆，需要攻击")
+                        env.space = false
                         return bret.FAIL
                     end
                 end
@@ -9863,7 +9876,7 @@ local custom_nodes = {
             local current_map_info = env.current_map_info
             local not_attact_mons_CN_name = my_game_info.not_attact_mons_CN_name
             if player_info.current_map_name_utf8 == "G4_8b" then
-                 -- 移除 "骨牆"
+                poe2_api.dbgp("移除 骨牆")
                 for i, name in ipairs(not_attact_mons_CN_name) do
                     if name == "骨牆" then
                         table.remove(not_attact_mons_CN_name, i)
@@ -9874,7 +9887,9 @@ local custom_nodes = {
             local range_info = env.range_info
             -- 怪物筛选和处理逻辑
             for _, monster in ipairs(env.range_info) do
-
+                if player_info.current_map_name_utf8 == "G4_8b" and monster.name_utf8 == "骨牆" then
+                    monster.is_selectable = true
+                end
                 -- 快速失败条件检查（按计算成本从低到高排序）
                 if not monster.is_selectable or          -- 可选性检查
                 monster.is_friendly or                -- 友方检查
@@ -9898,12 +9913,11 @@ local custom_nodes = {
                         goto continue
                     end
                 end
-                
                 -- 是否激活  
                 if (not monster.isActive) and is_active then
                     goto continue
                 end
-                
+
                 -- 稀有度检查
                 if env.not_attack_mos and env.not_attack_mos[monster.rarity] then
                     goto continue
@@ -9945,7 +9959,9 @@ local custom_nodes = {
                     -- 第二次遍历进行卡住检测和其他处理
                     for _, monster in ipairs(env.range_info) do
                         local current_time = api_GetTickCount64()
-                        
+                        if player_info.current_map_name_utf8 == "G4_8b" and monster.name_utf8 == "骨牆" then
+                            monster.is_selectable = true
+                        end
                         -- 快速失败条件检查
                         if not monster.is_selectable or 
                         poe2_api.table_contains(self.stuck_monsters,monster.id) or 
@@ -10104,6 +10120,12 @@ local custom_nodes = {
                 end
                 if valid_monsters.name_utf8 == "烏托邦的第一使者．本篤特斯" then
                     env.space = false
+                end
+                if valid_monsters.name_utf8 == "最終之刺．艾克提" then
+                    if valid_monsters and valid_monsters.stateMachineList and valid_monsters.stateMachineList["boss_life_bar"] == 0 then
+                        env.end_point = {valid_monsters.grid_x,valid_monsters.grid_y}
+                        return bret.FAIL
+                    end
                 end
                 if valid_monsters.name_utf8 == "囚犯" then
                     local range_sorted = poe2_api.get_sorted_obj("砲塔",env.range_info, env.player_info)
@@ -11212,7 +11234,26 @@ local custom_nodes = {
                                         return bret.SUCCESS
                                     end
                                 end
-                                goto continue
+                            end
+                            if obj.name_utf8 == "傳承之井" then
+                                if get_distance(obj.grid_x,obj.grid_y) < 25 then
+                                    api_ClickMove(poe2_api.toInt(obj.grid_x),poe2_api.toInt(obj.grid_y),1)
+                                    if self.time1 == 0 then
+                                        self.time1 = api_GetTickCount64()
+                                    end
+                                    if api_GetTickCount64() - self.time1 > 6*1000 then
+                                        local obj_walk_point = api_FindRandomWalkablePosition(obj.grid_x, obj.grid_y,30)
+                                        api_ClickMove(obj_walk_point.x,obj_walk_point.y,0)
+                                        poe2_api.click_keyboard("space")
+                                        self.time1 = 0
+                                    end
+                                    return bret.RUNNING
+                                else
+                                    self.time1 = 0
+                                    local obj_reach_point = api_FindNearestReachableInRange(obj.grid_x, obj.grid_y,10)
+                                    env.end_point = {obj_reach_point.x,obj_reach_point.y}  
+                                    return bret.SUCCESS
+                                end
                             end
                             if poe2_api.table_contains(obj.name_utf8,{"受傷的男人", "水之女神", "水之女神．哈拉妮","表示敬意"}) and get_distance(obj.grid_x,obj.grid_y) > 25 and get_distance(obj.grid_x,obj.grid_y) < 150 then
                                 local obj_reach_point = api_FindNearestReachableInRange(obj.grid_x, obj.grid_y,15)
@@ -11304,6 +11345,9 @@ local custom_nodes = {
                                 local distance = poe2_api.point_distance(env.prestore_boss_list[1].x,env.prestore_boss_list[1].y,player_info)
                                 if distance and distance < 25 then
                                     table.remove(env.prestore_boss_list,1)
+                                    if #env.prestore_boss_list == 0 then
+                                        env.record_map = nil
+                                    end
                                     poe2_api.dbgp("移动到圆点列表第一个点完成")
                                     return "刷新"
                                 end
