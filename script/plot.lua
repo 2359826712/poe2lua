@@ -11240,6 +11240,7 @@ local custom_nodes = {
                                         return bret.SUCCESS
                                     end
                                 end
+                                goto continue
                             end
                             if obj.name_utf8 == "傳承之井" then
                                 if get_distance(obj.grid_x,obj.grid_y) < 25 then

@@ -2516,9 +2516,7 @@ local main_task= {
             index = 411
         },
         ["進入庫阿西克寶庫"] = {
-            map_name= 'P3_6',
-            interaction_object= {'庫阿西克寶庫'},
-            interaction_object_map_name= {'P3_7'},
+            map_name= 'P3_7',
             index = 412
         },
         ["庫阿西克寶庫"] = {
