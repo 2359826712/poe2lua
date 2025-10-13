@@ -7963,6 +7963,10 @@ local custom_nodes = {
                 env.not_move = true
                 return bret.SUCCESS
             end
+            if string.find(me_area, "own") then
+                self.back_city = true
+                self.time1 = 0
+            end
             if not self.follow and ((special_map_point and interaction_object and string.find(me_area, "G2_town")) or (me_area ~= task_area and poe2_api.table_contains(task_area, { "G3_1", "G3_2_2" }) and not party_dis_memember(range_info))
                     or (me_area ~= task_area and poe2_api.table_contains(task_area, { "G3_12",  "G3_14", "G3_16", "G3_17" })) or poe2_api.table_contains(task_name, { "回到過去，進入奧札爾", "探索科佩克神殿並尋找瓦爾的知識展覽室" }) or (poe2_api.table_contains(party_pos(team_member_4), { "G2_1","G4_2_2" }))) then
                 
@@ -8205,7 +8209,7 @@ local custom_nodes = {
                 end
             end
             if string.find(me_area, "P2_Town") and task_area == "P2_1" then
-                if not poe2_api.find_text({ UI_info = UI_info, text = "卡里交匯道",max_x =1360}) then
+                if poe2_api.point_distance(451,382,player_info) > 30 then
                     env.end_point = { 451, 382 }
                     return bret.SUCCESS
                 else
@@ -8217,6 +8221,9 @@ local custom_nodes = {
                         api_Sleep(500)
                         poe2_api.find_text({ UI_info = UI_info, text = "新副本", click = 2, min_x = 0, refresh = true })
                         api_Sleep(500)
+                        if poe2_api.click_text_UI({ text = "loading_screen_tip_label", UI_info = UI_info }) then
+                            return bret.RUNNING
+                        end
                     end
                     return bret.RUNNING
                 end
@@ -8237,9 +8244,7 @@ local custom_nodes = {
             if task_name == "瑪特蘭水道" and string.find(me_area, "G3_2_2") then
                 return bret.RUNNING
             end
-            if string.find(me_area, "own") then
-                self.back_city = true
-            end
+
             if me_area == task_area then
                 if string.find(me_area,"G4") then
                     local g4_area_name = get_range_pos(poe2_api.task_area_list_data(task_area)[1][2])
@@ -8273,6 +8278,7 @@ local custom_nodes = {
                             self.time1 = api_GetTickCount64()
                         end
                         local retime = api_GetTickCount64() - self.time1
+                        poe2_api.dbgp("retime",retime)
                         if retime >= 60 * 1000 and player_info.life ~= 0 then
                             for _, name in ipairs(my_game_info.city_map) do
                                 if poe2_api.find_text({ UI_info = env.UI_info, text = name, click = 2 }) then
