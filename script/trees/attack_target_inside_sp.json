@@ -1,5 +1,5 @@
 {
-  "name": "attack_target_inside",
+  "name": "attack_target_inside_sp",
   "root": {
     "id": 1,
     "name": "Sequence",
@@ -147,40 +147,35 @@
               },
               {
                 "id": 31,
-                "name": "Shop_Sacrifice_Items",
-                "desc": "祭坛购买"
-              },
-              {
-                "id": 32,
                 "name": "Selector",
                 "desc": "Take_Bird",
                 "children": [
                   {
-                    "id": 33,
+                    "id": 32,
                     "name": "Take_Bird"
                   },
                   {
-                    "id": 34,
+                    "id": 33,
                     "name": "Sequence",
                     "desc": "Path_Move",
                     "children": [
                       {
-                        "id": 35,
+                        "id": 34,
                         "name": "Game_Block",
                         "desc": "清除遮挡"
                       },
                       {
-                        "id": 36,
+                        "id": 35,
                         "name": "Is_Arrive",
                         "desc": "是否到点"
                       },
                       {
-                        "id": 37,
+                        "id": 36,
                         "name": "GET_Path",
                         "desc": "获取路径"
                       },
                       {
-                        "id": 38,
+                        "id": 37,
                         "name": "Move_To_Target_Point",
                         "desc": "移动至目标点"
                       }
@@ -189,61 +184,61 @@
                 ]
               },
               {
-                "id": 39,
+                "id": 38,
                 "name": "StackableCurrency_Discard"
               },
               {
-                "id": 40,
+                "id": 39,
                 "name": "Selector",
                 "desc": "Pick_Up",
                 "children": [
                   {
-                    "id": 41,
+                    "id": 40,
                     "name": "Is_Pick_UP",
                     "desc": "是否需要拾取"
                   },
                   {
-                    "id": 42,
+                    "id": 41,
                     "name": "Sequence",
                     "desc": "Interactive",
                     "children": [
                       {
-                        "id": 43,
+                        "id": 42,
                         "name": "Game_Block",
                         "desc": "清理遮挡"
                       },
                       {
-                        "id": 44,
+                        "id": 43,
                         "name": "Selector",
                         "desc": "move_to_object",
                         "children": [
                           {
-                            "id": 45,
+                            "id": 44,
                             "name": "Click_Item_Text",
                             "desc": "点击交互"
                           },
                           {
-                            "id": 46,
+                            "id": 45,
                             "name": "Sequence",
                             "desc": "Path_Move",
                             "children": [
                               {
-                                "id": 47,
+                                "id": 46,
                                 "name": "Game_Block",
                                 "desc": "清除遮挡"
                               },
                               {
-                                "id": 48,
+                                "id": 47,
                                 "name": "Is_Arrive",
                                 "desc": "是否到点"
                               },
                               {
-                                "id": 49,
+                                "id": 48,
                                 "name": "GET_Path",
                                 "desc": "获取路径"
                               },
                               {
-                                "id": 50,
+                                "id": 49,
                                 "name": "Move_To_Target_Point",
                                 "desc": "移动至目标点"
                               }
@@ -256,57 +251,52 @@
                 ]
               },
               {
-                "id": 51,
-                "name": "Identify_designated_equipment",
-                "desc": "城外鉴定"
-              },
-              {
-                "id": 52,
+                "id": 50,
                 "name": "Selector",
                 "desc": "交互",
                 "children": [
                   {
-                    "id": 53,
+                    "id": 51,
                     "name": "Is_Interactive",
                     "desc": "是否需要交互"
                   },
                   {
-                    "id": 54,
+                    "id": 52,
                     "name": "Sequence",
                     "desc": "Interactive",
                     "children": [
                       {
-                        "id": 55,
+                        "id": 53,
                         "name": "Game_Block",
                         "desc": "清理遮挡"
                       },
                       {
-                        "id": 56,
+                        "id": 54,
                         "name": "Selector",
                         "desc": "move_to_object",
                         "children": [
                           {
-                            "id": 57,
+                            "id": 55,
                             "name": "Click_Item_Text",
                             "desc": "点击交互"
                           },
                           {
-                            "id": 58,
+                            "id": 56,
                             "name": "Sequence",
                             "desc": "Path_Move",
                             "children": [
                               {
-                                "id": 59,
+                                "id": 57,
                                 "name": "Is_Arrive",
                                 "desc": "是否到点"
                               },
                               {
-                                "id": 60,
+                                "id": 58,
                                 "name": "GET_Path",
                                 "desc": "获取路径"
                               },
                               {
-                                "id": 61,
+                                "id": 59,
                                 "name": "Move_To_Target_Point",
                                 "desc": "移动至目标点"
                               }
@@ -319,56 +309,56 @@
                 ]
               },
               {
-                "id": 62,
+                "id": 60,
                 "name": "Selector",
                 "desc": "攻击或者移动",
                 "children": [
                   {
-                    "id": 63,
+                    "id": 61,
                     "name": "Sequence",
                     "desc": "祭坛",
                     "children": [
                       {
-                        "id": 64,
+                        "id": 62,
                         "name": "Has_Black_Mist_Altar",
                         "desc": "是否有黑雾或者未激活祭坛"
                       },
                       {
-                        "id": 65,
+                        "id": 63,
                         "name": "Sequence",
                         "children": [
                           {
-                            "id": 66,
+                            "id": 64,
                             "name": "Game_Block",
                             "desc": "清理遮挡"
                           },
                           {
-                            "id": 67,
+                            "id": 65,
                             "name": "Sequence",
                             "desc": "move_to_object",
                             "children": [
                               {
-                                "id": 68,
+                                "id": 66,
                                 "name": "Is_Move_Altar",
                                 "desc": "是否需要移动祭坛"
                               },
                               {
-                                "id": 69,
+                                "id": 67,
                                 "name": "Sequence",
                                 "desc": "Path_Move",
                                 "children": [
                                   {
-                                    "id": 70,
+                                    "id": 68,
                                     "name": "Is_Arrive",
                                     "desc": "是否到点"
                                   },
                                   {
-                                    "id": 71,
+                                    "id": 69,
                                     "name": "GET_Path",
                                     "desc": "获取路径"
                                   },
                                   {
-                                    "id": 72,
+                                    "id": 70,
                                     "name": "Move_To_Target_Point",
                                     "desc": "移动至目标点"
                                   }
@@ -381,51 +371,51 @@
                     ]
                   },
                   {
-                    "id": 73,
+                    "id": 71,
                     "name": "Sequence",
                     "desc": "玩法保险箱",
                     "children": [
                       {
-                        "id": 74,
+                        "id": 72,
                         "name": "Gameplay_Safe_Box",
                         "desc": "是否有激活玩法保险箱"
                       },
                       {
-                        "id": 75,
+                        "id": 73,
                         "name": "Sequence",
                         "children": [
                           {
-                            "id": 76,
+                            "id": 74,
                             "name": "Game_Block",
                             "desc": "清理遮挡"
                           },
                           {
-                            "id": 77,
+                            "id": 75,
                             "name": "Sequence",
                             "desc": "move_to_object",
                             "children": [
                               {
-                                "id": 78,
+                                "id": 76,
                                 "name": "Is_Move_Safe_Box",
                                 "desc": "是否需要移动玩法保险箱"
                               },
                               {
-                                "id": 79,
+                                "id": 77,
                                 "name": "Sequence",
                                 "desc": "Path_Move",
                                 "children": [
                                   {
-                                    "id": 80,
+                                    "id": 78,
                                     "name": "Is_Arrive",
                                     "desc": "是否到点"
                                   },
                                   {
-                                    "id": 81,
+                                    "id": 79,
                                     "name": "GET_Path",
                                     "desc": "获取路径"
                                   },
                                   {
-                                    "id": 82,
+                                    "id": 80,
                                     "name": "Move_To_Target_Point",
                                     "desc": "移动至目标点"
                                   }
@@ -438,52 +428,52 @@
                     ]
                   },
                   {
-                    "id": 83,
+                    "id": 81,
                     "name": "Sequence",
                     "desc": "Area_Move",
                     "children": [
                       {
-                        "id": 84,
+                        "id": 82,
                         "name": "Selector",
                         "desc": "Attack",
                         "children": [
                           {
-                            "id": 85,
+                            "id": 83,
                             "name": "Check_Is_Need_Attack_Inside",
                             "desc": "检查是否需要攻击"
                           },
                           {
-                            "id": 86,
+                            "id": 84,
                             "name": "Game_Block_Inside",
                             "desc": "清除遮挡"
                           },
                           {
-                            "id": 87,
+                            "id": 85,
                             "name": "Sequence",
                             "desc": "attack_move",
                             "children": [
                               {
-                                "id": 88,
+                                "id": 86,
                                 "name": "ReleaseSkillAction_Inside",
                                 "desc": "释放技能"
                               },
                               {
-                                "id": 89,
+                                "id": 87,
                                 "name": "Sequence",
                                 "desc": "Path_Move",
                                 "children": [
                                   {
-                                    "id": 90,
+                                    "id": 88,
                                     "name": "Is_Arrive",
                                     "desc": "是否到点"
                                   },
                                   {
-                                    "id": 91,
+                                    "id": 89,
                                     "name": "GET_Path",
                                     "desc": "获取路径"
                                   },
                                   {
-                                    "id": 92,
+                                    "id": 90,
                                     "name": "Move_To_Target_Point",
                                     "desc": "移动至目标点"
                                   }
@@ -492,31 +482,31 @@
                             ]
                           },
                           {
-                            "id": 93,
+                            "id": 91,
                             "name": "Selector",
                             "children": [
                               {
-                                "id": 94,
+                                "id": 92,
                                 "name": "DodgeAction_Inside",
                                 "desc": "躲避技能"
                               },
                               {
-                                "id": 95,
+                                "id": 93,
                                 "name": "Sequence",
                                 "desc": "Path_Move",
                                 "children": [
                                   {
-                                    "id": 96,
+                                    "id": 94,
                                     "name": "Is_Arrive",
                                     "desc": "是否到点"
                                   },
                                   {
-                                    "id": 97,
+                                    "id": 95,
                                     "name": "GET_Path",
                                     "desc": "获取路径"
                                   },
                                   {
-                                    "id": 98,
+                                    "id": 96,
                                     "name": "Move_To_Target_Point",
                                     "desc": "移动至目标点"
                                   }
@@ -527,31 +517,69 @@
                         ]
                       },
                       {
-                        "id": 99,
+                        "id": 97,
+                        "name": "Selector",
+                        "children": [
+                          {
+                            "id": 98,
+                            "name": "Is_Player_Location",
+                            "desc": "判断是否在教堂，进行躲避技能"
+                          },
+                          {
+                            "id": 99,
+                            "name": "DodgeAction_Inside",
+                            "desc": "躲避技能"
+                          },
+                          {
+                            "id": 100,
+                            "name": "Sequence",
+                            "desc": "Path_Move",
+                            "children": [
+                              {
+                                "id": 101,
+                                "name": "Is_Arrive",
+                                "desc": "是否到点"
+                              },
+                              {
+                                "id": 102,
+                                "name": "GET_Path",
+                                "desc": "获取路径"
+                              },
+                              {
+                                "id": 103,
+                                "name": "Move_To_Target_Point",
+                                "desc": "移动至目标点"
+                              }
+                            ]
+                          }
+                        ]
+                      },
+                      {
+                        "id": 104,
                         "name": "Check_Target_Point"
                       },
                       {
-                        "id": 100,
+                        "id": 105,
                         "name": "Sequence",
                         "desc": "Path_Move",
                         "children": [
                           {
-                            "id": 101,
+                            "id": 106,
                             "name": "Game_Block",
                             "desc": "清除遮挡"
                           },
                           {
-                            "id": 102,
+                            "id": 107,
                             "name": "Is_Arrive",
                             "desc": "是否到点"
                           },
                           {
-                            "id": 103,
+                            "id": 108,
                             "name": "GET_Path",
                             "desc": "获取路径"
                           },
                           {
-                            "id": 104,
+                            "id": 109,
                             "name": "Move_To_Target_Point",
                             "desc": "移动至目标点"
                           }
@@ -564,94 +592,94 @@
             ]
           },
           {
-            "id": 105,
+            "id": 110,
             "name": "Sequence",
             "children": [
               {
-                "id": 106,
+                "id": 111,
                 "name": "RestController",
                 "desc": "休息控制器"
               },
               {
-                "id": 107,
+                "id": 112,
                 "name": "Not_Main_Page_Otherworld"
               },
               {
-                "id": 108,
+                "id": 113,
                 "name": "Selector",
                 "desc": "Currency_Exchange",
                 "children": [
                   {
-                    "id": 109,
+                    "id": 114,
                     "name": "Is_Need_Exchange"
                   },
                   {
-                    "id": 110,
+                    "id": 115,
                     "name": "Selector",
                     "desc": "get_nums",
                     "children": [
                       {
-                        "id": 111,
+                        "id": 116,
                         "name": "Obtain_The_Quantity_of_Items",
                         "desc": "获取物品数量"
                       },
                       {
-                        "id": 112,
+                        "id": 117,
                         "name": "Sequence",
                         "desc": "traverse_pages",
                         "children": [
                           {
-                            "id": 113,
+                            "id": 118,
                             "name": "Click_All_Pages",
                             "desc": "点击所有仓库页"
                           },
                           {
-                            "id": 114,
+                            "id": 119,
                             "name": "Selector",
                             "desc": "check_Warehouse",
                             "children": [
                               {
-                                "id": 115,
+                                "id": 120,
                                 "name": "Open_Warehouse",
                                 "desc": "打开仓库"
                               },
                               {
-                                "id": 116,
+                                "id": 121,
                                 "name": "Sequence",
                                 "desc": "Interactive",
                                 "children": [
                                   {
-                                    "id": 117,
+                                    "id": 122,
                                     "name": "Game_Block",
                                     "desc": "清理遮挡"
                                   },
                                   {
-                                    "id": 118,
+                                    "id": 123,
                                     "name": "Selector",
                                     "desc": "move_to_object",
                                     "children": [
                                       {
-                                        "id": 119,
+                                        "id": 124,
                                         "name": "Click_Item_Text",
                                         "desc": "点击交互"
                                       },
                                       {
-                                        "id": 120,
+                                        "id": 125,
                                         "name": "Sequence",
                                         "desc": "Path_Move",
                                         "children": [
                                           {
-                                            "id": 121,
+                                            "id": 126,
                                             "name": "Is_Arrive",
                                             "desc": "是否到点"
                                           },
                                           {
-                                            "id": 122,
+                                            "id": 127,
                                             "name": "GET_Path",
                                             "desc": "获取路径"
                                           },
                                           {
-                                            "id": 123,
+                                            "id": 128,
                                             "name": "Move_To_Target_Point",
                                             "desc": "移动至目标点"
                                           }
@@ -668,57 +696,57 @@
                     ]
                   },
                   {
-                    "id": 124,
+                    "id": 129,
                     "name": "Sequence",
                     "desc": "change_action",
                     "children": [
                       {
-                        "id": 125,
+                        "id": 130,
                         "name": "Selector",
                         "desc": "open_page",
                         "children": [
                           {
-                            "id": 126,
+                            "id": 131,
                             "name": "Open_The_Exchange_Interface",
                             "desc": "打开交换页面"
                           },
                           {
-                            "id": 127,
+                            "id": 132,
                             "name": "Sequence",
                             "desc": "Interactive",
                             "children": [
                               {
-                                "id": 128,
+                                "id": 133,
                                 "name": "Game_Block",
                                 "desc": "清理遮挡"
                               },
                               {
-                                "id": 129,
+                                "id": 134,
                                 "name": "Selector",
                                 "desc": "move_to_object",
                                 "children": [
                                   {
-                                    "id": 130,
+                                    "id": 135,
                                     "name": "Click_Item_Text",
                                     "desc": "点击交互"
                                   },
                                   {
-                                    "id": 131,
+                                    "id": 136,
                                     "name": "Sequence",
                                     "desc": "Path_Move",
                                     "children": [
                                       {
-                                        "id": 132,
+                                        "id": 137,
                                         "name": "Is_Arrive",
                                         "desc": "是否到点"
                                       },
                                       {
-                                        "id": 133,
+                                        "id": 138,
                                         "name": "GET_Path",
                                         "desc": "获取路径"
                                       },
                                       {
-                                        "id": 134,
+                                        "id": 139,
                                         "name": "Move_To_Target_Point",
                                         "desc": "移动至目标点"
                                       }
@@ -731,27 +759,27 @@
                         ]
                       },
                       {
-                        "id": 135,
+                        "id": 140,
                         "name": "Click_All_Cancel",
                         "desc": "订单取消"
                       },
                       {
-                        "id": 136,
+                        "id": 141,
                         "name": "Click_Old_Exchange",
                         "desc": "清除旧的兑换"
                       },
                       {
-                        "id": 137,
+                        "id": 142,
                         "name": "Click_All_Exchange",
                         "desc": "领取通货"
                       },
                       {
-                        "id": 138,
+                        "id": 143,
                         "name": "Click_Stateless_Exchange",
                         "desc": "清除兑换状态"
                       },
                       {
-                        "id": 139,
+                        "id": 144,
                         "name": "Select_AND_Exhange",
                         "desc": "选择和交换"
                       }
@@ -760,125 +788,57 @@
                 ]
               },
               {
-                "id": 140,
+                "id": 145,
                 "name": "Use_Task_Props",
                 "desc": "使用任务道具"
               },
               {
-                "id": 141,
-                "name": "Selector",
-                "desc": "Selling_Map",
-                "children": [
-                  {
-                    "id": 142,
-                    "name": "Selling_Map"
-                  },
-                  {
-                    "id": 143,
-                    "name": "Selector",
-                    "children": [
-                      {
-                        "id": 144,
-                        "name": "Open_Shop",
-                        "desc": "商店页是否已打开"
-                      },
-                      {
-                        "id": 145,
-                        "name": "Sequence",
-                        "desc": "Interactive",
-                        "children": [
-                          {
-                            "id": 146,
-                            "name": "Game_Block",
-                            "desc": "清理遮挡"
-                          },
-                          {
-                            "id": 147,
-                            "name": "Selector",
-                            "desc": "move_to_object",
-                            "children": [
-                              {
-                                "id": 148,
-                                "name": "Click_Item_Text",
-                                "desc": "点击交互"
-                              },
-                              {
-                                "id": 149,
-                                "name": "Sequence",
-                                "desc": "Path_Move",
-                                "children": [
-                                  {
-                                    "id": 150,
-                                    "name": "Is_Arrive",
-                                    "desc": "是否到点"
-                                  },
-                                  {
-                                    "id": 151,
-                                    "name": "GET_Path",
-                                    "desc": "获取路径"
-                                  },
-                                  {
-                                    "id": 152,
-                                    "name": "Move_To_Target_Point",
-                                    "desc": "移动至目标点"
-                                  }
-                                ]
-                              }
-                            ]
-                          }
-                        ]
-                      }
-                    ]
-                  }
-                ]
-              },
-              {
-                "id": 153,
+                "id": 146,
                 "name": "Selector",
                 "desc": "Identify",
                 "children": [
                   {
-                    "id": 154,
+                    "id": 147,
                     "name": "Dialogue_Appraisal_NPC",
                     "desc": "对话NPC"
                   },
                   {
-                    "id": 155,
+                    "id": 148,
                     "name": "Sequence",
                     "desc": "Interactive",
                     "children": [
                       {
-                        "id": 156,
+                        "id": 149,
                         "name": "Game_Block",
                         "desc": "清理遮挡"
                       },
                       {
-                        "id": 157,
+                        "id": 150,
                         "name": "Selector",
                         "desc": "move_to_object",
                         "children": [
                           {
-                            "id": 158,
+                            "id": 151,
                             "name": "Click_Item_Text",
                             "desc": "点击交互"
                           },
                           {
-                            "id": 159,
+                            "id": 152,
                             "name": "Sequence",
                             "desc": "Path_Move",
                             "children": [
                               {
-                                "id": 160,
+                                "id": 153,
                                 "name": "Is_Arrive",
                                 "desc": "是否到点"
                               },
                               {
-                                "id": 161,
+                                "id": 154,
                                 "name": "GET_Path",
                                 "desc": "获取路径"
                               },
                               {
-                                "id": 162,
+                                "id": 155,
                                 "name": "Move_To_Target_Point",
                                 "desc": "移动至目标点"
                               }
@@ -891,133 +851,51 @@
                 ]
               },
               {
-                "id": 163,
-                "name": "Selector",
-                "desc": "Conflate",
-                "children": [
-                  {
-                    "id": 164,
-                    "name": "Is_Need_Conflate",
-                    "desc": "是否需要合成"
-                  },
-                  {
-                    "id": 165,
-                    "name": "Selector",
-                    "desc": "conf",
-                    "children": [
-                      {
-                        "id": 166,
-                        "name": "Sequence",
-                        "desc": "open_page",
-                        "children": [
-                          {
-                            "id": 167,
-                            "name": "Open_Conflate_page",
-                            "desc": "打开合成界面"
-                          },
-                          {
-                            "id": 168,
-                            "name": "Sequence",
-                            "desc": "Interactive",
-                            "children": [
-                              {
-                                "id": 169,
-                                "name": "Game_Block",
-                                "desc": "清理遮挡"
-                              },
-                              {
-                                "id": 170,
-                                "name": "Selector",
-                                "desc": "move_to_object",
-                                "children": [
-                                  {
-                                    "id": 171,
-                                    "name": "Click_Item_Text",
-                                    "desc": "点击交互"
-                                  },
-                                  {
-                                    "id": 172,
-                                    "name": "Sequence",
-                                    "desc": "Path_Move",
-                                    "children": [
-                                      {
-                                        "id": 173,
-                                        "name": "Is_Arrive",
-                                        "desc": "是否到点"
-                                      },
-                                      {
-                                        "id": 174,
-                                        "name": "GET_Path",
-                                        "desc": "获取路径"
-                                      },
-                                      {
-                                        "id": 175,
-                                        "name": "Move_To_Target_Point",
-                                        "desc": "移动至目标点"
-                                      }
-                                    ]
-                                  }
-                                ]
-                              }
-                            ]
-                          }
-                        ]
-                      },
-                      {
-                        "id": 176,
-                        "name": "Click_On_The_Item_To_Synthesize",
-                        "desc": "点击物品合成"
-                      }
-                    ]
-                  }
-                ]
-              },
-              {
-                "id": 177,
+                "id": 156,
                 "name": "Selector",
                 "desc": "break_down",
                 "children": [
                   {
-                    "id": 178,
+                    "id": 157,
                     "name": "Dialogue_Break_Down_NPC"
                   },
                   {
-                    "id": 179,
+                    "id": 158,
                     "name": "Sequence",
                     "desc": "Interactive",
                     "children": [
                       {
-                        "id": 180,
+                        "id": 159,
                         "name": "Game_Block",
                         "desc": "清理遮挡"
                       },
                       {
-                        "id": 181,
+                        "id": 160,
                         "name": "Selector",
                         "desc": "move_to_object",
                         "children": [
                           {
-                            "id": 182,
+                            "id": 161,
                             "name": "Click_Item_Text",
                             "desc": "点击交互"
                           },
                           {
-                            "id": 183,
+                            "id": 162,
                             "name": "Sequence",
                             "desc": "Path_Move",
                             "children": [
                               {
-                                "id": 184,
+                                "id": 163,
                                 "name": "Is_Arrive",
                                 "desc": "是否到点"
                               },
                               {
-                                "id": 185,
+                                "id": 164,
                                 "name": "GET_Path",
                                 "desc": "获取路径"
                               },
                               {
-                                "id": 186,
+                                "id": 165,
                                 "name": "Move_To_Target_Point",
                                 "desc": "移动至目标点"
                               }
@@ -1030,52 +908,50 @@
                 ]
               },
               {
-                "id": 187,
+                "id": 166,
                 "name": "Selector",
-                "desc": "Shop_Map",
                 "children": [
                   {
-                    "id": 188,
-                    "name": "Is_Sell_Item",
-                    "desc": "判断是否需要售卖"
+                    "id": 167,
+                    "name": "Skeleton_Gameplay_Teleport"
                   },
                   {
-                    "id": 189,
+                    "id": 168,
                     "name": "Sequence",
                     "desc": "Interactive",
                     "children": [
                       {
-                        "id": 190,
+                        "id": 169,
                         "name": "Game_Block",
                         "desc": "清理遮挡"
                       },
                       {
-                        "id": 191,
+                        "id": 170,
                         "name": "Selector",
                         "desc": "move_to_object",
                         "children": [
                           {
-                            "id": 192,
+                            "id": 171,
                             "name": "Click_Item_Text",
                             "desc": "点击交互"
                           },
                           {
-                            "id": 193,
+                            "id": 172,
                             "name": "Sequence",
                             "desc": "Path_Move",
                             "children": [
                               {
-                                "id": 194,
+                                "id": 173,
                                 "name": "Is_Arrive",
                                 "desc": "是否到点"
                               },
                               {
-                                "id": 195,
+                                "id": 174,
                                 "name": "GET_Path",
                                 "desc": "获取路径"
                               },
                               {
-                                "id": 196,
+                                "id": 175,
                                 "name": "Move_To_Target_Point",
                                 "desc": "移动至目标点"
                               }
@@ -1088,251 +964,71 @@
                 ]
               },
               {
-                "id": 197,
-                "name": "Selector",
-                "desc": "Is_Get_Plaque",
-                "children": [
-                  {
-                    "id": 198,
-                    "name": "Is_Get_Plaque"
-                  },
-                  {
-                    "id": 199,
-                    "name": "Selector",
-                    "desc": "is",
-                    "children": [
-                      {
-                        "id": 200,
-                        "name": "Take_The_Stele"
-                      },
-                      {
-                        "id": 201,
-                        "name": "Selector",
-                        "children": [
-                          {
-                            "id": 202,
-                            "name": "Open_Warehouse",
-                            "desc": "仓库页是否已打开"
-                          },
-                          {
-                            "id": 203,
-                            "name": "Sequence",
-                            "desc": "Interactive",
-                            "children": [
-                              {
-                                "id": 204,
-                                "name": "Game_Block",
-                                "desc": "清理遮挡"
-                              },
-                              {
-                                "id": 205,
-                                "name": "Selector",
-                                "desc": "move_to_object",
-                                "children": [
-                                  {
-                                    "id": 206,
-                                    "name": "Click_Item_Text",
-                                    "desc": "点击交互"
-                                  },
-                                  {
-                                    "id": 207,
-                                    "name": "Sequence",
-                                    "desc": "Path_Move",
-                                    "children": [
-                                      {
-                                        "id": 208,
-                                        "name": "Is_Arrive",
-                                        "desc": "是否到点"
-                                      },
-                                      {
-                                        "id": 209,
-                                        "name": "GET_Path",
-                                        "desc": "获取路径"
-                                      },
-                                      {
-                                        "id": 210,
-                                        "name": "Move_To_Target_Point",
-                                        "desc": "移动至目标点"
-                                      }
-                                    ]
-                                  }
-                                ]
-                              }
-                            ]
-                          }
-                        ]
-                      }
-                    ]
-                  }
-                ]
-              },
-              {
-                "id": 211,
-                "name": "Selector",
-                "desc": "drip_infusion",
-                "children": [
-                  {
-                    "id": 212,
-                    "name": "Is_Need_Instill",
-                    "desc": "是否要滴注"
-                  },
-                  {
-                    "id": 213,
-                    "name": "Sequence",
-                    "children": [
-                      {
-                        "id": 214,
-                        "name": "Check_Bag",
-                        "desc": "检查背包物品"
-                      },
-                      {
-                        "id": 215,
-                        "name": "Sequence",
-                        "desc": "open_and_out",
-                        "children": [
-                          {
-                            "id": 216,
-                            "name": "Warehouse_pickup_items",
-                            "desc": "仓库取物品"
-                          },
-                          {
-                            "id": 217,
-                            "name": "Selector",
-                            "desc": "cangku",
-                            "children": [
-                              {
-                                "id": 218,
-                                "name": "Open_Warehouse",
-                                "desc": "仓库页是否已打开"
-                              },
-                              {
-                                "id": 219,
-                                "name": "Sequence",
-                                "desc": "Interactive",
-                                "children": [
-                                  {
-                                    "id": 220,
-                                    "name": "Game_Block",
-                                    "desc": "清理遮挡"
-                                  },
-                                  {
-                                    "id": 221,
-                                    "name": "Selector",
-                                    "desc": "move_to_object",
-                                    "children": [
-                                      {
-                                        "id": 222,
-                                        "name": "Click_Item_Text",
-                                        "desc": "点击交互"
-                                      },
-                                      {
-                                        "id": 223,
-                                        "name": "Sequence",
-                                        "desc": "Path_Move",
-                                        "children": [
-                                          {
-                                            "id": 224,
-                                            "name": "Is_Arrive",
-                                            "desc": "是否到点"
-                                          },
-                                          {
-                                            "id": 225,
-                                            "name": "GET_Path"
-                                          },
-                                          {
-                                            "id": 226,
-                                            "name": "Move_To_Target_Point",
-                                            "desc": "移动至目标点"
-                                          }
-                                        ]
-                                      }
-                                    ]
-                                  }
-                                ]
-                              }
-                            ]
-                          }
-                        ]
-                      }
-                    ]
-                  },
-                  {
-                    "id": 227,
-                    "name": "Check_the_drip_page",
-                    "desc": "是否已打开滴注页面"
-                  },
-                  {
-                    "id": 228,
-                    "name": "Place_And_Instill"
-                  }
-                ]
-              },
-              {
-                "id": 229,
+                "id": 176,
                 "name": "Selector",
                 "desc": "stackableCurrency_interactive",
                 "children": [
                   {
-                    "id": 230,
+                    "id": 177,
                     "name": "Is_Monument_Tablet"
                   },
                   {
-                    "id": 231,
+                    "id": 178,
                     "name": "Selector",
                     "desc": "is",
                     "children": [
                       {
-                        "id": 232,
+                        "id": 179,
                         "name": "Sequence",
                         "children": [
                           {
-                            "id": 233,
+                            "id": 180,
                             "name": "Open_Warehouse",
                             "desc": "地图装置是否打开"
                           },
                           {
-                            "id": 234,
+                            "id": 181,
                             "name": "Strengthened"
                           }
                         ]
                       },
                       {
-                        "id": 235,
+                        "id": 182,
                         "name": "Sequence",
                         "desc": "Interactive",
                         "children": [
                           {
-                            "id": 236,
+                            "id": 183,
                             "name": "Game_Block",
                             "desc": "清理遮挡"
                           },
                           {
-                            "id": 237,
+                            "id": 184,
                             "name": "Selector",
                             "desc": "move_to_object",
                             "children": [
                               {
-                                "id": 238,
+                                "id": 185,
                                 "name": "Click_Item_Text",
                                 "desc": "点击交互"
                               },
                               {
-                                "id": 239,
+                                "id": 186,
                                 "name": "Sequence",
                                 "desc": "Path_Move",
                                 "children": [
                                   {
-                                    "id": 240,
+                                    "id": 187,
                                     "name": "Is_Arrive",
                                     "desc": "是否到点"
                                   },
                                   {
-                                    "id": 241,
+                                    "id": 188,
                                     "name": "GET_Path",
                                     "desc": "获取路径"
                                   },
                                   {
-                                    "id": 242,
+                                    "id": 189,
                                     "name": "Move_To_Target_Point",
                                     "desc": "移动至目标点"
                                   }
@@ -1347,72 +1043,72 @@
                 ]
               },
               {
-                "id": 243,
+                "id": 190,
                 "name": "Selector",
                 "desc": "stackableCurrency_interactive",
                 "children": [
                   {
-                    "id": 244,
+                    "id": 191,
                     "name": "Is_Update_Plaque",
                     "desc": "判断碑牌是否需要强化"
                   },
                   {
-                    "id": 245,
+                    "id": 192,
                     "name": "Selector",
                     "desc": "is",
                     "children": [
                       {
-                        "id": 246,
+                        "id": 193,
                         "name": "Sequence",
                         "children": [
                           {
-                            "id": 247,
+                            "id": 194,
                             "name": "Open_Warehouse",
                             "desc": "地图装置是否打开"
                           },
                           {
-                            "id": 248,
+                            "id": 195,
                             "name": "Strengthened"
                           }
                         ]
                       },
                       {
-                        "id": 249,
+                        "id": 196,
                         "name": "Sequence",
                         "desc": "Interactive",
                         "children": [
                           {
-                            "id": 250,
+                            "id": 197,
                             "name": "Game_Block",
                             "desc": "清理遮挡"
                           },
                           {
-                            "id": 251,
+                            "id": 198,
                             "name": "Selector",
                             "desc": "move_to_object",
                             "children": [
                               {
-                                "id": 252,
+                                "id": 199,
                                 "name": "Click_Item_Text",
                                 "desc": "点击交互"
                               },
                               {
-                                "id": 253,
+                                "id": 200,
                                 "name": "Sequence",
                                 "desc": "Path_Move",
                                 "children": [
                                   {
-                                    "id": 254,
+                                    "id": 201,
                                     "name": "Is_Arrive",
                                     "desc": "是否到点"
                                   },
                                   {
-                                    "id": 255,
+                                    "id": 202,
                                     "name": "GET_Path",
                                     "desc": "获取路径"
                                   },
                                   {
-                                    "id": 256,
+                                    "id": 203,
                                     "name": "Move_To_Target_Point",
                                     "desc": "移动至目标点"
                                   }
@@ -1427,149 +1123,69 @@
                 ]
               },
               {
-                "id": 257,
-                "name": "Selector",
-                "desc": "stackableCurrency_interactive",
-                "children": [
-                  {
-                    "id": 258,
-                    "name": "Is_Update_Map_Key",
-                    "desc": "判断是否需要强化地图钥匙（腐化圣域）"
-                  },
-                  {
-                    "id": 259,
-                    "name": "Selector",
-                    "desc": "is",
-                    "children": [
-                      {
-                        "id": 260,
-                        "name": "Sequence",
-                        "children": [
-                          {
-                            "id": 261,
-                            "name": "Open_Warehouse",
-                            "desc": "地图装置是否打开"
-                          },
-                          {
-                            "id": 262,
-                            "name": "Strengthened"
-                          }
-                        ]
-                      },
-                      {
-                        "id": 263,
-                        "name": "Sequence",
-                        "desc": "Interactive",
-                        "children": [
-                          {
-                            "id": 264,
-                            "name": "Game_Block",
-                            "desc": "清理遮挡"
-                          },
-                          {
-                            "id": 265,
-                            "name": "Selector",
-                            "desc": "move_to_object",
-                            "children": [
-                              {
-                                "id": 266,
-                                "name": "Click_Item_Text",
-                                "desc": "点击交互"
-                              },
-                              {
-                                "id": 267,
-                                "name": "Sequence",
-                                "desc": "Path_Move",
-                                "children": [
-                                  {
-                                    "id": 268,
-                                    "name": "Is_Arrive",
-                                    "desc": "是否到点"
-                                  },
-                                  {
-                                    "id": 269,
-                                    "name": "GET_Path",
-                                    "desc": "获取路径"
-                                  },
-                                  {
-                                    "id": 270,
-                                    "name": "Move_To_Target_Point",
-                                    "desc": "移动至目标点"
-                                  }
-                                ]
-                              }
-                            ]
-                          }
-                        ]
-                      }
-                    ]
-                  }
-                ]
-              },
-              {
-                "id": 271,
+                "id": 204,
                 "name": "Selector",
                 "desc": "Store_items",
                 "children": [
                   {
-                    "id": 272,
+                    "id": 205,
                     "name": "Is_Store_Items"
                   },
                   {
-                    "id": 273,
+                    "id": 206,
                     "name": "Selector",
                     "desc": "is",
                     "children": [
                       {
-                        "id": 274,
+                        "id": 207,
                         "name": "Store_Items"
                       },
                       {
-                        "id": 275,
+                        "id": 208,
                         "name": "Selector",
                         "children": [
                           {
-                            "id": 276,
+                            "id": 209,
                             "name": "Open_Warehouse",
                             "desc": "仓库页是否已打开"
                           },
                           {
-                            "id": 277,
+                            "id": 210,
                             "name": "Sequence",
                             "desc": "Interactive",
                             "children": [
                               {
-                                "id": 278,
+                                "id": 211,
                                 "name": "Game_Block",
                                 "desc": "清理遮挡"
                               },
                               {
-                                "id": 279,
+                                "id": 212,
                                 "name": "Selector",
                                 "desc": "move_to_object",
                                 "children": [
                                   {
-                                    "id": 280,
+                                    "id": 213,
                                     "name": "Click_Item_Text",
                                     "desc": "点击交互"
                                   },
                                   {
-                                    "id": 281,
+                                    "id": 214,
                                     "name": "Sequence",
                                     "desc": "Path_Move",
                                     "children": [
                                       {
-                                        "id": 282,
+                                        "id": 215,
                                         "name": "Is_Arrive",
                                         "desc": "是否到点"
                                       },
                                       {
-                                        "id": 283,
+                                        "id": 216,
                                         "name": "GET_Path",
                                         "desc": "获取路径"
                                       },
                                       {
-                                        "id": 284,
+                                        "id": 217,
                                         "name": "Move_To_Target_Point",
                                         "desc": "移动至目标点"
                                       }
@@ -1586,152 +1202,72 @@
                 ]
               },
               {
-                "id": 285,
-                "name": "Selector",
-                "desc": "Shop_Map",
-                "children": [
-                  {
-                    "id": 286,
-                    "name": "Is_Shopping_Map",
-                    "desc": "是否购买地图"
-                  },
-                  {
-                    "id": 287,
-                    "name": "Selector",
-                    "desc": "is",
-                    "children": [
-                      {
-                        "id": 288,
-                        "name": "Shopping_Map"
-                      },
-                      {
-                        "id": 289,
-                        "name": "Selector",
-                        "children": [
-                          {
-                            "id": 290,
-                            "name": "Open_Shop",
-                            "desc": "商店页是否已打开"
-                          },
-                          {
-                            "id": 291,
-                            "name": "Sequence",
-                            "desc": "Interactive",
-                            "children": [
-                              {
-                                "id": 292,
-                                "name": "Game_Block",
-                                "desc": "清理遮挡"
-                              },
-                              {
-                                "id": 293,
-                                "name": "Selector",
-                                "desc": "move_to_object",
-                                "children": [
-                                  {
-                                    "id": 294,
-                                    "name": "Click_Item_Text",
-                                    "desc": "点击交互"
-                                  },
-                                  {
-                                    "id": 295,
-                                    "name": "Sequence",
-                                    "desc": "Path_Move",
-                                    "children": [
-                                      {
-                                        "id": 296,
-                                        "name": "Is_Arrive",
-                                        "desc": "是否到点"
-                                      },
-                                      {
-                                        "id": 297,
-                                        "name": "GET_Path",
-                                        "desc": "获取路径"
-                                      },
-                                      {
-                                        "id": 298,
-                                        "name": "Move_To_Target_Point",
-                                        "desc": "移动至目标点"
-                                      }
-                                    ]
-                                  }
-                                ]
-                              }
-                            ]
-                          }
-                        ]
-                      }
-                    ]
-                  }
-                ]
-              },
-              {
-                "id": 299,
+                "id": 218,
                 "name": "Selector",
                 "desc": "take_map",
                 "children": [
                   {
-                    "id": 300,
-                    "name": "Is_Need_Take_Map",
+                    "id": 219,
+                    "name": "Is_Need_Take_Map_Sp",
                     "desc": "是否需要拿地图"
                   },
                   {
-                    "id": 301,
+                    "id": 220,
                     "name": "Selector",
                     "desc": "take_map_from_store",
                     "children": [
                       {
-                        "id": 302,
-                        "name": "Take_Map",
+                        "id": 221,
+                        "name": "Take_Map_Sp",
                         "desc": "取地图"
                       },
                       {
-                        "id": 303,
+                        "id": 222,
                         "name": "Selector",
                         "desc": "open_warehouse",
                         "children": [
                           {
-                            "id": 304,
+                            "id": 223,
                             "name": "Open_Warehouse",
                             "desc": "仓库页是否打开"
                           },
                           {
-                            "id": 305,
+                            "id": 224,
                             "name": "Sequence",
                             "desc": "Interactive",
                             "children": [
                               {
-                                "id": 306,
+                                "id": 225,
                                 "name": "Game_Block",
                                 "desc": "清理遮挡"
                               },
                               {
-                                "id": 307,
+                                "id": 226,
                                 "name": "Selector",
                                 "desc": "move_to_object",
                                 "children": [
                                   {
-                                    "id": 308,
+                                    "id": 227,
                                     "name": "Click_Item_Text",
                                     "desc": "点击交互"
                                   },
                                   {
-                                    "id": 309,
+                                    "id": 228,
                                     "name": "Sequence",
                                     "desc": "Path_Move",
                                     "children": [
                                       {
-                                        "id": 310,
+                                        "id": 229,
                                         "name": "Is_Arrive",
                                         "desc": "是否到点"
                                       },
                                       {
-                                        "id": 311,
+                                        "id": 230,
                                         "name": "GET_Path",
                                         "desc": "获取路径"
                                       },
                                       {
-                                        "id": 312,
+                                        "id": 231,
                                         "name": "Move_To_Target_Point",
                                         "desc": "移动至目标点"
                                       }
@@ -1748,86 +1284,54 @@
                 ]
               },
               {
-                "id": 313,
+                "id": 232,
                 "name": "Selector",
-                "desc": "stackableCurrency_interactive",
+                "desc": "交互",
                 "children": [
                   {
-                    "id": 314,
-                    "name": "Is_Map_Strengthened",
-                    "desc": "判断地图钥匙是否需要强化"
+                    "id": 233,
+                    "name": "Black_Temple_Enter",
+                    "desc": "判断是否进入黑色大教堂"
                   },
                   {
-                    "id": 315,
-                    "name": "Selector",
-                    "desc": "is",
+                    "id": 234,
+                    "name": "Sequence",
+                    "desc": "Interactive",
                     "children": [
                       {
-                        "id": 316,
-                        "name": "Sequence",
-                        "children": [
-                          {
-                            "id": 317,
-                            "name": "StrengthenMapKeyFindCurrency"
-                          },
-                          {
-                            "id": 318,
-                            "name": "Strengthened"
-                          }
-                        ]
+                        "id": 235,
+                        "name": "Game_Block",
+                        "desc": "清理遮挡"
                       },
                       {
-                        "id": 319,
+                        "id": 236,
                         "name": "Selector",
+                        "desc": "move_to_object",
                         "children": [
                           {
-                            "id": 320,
-                            "name": "Open_Warehouse",
-                            "desc": "地图装置是否打开"
+                            "id": 237,
+                            "name": "Click_Item_Text",
+                            "desc": "点击交互"
                           },
                           {
-                            "id": 321,
+                            "id": 238,
                             "name": "Sequence",
-                            "desc": "Interactive",
+                            "desc": "Path_Move",
                             "children": [
                               {
-                                "id": 322,
-                                "name": "Game_Block",
-                                "desc": "清理遮挡"
+                                "id": 239,
+                                "name": "Is_Arrive",
+                                "desc": "是否到点"
                               },
                               {
-                                "id": 323,
-                                "name": "Selector",
-                                "desc": "move_to_object",
-                                "children": [
-                                  {
-                                    "id": 324,
-                                    "name": "Click_Item_Text",
-                                    "desc": "点击交互"
-                                  },
-                                  {
-                                    "id": 325,
-                                    "name": "Sequence",
-                                    "desc": "Path_Move",
-                                    "children": [
-                                      {
-                                        "id": 326,
-                                        "name": "Is_Arrive",
-                                        "desc": "是否到点"
-                                      },
-                                      {
-                                        "id": 327,
-                                        "name": "GET_Path",
-                                        "desc": "获取路径"
-                                      },
-                                      {
-                                        "id": 328,
-                                        "name": "Move_To_Target_Point",
-                                        "desc": "移动至目标点"
-                                      }
-                                    ]
-                                  }
-                                ]
+                                "id": 240,
+                                "name": "GET_Path",
+                                "desc": "获取路径"
+                              },
+                              {
+                                "id": 241,
+                                "name": "Move_To_Target_Point",
+                                "desc": "移动至目标点"
                               }
                             ]
                           }
@@ -1838,122 +1342,42 @@
                 ]
               },
               {
-                "id": 329,
-                "name": "Selector",
-                "desc": "Insert_Plaque",
-                "children": [
-                  {
-                    "id": 330,
-                    "name": "Is_Insert_Plaque",
-                    "desc": "是否需要插碑"
-                  },
-                  {
-                    "id": 331,
-                    "name": "Selector",
-                    "desc": "is",
-                    "children": [
-                      {
-                        "id": 332,
-                        "name": "Insert_Plaque"
-                      },
-                      {
-                        "id": 333,
-                        "name": "Selector",
-                        "children": [
-                          {
-                            "id": 334,
-                            "name": "Is_Move_Insert_Plaque",
-                            "desc": "地图装置是否打开"
-                          },
-                          {
-                            "id": 335,
-                            "name": "Sequence",
-                            "desc": "Interactive",
-                            "children": [
-                              {
-                                "id": 336,
-                                "name": "Game_Block",
-                                "desc": "清理遮挡"
-                              },
-                              {
-                                "id": 337,
-                                "name": "Selector",
-                                "desc": "move_to_object",
-                                "children": [
-                                  {
-                                    "id": 338,
-                                    "name": "Click_Item_Text",
-                                    "desc": "点击交互"
-                                  },
-                                  {
-                                    "id": 339,
-                                    "name": "Sequence",
-                                    "desc": "Path_Move",
-                                    "children": [
-                                      {
-                                        "id": 340,
-                                        "name": "Is_Arrive",
-                                        "desc": "是否到点"
-                                      },
-                                      {
-                                        "id": 341,
-                                        "name": "GET_Path",
-                                        "desc": "获取路径"
-                                      },
-                                      {
-                                        "id": 342,
-                                        "name": "Move_To_Target_Point",
-                                        "desc": "移动至目标点"
-                                      }
-                                    ]
-                                  }
-                                ]
-                              }
-                            ]
-                          }
-                        ]
-                      }
-                    ]
-                  }
-                ]
-              },
-              {
-                "id": 343,
+                "id": 242,
                 "name": "Selector",
                 "desc": "enter_the_otherworld",
                 "children": [
                   {
-                    "id": 344,
+                    "id": 243,
                     "name": "Sequence",
                     "desc": "enter_map",
                     "children": [
                       {
-                        "id": 345,
+                        "id": 244,
                         "name": "Enter_Map",
                         "desc": "点击进入"
                       },
                       {
-                        "id": 346,
+                        "id": 245,
                         "name": "Sequence",
                         "desc": "Path_Move",
                         "children": [
                           {
-                            "id": 347,
+                            "id": 246,
                             "name": "Game_Block",
                             "desc": "清除遮挡"
                           },
                           {
-                            "id": 348,
+                            "id": 247,
                             "name": "Is_Arrive",
                             "desc": "是否到点"
                           },
                           {
-                            "id": 349,
+                            "id": 248,
                             "name": "GET_Path",
                             "desc": "获取路径"
                           },
                           {
-                            "id": 350,
+                            "id": 249,
                             "name": "Move_To_Target_Point",
                             "desc": "移动至目标点"
                           }
@@ -1962,69 +1386,68 @@
                     ]
                   },
                   {
-                    "id": 351,
+                    "id": 250,
                     "name": "Sequence",
                     "desc": "put_map_in_otherworld",
                     "children": [
                       {
-                        "id": 352,
-                        "name": "Put_Map_In_Otherworld",
-                        "desc": "放置异界地图"
+                        "id": 251,
+                        "name": "Put_Map_MapLeaguePortal"
                       },
                       {
-                        "id": 353,
+                        "id": 252,
                         "name": "Clear_All_Page",
                         "desc": "清除所有页面"
                       }
                     ]
                   },
                   {
-                    "id": 354,
+                    "id": 253,
                     "name": "Sequence",
                     "desc": "open_the_Page",
                     "children": [
                       {
-                        "id": 355,
+                        "id": 254,
                         "name": "Open_The_Otherworld_Page",
                         "desc": "打开异界地图页面"
                       },
                       {
-                        "id": 356,
+                        "id": 255,
                         "name": "Sequence",
                         "desc": "Interactive",
                         "children": [
                           {
-                            "id": 357,
+                            "id": 256,
                             "name": "Game_Block",
                             "desc": "清理遮挡"
                           },
                           {
-                            "id": 358,
+                            "id": 257,
                             "name": "Selector",
                             "desc": "move_to_object",
                             "children": [
                               {
-                                "id": 359,
+                                "id": 258,
                                 "name": "Click_Item_Text",
                                 "desc": "点击交互"
                               },
                               {
-                                "id": 360,
+                                "id": 259,
                                 "name": "Sequence",
                                 "desc": "Path_Move",
                                 "children": [
                                   {
-                                    "id": 361,
+                                    "id": 260,
                                     "name": "Is_Arrive",
                                     "desc": "是否到点"
                                   },
                                   {
-                                    "id": 362,
+                                    "id": 261,
                                     "name": "GET_Path",
                                     "desc": "获取路径"
                                   },
                                   {
-                                    "id": 363,
+                                    "id": 262,
                                     "name": "Move_To_Target_Point",
                                     "desc": "加入游戏异界"
                                   }

@@ -60,40 +60,40 @@
       },
       {
         "id": 14,
+        "name": "Is_Deth_Otherworld",
+        "desc": "死亡处理"
+      },
+      {
+        "id": 15,
         "name": "Check_LongTime_EXP_Add",
         "desc": "检查经验增长"
       },
       {
-        "id": 15,
+        "id": 16,
         "name": "Set_Base_Skill",
         "desc": "设置基础技能"
       },
       {
-        "id": 16,
+        "id": 17,
         "name": "Selector",
         "children": [
           {
-            "id": 17,
+            "id": 18,
             "name": "Sequence",
             "desc": "在异界",
             "children": [
               {
-                "id": 18,
+                "id": 19,
                 "name": "Not_Main_Page_Otherworld"
               },
               {
-                "id": 19,
+                "id": 20,
                 "name": "Open_Map_Count"
               },
               {
-                "id": 20,
+                "id": 21,
                 "name": "Check_In_Otherworld_Map",
                 "desc": "检查是否在异界地图中"
-              },
-              {
-                "id": 21,
-                "name": "Is_Deth_Otherworld",
-                "desc": "死亡处理"
               },
               {
                 "id": 22,
@@ -147,35 +147,40 @@
               },
               {
                 "id": 31,
+                "name": "Shop_Sacrifice_Items",
+                "desc": "祭坛购买"
+              },
+              {
+                "id": 32,
                 "name": "Selector",
                 "desc": "Take_Bird",
                 "children": [
                   {
-                    "id": 32,
+                    "id": 33,
                     "name": "Take_Bird"
                   },
                   {
-                    "id": 33,
+                    "id": 34,
                     "name": "Sequence",
                     "desc": "Path_Move",
                     "children": [
                       {
-                        "id": 34,
+                        "id": 35,
                         "name": "Game_Block",
                         "desc": "清除遮挡"
                       },
                       {
-                        "id": 35,
+                        "id": 36,
                         "name": "Is_Arrive",
                         "desc": "是否到点"
                       },
                       {
-                        "id": 36,
+                        "id": 37,
                         "name": "GET_Path",
                         "desc": "获取路径"
                       },
                       {
-                        "id": 37,
+                        "id": 38,
                         "name": "Move_To_Target_Point",
                         "desc": "移动至目标点"
                       }
@@ -184,13 +189,8 @@
                 ]
               },
               {
-                "id": 38,
-                "name": "StackableCurrency_Discard"
-              },
-              {
                 "id": 39,
-                "name": "Shop_Sacrifice_Items",
-                "desc": "祭坛购买"
+                "name": "StackableCurrency_Discard"
               },
               {
                 "id": 40,

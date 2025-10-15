@@ -9,11 +9,23 @@
       "desc": ""
     },
     {
+      "path": "attack_target_inside_sp.json",
+      "desc": ""
+    },
+    {
+      "path": "attack_target_inside_sp1.json",
+      "desc": ""
+    },
+    {
       "path": "attack_target_inside.json",
       "desc": ""
     },
     {
       "path": "attack_target_inside1.json",
+      "desc": ""
+    },
+    {
+      "path": "attack_target_sp.json",
       "desc": ""
     },
     {

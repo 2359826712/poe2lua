@@ -467,13 +467,13 @@ local main_task= {
         ['在宅第中尋找奧格姆伯爵'] = {
             map_name = 'G1_15',
             interaction_object = {'瘋狂讚美詩','燭光精髓'},
-            Boss = {'鋼鐵伯爵', '腐敗巨狼．吉恩諾','存活儀式．燭光'},
+            Boss = {'吉恩諾伯爵', '腐敗巨狼．吉恩諾','存活儀式．燭光'},
             interaction_object_map_name = {'GargoyleActive'},
             index = 80
         },
         ['擊殺奧格姆伯爵'] = {
             map_name = 'G1_15',
-            Boss = {'鋼鐵伯爵', '腐敗巨狼．吉恩諾'},
+            Boss = {'吉恩諾伯爵', '腐敗巨狼．吉恩諾'},
             index = 81
         },
         
@@ -1317,12 +1317,12 @@ local main_task= {
             interaction_object_map_name= {'ZicoatlBossActive'},
             index = 214
         },
-        -- ['與艾瓦對話']= {
-        --     map_name= 'G3_6_2',
-        --     interaction_object= {'艾瓦'},
-        --     interaction_object_map_name= {'艾瓦'},
-        --     index = 215
-        -- },
+        ['召喚艾瓦並與她交談']= {
+            map_name= 'G3_6_2',
+            interaction_object= {'召喚艾瓦','艾瓦'},
+            interaction_object_map_name= {'ZicoatlBossActive'},
+            index = 214
+        },
         -- ['召喚艾瓦，尋求她的意見']= {
         --     map_name= 'C_G3_6_2',
         --     interaction_object= {'中型靈魂核心',' <questitem>{發電機}','門'},
@@ -1632,7 +1632,7 @@ local main_task= {
             grid_x = 1023,
             grid_y = 1635,
             interaction_object_map_name= {'黑衣幽魂'},
-            index = 266
+            index = 308
         },
         ['與瑪寇魯交談，討論雇用船隻的事宜']= {
             map_name= 'G4_town',
@@ -1894,6 +1894,12 @@ local main_task= {
             interaction_object_map_name= {"娜瓦莉"},
             index = 307
         },
+        ["向娜瓦莉取得獎勵"] = {
+            map_name= 'G4_4_3',
+            interaction_object={"娜瓦莉","祖靈的試煉獎勵"},
+            interaction_object_map_name= {"娜瓦莉"},
+            index = 307
+        },
         ["瓦卡帕努島"] = {
             map_name= 'G4_3_1',
             index = 308
@@ -1911,6 +1917,10 @@ local main_task= {
             Boss = {"大白鯊"},
             interaction_object_map_name= {'G4_3_1_BossActive'},
             index = 310
+        },
+        ["進入吟謠洞窟"] = {
+            map_name= 'G4_3_2',
+            index = 311
         },
         ["吟謠洞窟"] = {
             map_name= 'G4_3_2',
@@ -1973,6 +1983,12 @@ local main_task= {
         },
         ["探索伯勞鳥之島"] = {
             map_name= 'G4_7',
+            index = 321
+        },
+        ["擊殺天之禍殃"] = {
+            map_name= 'G4_7',
+            Boss = {"天之禍殃"},
+            interaction_object_map_name= {'G4_7_BossActive'},
             index = 321
         },
         ["在金司馬區與黑衣幽魂對話"] = {
@@ -2580,7 +2596,17 @@ local main_task= {
             grid_y = 1635,
             index = 424
         },
-        
+        ["與黑衣幽魂對話來前往奧瑞亞。"] = {
+            map_name= 'G4_town',
+            interaction_object= {'黑衣幽魂',"前往奧瑞亞"},
+            grid_x = 1023,
+            grid_y = 1635,
+            index = 424
+        },
+        ["靈魂深井"] = {
+            map_name= 'G2_Abyss_Hub',
+            index = 425
+        },
     }
 }
 return main_task
