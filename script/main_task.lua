@@ -1019,11 +1019,18 @@ local main_task= {
             interaction_object= {'戰死的部下'},
             index = 168
         },
+        ['將書信還給位在阿杜拉車隊的某個人']= {
+            map_name= 'G2_town',
+            grid_x= 376,
+            grid_y= 273,
+            interaction_object= {'夏布林','傳統的代價獎勵','將最終信件交給夏布林'},
+            index = 169
+        },
         ['將遺書交還給夏布林']= {
             map_name= 'G2_town',
             grid_x= 376,
             grid_y= 273,
-            interaction_object= {'夏布林','傳統的代價獎勵'},
+            interaction_object= {'夏布林','傳統的代價獎勵','將最終信件交給夏布林'},
             index = 169
         },
         ['登上戴斯哈']= {

@@ -5453,7 +5453,7 @@ local custom_nodes = {
             local function party_member_map(map)
                 poe2_api.dbgp("[party_member_map]判断队友当前位置:", map)
                 for _, member in ipairs(team_info_data) do
-                    if poe2_api.table_contains(map, member["current_map_name_utf8"]) then
+                    if poe2_api.table_contains(map, member["current_map_name_utf8"]) and member["name_utf8"] ~= player_info.name_utf8 then
                         return true
                     end
                 end
@@ -6796,7 +6796,7 @@ local custom_nodes = {
                 elseif distance > 25 then
                     if player_info.current_map_name_utf8 == "G1_15" then
                         for _,k in ipairs(env.range_info) do
-                            if k.name_utf8 == "吉恩諾伯爵" and k.stateMachineList and k.stateMachineList["sitting"] == 0 then
+                            if k.name_utf8 == "吉恩諾伯爵" and k.stateMachineList and k.stateMachineList["sitting"] == 0  and env.map_name == "G1_15" then
                                 poe2_api.dbgp("[Is_Move]与吉恩諾伯爵战斗不复活")
                                 return bret.RUNNING
                             end
