@@ -907,19 +907,20 @@ local custom_nodes = {
                 poe2_api.dbgp("空小地图周围对象信息")
                 return bret.RUNNING
             end
-           -- for _,k in ipairs(env.current_map_info) do
-            --     poe2_api.dbgp(k.name_utf8)
-            --     poe2_api.dbgp(k.grid_x)
-            --     poe2_api.dbgp(k.grid_y)
-            --     poe2_api.dbgp(k.flagStatus)
-            --     poe2_api.dbgp(k.flagStatus1)
-            --     poe2_api.dbgp("==============================")
-            -- end
-            -- -- poe2_api.printTable(api_GetTeleportationPoint())
-            -- --poe2_api.printTable(api_GetQuestList())
-            -- while true do
-            --     api_Sleep(1000)
-            -- end
+        --    for _,k in ipairs(env.current_map_info) do
+        --         poe2_api.dbgp(k.name_utf8)
+        --         poe2_api.dbgp(k.grid_x)
+        --         poe2_api.dbgp(k.grid_y)
+        --         poe2_api.dbgp(k.flagStatus)
+        --         poe2_api.dbgp(k.flagStatus1)
+        --         poe2_api.dbgp("==============================")
+        --     end
+        --     poe2_api.printTable(api_GetTeleportationPoint())
+        --     poe2_api.printTable(api_GetQuestList())
+        --     poe2_api.printTable(api_GetTeamInfo())
+        --     while true do
+        --         api_Sleep(1000)
+        --     end
             poe2_api.time_p("    获取小地图周围对象信息... 耗时 --> ", api_GetTickCount64() - current_map_info_start_time)
 
             -- 队伍数据信息
@@ -4329,7 +4330,7 @@ local custom_nodes = {
                             if v.name_utf8 ~= "" and v.type == 5 and poe2_api.table_contains(v.name_utf8,my_game_info.hideout_CH) then
                                 local dis = poe2_api.point_distance(v.grid_x, v.grid_y, player_info)
                                 if dis and dis < 30 then
-                                    local point = Query_Current_Task_Information(math.floor(player_info.grid_x),math.floor(player_info.grid_y),70)
+                                    local point = api_FindRandomWalkablePosition(math.floor(player_info.grid_x),math.floor(player_info.grid_y),70)
                                     if point then
                                         api_ClickMove(poe2_api.toInt(point.x),poe2_api.toInt(point.y),0)
                                         -- api_Sleep(200)
@@ -5550,7 +5551,7 @@ local custom_nodes = {
                     env.map_name = "G3_6_2"
                     env.interaction_object = { '中型靈魂核心', ' <questitem>{發電機}', '門' }
                 elseif party_member_map({ "G2_3a"}) and task.task_name == "使用貧脊之地的地圖前往哈拉妮關口所在之處" then
-                    poe2_api.dbgp("[Query_Current_Task_Information]G2_3a使用貧脊之地的地圖前往哈拉妮關口所在之處")
+                    poe2_api.dbgp("[Query_Current_Task_Information_Local]G2_3a使用貧脊之地的地圖前往哈拉妮關口所在之處")
                     env.map_name = "G2_3a"
                     env.grid_x = 587
                     env.grid_y = 733
@@ -5578,6 +5579,13 @@ local custom_nodes = {
                     env.boss_name = { "玷汙者托爾．谷爾" }
                     env.interaction_object = { "ToGuive", "卡洛翰的姐妹" }
                     env.interaction_object_map_name = { "TorGulActive" }
+                elseif string.find(task.map_name,"G4_4_") and party_member_map({  "G4_4_2" }) and (not env.pick_up_fire or not env.pick_up_ice or not env.pick_up_Electricity) then
+                    poe2_api.dbgp("[Query_Current_Task_Information_Local]探索亡者之殿")
+                    env.map_name = "G4_4_2"
+                    env.interaction_object = { "祖靈" }
+                elseif party_member_map({"Abyss_Hub"}) then
+                    poe2_api.print_log("任務完成")
+                    return bret.RUNNING
                 end
                 poe2_api.dbgp("[Query_Current_Task_Information_Local]SUCCESS1")
                 poe2_api.time_p("[Query_Current_Task_Information_Local]",(api_GetTickCount64() - current_time))
@@ -5896,18 +5904,16 @@ local custom_nodes = {
                     env.grid_x = nil
                     env.interaction_object = { "多里亞尼" } 
                     env.interaction_object_map_name= {'多里亞尼'}
-                elseif player_info.current_map_name_utf8 == "P3_2" and task.map_name == "P3_2" and not poe2_api.check_item_in_inventory("寶石殼顱骨", bag_info) then
-                    poe2_api.dbgp("[Query_Current_Task_Information]收集寶石殼顱骨-P3_2")
-                    task.task_name = "擊敗瘋狂的阿茲莫里人"
-                    env.task_name = task.task_name
-                    env.map_name = "P3_2"
-                    env.boss_name = { "迷失長矛．萊塔拉" }
-                    env.interaction_object = { "寶石殼顱骨" }
                 elseif poe2_api.table_contains(player_info.current_map_name_utf8, { "G3_6_2" }) and task.task_name == "與艾瓦對話" then
                     poe2_api.dbgp("[Query_Current_Task_Information]與艾瓦對話")
                     env.map_name = "G3_6_2"
                     env.interaction_object_map_name = { "艾瓦" }
                     env.interaction_object = { "艾瓦" }
+                elseif string.find(task.map_name,"G4_4_") and poe2_api.table_contains(player_info.current_map_name_utf8, { "G4_4_2" }) and (not env.pick_up_fire or not env.pick_up_ice or not env.pick_up_Electricity) then
+                    poe2_api.dbgp("[Query_Current_Task_Information]探索亡者之殿")
+                    task.task_name = "探索亡者之殿"
+                    env.map_name = "G4_4_2"
+                    env.interaction_object = { "祖靈" }
                 elseif poe2_api.table_contains(player_info.current_map_name_utf8, { "G3_6_2" }) and task.task_name == "召喚艾瓦，尋求她的意見" then
                     poe2_api.dbgp("[Query_Current_Task_Information]召喚艾瓦，尋求她的意見")
                     env.map_name = "G3_6_2"
@@ -6525,6 +6531,7 @@ local custom_nodes = {
             local boss_name = env.boss_name
             local team_info = env.team_info
             local user_config = env.user_config
+            local task_name = env.task_name
             local function is_death(range_info, team_info)
                 poe2_api.dbgp("[Is_Exception_Team]判断是否存在死亡队友...")
                 -- 将 team_info 转换为字典，以 name_utf8 作为键
@@ -6569,7 +6576,10 @@ local custom_nodes = {
                 end
                 return nil
             end
-
+            if task_name == "伯勞鳥之島" then
+                poe2_api.dbgp("特殊任務不復活")
+                return bret.SUCCESS
+            end
             if not next(team_info_data) or not next(range_info) then
                 poe2_api.dbgp("[Is_Exception_Team]没组队")
                 env.monster_info = nil
@@ -7338,7 +7348,7 @@ local custom_nodes = {
                 return bret.RUNNING
             end
             if poe2_api.table_contains(current_map, { "G3_12",  "G2_4_3", "G1_15"}) then
-                if player_info.current_map_name_utf8 == "G1_15" then
+                if task_area == "G1_15" then
                     for _,k in ipairs(env.range_info) do
                         if k.name_utf8 == "吉恩諾伯爵" and k.stateMachineList and k.stateMachineList["sitting"] == 0 then
                             poe2_api.dbgp("与吉恩諾伯爵战斗不回城")
@@ -7421,7 +7431,7 @@ local custom_nodes = {
                 poe2_api.click_keyboard("space")
                 return bret.RUNNING
             end
-            if task_name == "自瘋狂中存活" then
+            if task_name == "自瘋狂中存活" and team_member_2 == "隊長名" then
                 local function npc_stateMachineList()
                     for _,k in ipairs(actors) do
                         if k.name_utf8 == "芙雷雅．哈特林" then
@@ -7492,7 +7502,7 @@ local custom_nodes = {
                 poe2_api.dbgp("检测到任务:進入阿杜拉車隊")
                 return bret.SUCCESS
             end
-            if poe2_api.table_contains(current_map, { "G4_2_2" }) and poe2_api.table_contains(task_area, { "G4_2_2" }) and task_name =="自瘋狂中存活" then
+            if poe2_api.table_contains(current_map, { "G4_2_2" }) and team_member_2 == "隊長名" and poe2_api.table_contains(task_area, { "G4_2_2" }) and task_name =="自瘋狂中存活" then
                 poe2_api.dbgp("检测到任务区域:G4_2_2")
                 return bret.SUCCESS
             end
@@ -7589,7 +7599,7 @@ local custom_nodes = {
             if poe2_api.table_contains(task_area, {"G3_12"}) and not waypoint_name_utf8 then
                 waypoint_name_utf8  = poe2_api.task_area_list_data(task_area)[1][2]
             end
-            if poe2_api.find_text({ UI_info = UI_info, text = waypoint_name_utf8, min_x = 0, min_y = 0, max_x = 195, max_y = 590 }) then
+            if poe2_api.find_text({ UI_info = UI_info, text = waypoint_name_utf8, min_x = 0, min_y = 0, max_x = 195, max_y = 590 }) and not player_info.isInBossBattle then
                 for i = 0, count - 1 do
                     if not poe2_api.find_text({ UI_info = UI_info, text = "你確定要傳送至此玩家的位置？" }) then
                         if poe2_api.find_text({ UI_info = UI_info, text = "快行" }) then
@@ -10581,17 +10591,13 @@ local custom_nodes = {
             local boss_name = env.boss_name
             local interaction_object_map_name = env.interaction_object_map_name
             local team_member_2 = poe2_api.get_team_info(env.team_info,env.user_config,player_info,2)
-            if player_info.current_map_name_utf8 ~= "G4_4_2" then
-                self.pick_up_fire = false
-                self.pick_up_ice = false
-                self.pick_up_Electricity = false
-            end
-            if self.time1 == nil then
+            if not env.object_exist then
+                env.object_exist = true
                 self.time1 = 0
                 self.path_result = nil
-                self.pick_up_fire = false
-                self.pick_up_ice = false
-                self.pick_up_Electricity = false
+                env.pick_up_fire = false
+                env.pick_up_ice = false
+                env.pick_up_Electricity = false
             end
             -- 小地图是否有指定对象
             local function mini_map_obj(name)
@@ -11103,21 +11109,32 @@ local custom_nodes = {
                         env.modify_interaction = true
                     end
                 elseif player_info.current_map_name_utf8 == "G4_4_2" then
+                    poe2_api.dbgp("G4_4_2 拿刺青")
+                    poe2_api.dbgp(env.pick_up_fire)
+                    poe2_api.dbgp(env.pick_up_ice)
+                    poe2_api.dbgp(env.pick_up_Electricity)
                     if #mini_map_obj("G4_4_2_Encounter_ValakoTribeInactive") ~= 0 then
-                        self.pick_up_fire = true
+                        poe2_api.dbgp("G4_4_2-地图有-G4_4_2_Encounter_ValakoTribeInactive")
+                        env.pick_up_fire = true
                     end
                     if #mini_map_obj("G4_4_2_Encounter_TasalioTribeInactive") ~= 0 then
-                        self.pick_up_ice = true
+                        poe2_api.dbgp("G4_4_2-地图有-G4_4_2_Encounter_TasalioTribeInactive")
+                        env.pick_up_ice = true
                     end
                     if #mini_map_obj("G4_4_2_Encounter_NgamahuTribeInactive") ~= 0 then
-                        self.pick_up_Electricity = true
+                        poe2_api.dbgp("G4_4_2-地图有-G4_4_2_Encounter_NgamahuTribeInactive")
+                        env.pick_up_Electricity = true
                     end
                     local task_text = {"將塔赫亞的空白紋身交給悉妮蔻拉圖騰","將塔薩里的空白紋身交給悉妮蔻拉圖騰","將拿馬乎的空白紋身交給悉妮蔻拉圖騰"}
-                    if #mini_map_obj("G4_4_2_Encounter_ValakoTribeInactive") == 0 and not self.pick_up_fire then
+                    if #mini_map_obj("G4_4_2_Encounter_ValakoTribeInactive") == 0 and not env.pick_up_fire then   
                         if min_map_dis("G4_4_2_Encounter_ValakoTribeActive") and #min_map_dis("G4_4_2_Encounter_ValakoTribeActive") > 0 then
-                            self.pick_up_fire = true
-                            return bret.RUNNING
-                        end    
+                            local map_info = min_map_dis("G4_4_2_Encounter_ValakoTribeActive")[1]
+                            local dis = poe2_api.point_distance(map_info.grid_x , map_info.grid_y, player_info)
+                            if dis < 30 then
+                                env.pick_up_fire = true
+                                return bret.RUNNING
+                            end
+                        end 
                         poe2_api.dbgp("G4_4_2-地图没有-G4_4_2_Encounter_ValakoTribeInactive")
                         interaction_object_set = nil
                         env.interaction_object = nil
@@ -11126,12 +11143,15 @@ local custom_nodes = {
                         env.interaction_object_map_name = {"G4_4_2_Encounter_ValakoTribeActive"}
                         env.interaction_object_map_name_copy = {"G4_4_2_Encounter_ValakoTribeActive"}
                         env.modify_interaction = true
-                    end
-                    if #mini_map_obj("G4_4_2_Encounter_TasalioTribeInactive") == 0 and not self.pick_up_ice then
-                        if min_map_dis("G4_4_2_Encounter_ValakoTribeActive") and #min_map_dis("G4_4_2_Encounter_ValakoTribeActive") > 0 then
-                            self.pick_up_ice = true
-                            return bret.RUNNING
-                        end   
+                    elseif #mini_map_obj("G4_4_2_Encounter_TasalioTribeInactive") == 0 and not env.pick_up_ice then
+                        if min_map_dis("G4_4_2_Encounter_TasalioTribeActive") and #min_map_dis("G4_4_2_Encounter_TasalioTribeActive") > 0 then
+                            local map_info = min_map_dis("G4_4_2_Encounter_TasalioTribeInactive")[1]
+                            local dis = poe2_api.point_distance(map_info.grid_x , map_info.grid_y, player_info)
+                            if dis < 30 then
+                                env.pick_up_ice = true
+                                return bret.RUNNING
+                            end
+                        end 
                         poe2_api.dbgp("G4_4_2-地图没有-G4_4_2_Encounter_TasalioTribeInactive")
                         interaction_object_set = nil
                         env.interaction_object = nil
@@ -11140,11 +11160,14 @@ local custom_nodes = {
                         env.interaction_object_map_name = {"G4_4_2_Encounter_TasalioTribeActive"}
                         env.interaction_object_map_name_copy = {"G4_4_2_Encounter_TasalioTribeActive"}
                         env.modify_interaction = true
-                    end
-                    if #mini_map_obj("G4_4_2_Encounter_NgamahuTribeInactive") == 0 and not self.pick_up_Electricity then
+                    elseif #mini_map_obj("G4_4_2_Encounter_NgamahuTribeInactive") == 0 and not env.pick_up_Electricity then
                         if min_map_dis("G4_4_2_Encounter_NgamahuTribeActive") and #min_map_dis("G4_4_2_Encounter_NgamahuTribeActive") > 0 then
-                            self.pick_up_Electricity = true
-                            return bret.RUNNING
+                            local map_info = min_map_dis("G4_4_2_Encounter_NgamahuTribeInactive")[1]
+                            local dis = poe2_api.point_distance(map_info.grid_x , map_info.grid_y, player_info)
+                            if dis < 30 then
+                                env.pick_up_Electricity = true
+                                return bret.RUNNING
+                            end
                         end 
                         poe2_api.dbgp("G4_4_2-地图没有-G4_4_2_Encounter_NgamahuTribeInactive")
                         interaction_object_set = nil
@@ -11391,7 +11414,7 @@ local custom_nodes = {
                         if team_member_2 ~= "大號名" and poe2_api.table_contains(player_info.current_map_name_utf8,{"G3_12"}) then
                             map_distance = 25
                         end
-                        if record_map.name_utf8 == "G4_3_1_BossActive" and record_map.flagStatus1 == 1 then
+                        if record_map and record_map.name_utf8 == "G4_3_1_BossActive" and record_map.flagStatus1 == 1 then
                             poe2_api.dbgp("G4_3_1_BossActive")
                             local player_position = api_FindNearestReachableInRange(record_map.grid_x, record_map.grid_y, 50)
                             if not env.prestore_boss_list or not next(env.prestore_boss_list) then
@@ -11658,6 +11681,9 @@ local custom_nodes = {
                 return bret.RUNNING
             elseif poe2_api.table_contains(me_area,{"G2_3a"}) then
                 poe2_api.dbgp("特殊地图不跟随")
+                return bret.SUCCESS
+            elseif player_info.isInBossBattle then
+                poe2_api.dbgp("Boss地區不跟随")
                 return bret.SUCCESS
             else
                 poe2_api.dbgp("跟随移动模块开始执行")

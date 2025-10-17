@@ -1690,9 +1690,16 @@ local main_task= {
         },
         ["將維里西姆交給丹尼格"]= {
             map_name= 'G4_town',
-            grid_x = 1094,
-            grid_y = 1599,
+            grid_x = 1133,
+            grid_y = 1681,
             interaction_object= {'丹尼格'},
+            index = 275
+        },
+        ["跟丹尼格領取維里西姆尖矢"]= {
+            map_name= 'G4_town',
+            grid_x = 1133,
+            grid_y = 1681,
+            interaction_object= {'丹尼格','維里西姆尖矢'},
             index = 275
         },
         ["返回芙雷雅．哈特林身邊"]= {
@@ -1858,9 +1865,7 @@ local main_task= {
         },
         ['探索亡者之殿']= {
             map_name= 'G4_4_2',
-            interaction_object={"祖靈的試煉"},
-            Boss = {"白之亞瑪"},
-            interaction_object_map_name= {"G4_4_3"},
+            interaction_object={"祖靈"},
             index = 303
         },
         ['擊敗白之亞瑪']= {
@@ -2473,7 +2478,7 @@ local main_task= {
         },
         ["進入冰川湖泊"] = {
             map_name= 'P3_2',
-            interaction_object= {'冰川湖泊'},
+            interaction_object= {'冰川湖泊','寶石殼顱骨'},
             interaction_object_map_name= {'P3_3'},
             index = 401
         },
