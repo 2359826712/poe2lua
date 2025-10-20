@@ -6577,7 +6577,7 @@ local custom_nodes = {
                 -- 查找符合条件的怪物
                 for _, i in ipairs(range_info) do
                     if not i.is_friendly and i.life > 1 and i.name_utf8 ~= "" and i.isActive
-                        and poe2_api.table_contains(i.name_utf8 ,{"撕裂者","白之亞瑪","擊殺死亡之謠．黛莫拉","酋長．塔瓦凱","墮落者．塔瓦凱","被吞噬者．塔瓦凱"})
+                        and poe2_api.table_contains(i.name_utf8 ,{"撕裂者","白之亞瑪","擊殺死亡之謠．黛莫拉","酋長．塔瓦凱","墮落者．塔瓦凱","被吞噬者．塔瓦凱","迷霧之刃．希奧拉"})
                         and poe2_api.get_point_distance(mate.grid_x, mate.grid_y, i.grid_x, i.grid_y) < 200 then
                         return i
                     end
@@ -6625,7 +6625,7 @@ local custom_nodes = {
                 env.monster_info = nil
                 return bret.RUNNING
             end
-            if (boss_name or player_info.isInBossBattle) and not poe2_api.table_contains(player_info.current_map_name_utf8,{"G4_4_1","G4_4_2","G4_11_2"})  then
+            if (boss_name or player_info.isInBossBattle) and not poe2_api.table_contains(player_info.current_map_name_utf8,{"G4_4_1","G4_4_2","G4_11_2","P1_2"})  then
                 local boss_info = poe2_api.is_have_boss_distance(range_info, player_info, boss_name, 180)
                 if boss_info or player_info.isInBossBattle then
                     poe2_api.dbgp("[Is_Exception_Team]当前处于BOSS战斗中")
