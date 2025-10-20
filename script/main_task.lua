@@ -1972,21 +1972,19 @@ local main_task= {
         ["探索單獨禁閉室"] = {
             map_name= 'G4_5_2',
             interaction_object= {'門',"把手"},
-            interaction_object_map_name= {'SolitaryConfinementBossActive'},
+            Boss = {"囚犯"},
             index = 317
         },
         ["打開加固的門"] = {
             map_name= 'G4_5_2',
             interaction_object= {'門',"把手"},
             Boss = {"囚犯"},
-            interaction_object_map_name= {'SolitaryConfinementBossActive'},
             index = 318
         },
         ["殺死囚犯"] = {
             map_name= 'G4_5_2',
             interaction_object= {'門',"把手"},
             Boss = {"囚犯"},
-            interaction_object_map_name= {'SolitaryConfinementBossActive'},
             index = 319
         },
         ["伯勞鳥之島"] = {

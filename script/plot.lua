@@ -267,11 +267,7 @@ local custom_nodes = {
             local game_path = env.user_info["gamedir"]
             poe2_api.dbgp("game_path:" .. game_path)
             
-            local log_path = poe2_api.load_config(json_path)["組隊設置"]["日志路径"]
-            if self.delete_log == nil then
-                os.execute('del /f /q "' .. log_path .. '"')
-                self.delete_log = true
-            end
+            
             local process_name = string.find(game_path:lower(), "steam.exe") and "PathOfExileSteam.exe" or
                 "PathOfExile.exe"
             if not env.config_file then
@@ -283,12 +279,6 @@ local custom_nodes = {
                 env.config_file = env.config_dir .. '\\poe2_production_Config.ini'
             end
 
-
-            -- local elapsed_ms = (api_GetTickCount64()) - start_time
-            -- poe2_api.dbgp("构建配置文件路径:"..string.format( elapsed_ms))
-            -- if env.hwrd_time ~=0 then
-            --     poe2_api.dbgp("时间差值：:"..api_GetTickCount64() - env.hwrd_time)
-            -- end
             poe2_api.dbgp("hwrd_time1:" .. env.hwrd_time)
             if env.hwrd_time == 0 or os.time() - env.hwrd_time >= 60 then
                 env.game_window = api_FindWindowByProcess("", "Path of Exile 2", process_name, 0)
@@ -313,6 +303,31 @@ local custom_nodes = {
                         poe2_api.print_log("游戏配置文件异常,替换配置文件")
                         poe2_api.set_NCStorageLocalData_config(env.config_file)
                         poe2_api.time_p("判断游戏窗口(RUNNING)... 耗时 --> ", api_GetTickCount64() - current_time)
+                        return bret.RUNNING
+                    end
+                end
+                local log_path = poe2_api.load_config(json_path)["組隊設置"]["日志路径"]
+                poe2_api.dbgp("log_path:" .. log_path)
+                if env.delete_log == false or self.delete_log == nil then
+                    poe2_api.dbgp("尝试删除日志文件: " .. log_path)
+                    
+                    -- 检查路径是否有效
+                    if log_path and log_path ~= "" then
+                        -- 使用双引号包裹路径，避免空格或特殊字符问题
+                        local command = 'del /f /q "' .. log_path .. '"'
+                        local success, error_msg = os.execute(command)
+                        
+                        if success then
+                            poe2_api.dbgp("日志文件删除成功")
+                            env.delete_log = true
+                            self.delete_log = true
+                            return bret.RUNNING
+                        else
+                            poe2_api.dbgp("日志文件删除失败: " .. (error_msg or "未知错误"))
+                            return bret.RUNNING
+                        end
+                    else
+                        poe2_api.dbgp("日志路径无效或为空")
                         return bret.RUNNING
                     end
                 end
@@ -1746,9 +1761,12 @@ local custom_nodes = {
                 end
                 api_Sleep(500)
                 if poe2_api.find_text({text = "背包",UI_info = env.UI_info, min_x = 1020,min_y=32,max_x=1600,max_y=81,refresh = true}) then
+                    poe2_api.dbgp("背包已打开")
                     if have_roman_number() then
+                        poe2_api.dbgp("是宝石")
                         poe2_api.get_space_point({ width = 1, height = 1, click = 1 })
                     else
+                        poe2_api.dbgp("是其它")
                         poe2_api.get_space_point({ width = 4, height = 2, click = 1 })
                     end
                     return bret.RUNNING
@@ -5412,7 +5430,10 @@ local custom_nodes = {
                 -- 设置任务信息
                 env.task_name = task_name
                 env.task_index = tostring(min_index)
-                
+                if api_GetTickCount64() - current_time > 50 then 
+                    poe2_api.dbgp("大号获取任务信息大于50ms，删除日志")
+                    env.delete_log = false
+                end
                 poe2_api.dbgp("选择任务: " .. task_name .. ", 索引: " .. min_index)
                 poe2_api.dbgp("Check_Role(SUCCESS2)")
                 poe2_api.time_p("Check_Role",api_GetTickCount64() - current_time)
@@ -6827,7 +6848,7 @@ local custom_nodes = {
                         poe2_api.dbgp(arena_point.x, arena_point.y)
                         env.end_point = { arena_point.x, arena_point.y }
                     else
-                        if player_info.current_map_name_utf8 ~= "G4_11_2" then
+                        if player_info.current_map_name_utf8 ~= "G4_5_2" then
                             api_RestoreOriginalMap()
                         end
                         local mate_point = api_FindNearestReachableInRange(mate.grid_x, mate.grid_y, 15)
@@ -8268,7 +8289,7 @@ local custom_nodes = {
                         self.click_ke = true
                         return bret.RUNNING
                     end
-                    if self.click_ke and string.find(task_area, "G3_12") and not string.find(me_area, "G3_12") then
+                    if self.click_ke and string.find(task_area, "G3_12") and not string.find(me_area, "G3_12") and api_HasObstacleBetween(458, 324 ) then
                         poe2_api.find_text({ UI_info = UI_info, text = "科佩克神殿", min_x = 0, click = 2 })
                     else
                         self.click_ke = false
@@ -8472,6 +8493,10 @@ local custom_nodes = {
                 task_area = "G4_10_1"
                 env.map_name = "G4_10_1"
             end
+            if task_area == "Abyss_Hub" then
+                task_area = "G2_Abyss_Hub"
+                env.map_name = "G2_Abyss_Hub"
+            end
             if poe2_api.task_area_list_data(task_area)[2] == "有" and poe2_api.Waypoint_is_open(task_area, waypoint) then
                 if string.find(task_area, "G2") and not string.find(current_map, "G2") and task_area~="G2_1" then
                     env.teleport_area = "G2_town"
@@ -8497,6 +8522,10 @@ local custom_nodes = {
                 if task_area == "P3_1" then
                     env.teleport_area = "P3_Town"
                     task_area = "P3_Town"
+                end
+                if waypoint and poe2_api.Waypoint_is_open("G3_14", waypoint) and not poe2_api.table_contains(task_area, { "G3_14", "G3_16", "G3_17" })  then
+                    env.teleport_area = task_area
+                    return bret.SUCCESS
                 end
                 if not poe2_api.Waypoint_is_open(task_area, waypoint) and task_area ~= "G3_2_2"  then
                     if not poe2_api.find_text({UI_info = env.UI_info, text = "世界地圖",refresh = true}) then
@@ -10189,10 +10218,21 @@ local custom_nodes = {
                 if valid_monsters.name_utf8 == "烏托邦的第一使者．本篤特斯" then
                     env.space = false
                 end
-                if valid_monsters.name_utf8 == "最終之刺．艾克提" then
-                    if valid_monsters and valid_monsters.stateMachineList and valid_monsters.stateMachineList["boss_life_bar"] == 0 then
+                if valid_monsters.name_utf8 == "最終之刺．艾克提" and valid_monsters.stateMachineList and valid_monsters.stateMachineList["first_aggro"] == 0 then
+                    if poe2_api.point_distance(valid_monsters.grid_x,valid_monsters.grid_y,player_info) >35 then
                         env.end_point = {valid_monsters.grid_x,valid_monsters.grid_y}
+                        env.space = false
                         return bret.FAIL
+                    else
+                        local range_sorted = poe2_api.get_sorted_obj("沙蟲．艾能德",env.range_info, env.player_info)
+                        if range_sorted and #range_sorted > 0 then
+                            if poe2_api.point_distance(range_sorted[1].grid_x,range_sorted[1].grid_y,player_info) > 35 then
+                                env.attack_move = true
+                                env.end_point = {range_sorted[1].grid_x,range_sorted[1].grid_y}
+                                env.space = false
+                                return bret.FAIL
+                            end
+                        end
                     end
                 end
                 if valid_monsters.name_utf8 == "囚犯" then
@@ -10201,11 +10241,12 @@ local custom_nodes = {
                         if poe2_api.point_distance(range_sorted[1].grid_x,range_sorted[1].grid_y,player_info) > 35 then
                             env.attack_move = true
                             env.end_point = {range_sorted[1].grid_x,range_sorted[1].grid_y}
+                            env.space = false
                             return bret.FAIL
                         end
                         if valid_monsters and valid_monsters.stateMachineList and valid_monsters.stateMachineList["kneeling"] == 1 then
                             api_Sleep(500)
-                            poe2_api.find_text({UI_info = env.UI_info, text = "砲塔", min_x = 0,click = 2 })
+                            poe2_api.find_text({UI_info = env.UI_info, text = "砲塔", min_x = 0,click = 2,refresh = true })
                             api_Sleep(500)
                             env.space = false
                             return bret.RUNNING
@@ -10933,13 +10974,27 @@ local custom_nodes = {
                         return bret.RUNNING
                     end
                 end
-                if player_info.current_map_name_utf8 == "G4_5_2" and task_name == "殺死囚犯" then
-                    local boss = poe2_api.get_sorted_obj("砲塔", range_info, player_info)
-                    if boss and #boss > 0  and player_info.isInBossBattle then
+                if player_info.current_map_name_utf8 == "G4_5_2" and team_member_2 =="大號名" then
+                    local turret = poe2_api.get_sorted_obj("砲塔", range_info, player_info)
+                    if turret and #turret > 0  and player_info.isInBossBattle then
+                        env.record_map = nil
+                        if get_distance(turret[1].grid_x,turret[1].grid_y) < 40 then
+                            poe2_api.dbgp("砲塔距离<40")
+                            return bret.RUNNING
+                        else
+                            env.end_point = {turret[1].grid_x,turret[1].grid_y}
+                            return bret.SUCCESS
+                        end
+                    end
+                    local boss = poe2_api.get_sorted_obj("囚犯", range_info, player_info)
+                    if boss and #boss > 0  and not player_info.isInBossBattle then
                         env.record_map = nil
                         if get_distance(boss[1].grid_x,boss[1].grid_y) < 35 then
-                            poe2_api.dbgp("砲塔距离<35")
+                            poe2_api.dbgp("boss距离<35")
                             return bret.RUNNING
+                        else
+                            env.end_point = {boss[1].grid_x,boss[1].grid_y}
+                            return bret.SUCCESS
                         end
                     end
                 end
@@ -11357,6 +11412,11 @@ local custom_nodes = {
                                     env.end_point = {interaction_point.x,interaction_point.y}
                                     return bret.SUCCESS
                                 else
+                                    if obj.name_utf8 == "把手" and player_info.current_map_name_utf8 == "G4_5_1" then
+                                        api_ClickMove(poe2_api.toInt(obj.grid_x),poe2_api.toInt(obj.grid_y),1,poe2_api.toInt(obj.world_z))
+                                        api_Sleep(500)
+                                        return bret.RUNNING
+                                    end
                                     env.is_arrive_end = true
                                     return bret.SUCCESS
                                 end
@@ -11682,7 +11742,7 @@ local custom_nodes = {
             elseif poe2_api.table_contains(me_area,{"G2_3a"}) then
                 poe2_api.dbgp("特殊地图不跟随")
                 return bret.SUCCESS
-            elseif player_info.isInBossBattle then
+            elseif not poe2_api.table_contains(team_member_2,{"大號名", "未知"}) and player_info.isInBossBattle and me_area == "G4_4_2"   then
                 poe2_api.dbgp("Boss地區不跟随")
                 return bret.SUCCESS
             else
@@ -12104,6 +12164,7 @@ local custom_nodes = {
             local special_maps_2 = current_map
             local special_maps_3 = {"G3_2_2"}
             local exclude_items = {"門", "中型靈魂核心", "壓桿","瘋狂讚美詩"}
+            local exclude_items_map = {"RitualRune",'娜瓦莉'}
             local point = nil
             local UI_info = env.UI_info
 
@@ -12139,11 +12200,10 @@ local custom_nodes = {
                     return bret.SUCCESS
                 end
             end
-            if interaction_object_map_name then
+            if interaction_object_map_name and not has_common_element(exclude_items_map, interaction_object_map_name) then
                 poe2_api.dbgp("[check_target_point]检测到小地图对象")
                 for _,actor in ipairs(current_map_info) do
-                    if actor.name_utf8 and poe2_api.table_contains(actor.name_utf8, interaction_object_map_name) and 
-                        not poe2_api.table_contains('RitualRune', interaction_object_map_name) then
+                    if actor.name_utf8 and poe2_api.table_contains(actor.name_utf8, interaction_object_map_name) then
                         if poe2_api.point_distance(actor.grid_x, actor.grid_y, player_info) < 50 then
                             env.end_point = nil
                             env.is_arrive_end = true
@@ -12377,7 +12437,9 @@ local custom_nodes = {
             if poe2_api.find_text({ UI_info = env.UI_info, text = "私訊", add_x = 265, min_x = 0, max_x = 400, click = 2 }) then
                 return bret.RUNNING
             end
-
+            if poe2_api.find_text({ UI_info = env.UI_info, text = "天賦技能", min_x = 0, add_x = 215, click = 2 }) then
+                return bret.RUNNING
+            end
             -- 检查顶部中间页面按钮
             local top_mid_page = { "傳送" }
             if poe2_api.find_text({ UI_info = env.UI_info, text = top_mid_page, min_x = 0,max_y=30, add_x = 215, click = 2 }) then
@@ -12397,7 +12459,6 @@ local custom_nodes = {
                     { UI_info = env.UI_info, text = "活動", min_x = 0, add_x = 253, click = 2 },
                     { UI_info = env.UI_info, text = "選項", min_x = 0, add_x = 253, click = 2 },
                     { UI_info = env.UI_info, text = "重置天賦點數", min_x = 0, add_x = 215, click = 2 },
-                    { UI_info = env.UI_info, text = "天賦技能", min_x = 0, add_x = 215, click = 2 },
                     { UI_info = env.UI_info, text = "黯幣", min_x = 0, min_y = 0, max_y = 81, add_x = 673, add_y = 4, click = 2 },
                     { UI_info = env.UI_info, text = "願望清單", min_x = 0, min_y = 0, max_y = 81, add_x = 673, add_y = 4, click = 2 },
 
