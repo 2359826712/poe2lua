@@ -1271,14 +1271,14 @@ local main_task= {
         ['召喚艾瓦，尋求她的意見']= {
             map_name= 'G3_6_1',
             Boss={'遺忘的黑顎'},
-            interaction_object= {'召喚艾瓦', '艾瓦','門'},
+            interaction_object= {'召喚艾瓦', '艾瓦','門', '小型靈魂核心'},
             interaction_object_map_name= {'艾瓦'},
             index = 206
         },
         ['向艾瓦詢問建議']= {
             map_name= 'G3_6_1', 
             Boss={'遺忘的黑顎'},
-            interaction_object= {'召喚艾瓦', '艾瓦','門'},
+            interaction_object= {'召喚艾瓦', '艾瓦','門', '小型靈魂核心'},
             interaction_object_map_name= {'艾瓦'},
             index = 207
         },
