@@ -1,7 +1,8 @@
 local _M = {} -- 主接口表
 local json = require 'script.lualib.json'
-local my_game_info = require 'script/my_game_info'
-local BD_data = require 'script/BD'
+local my_game_info = require 'script\\my_game_info'
+local game_str = require 'script\\game_str'
+local BD_data = require 'script\\BD'
 
 local CELL_WIDTH = 43.81  -- 每个格子宽度
 local CELL_HEIGHT = 43.81  -- 每个格子高度
@@ -192,6 +193,8 @@ _M.find_text = function(params)
             api_Sleep(times)
             api_ClickScreen(final_x, final_y, 2)
             api_Sleep(100)
+        elseif click_type == 7 then
+            api_ClickScreen(final_x, final_y, 2)
         end
     end
 
@@ -201,25 +204,27 @@ _M.find_text = function(params)
         local final_y = math.floor(y + add_y)
         _M.dbgp("文本坐标",final_x, final_y)
         if click_type == 1 then
-            api_ClickScreen(final_x, final_y, 0, defaults.delay, defaults.delay + 5)
+            api_ClickScreen(final_x, final_y, 0, defaults.delay, defaults.delay + 15)
         elseif click_type == 2 then
-            api_ClickScreen(final_x, final_y, 0, defaults.delay, defaults.delay + 5)
-            api_Sleep(times)
-            api_ClickScreen(final_x, final_y, 1, defaults.delay, defaults.delay + 5)
+            -- api_ClickScreen(final_x, final_y, 0, defaults.delay, defaults.delay + 15)
+            -- api_Sleep(times)
+            api_ClickScreen(final_x, final_y, 1, defaults.delay, defaults.delay + 15)
             api_Sleep(100)
         elseif click_type == 3 then
             local hold_time = 8
-            api_ClickScreen(final_x, final_y, 3, defaults.delay, defaults.delay + 5)
+            api_ClickScreen(final_x, final_y, 3, defaults.delay, defaults.delay + 15)
             api_Sleep(hold_time * 1000)
-            api_ClickScreen(final_x, final_y, 4, defaults.delay, defaults.delay + 5)
+            api_ClickScreen(final_x, final_y, 4, defaults.delay, defaults.delay + 15)
         elseif click_type == 4 then
             _M.ctrl_left_click(final_x, final_y)
         elseif click_type == 5 then
             _M.ctrl_right_click(final_x, final_y)
         elseif click_type == 6 then
             api_Sleep(times)
-            api_ClickScreen(final_x, final_y, 2, defaults.delay, defaults.delay + 5)
+            api_ClickScreen(final_x, final_y, 2, defaults.delay, defaults.delay + 15)
             api_Sleep(100)
+        elseif click_type == 7 then
+            api_ClickScreen(final_x, final_y, 2, defaults.delay, defaults.delay + 15)
         end
     end
 
@@ -285,10 +290,6 @@ _M.find_text = function(params)
         --     _M.dbgp(actor.left, actor.right)
         --     _M.dbgp(actor.top, actor.bottom)
         -- end
-        -- _M.dbgp(actor.text_utf8)
-        -- _M.dbgp(defaults.min_x)
-        -- _M.dbgp(actor.left)
-        -- _M.dbgp(defaults.min_x <= actor.left)
         if defaults.min_x <= actor.left and actor.left <= defaults.max_x and
            defaults.min_y <= actor.top and actor.top <= defaults.max_y then
             
@@ -405,7 +406,7 @@ _M.check_NCStorageLocalData_config = function(config_path)
         "auto_equip=false", "always_highlight=false", "disable_tutorials=true",
         "output_all_dialogue_to_chat=true", "show_global_chat=true",
         "show_chat_timestamps=true", "show_trade_chat=true",
-        "show_guild_chat=true"
+        "show_guild_chat=true","map_overlay_mods_hidden=false"
     }
     local function read_ini_lines(config_path)
         local file = io.open(config_path, "r")
@@ -448,7 +449,8 @@ _M.set_NCStorageLocalData_config = function(config_path)
         }, {"show_global_chat=true", "show_global_chat=false"},
         {"show_chat_timestamps=true", "show_chat_timestamps=false"},
         {"show_trade_chat=true", "show_trade_chat=false"},
-        {"show_guild_chat=true", "show_guild_chat=false"}
+        {"show_guild_chat=true", "show_guild_chat=false"},
+        {"map_overlay_mods_hidden=false", "map_overlay_mods_hidden=true"}
     }
     -- 检查文件是否存在
     local file = io.open(config_path, "r")
@@ -609,7 +611,6 @@ _M.is_have_mos = function(params)
         monster.life <= 0 or                  -- 生命值检查
         monster.name_utf8 == "" or              -- 名称检查
         _M.table_contains(my_game_info.not_attact_mons_CN_name,monster.name_utf8) or
-        string.find(monster.name_utf8, "神殿") or
         _M.table_contains(my_game_info.not_attact_mons_path_name,monster.path_name_utf8)then  -- 路径名检查
             goto continue
         end
@@ -1149,7 +1150,7 @@ end
 
 -- 时间调试（内部阈值设为100毫秒）
 _M.time_p = function(...)
-    local threshold = 0 -- 内部设定的阈值（毫秒）
+    local threshold = 5  -- 内部设定的阈值（毫秒）
     local args = {...}
     
     -- 检查是否是耗时日志格式：倒数第二个参数包含"耗时 -->"且最后一个参数是数字
@@ -1395,10 +1396,10 @@ _M.get_map_oringin = function(params)
     local priority_map = params.priority_map or {}
     local entry_length = params.entry_length
     local error_other_map = params.error_other_map or {}
-    local not_have_stackableCurrency = params.not_have_stackableCurrency or
-                                           false
+    local not_have_stackableCurrency = params.not_have_stackableCurrency or false
+    local enter_city = params.enter_city or false
 
-    -- _M.dbgp("[DEBUG] 开始执行 get_map 函数")
+    _M.dbgp("[DEBUG] 开始执行 get_map 函数")
     -- _M.dbgp("[DEBUG] 参数信息:")
     -- _M.dbgp("[DEBUG] - otherworld_info 数量: " .. #otherworld_info)
     -- _M.dbgp("[DEBUG] - sorted_map: " .. table.concat(sorted_map, ", "))
@@ -1429,10 +1430,30 @@ _M.get_map_oringin = function(params)
             -- _M.dbgp("[DEBUG] 地图无name_utf8字段，得分: -1")
             return -1
         end
+
         if _M.table_contains(my_game_info.trash_map, map_data.name_utf8) then
             -- _M.dbgp("[DEBUG] 地图在垃圾地图列表中，得分: -1")
             return -1
         end
+
+        -- 检查是否进入城寨
+        if enter_city and _M.table_contains(map_data.name_utf8, my_game_info.Citadel_map) then
+            -- _M.dbgp("[DEBUG] 地图包含城寨模式")
+            local map_level = _M.select_best_map_key({
+                inventory = bag_info,
+                key_level_threshold = key_level_threshold,
+                not_use_map = not_use_map,
+                priority_map = priority_map,
+                color = 2,
+                entry_length = 4
+            })
+            if not map_level or not_have_stackableCurrency then
+                return -1
+            else
+                return 9999
+            end
+        end
+
         if _M.table_contains(map_data.mapPlayModes, "腐化聖域") then
             -- _M.dbgp("[DEBUG] 地图包含腐化聖域模式")
             local map_level = _M.select_best_map_key({
@@ -1453,20 +1474,38 @@ _M.get_map_oringin = function(params)
                 return 9999
             end
         end
-        if _M.table_contains(map_data.mapPlayModes, "傳奇地圖") then
+
+        if _M.table_contains(map_data.mapPlayModes, game_str.Legendary_Map_MPMD) then
             -- _M.dbgp("[DEBUG] 地图是傳奇地圖")
-            if _M.table_contains(map_data.name_cn_utf8, {"純净樂園", "破裂迷湖", "翠綠荒林", "沉默洞穴"}) then
+            if _M.table_contains(map_data.name_cn_utf8, {game_str.MapUniqueParadise_TWCH, game_str.MapUniqueLake_TWCH, game_str.MapUniqueWildwood_TWCH, game_str.MapUniqueSelenite_TWCH, game_str.MapUniqueMegalith_TWCH}) then
                 -- _M.dbgp("[DEBUG] 是純净樂園，得分: 9999")
-                return 9999
+                local map_level = _M.select_best_map_key({
+                    inventory = bag_info,
+                    key_level_threshold = key_level_threshold,
+                    not_use_map = not_use_map,
+                    priority_map = priority_map,
+                    color = 2,
+                    entry_length = 4
+                })
+                if map_level then
+                    map_level = _M.extract_key_level(map_level.baseType_utf8)
+                    if map_level and map_level < 11 then
+                        return -1
+                    else
+                        return 9999
+                    end
+                end
             end
             -- _M.dbgp("[DEBUG] 不是純净樂園，得分: -1")
             return -1
         end
+
         if not_enter_map and
             _M.table_contains(not_enter_map, map_data.name_cn_utf8) then
             -- _M.dbgp("[DEBUG] 地图在不进入列表中，得分: -1")
             return -1
         end
+
         if not (map_data.isMapAccessible or true) or map_data.isCompleted then
             -- _M.dbgp("[DEBUG] 地图不可访问或已完成，得分: -1")
             return -1
@@ -1482,6 +1521,8 @@ _M.get_map_oringin = function(params)
                 if not _M.table_contains(PRIORITY_MAPS, map_data.name_utf8) then
                     -- _M.dbgp("[DEBUG] 地图不在PRIORITY_MAPS中，得分: -1")
                     return -1
+                else
+                    return 9999
                 end
                 -- 如果匹配则继续检查其他模式
                 local new_required_modes = {}
@@ -1499,6 +1540,10 @@ _M.get_map_oringin = function(params)
                 -- _M.dbgp("[DEBUG] 检查剩余的模式要求")
                 local has_required = false
                 for _, mode in ipairs(required_modes) do
+                    if mode == "深渊" and _M.table_contains(map_data.mapPlayModes, "Abyss") then
+                        has_required = true
+                        break
+                    end
                     if _M.table_contains(map_data.mapPlayModes, mode) then
                         has_required = true
                         break
@@ -1723,331 +1768,22 @@ end
 _M.get_map3 = function(params)
     -- 解析参数表
     local otherworld_info = params.otherworld_info or {}
-    local sorted_map = params.sorted_map or {}
-    local not_enter_map = params.not_enter_map or {}
-    local bag_info = params.bag_info or {}
-    local key_level_threshold = params.key_level_threshold
-    local not_use_map = params.not_use_map or {}
-    local priority_map = params.priority_map or {}
-    local entry_length = params.entry_length
-    local error_other_map = params.error_other_map or {}
-    local not_have_stackableCurrency = params.not_have_stackableCurrency or false
-    local currency_point = params.currency_point or {}
-
-    local PRIORITY_MAPS = {
-        'MapBluff', -- 绝壁
-        'MapBluff_NoBoss', 'MapSwampTower', -- 沉溺尖塔
-        'MapSwampTower_NoBoss', 'MapLostTowers', -- 失落尖塔
-        'MapLostTowers_NoBoss', 'MapAlpineRidge', 'MapAlpineRidge_NoBoss',
-        'MapMesa', -- 平顶荒漠
-        'MapMesa_NoBoss'
-    }
-
-    -- 计算地图得分的内部函数
-    local function calculate_score(map_data, required_modes)
-        -- _M.dbgp(string.format(
-        --                  "[DEBUG] 开始计算地图得分: %s (位置: %d,%d)",
-        --                  map_data.name_cn_utf8 or "未知", map_data.index_x,
-        --                  map_data.index_y))
-
-        -- 基础条件检查（一票否决）
-        if not map_data.name_utf8 then
-            -- _M.dbgp("[DEBUG] 地图无name_utf8字段，得分: -1")
-            return -1
-        end
-        if _M.table_contains(my_game_info.trash_map, map_data.name_utf8) then
-            -- _M.dbgp("[DEBUG] 地图在垃圾地图列表中，得分: -1")
-            return -1
-        end
-        if _M.table_contains(map_data.mapPlayModes, "腐化聖域") then
-            -- _M.dbgp("[DEBUG] 地图包含腐化聖域模式")
-            local map_level = _M.select_best_map_key({
-                inventory = bag_info,
-                key_level_threshold = key_level_threshold,
-                not_use_map = not_use_map,
-                priority_map = priority_map,
-                color = 2,
-                entry_length = 4
-            })
-            if not map_level or not_have_stackableCurrency then
-                -- _M.dbgp(
-                --     "[DEBUG] 没有合适的钥匙或不满足货币条件，得分: -1")
-                return -1
-            else
-                -- _M.dbgp(
-                --     "[DEBUG] 腐化聖域地图满足条件，得分: 9999")
-                return 9999
-            end
-        end
-        if _M.table_contains(map_data.mapPlayModes, "傳奇地圖") then
-            -- _M.dbgp("[DEBUG] 地图是傳奇地圖")
-            if _M.table_contains(map_data.name_cn_utf8, "純净樂園") then
-                -- _M.dbgp("[DEBUG] 是純净樂園，得分: 9999")
-                return 9999
-            end
-            -- _M.dbgp("[DEBUG] 不是純净樂園，得分: -1")
-            return -1
-        end
-        if not_enter_map and
-            _M.table_contains(not_enter_map, map_data.name_cn_utf8) then
-            -- _M.dbgp("[DEBUG] 地图在不进入列表中，得分: -1")
-            return -1
-        end
-        if not (map_data.isMapAccessible or true) or map_data.isCompleted then
-            -- _M.dbgp("[DEBUG] 地图不可访问或已完成，得分: -1")
-            return -1
-        end
-
-        -- 检查必须包含的模式（如果有）
-        if required_modes then
-            -- _M.dbgp("[DEBUG] 需要检查的模式要求: " .. table.concat(required_modes, ", "))
-
-            -- 单独处理"先行者高塔"的特殊判断
-            if _M.table_contains(required_modes, "先行者高塔") then
-                -- _M.dbgp("[DEBUG] 检查先行者高塔条件")
-                if not _M.table_contains(PRIORITY_MAPS, map_data.name_utf8) then
-                    -- _M.dbgp("[DEBUG] 地图不在PRIORITY_MAPS中，得分: -1")
-                    return -1
-                end
-                -- 如果匹配则继续检查其他模式
-                local new_required_modes = {}
-                for _, mode in ipairs(required_modes) do
-                    if mode ~= "先行者高塔" then
-                        table.insert(new_required_modes, mode)
-                    end
-                end
-                required_modes = new_required_modes
-                -- _M.dbgp("[DEBUG] 更新后的required_modes: " .. (next(required_modes) and table.concat(required_modes, ", ") or "空"))
-            end
-
-            -- 检查剩余的模式（不包括"先行者高塔"）
-            if #required_modes > 0 then
-                -- _M.dbgp("[DEBUG] 检查剩余的模式要求")
-                local has_required = false
-                for _, mode in ipairs(required_modes) do
-                    if _M.table_contains(map_data.mapPlayModes, mode) then
-                        has_required = true
-                        break
-                    end
-                end
-                if not has_required then
-                    -- _M.dbgp("[DEBUG] 不满足模式要求，得分: -1")
-                    return -1
-                end
-                -- _M.dbgp("[DEBUG] 满足模式要求")
-            end
-        end
-
-        -- 初始化评分项
-        local score = 0
-        local play_modes = map_data.mapPlayModes or {}
-        -- _M.dbgp("[DEBUG] 地图玩法模式: " .. table.concat(play_modes, ", "))
-
-        -- 1. 计算sorted_map中的玩法模式匹配
-        if #sorted_map > 0 and #play_modes > 0 then
-            -- _M.dbgp("[DEBUG] 计算sorted_map匹配分数")
-            local matched_score = 0
-            local matched_count = 0
-            for i, mode in ipairs(sorted_map) do
-                if _M.table_contains(play_modes, mode) then
-                    -- 越靠前的模式权重越高（100 - 索引位置）
-                    local mode_score = 100 - i
-                    matched_score = matched_score + mode_score
-                    matched_count = matched_count + 1
-                    -- _M.dbgp(string.format( "[DEBUG] 匹配模式: %s (位置: %d, 得分: %d)", mode, i, mode_score))
-                end
-            end
-
-            -- 匹配数量加成（每个匹配模式额外加50分）
-            local count_bonus = matched_count * 100
-            score = score + matched_score + count_bonus
-            -- _M.dbgp(string.format( "[DEBUG] 模式匹配得分: %d (匹配得分: %d, 数量加成: %d)", score, matched_score, count_bonus))
-        end
-
-        -- 2. 玩法模式总数（基础分）
-        local mode_count_score = #play_modes * 100
-        score = score + mode_count_score
-        -- _M.dbgp(string.format( "[DEBUG] 最终得分: %d (模式数量得分: %d)", score, mode_count_score))
-
-        return score
-    end
-
-    -- 获取有效的sorted_map（过滤掉0值）
-    local effective_sorted_map = {}
-    if sorted_map then
-        for _, mode in ipairs(sorted_map) do
-            if mode ~= 0 then
-                table.insert(effective_sorted_map, mode)
-            end
-        end
-    end
-    -- _M.dbgp("[DEBUG] 有效sorted_map: " .. table.concat(effective_sorted_map, ", "))
 
     -- 分阶段查找最佳地图
-    local valid_maps = {}
-    for i = 0, #effective_sorted_map do
-        -- _M.dbgp(string.format("[DEBUG] 阶段 %d/%d 查找", i + 1, #effective_sorted_map + 1))
+    local maps_Portal = nil
+    for _, map_data in ipairs(otherworld_info) do
 
-        -- 第1阶段：要求包含第1个模式
-        -- 第2阶段：要求包含第1或第2个模式
-        -- ...
-        -- 最后阶段：不要求任何特定模式
-        local required_modes = {}
-        if i < #effective_sorted_map then
-            for j = 1, i + 1 do
-                table.insert(required_modes, effective_sorted_map[j])
-            end
+        if map_data.name_utf8 == "MapLeaguePortal" then
+            maps_Portal = map_data
+            _M.printTable(map_data)
+            -- break
         end
 
-        -- _M.dbgp("[DEBUG] 当前阶段要求模式: " .. (next(required_modes) and table.concat(required_modes, ", ") or "无"))
-
-        -- 如果"先行者高塔"存在且不在最后一位，则排除它
-        if #required_modes > 0 and
-            _M.table_contains(required_modes, "先行者高塔") then
-            if required_modes[#required_modes] ~= "先行者高塔" then
-                local new_required_modes = {}
-                for _, mode in ipairs(required_modes) do
-                    if mode ~= "先行者高塔" then
-                        table.insert(new_required_modes, mode)
-                    end
-                end
-                required_modes = new_required_modes
-                if #required_modes == 0 then -- 如果排除后数组为空
-                    required_modes = nil
-                end
-                -- _M.dbgp("[DEBUG] 调整后的要求模式: " .. (required_modes and table.concat(required_modes, ", ") or "无"))
-            end
-        end
-
-        for _, map_data in ipairs(otherworld_info) do
-            -- if not map_data.isMapAccessible then
-            --     -- _M.dbgp(string.format( "[DEBUG] 跳过不可访问地图: %s",  map_data.name_cn_utf8 or "未知"))
-            --     goto continue
-            -- end
-
-            if map_data.isCompleted then
-                -- _M.dbgp(string.format( "[DEBUG] 跳过不可访问地图: %s",  map_data.name_cn_utf8 or "未知"))
-                goto continue
-            end
-
-            -- 检查错误地图
-            if #error_other_map > 0 then
-                local is_error = false
-                for _, m in ipairs(error_other_map) do
-                    if map_data.index_x == m.index_x and map_data.index_y == m.index_y then
-                        is_error = true
-                        break
-                    end
-                end
-                if is_error then
-                    -- _M.dbgp(string.format( "[DEBUG] 跳过错误地图: %s (位置: %d,%d)", map_data.name_cn_utf8 or "未知", map_data.index_x, map_data.index_y))
-                    goto continue
-                end
-            end
-
-            -- 检查禁止进入的地图
-            if #not_enter_map > 0 and
-                _M.table_contains(not_enter_map, map_data.name_cn_utf8) then
-                -- _M.dbgp(string.format( "[DEBUG] 跳过禁止进入地图: %s", map_data.name_cn_utf8 or "未知"))
-                goto continue
-            end
-
-            local score = calculate_score(map_data, #required_modes > 0 and
-                                              required_modes or nil)
-            if score >= 0 then
-                -- _M.dbgp(string.format( "[DEBUG] 有效地图: %s (得分: %d)", map_data.name_cn_utf8 or "未知", score))
-                table.insert(valid_maps, {score = score, map = map_data})
-            else
-                -- _M.dbgp(string.format( "[DEBUG] 无效地图: %s (得分: %d)", map_data.name_cn_utf8 or "未知", score))
-            end
-
-            ::continue::
-        end
-
-        if #valid_maps > 0 then
-            _M.dbgp(string.format(  "[DEBUG] 阶段 %d 找到 %d 个有效地图", i + 1, #valid_maps))
-            -- 按总分降序排序
-            table.sort(valid_maps, function(a, b)
-                return a.score > b.score
-            end)
-
-            -- 打印前3个最佳地图
-            -- for j = 1, math.min(3, #valid_maps) do
-            --     _M.dbgp(string.format("[DEBUG] 排名 %d: %s (得分: %d)", j, valid_maps[j].map.name_cn_utf8 or "未知", valid_maps[j].score))
-            -- end
-
-            -- _M.dbgp(string.format("[DEBUG] 选择最佳地图: %s", valid_maps[1].map.name_cn_utf8 or "未知"))
-            return valid_maps[1].map
-        else
-            -- _M.dbgp(string.format( "[DEBUG] 阶段 %d 未找到有效地图", i + 1))
-        end
+        ::continue::
     end
-
-    -- 如果没有找到符合条件的地图，尝试不要求任何特定模式
-    if #valid_maps == 0 then
-        -- _M.dbgp("[DEBUG] 尝试不要求任何特定模式")
-        for _, map_data in ipairs(otherworld_info) do
-            if not map_data.isMapAccessible then
-                -- _M.dbgp(string.format( "[DEBUG] 跳过不可访问地图: %s", map_data.name_cn_utf8 or "未知"))
-                goto continue
-            end
-
-            -- 检查错误地图
-            if #error_other_map > 0 then
-                local is_error = false
-                for _, m in ipairs(error_other_map) do
-                    if map_data.index_x == m.index_x and map_data.index_y ==
-                        m.index_y then
-                        is_error = true
-                        break
-                    end
-                end
-                if is_error then
-                    -- -- -- _M.dbgp(string.format( "[DEBUG] 跳过错误地图: %s (位置: %d,%d)", map_data.name_cn_utf8 or "未知", map_data.index_x, map_data.index_y))
-                    goto continue
-                end
-            end
-
-            -- 检查禁止进入的地图
-            if #not_enter_map > 0 and
-                _M.table_contains(not_enter_map, map_data.name_cn_utf8) then
-                -- _M.dbgp(string.format( "[DEBUG] 跳过禁止进入地图: %s", map_data.name_cn_utf8 or "未知"))
-                goto continue
-            end
-
-            local score = calculate_score(map_data)
-            if score >= 0 then
-                -- -- _M.dbgp(string.format( "[DEBUG] 有效地图: %s (得分: %d)", map_data.name_cn_utf8 or "未知", score))
-                table.insert(valid_maps, {score = score, map = map_data})
-            else
-                -- -- _M.dbgp(string.format( "[DEBUG] 无效地图: %s (得分: %d)", map_data.name_cn_utf8 or "未知", score))
-            end
-
-            ::continue::
-        end
-
-        if #valid_maps > 0 then
-            -- _M.dbgp(string.format("[DEBUG] 找到 %d 个有效地图", #valid_maps))
-            -- 按总分降序排序
-            table.sort(valid_maps, function(a, b)
-                return a.score > b.score
-            end)
-
-            -- 打印前3个最佳地图
-            for j = 1, math.min(3, #valid_maps) do
-                -- _M.printTable()
-                _M.dbgp(string.format("[DEBUG] 排名 %d: %s (得分: %d)", j, valid_maps[j].map.name_cn_utf8 or "未知", valid_maps[j].score))
-            end
-
-            -- _M.dbgp(string.format("[DEBUG] 选择最佳地图: %s", valid_maps[1].map.name_cn_utf8 or  "未知"))
-            return valid_maps[1].map
-        else
-            -- _M.dbgp("[DEBUG] 未找到任何有效地图")
-        end
-    end
-
+    
     -- _M.dbgp("[DEBUG] 最终未找到合适地图，返回nil")
-    return nil
+    return maps_Portal
 end
 
 -- 选择异界地图
@@ -2120,9 +1856,9 @@ _M.get_map1 = function(params)
                 return 9999
             end
         end
-        if _M.table_contains(map_data.mapPlayModes, "傳奇地圖") then
+        if _M.table_contains(map_data.mapPlayModes, game_str.Legendary_Map_MPMD) then
             -- _M.dbgp("[DEBUG] 地图是傳奇地圖")
-            if _M.table_contains(map_data.name_cn_utf8, "純净樂園") then
+            if _M.table_contains(map_data.name_cn_utf8, {game_str.MapUniqueParadise_TWCH, game_str.MapUniqueLake_TWCH, game_str.MapUniqueWildwood_TWCH, game_str.MapUniqueSelenite_TWCH, game_str.MapUniqueMegalith_TWCH}) then
                 -- _M.dbgp("[DEBUG] 是純净樂園，得分: 9999")
                 return 9999
             end
@@ -2166,6 +1902,10 @@ _M.get_map1 = function(params)
                 -- _M.dbgp("[DEBUG] 检查剩余的模式要求")
                 local has_required = false
                 for _, mode in ipairs(required_modes) do
+                    if mode == "深渊" and _M.table_contains(map_data.mapPlayModes, "Abyss") then
+                        has_required = true
+                        break
+                    end
                     if _M.table_contains(map_data.mapPlayModes, mode) then
                         has_required = true
                         break
@@ -2427,9 +2167,9 @@ _M.get_map2 = function(params)
         if _M.table_contains(map_data.mapPlayModes, "腐化聖域") then
             return 9999
         end
-        if _M.table_contains(map_data.mapPlayModes, "傳奇地圖") then
+        if _M.table_contains(map_data.mapPlayModes, game_str.Legendary_Map_MPMD) then
             -- _M.dbgp("[DEBUG] 地图是傳奇地圖")
-            if _M.table_contains(map_data.name_cn_utf8, "純净樂園") then
+            if _M.table_contains(map_data.name_cn_utf8, {game_str.MapUniqueParadise_TWCH, game_str.MapUniqueLake_TWCH, game_str.MapUniqueWildwood_TWCH, game_str.MapUniqueSelenite_TWCH, game_str.MapUniqueMegalith_TWCH}) then
                 -- _M.dbgp("[DEBUG] 是純净樂園，得分: 9999")
                 return 9999
             end
@@ -2763,6 +2503,7 @@ _M.get_map = function(params)
     local error_other_map = params.error_other_map or {}
     local not_have_stackableCurrency = params.not_have_stackableCurrency or false
     local currency_point = params.currency_point or {}
+    local enter_city = params.enter_city or false
 
     local PRIORITY_MAPS = {
         'MapBluff', -- 绝壁
@@ -2801,7 +2542,8 @@ _M.get_map = function(params)
         if _M.table_contains(my_game_info.trash_map, map_data.name_utf8) then
             return -1
         end
-        if _M.table_contains(map_data.mapPlayModes, "腐化聖域") then
+
+        if enter_city and _M.table_contains(map_data.mapPlayModes, my_game_info.Citadel_map) then
             local map_level = _M.select_best_map_key({
                 inventory = bag_info,
                 key_level_threshold = key_level_threshold,
@@ -2816,8 +2558,23 @@ _M.get_map = function(params)
                 return 9999
             end
         end
-        if _M.table_contains(map_data.mapPlayModes, "傳奇地圖") then
-            if _M.table_contains(map_data.name_cn_utf8, "純净樂園") then
+
+        if _M.table_contains(map_data.mapPlayModes, "腐化聖域") then
+            local map_level = _M.select_best_map_key({
+                inventory = bag_info,
+                key_level_threshold = key_level_threshold,
+                not_use_map = not_use_map,
+                priority_map = priority_map,
+                min_level = 15
+            })
+            if not map_level then
+                return -1
+            else
+                return 9999
+            end
+        end
+        if _M.table_contains(map_data.mapPlayModes, game_str.Legendary_Map_MPMD) then
+            if _M.table_contains(map_data.name_cn_utf8, {game_str.MapUniqueParadise_TWCH, game_str.MapUniqueLake_TWCH, game_str.MapUniqueWildwood_TWCH, game_str.MapUniqueSelenite_TWCH, game_str.MapUniqueMegalith_TWCH}) then
                 return 9999
             end
             return -1
@@ -3142,37 +2899,330 @@ _M.get_map = function(params)
     return nil
 end
 
--- 根据目标点排序最近列表   
-_M.sort_recent_point_list = function(point_list, x, y)
-    -- 计算每个点与目标点的距离，并存储到临时表
-    local points_with_distance = {}
-    for _, point in ipairs(point_list) do
-        local dx = point.x - x
-        local dy = point.y - y
-        local distance = math.sqrt(dx * dx + dy * dy)
-        table.insert(points_with_distance, {
-            point = point,
-            distance = distance
-        })
-    end
+-- 选择异界地图
+-- _M.get_map = function(params)
+--     -- 解析参数表
+--     local otherworld_info = params.otherworld_info or {}
+--     local sorted_map = params.sorted_map or {}
+--     local not_enter_map = params.not_enter_map or {}
+--     local bag_info = params.bag_info or {}
+--     local key_level_threshold = params.key_level_threshold
+--     local not_use_map = params.not_use_map or {}
+--     local priority_map = params.priority_map or {}
+--     local entry_length = params.entry_length
+--     local error_other_map = params.error_other_map or {}
+--     local not_have_stackableCurrency = params.not_have_stackableCurrency or false
+--     local current_position = params.current_position or {x = 0, y = 0}
 
+--     local PRIORITY_MAPS = {
+--         'MapBluff', -- 绝壁
+--         'MapBluff_NoBoss', 'MapSwampTower', -- 沉溺尖塔
+--         'MapSwampTower_NoBoss', 'MapLostTowers', -- 失落尖塔
+--         'MapLostTowers_NoBoss', 'MapAlpineRidge', 'MapAlpineRidge_NoBoss',
+--         'MapMesa', -- 平顶荒漠
+--         'MapMesa_NoBoss'
+--     }
 
-    -- 按距离从小到大排序
-    table.sort(points_with_distance, function(a, b)
-        return a.distance < b.distance
-    end)
+--     -- 获取有效的sorted_map（过滤掉0值）
+--     local effective_sorted_map = {}
+--     if sorted_map then
+--         for _, mode in ipairs(sorted_map) do
+--             if mode ~= 0 then
+--                 table.insert(effective_sorted_map, mode)
+--             end
+--         end
+--     end
 
+--     -- 第一步：找到最近的优先地图位置（不管能否进入）
+--     local center_x, center_y = current_position.x, current_position.y
+--     local nearest_priority_map = nil
+--     local min_distance = math.huge
 
-    -- 提取排序后的坐标点（去掉临时存储的距离）
-    local sorted_points = {}
-    for _, item in ipairs(points_with_distance) do
-        table.insert(sorted_points, item.point)
-    end
+--     for _, map_data in ipairs(otherworld_info) do
+--         -- 检查是否满足优先级条件
+--         local has_priority = false
+--         if #effective_sorted_map > 0 then
+--             for _, mode in ipairs(effective_sorted_map) do
+--                 if _M.table_contains(map_data.mapPlayModes or {}, mode) then
+--                     has_priority = true
+--                     break
+--                 end
+--             end
+--         end
 
+--         if has_priority then
+--             local distance = math.sqrt((map_data.index_x - current_position.x)^2 + 
+--                                       (map_data.index_y - current_position.y)^2)
+--             if distance < min_distance then
+--                 min_distance = distance
+--                 center_x = map_data.index_x
+--                 center_y = map_data.index_y
+--                 nearest_priority_map = map_data
+--             end
+--         end
+--     end
 
-    return sorted_points
-end
+--     _M.dbgp(string.format("[DEBUG] 最近优先地图中心: (%d, %d)", center_x, center_y))
+--     _M.printTable(nearest_priority_map)
+--     if nearest_priority_map then
+--         _M.dbgp(string.format("[DEBUG] 最近优先地图: %s", nearest_priority_map.name_cn_utf8 or "未知"))
+--     end
 
+--     -- 计算地图得分的内部函数（现在接收center_x和center_y作为参数）
+--     local function calculate_score(map_data, required_modes, center_x, center_y)
+--         -- 基础条件检查（一票否决）
+--         if not map_data.name_utf8 then
+--             return -1
+--         end
+--         if _M.table_contains(my_game_info.trash_map, map_data.name_utf8) then
+--             return -1
+--         end
+--         if _M.table_contains(map_data.mapPlayModes, "腐化聖域") then
+--             local map_level = _M.select_best_map_key({
+--                 inventory = bag_info,
+--                 key_level_threshold = key_level_threshold,
+--                 not_use_map = not_use_map,
+--                 priority_map = priority_map,
+--                 color = 2,
+--                 entry_length = 4
+--             })
+--             if not map_level or not_have_stackableCurrency then
+--                 return -1
+--             else
+--                 return 9999
+--             end
+--         end
+--         if _M.table_contains(map_data.mapPlayModes, game_str.Legendary_Map_MPMD) then
+--             if _M.table_contains(map_data.name_cn_utf8, game_str.MapUniqueParadise_TWCH) then
+--                 return 9999
+--             end
+--             return -1
+--         end
+--         if not_enter_map and _M.table_contains(not_enter_map, map_data.name_cn_utf8) then
+--             return -1
+--         end
+--         if not (map_data.isMapAccessible or true) or map_data.isCompleted then
+--             return -1
+--         end
+
+--         -- 检查必须包含的模式（如果有）
+--         if required_modes then
+--             -- 单独处理"先行者高塔"的特殊判断
+--             if _M.table_contains(required_modes, "先行者高塔") then
+--                 if not _M.table_contains(PRIORITY_MAPS, map_data.name_utf8) then
+--                     return -1
+--                 end
+--                 -- 如果匹配则继续检查其他模式
+--                 local new_required_modes = {}
+--                 for _, mode in ipairs(required_modes) do
+--                     if mode ~= "先行者高塔" then
+--                         table.insert(new_required_modes, mode)
+--                     end
+--                 end
+--                 required_modes = new_required_modes
+--             end
+
+--             -- 检查剩余的模式（不包括"先行者高塔"）
+--             if #required_modes > 0 then
+--                 local has_required = false
+--                 for _, mode in ipairs(required_modes) do
+--                     if _M.table_contains(map_data.mapPlayModes, mode) then
+--                         has_required = true
+--                         break
+--                     end
+--                 end
+--                 if not has_required then
+--                     return -1
+--                 end
+--             end
+--         end
+
+--         -- 初始化评分项
+--         local score = 0
+--         local play_modes = map_data.mapPlayModes or {}
+
+--         -- 1. 计算sorted_map中的玩法模式匹配
+--         if #sorted_map > 0 and #play_modes > 0 then
+--             local matched_score = 0
+--             local matched_count = 0
+--             for i, mode in ipairs(sorted_map) do
+--                 if _M.table_contains(play_modes, mode) then
+--                     local mode_score = 100 - i
+--                     matched_score = matched_score + mode_score
+--                     matched_count = matched_count + 1
+--                 end
+--             end
+
+--             local count_bonus = matched_count * 100
+--             score = score + matched_score + count_bonus
+--         end
+
+--         -- 2. 玩法模式总数（基础分）
+--         local mode_count_score = #play_modes * 100
+--         score = score + mode_count_score
+
+--         -- 3. 距离得分（距离中心越近得分越高）
+--         if map_data.index_x and map_data.index_y and center_x and center_y then
+--             local distance_to_center = math.sqrt((map_data.index_x - center_x)^2 + (map_data.index_y - center_y)^2)
+--             local distance_score = math.max(0, 500 - distance_to_center * 10)  -- 最大500分，每单位距离减10分
+--             score = score + distance_score
+--         end
+
+--         return score
+--     end
+
+--     -- 第二步：以中心位置为基准，辐射寻找可进入的地图
+--     local valid_maps = {}
+
+--     -- 按距离排序所有地图
+--     local sorted_by_distance = {}
+--     for _, map_data in ipairs(otherworld_info) do
+--         if map_data.index_x and map_data.index_y then
+--             local distance = math.sqrt((map_data.index_x - center_x)^2 + 
+--                                       (map_data.index_y - center_y)^2)
+--             table.insert(sorted_by_distance, {
+--                 map = map_data,
+--                 distance = distance
+--             })
+--         end
+--     end
+
+--     table.sort(sorted_by_distance, function(a, b)
+--         return a.distance < b.distance
+--     end)
+
+--     -- 分阶段查找最佳地图（按距离从近到远）
+--     for i = 0, #effective_sorted_map do
+--         local required_modes = {}
+--         if i < #effective_sorted_map then
+--             for j = 1, i + 1 do
+--                 table.insert(required_modes, effective_sorted_map[j])
+--             end
+--         end
+
+--         -- 调整"先行者高塔"的特殊处理
+--         if #required_modes > 0 and _M.table_contains(required_modes, "先行者高塔") then
+--             if required_modes[#required_modes] ~= "先行者高塔" then
+--                 local new_required_modes = {}
+--                 for _, mode in ipairs(required_modes) do
+--                     if mode ~= "先行者高塔" then
+--                         table.insert(new_required_modes, mode)
+--                     end
+--                 end
+--                 required_modes = new_required_modes
+--                 if #required_modes == 0 then
+--                     required_modes = nil
+--                 end
+--             end
+--         end
+
+--         -- 在当前距离范围内查找
+--         for _, item in ipairs(sorted_by_distance) do
+--             local map_data = item.map
+            
+--             -- 检查错误地图
+--             if #error_other_map > 0 then
+--                 local is_error = false
+--                 for _, m in ipairs(error_other_map) do
+--                     if map_data.index_x == m.index_x and map_data.index_y == m.index_y then
+--                         is_error = true
+--                         break
+--                     end
+--                 end
+--                 if is_error then
+--                     goto continue
+--                 end
+--             end
+
+--             -- 检查禁止进入的地图
+--             if #not_enter_map > 0 and _M.table_contains(not_enter_map, map_data.name_cn_utf8) then
+--                 goto continue
+--             end
+
+--             local score = calculate_score(map_data, #required_modes > 0 and required_modes or nil, center_x, center_y)
+--             if score >= 0 then
+--                 table.insert(valid_maps, {
+--                     score = score,
+--                     map = map_data,
+--                     distance = item.distance
+--                 })
+--             end
+
+--             ::continue::
+--         end
+
+--         if #valid_maps > 0 then
+--             _M.dbgp(string.format("[DEBUG] 阶段 %d 找到 %d 个有效地图", i + 1, #valid_maps))
+--             -- 按总分降序排序，距离作为次要排序条件
+--             table.sort(valid_maps, function(a, b)
+--                 if a.score ~= b.score then
+--                     return a.score > b.score
+--                 else
+--                     return a.distance < b.distance
+--                 end
+--             end)
+
+--             return valid_maps[1].map
+--         end
+--     end
+
+--     -- 如果没有找到符合条件的地图，尝试不要求任何特定模式
+--     if #valid_maps == 0 then
+--         for _, item in ipairs(sorted_by_distance) do
+--             local map_data = item.map
+            
+--             if not map_data.isMapAccessible then
+--                 goto continue
+--             end
+
+--             -- 检查错误地图
+--             if #error_other_map > 0 then
+--                 local is_error = false
+--                 for _, m in ipairs(error_other_map) do
+--                     if map_data.index_x == m.index_x and map_data.index_y == m.index_y then
+--                         is_error = true
+--                         break
+--                     end
+--                 end
+--                 if is_error then
+--                     goto continue
+--                 end
+--             end
+
+--             -- 检查禁止进入的地图
+--             if #not_enter_map > 0 and _M.table_contains(not_enter_map, map_data.name_cn_utf8) then
+--                 goto continue
+--             end
+
+--             local score = calculate_score(map_data, nil, center_x, center_y)
+--             if score >= 0 then
+--                 table.insert(valid_maps, {
+--                     score = score,
+--                     map = map_data,
+--                     distance = item.distance
+--                 })
+--             end
+
+--             ::continue::
+--         end
+
+--         if #valid_maps > 0 then
+--             -- 按总分降序排序，距离作为次要排序条件
+--             table.sort(valid_maps, function(a, b)
+--                 if a.score ~= b.score then
+--                     return a.score > b.score
+--                 else
+--                     return a.distance < b.distance
+--                 end
+--             end)
+
+--             return valid_maps[1].map
+--         end
+--     end
+
+--     _M.dbgp("[DEBUG] 最终未找到合适地图，返回nil")
+--     return nil
+-- end
 
 -- 从钥匙名称中提取等级数字（UTF-8安全）
 _M.extract_key_level = function(key_name)
@@ -3243,8 +3293,1809 @@ _M.ctrl_left_click_bag_items = function(target_name, bag_info, click_type, match
     return false
 end
 
+-- UTF-8安全清理函数（最终版）
+_M.clean_utf8 = function(s)
+    if not s or s == "" then
+        return ""
+    end
+
+    local result = {}
+    local i = 1
+    local len = #s
+    
+    while i <= len do
+        local byte = string.byte(s, i)
+        
+        -- ASCII字符（0-127）
+        if byte < 128 then
+            if not string.match(string.char(byte), "[%s　]") then
+                table.insert(result, string.char(byte))
+            end
+            i = i + 1
+        -- UTF-8多字节字符
+        else
+            local char
+            if byte >= 0xC0 and byte < 0xE0 then  -- 2字节字符
+                char = string.sub(s, i, i+1)
+                i = i + 2
+            elseif byte >= 0xE0 and byte < 0xF0 then  -- 3字节字符（包括中文）
+                char = string.sub(s, i, i+2)
+                i = i + 3
+            elseif byte >= 0xF0 then  -- 4字节字符
+                char = string.sub(s, i, i+3)
+                i = i + 4
+            else  -- 非法UTF-8起始字节
+                i = i + 1  -- 跳过无效字节
+                goto continue
+            end
+            
+            -- 验证字符有效性
+            if utf8.len(char) == 1 then
+                table.insert(result, char)
+            end
+        end
+        ::continue::
+    end
+    
+    return table.concat(result)
+end
+
+-- UTF-8安全文本提取（最终版）
+_M.extract_utf8_text = function(s)
+    if not s or s == "" then
+        return ""
+    end
+    
+    local result = {}
+    local i = 1
+    while i <= #s do
+        local c = string.sub(s, i, i)
+        
+        -- 处理通配符 {数字}
+        if c == "{" then
+            local j = i
+            while j <= #s and string.sub(s, j, j) ~= "}" do
+                j = j + 1
+            end
+            if j <= #s then
+                i = j + 1  -- 跳过整个{}块
+            else
+                i = i + 1
+            end
+        -- 过滤特殊符号但保护多字节字符
+        elseif c:match("[+%-%%#%$%^%*%(%)]") and #c == 1 then
+            i = i + 1
+        else
+            -- 安全获取完整UTF-8字符
+            local char = utf8.char(utf8.codepoint(s, i))
+            table.insert(result, char)
+            i = i + #char  -- 正确跳过多字节字符
+        end
+    end
+    
+    return table.concat(result)
+end
+
+_M.analyze_map_modifiers = function(modifier_list, item)
+    -- 词缀名称到游戏参数的映射
+    local modifier_mapping = {
+        ["怪物群大小"] = "monsterPackSize",
+        ["稀有怪物"] = "rareMonster", 
+        ["物品稀有度"] = "itemRarity",
+        ["地图掉落机率"] = "mapDropChance"
+    }
+    
+    -- 获取当前地图的词缀数值
+    local function get_current_map_stats(item_obj)
+        return {
+            monsterPackSize = item_obj.monsterPackSize and item_obj.monsterPackSize() or 0,
+            rareMonster = item_obj.rareMonster and item_obj.rareMonster() or 0,
+            itemRarity = item_obj.itemRarity and item_obj.itemRarity() or 0,
+            mapDropChance = item_obj.mapDropChance and item_obj.mapDropChance() or 0
+        }
+    end
+    
+    -- 词缀选择算法
+    local function select_map_modifiers(parsed_mods, item_obj)
+        local selected = {}
+        local current_map_stats = get_current_map_stats(item_obj)
+        
+        if #parsed_mods == 0 then
+            return selected
+        end
+        
+        -- 第一个词缀：强满足
+        local first_mod = parsed_mods[1]
+        local first_key = modifier_mapping[first_mod.name_utf8]
+        
+        if not first_key then
+            print("未知的词缀名称: " .. first_mod.name_utf8)
+            return selected
+        end
+        
+        local current_value = current_map_stats[first_key] or 0
+        local target_value = first_mod.value_list[1] or 0
+        local first_satisfied = (current_value >= target_value)
+        
+        table.insert(selected, {
+            name = first_mod.name_utf8,
+            game_key = first_key,
+            value = current_value,
+            target = target_value,
+            satisfied = first_satisfied,
+            priority = 1
+        })
+        
+        -- 如果第一个满足，在剩余词缀中按顺序寻找最高满足项
+        if first_satisfied and #parsed_mods > 1 then
+            for i = 2, #parsed_mods do
+                local mod = parsed_mods[i]
+                local key = modifier_mapping[mod.name_utf8]
+                
+                if key then
+                    local current_val = current_map_stats[key] or 0
+                    local target_val = mod.value_list[1] or 0
+                    
+                    if current_val >= target_val then
+                        table.insert(selected, {
+                            name = mod.name_utf8,
+                            game_key = key,
+                            value = current_val,
+                            target = target_val,
+                            satisfied = true,
+                            priority = i
+                        })
+                        break -- 只选择第一个满足的
+                    end
+                else
+                    print("未知的词缀名称: " .. mod.name_utf8)
+                end
+            end
+        end
+        
+        return selected
+    end
+    
+    -- 执行整个流程（直接使用已解析的modifier_list）
+    local selected_modifiers = select_map_modifiers(modifier_list, item)
+    
+    return {
+        selected_modifiers = selected_modifiers,
+        all_current_stats = get_current_map_stats(item)
+    }
+end
+
 -- 选择最优地图钥匙
 _M.select_best_map_key = function(params)
+    -- 解析参数表
+    local inventory = params.inventory
+    local click = params.click or 0
+    local key_level_threshold = params.key_level_threshold
+    local type_map = params.type or 0
+    local index = params.index or 0
+    local score = params.score or 0
+    local no_categorize_suffixes = params.no_categorize_suffixes or 0
+    local min_level = params.min_level
+    local not_use_map = params.not_use_map or {}
+    local trashest = params.trashest or false
+    local page_type = params.page_type
+    local entry_length = params.entry_length or 0
+    local START_X = params.START_X or 0
+    local START_Y = params.START_Y or 0
+    local color = params.color or 0
+    local vall = params.vall or false
+    local instill = params.instill or false
+
+    -- 新增：优先打词缀配置
+    local priority_map = params.priority_map or {}
+    local priority_enabled = params.priority_enabled or false
+
+    if not inventory or #inventory == 0 then
+        _M.dbgp("背包为空")
+        return nil
+    end
+
+    -- UTF-8优化的词缀分类
+    local function categorize_suffixes_utf8(suffixes)
+        local categories = {
+            ['譫妄'] = {},
+            ['其他'] = {},
+            ['不打'] = {},
+            ['无效'] = {},
+            ['优先'] = {}  -- 新增：优先词缀分类
+        }
+
+        if not suffixes or #suffixes == 0 then
+            categories['无效'][1] = '空词条列表'
+            return categories
+        end
+
+        -- UTF-8安全的排除列表处理
+        local processed_not_use_map = {}
+        for _, excl in ipairs(not_use_map or {}) do
+            if excl then
+                local processed = string.gsub(excl, "<rgb%(255,0,0%)>", "")
+                processed = _M.clean_utf8(processed)
+                processed = _M.extract_utf8_text(processed)
+                processed = string.gsub(processed, "[%d%%%s]", "")
+                table.insert(processed_not_use_map, processed)
+            end
+        end
+
+        -- UTF-8安全的优先词缀处理
+        local processed_priority_map = {}
+        if priority_enabled and priority_map then
+            for _, priority in ipairs(priority_map) do
+                if priority then
+                    local processed = string.gsub(priority, "<rgb%(255,0,0%)>", "")
+                    processed = _M.clean_utf8(processed)
+                    processed = _M.extract_utf8_text(processed)
+                    processed = string.gsub(processed, "[%d%%%s]", "")
+                    table.insert(processed_priority_map, processed)
+                end
+            end
+        end
+
+        for i, suffix in ipairs(suffixes) do
+            local suffix_name = suffix.name_utf8 or ""
+
+            -- 1. 移除RGB标签
+            local cleaned_suffix = string.gsub(suffix_name, "<rgb%(255,0,0%)>", "")
+            
+            -- 2. UTF-8安全清理
+            cleaned_suffix = _M.clean_utf8(cleaned_suffix)
+            
+            -- 3. UTF-8文本提取
+            cleaned_suffix = _M.extract_utf8_text(cleaned_suffix)
+
+            if cleaned_suffix == "" then
+                table.insert(categories['无效'], suffix_name)
+                goto continue
+            end
+
+            -- UTF-8安全的词条处理
+            local processed_suffix = string.gsub(cleaned_suffix, "[%d%%%s]", "")
+
+            -- 优先检查优先词缀（如果启用）
+            if priority_enabled then
+                for _, processed_priority in ipairs(processed_priority_map) do
+                    if string.find(processed_suffix, processed_priority, 1, true) then
+                        table.insert(categories['优先'], cleaned_suffix)
+                        goto continue
+                    end
+                end
+            end
+
+            -- UTF-8安全的排除检查
+            for _, processed_excl in ipairs(processed_not_use_map) do
+                if string.find(processed_suffix, processed_excl, 1, true) then
+                    table.insert(categories['不打'], cleaned_suffix)
+                    goto continue
+                end
+            end
+
+            -- UTF-8安全的疯癫词条检查
+            if string.find(processed_suffix, "譫妄", 1, true) then
+                table.insert(categories['譫妄'], cleaned_suffix)
+                goto continue
+            end
+
+            -- 其他UTF-8词条
+            table.insert(categories['其他'], cleaned_suffix)
+
+            ::continue::
+        end
+
+        return categories
+    end
+
+    -- 优先词缀匹配检查函数
+    local function has_priority_suffixes(suffixes)
+        if not priority_enabled or not priority_map or #priority_map == 0 then
+            return false
+        end
+
+        if not suffixes or #suffixes == 0 then
+            return false
+        end
+
+        -- 处理优先词缀列表
+        local processed_priority_map = {}
+        for _, priority in ipairs(priority_map) do
+            if priority then
+                local processed = string.gsub(priority, "<rgb%(255,0,0%)>", "")
+                processed = _M.clean_utf8(processed)
+                processed = _M.extract_utf8_text(processed)
+                processed = string.gsub(processed, "[%d%%%s]", "")
+                table.insert(processed_priority_map, processed)
+            end
+        end
+
+        -- 检查是否有匹配的优先词缀
+        for _, suffix in ipairs(suffixes) do
+            local suffix_name = suffix.name_utf8 or ""
+            local cleaned_suffix = string.gsub(suffix_name, "<rgb%(255,0,0%)>", "")
+            cleaned_suffix = _M.clean_utf8(cleaned_suffix)
+            cleaned_suffix = _M.extract_utf8_text(cleaned_suffix)
+            local processed_suffix = string.gsub(cleaned_suffix, "[%d%%%s]", "")
+
+            for _, processed_priority in ipairs(processed_priority_map) do
+                if string.find(processed_suffix, processed_priority, 1, true) then
+                    return true
+                end
+            end
+        end
+
+        return false
+    end
+
+    local best_key = nil
+    local max_score = -math.huge
+    local min_score = math.huge
+    local processed_keys = 0
+
+    -- 预处理key_level_threshold，同时解析优先词缀配置
+    local white, blue, gold, valls, level = {}, {}, {}, {}, {}
+    local priority_config_by_level = {}  -- 新增：按等级存储优先词缀配置
+
+    if key_level_threshold then
+        for _, user_map in ipairs(key_level_threshold) do
+            local tier_value = user_map['階級']
+            local level_list = {}
+            
+            if type(tier_value) == "string" and string.find(tier_value, "-") then
+                local min_tier, max_tier = tier_value:match("(%d+)-(%d+)")
+                min_tier = tonumber(min_tier)
+                max_tier = tonumber(max_tier)
+                
+                if min_tier and max_tier then
+                    for t = min_tier, max_tier do
+                        table.insert(level_list, t)
+                    end
+                end
+            else
+                local tier_num = tonumber(tier_value)
+                if tier_num then
+                    table.insert(level_list, tier_num)
+                end
+            end
+            
+            for _, lvl in ipairs(level_list) do
+                table.insert(level, lvl)
+                
+                -- 存储该等级的优先词缀配置
+                priority_config_by_level[lvl] = {
+                    priority_map = user_map['优先打词缀'] and user_map['优先打词缀']['詞綴'] or {},
+                    priority_enabled = user_map['优先打词缀'] and user_map['优先打词缀']['是否開啟'] or false
+                }
+                
+                if user_map['白'] then
+                    if not _M.table_contains(white, lvl) then
+                        table.insert(white, lvl)
+                    end
+                    if user_map['已污染'] then
+                        if not _M.table_contains(valls, lvl) then
+                            table.insert(valls, lvl)
+                        end
+                    end
+                end
+                
+                if user_map['藍'] then
+                    if not _M.table_contains(blue, lvl) then
+                        table.insert(blue, lvl)
+                    end
+                    if user_map['已污染'] then
+                        if not _M.table_contains(valls, lvl) then
+                            table.insert(valls, lvl)
+                        end
+                    end
+                end
+                
+                if user_map['黃'] then
+                    if not _M.table_contains(gold, lvl) then
+                        table.insert(gold, lvl)
+                    end
+                    if user_map['已污染'] then
+                        if not _M.table_contains(valls, lvl) then
+                            table.insert(valls, lvl)
+                        end
+                    end
+                end
+            end
+        end
+    end
+
+    -- 处理物品 - 第一阶段：过滤
+    local valid_items = {}  -- 存储所有有效的物品
+
+    for i, item in ipairs(inventory) do
+        -- 检查是否为地图钥匙
+        if not string.find(item.baseType_utf8 or "", "地圖鑰匙") then
+            goto continue
+        end
+
+        -- 颜色过滤
+        if color > 0 then
+            if (item.color or 0) < color then
+                goto continue
+            end
+        end
+
+        local key_level = item.mapLevel
+
+        -- 污染过滤
+        if vall then
+            if item.contaminated then
+                goto continue
+            end
+        end
+
+        -- 等级过滤
+        if min_level and key_level < min_level then
+            goto continue
+        end
+
+        -- 钥匙等级阈值检查
+        if key_level_threshold then
+            local valid = false
+            if item.color == 0 and #white > 0 and _M.table_contains(white, key_level) then
+                if item.contaminated and #valls > 0 and _M.table_contains(valls, key_level) then
+                    valid = true
+                end
+                valid = true
+            end
+            if item.color == 1 and #blue > 0 and _M.table_contains(blue, key_level) then
+                if item.contaminated and #valls > 0 and _M.table_contains(valls, key_level) then
+                    valid = true
+                end
+                valid = true
+            end
+            if item.color == 2 and #gold > 0 and _M.table_contains(gold, key_level) then
+                if item.contaminated and #valls > 0 and _M.table_contains(valls, key_level) then
+                    valid = true
+                end
+                valid = true
+            end
+
+            if not valid then
+                goto continue
+            end
+        end
+
+        -- 词缀长度检查
+        if entry_length > 0 then
+            if (item.fixedSuffixCount or 0) < entry_length and item.contaminated then
+                goto continue
+            end
+        end
+
+        local suffixes = nil
+        if (item.color or 0) > 0 then
+            suffixes = api_GetObjectSuffix(item.mods_obj)
+            if suffixes and #suffixes > 0 then
+                -- 排除词缀检查
+                -- _M.dbgp("检查排除词缀1")
+                if #not_use_map > 0 then
+                    -- _M.dbgp("检查排除词缀2")
+                    if _M.match_item_suffixes(suffixes, not_use_map, true) then
+                        -- _M.dbgp("检查排除词缀3")
+                        -- _M.printTable(suffixes)
+                        if trashest then
+                            best_key = item
+                            break
+                        end
+                        goto continue
+                    end
+                end
+            end
+        end
+
+        -- 通过所有过滤条件，添加到有效物品列表
+        table.insert(valid_items, item)
+        
+        ::continue::
+    end
+
+    -- 如果是trashest模式，直接返回第一个匹配的垃圾物品
+    if trashest and best_key then
+        _M.dbgp("trashest模式：选择第一个匹配的垃圾物品")
+        if click == 1 then
+            if page_type == 7 then
+                local pos =  _M.get_center_position_store_max(
+                    {best_key.start_x or 0, best_key.start_y or 0},
+                    {best_key.end_x or 0, best_key.end_y or 0},
+                    15, 100, 22, 22)
+                _M.ctrl_left_click(pos[1], pos[2])
+                return best_key.mapLevel
+            end
+            if type_map == 1 then
+                _M.ctrl_left_click_store_items(best_key.obj or nil, inventory)
+                return best_key.mapLevel
+            end
+            if type_map == 3 then
+                _M.return_more_map(best_key.obj or nil, inventory, START_X, START_Y)
+                return best_key.mapLevel
+            end
+            _M.ctrl_left_click_bag_items(best_key.obj or nil, inventory)
+            return best_key.mapLevel
+        end
+        return best_key
+    end
+
+    -- 强满足版本：每个阶级单独处理
+    local best_priority_key = nil
+    local best_priority_score = -math.huge
+    local best_priority_reason = ""
+    local found_items = {}  -- 存储找到的物品
+
+    -- 辅助函数：根据词条名称获取物品属性值
+    local function get_item_priority_value(item, priority_name)
+        if priority_name == "怪物群大小" then
+            return item.monsterPackSize
+        elseif priority_name == "稀有怪物" then
+            return item.rareMonster
+        elseif priority_name == "物品稀有度" then
+            return item.itemRarity
+        elseif priority_name == "地图掉落机率" then
+            return item.mapDropChance
+        elseif priority_name == "换届石掉落几率" then
+            return item.mapDropChance  -- 假设换届石掉落几率使用mapDropChance属性
+        else
+            _M.dbgp("未知优先词条: " .. tostring(priority_name))
+            return nil
+        end
+    end
+
+    local items_by_tier = {}
+    if #valid_items > 0 then
+        -- 按阶级分组物品
+        for i, item in ipairs(valid_items) do
+            local tier = item.mapLevel
+            if not items_by_tier[tier] then
+                items_by_tier[tier] = {}
+            end
+            table.insert(items_by_tier[tier], item)
+        end
+        -- _M.printTable(items_by_tier)
+        -- 对每个阶级单独处理
+        for tier, tier_items in pairs(items_by_tier) do
+            local level_config = priority_config_by_level[tier] or {}
+            local level_priority_enabled = level_config.priority_enabled or false
+            local level_priority_map = level_config.priority_map or {}
+
+            -- 如果该阶级没有开启优先词缀配置，跳过
+            if not level_priority_enabled or #level_priority_map == 0 then
+                goto continue_tier
+            end
+            
+            -- 第一轮：处理第一个优先词条
+            local first_priority_items = {}
+            for i, item in ipairs(tier_items) do
+                local first_priority_name = level_priority_map[1]  -- 第一个词条
+                if first_priority_name then
+                    local item_value = get_item_priority_value(item, first_priority_name)
+                    _M.dbgp(string.format("检查阶级%d物品的第1词条(%s)", tier, first_priority_name))
+                    
+                    -- 检查第一个优先词条
+                    if item_value and item_value > 0 then
+                        local score = item_value
+                        local reason = string.format("阶级%d-第1词条-%s:%d", tier, first_priority_name, score)
+                        
+                        table.insert(first_priority_items, {
+                            item = item,
+                            score = score,
+                            reason = reason,
+                            priority_index = 1,
+                            tier = tier
+                        })
+                    end
+                end
+            end
+            
+            if #first_priority_items == 0 then
+                best_priority_key = nil
+                best_priority_score = -math.huge
+                -- _M.dbgp("阶级没有满足第1词条条件的物品", tier)
+                -- api_Sleep(5000)
+                break  -- 该阶级没有满足条件的物品，整个函数返回nil
+            end
+            
+            -- 第二轮：在满足第一个词条的物品中检查第二个词条
+            local second_priority_items = {}
+            for i, data in ipairs(first_priority_items) do
+                local item = data.item
+                
+                if #level_priority_map >= 2 then
+                    local second_priority_name = level_priority_map[2]  -- 第二个词条
+                    if second_priority_name then
+                        local item_value = get_item_priority_value(item, second_priority_name)
+                        
+                        -- 检查第二个优先词条
+                        if item_value and item_value > 0 then
+                            local total_score = data.score + item_value * 0.8  -- 第二个词条权重降低
+                            local reason = data.reason .. string.format("+第2词条-%s:%d", second_priority_name, item_value)
+                            
+                            table.insert(second_priority_items, {
+                                item = item,
+                                score = total_score,
+                                reason = reason,
+                                priority_index = 2,
+                                tier = tier
+                            })
+                        end
+                    end
+                end
+                
+                -- 如果没有第二个词条，保留第一个词条的数据
+                if #level_priority_map < 2 then
+                    table.insert(second_priority_items, data)
+                end
+            end
+            
+            if #second_priority_items > 0 then
+                -- 第三轮：在满足前两个词条的物品中检查第三个词条
+                local third_priority_items = {}
+                for i, data in ipairs(second_priority_items) do
+                    local item = data.item
+                    
+                    if #level_priority_map >= 3 then
+                        local third_priority_name = level_priority_map[3]  -- 第三个词条
+                        if third_priority_name then
+                            local item_value = get_item_priority_value(item, third_priority_name)
+                            
+                            -- 检查第三个优先词条
+                            if item_value and item_value > 0 then
+                                local total_score = data.score + item_value * 0.6  -- 第三个词条权重进一步降低
+                                local reason = data.reason .. string.format("+第3词条-%s:%d", third_priority_name, item_value)
+                                
+                                table.insert(third_priority_items, {
+                                    item = item,
+                                    score = total_score,
+                                    reason = reason,
+                                    priority_index = 3,
+                                    tier = tier
+                                })
+                            end
+                        end
+                    end
+                    
+                    -- 如果没有第三个词条，保留之前的数据
+                    if #level_priority_map < 3 then
+                        table.insert(third_priority_items, data)
+                    end
+                end
+                
+                if #third_priority_items > 0 then
+                    -- 第四轮：在满足前三个词条的物品中检查第四个词条
+                    local fourth_priority_items = {}
+                    for i, data in ipairs(third_priority_items) do
+                        local item = data.item
+                        
+                        if #level_priority_map >= 4 then
+                            local fourth_priority_name = level_priority_map[4]  -- 第四个词条
+                            if fourth_priority_name then
+                                local item_value = get_item_priority_value(item, fourth_priority_name)
+                                
+                                -- 检查第四个优先词条
+                                if item_value and item_value > 0 then
+                                    local total_score = data.score + item_value * 0.4  -- 第四个词条权重最低
+                                    local reason = data.reason .. string.format("+第4词条-%s:%d", fourth_priority_name, item_value)
+
+                                    table.insert(fourth_priority_items, {
+                                        item = item,
+                                        score = total_score,
+                                        reason = reason,
+                                        priority_index = 4,
+                                        tier = tier
+                                    })
+                                end
+                            end
+                        end
+                        
+                        -- 如果没有第四个词条，保留之前的数据
+                        if #level_priority_map < 4 then
+                            table.insert(fourth_priority_items, data)
+                        end
+                    end
+                    
+                    found_items = fourth_priority_items
+                else
+                    found_items = second_priority_items
+                end
+            else
+                found_items = first_priority_items
+            end
+            
+            -- 从该阶级最终筛选出的物品中选择分数最高的
+            local tier_best_score = -math.huge
+            local tier_best_item = nil
+            local tier_best_reason = ""
+            
+            for i, data in ipairs(found_items) do
+                if data.score > tier_best_score then
+                    tier_best_score = data.score
+                    tier_best_item = data.item
+                    tier_best_reason = data.reason
+                end
+            end
+            
+            -- 更新全局最优
+            if tier_best_score > best_priority_score then
+                best_priority_score = tier_best_score
+                best_priority_key = tier_best_item
+                best_priority_reason = tier_best_reason
+            end
+            
+            ::continue_tier::
+        end
+    end
+
+    -- 第三阶段：确定最终选择
+    if not trashest then
+        if best_priority_key then
+            -- 优先选择有优先词缀的物品
+            _M.dbgp("选择优先词缀数值最高的物品: " .. best_priority_reason .. "总分数: " .. tostring(best_priority_score))
+            best_key = best_priority_key
+            max_score = best_priority_score
+        else
+            -- 如果有任何阶级开启了优先配置但没有找到匹配物品，返回nil
+            local any_priority_enabled = false
+            for tier, items in pairs(items_by_tier or {}) do
+                local level_config = priority_config_by_level[tier] or {}
+                if level_config.priority_enabled and #(level_config.priority_map or {}) > 0 then
+                    any_priority_enabled = true
+                    break
+                end
+            end
+            
+            if any_priority_enabled then
+                -- _M.dbgp("有阶级开启了优先词缀配置但未找到匹配物品，返回nil")
+                local map111 = _M.select_best_map_key_orange(params)
+                if map111 then
+                    return map111
+                end
+                return nil
+            elseif #valid_items > 0 then
+                -- 如果没有阶级开启优先配置，使用原来的评分逻辑
+                _M.dbgp("没有阶级开启优先词缀配置，使用普通评分逻辑")
+                
+                for i, item in ipairs(valid_items) do
+                    local suffixes = nil
+                    if (item.color or 0) > 0 then
+                        suffixes = api_GetObjectSuffix(item.mods_obj)
+                    end
+        
+                    -- 词缀分类和评分
+                    local categories = categorize_suffixes_utf8(suffixes or {})
+        
+                    local key_level = item.mapLevel
+                    -- 计算评分
+                    local level_weight = key_level * 5
+                    local suffix_score = 0
+                    local color_score = 25 * (item.color or 0)
+                    if item.contaminated then
+                        color_score = color_score + 100
+                    end
+        
+                    local additional_score = 0
+                    -- 基于优先级逆序的四个参数加分 (item.itemRarity最重要)
+                    if item.itemRarity then
+                        local rarity_score = item.itemRarity * 4.0
+                        if item.itemRarity >= 90 then
+                            rarity_score = rarity_score + 100
+                        elseif item.itemRarity >= 70 then
+                            rarity_score = rarity_score + 50
+                        elseif item.itemRarity >= 50 then
+                            rarity_score = rarity_score + 25
+                        end
+                        additional_score = additional_score + math.min(rarity_score, 300)
+                    end
+
+                    if item.rareMonster then
+                        local rare_score = item.rareMonster * 3.0
+                        if item.rareMonster >= 25 then
+                            rare_score = rare_score + 75
+                        elseif item.rareMonster >= 15 then
+                            rare_score = rare_score + 40
+                        elseif item.rareMonster >= 8 then
+                            rare_score = rare_score + 20
+                        end
+                        additional_score = additional_score + math.min(rare_score, 250)
+                    end
+
+                    if item.monsterPackSize then
+                        local pack_score = item.monsterPackSize * 2.0
+                        if item.monsterPackSize >= 35 then
+                            pack_score = pack_score + 50
+                        elseif item.monsterPackSize >= 25 then
+                            pack_score = pack_score + 25
+                        elseif item.monsterPackSize >= 15 then
+                            pack_score = pack_score + 10
+                        end
+                        additional_score = additional_score + math.min(pack_score, 180)
+                    end
+
+                    if item.mapDropChance then
+                        local map_score = item.mapDropChance * 1.5
+                        if item.mapDropChance >= 85 then
+                            map_score = map_score + 30
+                        elseif item.mapDropChance >= 65 then
+                            map_score = map_score + 15
+                        elseif item.mapDropChance >= 45 then
+                            map_score = map_score + 8
+                        end
+                        additional_score = additional_score + math.min(map_score, 150)
+                    end
+        
+                    local total_score
+                    if no_categorize_suffixes == 0 then
+                        total_score = level_weight + suffix_score + color_score + additional_score
+                    else
+                        total_score = level_weight + color_score + additional_score
+                    end
+        
+                    -- 记录最优
+                    if index == 0 then
+                        if total_score > max_score and total_score > 0 then
+                            max_score = total_score
+                            best_key = item
+                        end
+                    else
+                        if total_score < min_score then
+                            min_score = total_score
+                            best_key = item
+                        end
+                    end
+                end
+            else
+                _M.dbgp("没有找到任何有效的物品")
+                best_key = nil
+            end
+        end
+    else
+        -- trashest模式：选择最垃圾的物品（评分最低的）
+        _M.dbgp("trashest模式：选择评分最低的物品")
+        local worst_score = math.huge
+        local worst_key = nil
+        
+        for i, item in ipairs(valid_items) do
+            local suffixes = nil
+            if (item.color or 0) > 0 then
+                suffixes = api_GetObjectSuffix(item.mods_obj)
+            end
+
+            -- 词缀分类和评分
+            local categories = categorize_suffixes_utf8(suffixes or {})
+
+            local key_level = item.mapLevel
+            -- 计算评分（与正常模式相同）
+            local level_weight = key_level * 5
+            local suffix_score = 0
+            local color_score = 25 * (item.color or 0)
+            if item.contaminated then
+                color_score = color_score + 100
+            end
+
+            local additional_score = 0
+            if item.itemRarity then
+                local rarity_score = item.itemRarity * 4.0
+                additional_score = additional_score + math.min(rarity_score, 300)
+            end
+            if item.rareMonster then
+                local rare_score = item.rareMonster * 3.0
+                additional_score = additional_score + math.min(rare_score, 250)
+            end
+            if item.monsterPackSize then
+                local pack_score = item.monsterPackSize * 2.0
+                additional_score = additional_score + math.min(pack_score, 180)
+            end
+            if item.mapDropChance then
+                local map_score = item.mapDropChance * 1.5
+                additional_score = additional_score + math.min(map_score, 150)
+            end
+
+            local total_score
+            if no_categorize_suffixes == 0 then
+                total_score = level_weight + suffix_score + color_score + additional_score
+            else
+                total_score = level_weight + color_score + additional_score
+            end
+
+            -- 选择评分最低的物品
+            if total_score < worst_score then
+                worst_score = total_score
+                worst_key = item
+            end
+        end
+        
+        best_key = worst_key
+        max_score = worst_score
+    end
+
+    -- 后续处理逻辑
+    if best_key then
+        if score ~= 0 then
+            local final_score = 0
+            if index == 0 then
+                final_score = max_score or 0
+            else
+                final_score = min_score or 0
+            end
+            return best_key, final_score
+        end
+    else
+        _M.dbgp("警告: best_key 为 nil")
+    end
+
+    -- 执行选择
+    if best_key then
+        if score == 1 then
+            return best_key, best_key.mapLevel
+        end
+        if click == 1 then
+            if page_type == 7 then
+                local pos =  _M.get_center_position_store_max(
+                    {best_key.start_x or 0, best_key.start_y or 0},
+                    {best_key.end_x or 0, best_key.end_y or 0},
+                    15, 100, 22, 22)
+                _M.ctrl_left_click(pos[1], pos[2])
+                return best_key.mapLevel
+            end
+            if type_map == 1 then
+                _M.ctrl_left_click_store_items(best_key.obj or nil, inventory)
+                return best_key.mapLevel
+            end
+            if type_map == 3 then
+                _M.return_more_map(best_key.obj or nil, inventory, START_X, START_Y)
+                return best_key.mapLevel
+            end
+
+            _M.ctrl_left_click_bag_items(best_key.obj or nil, inventory)
+            return best_key.mapLevel
+        end
+        return best_key
+    else
+        return nil
+    end
+
+    return best_key
+end
+
+-- 选择最优地图钥匙
+_M.select_best_map_key2 = function(params)
+    -- 解析参数表
+    local inventory = params.inventory
+    local click = params.click or 0
+    local key_level_threshold = params.key_level_threshold
+    local type_map = params.type or 0
+    local index = params.index or 0
+    local score = params.score or 0
+    local no_categorize_suffixes = params.no_categorize_suffixes or 0
+    local min_level = params.min_level
+    local not_use_map = params.not_use_map or {}
+    local trashest = params.trashest or false
+    local page_type = params.page_type
+    local entry_length = params.entry_length or 0
+    local START_X = params.START_X or 0
+    local START_Y = params.START_Y or 0
+    local color = params.color or 0
+    local vall = params.vall or false
+    local instill = params.instill or false
+
+    -- 新增：优先打词缀配置
+    local priority_map = params.priority_map or {}
+    local priority_enabled = params.priority_enabled or false
+
+    if not inventory or #inventory == 0 then
+        _M.dbgp("背包为空")
+        return nil
+    end
+
+    -- UTF-8优化的词缀分类
+    local function categorize_suffixes_utf8(suffixes)
+        local categories = {
+            ['譫妄'] = {},
+            ['其他'] = {},
+            ['不打'] = {},
+            ['无效'] = {},
+            ['优先'] = {}  -- 新增：优先词缀分类
+        }
+
+        if not suffixes or #suffixes == 0 then
+            categories['无效'][1] = '空词条列表'
+            return categories
+        end
+
+        -- UTF-8安全的排除列表处理
+        local processed_not_use_map = {}
+        for _, excl in ipairs(not_use_map or {}) do
+            if excl then
+                local processed = string.gsub(excl, "<rgb%(255,0,0%)>", "")
+                processed = _M.clean_utf8(processed)
+                processed = _M.extract_utf8_text(processed)
+                processed = string.gsub(processed, "[%d%%%s]", "")
+                table.insert(processed_not_use_map, processed)
+            end
+        end
+
+        -- UTF-8安全的优先词缀处理
+        local processed_priority_map = {}
+        if priority_enabled and priority_map then
+            for _, priority in ipairs(priority_map) do
+                if priority then
+                    local processed = string.gsub(priority, "<rgb%(255,0,0%)>", "")
+                    processed = _M.clean_utf8(processed)
+                    processed = _M.extract_utf8_text(processed)
+                    processed = string.gsub(processed, "[%d%%%s]", "")
+                    table.insert(processed_priority_map, processed)
+                end
+            end
+        end
+
+        for i, suffix in ipairs(suffixes) do
+            local suffix_name = suffix.name_utf8 or ""
+
+            -- 1. 移除RGB标签
+            local cleaned_suffix = string.gsub(suffix_name, "<rgb%(255,0,0%)>", "")
+            
+            -- 2. UTF-8安全清理
+            cleaned_suffix = _M.clean_utf8(cleaned_suffix)
+            
+            -- 3. UTF-8文本提取
+            cleaned_suffix = _M.extract_utf8_text(cleaned_suffix)
+
+            if cleaned_suffix == "" then
+                table.insert(categories['无效'], suffix_name)
+                goto continue
+            end
+
+            -- UTF-8安全的词条处理
+            local processed_suffix = string.gsub(cleaned_suffix, "[%d%%%s]", "")
+
+            -- 优先检查优先词缀（如果启用）
+            if priority_enabled then
+                for _, processed_priority in ipairs(processed_priority_map) do
+                    if string.find(processed_suffix, processed_priority, 1, true) then
+                        table.insert(categories['优先'], cleaned_suffix)
+                        goto continue
+                    end
+                end
+            end
+
+            -- UTF-8安全的排除检查
+            for _, processed_excl in ipairs(processed_not_use_map) do
+                if string.find(processed_suffix, processed_excl, 1, true) then
+                    table.insert(categories['不打'], cleaned_suffix)
+                    goto continue
+                end
+            end
+
+            -- UTF-8安全的疯癫词条检查
+            if string.find(processed_suffix, "譫妄", 1, true) then
+                table.insert(categories['譫妄'], cleaned_suffix)
+                goto continue
+            end
+
+            -- 其他UTF-8词条
+            table.insert(categories['其他'], cleaned_suffix)
+
+            ::continue::
+        end
+
+        return categories
+    end
+
+    -- 优先词缀匹配检查函数
+    local function has_priority_suffixes(suffixes)
+        if not priority_enabled or not priority_map or #priority_map == 0 then
+            return false
+        end
+
+        if not suffixes or #suffixes == 0 then
+            return false
+        end
+
+        -- 处理优先词缀列表
+        local processed_priority_map = {}
+        for _, priority in ipairs(priority_map) do
+            if priority then
+                local processed = string.gsub(priority, "<rgb%(255,0,0%)>", "")
+                processed = _M.clean_utf8(processed)
+                processed = _M.extract_utf8_text(processed)
+                processed = string.gsub(processed, "[%d%%%s]", "")
+                table.insert(processed_priority_map, processed)
+            end
+        end
+
+        -- 检查是否有匹配的优先词缀
+        for _, suffix in ipairs(suffixes) do
+            local suffix_name = suffix.name_utf8 or ""
+            local cleaned_suffix = string.gsub(suffix_name, "<rgb%(255,0,0%)>", "")
+            cleaned_suffix = _M.clean_utf8(cleaned_suffix)
+            cleaned_suffix = _M.extract_utf8_text(cleaned_suffix)
+            local processed_suffix = string.gsub(cleaned_suffix, "[%d%%%s]", "")
+
+            for _, processed_priority in ipairs(processed_priority_map) do
+                if string.find(processed_suffix, processed_priority, 1, true) then
+                    return true
+                end
+            end
+        end
+
+        return false
+    end
+
+    local best_key = nil
+    local max_score = -math.huge
+    local min_score = math.huge
+    local processed_keys = 0
+
+    -- 预处理key_level_threshold，同时解析优先词缀配置
+    local white, blue, gold, valls, level = {}, {}, {}, {}, {}
+    local priority_config_by_level = {}  -- 新增：按等级存储优先词缀配置
+
+    if key_level_threshold then
+        for _, user_map in ipairs(key_level_threshold) do
+            local tier_value = user_map['階級']
+            local level_list = {}
+            
+            if type(tier_value) == "string" and string.find(tier_value, "-") then
+                local min_tier, max_tier = tier_value:match("(%d+)-(%d+)")
+                min_tier = tonumber(min_tier)
+                max_tier = tonumber(max_tier)
+                
+                if min_tier and max_tier then
+                    for t = min_tier, max_tier do
+                        table.insert(level_list, t)
+                    end
+                end
+            else
+                local tier_num = tonumber(tier_value)
+                if tier_num then
+                    table.insert(level_list, tier_num)
+                end
+            end
+            
+            for _, lvl in ipairs(level_list) do
+                table.insert(level, lvl)
+                
+                -- 存储该等级的优先词缀配置
+                priority_config_by_level[lvl] = {
+                    priority_map = user_map['优先打词缀'] and user_map['优先打词缀']['詞綴'] or {},
+                    priority_enabled = user_map['优先打词缀'] and user_map['优先打词缀']['是否開啟'] or false
+                }
+                
+                if user_map['白'] then
+                    if not _M.table_contains(white, lvl) then
+                        table.insert(white, lvl)
+                    end
+                    if user_map['已污染'] then
+                        if not _M.table_contains(valls, lvl) then
+                            table.insert(valls, lvl)
+                        end
+                    end
+                end
+                
+                if user_map['藍'] then
+                    if not _M.table_contains(blue, lvl) then
+                        table.insert(blue, lvl)
+                    end
+                    if user_map['已污染'] then
+                        if not _M.table_contains(valls, lvl) then
+                            table.insert(valls, lvl)
+                        end
+                    end
+                end
+                
+                if user_map['黃'] then
+                    if not _M.table_contains(gold, lvl) then
+                        table.insert(gold, lvl)
+                    end
+                    if user_map['已污染'] then
+                        if not _M.table_contains(valls, lvl) then
+                            table.insert(valls, lvl)
+                        end
+                    end
+                end
+            end
+        end
+        
+        -- _M.dbgp("预处理完成，各等级优先词缀配置:")
+        -- for lvl, config in pairs(priority_config_by_level) do
+        --     _M.dbgp(string.format("等级 %d: 启用=%s, 词缀=%s", 
+        --         lvl, tostring(config.priority_enabled), 
+        --         table.concat(config.priority_map or {}, ", ")))
+        -- end
+    end
+
+    -- 处理物品 - 第一阶段：过滤
+    local valid_items = {}  -- 存储所有有效的物品
+
+    for i, item in ipairs(inventory) do
+        -- 检查是否为地图钥匙
+        if not string.find(item.baseType_utf8 or "", "地圖鑰匙") then
+            goto continue
+        end
+
+        -- 颜色过滤
+        if color > 0 then
+            if (item.color or 0) < color then
+                goto continue
+            end
+        end
+
+        local key_level = item.mapLevel
+
+        -- 污染过滤
+        if vall then
+            if item.contaminated then
+                goto continue
+            end
+        end
+
+        -- 等级过滤
+        if min_level and key_level < min_level then
+            goto continue
+        end
+
+        -- 钥匙等级阈值检查
+        if key_level_threshold then
+            local valid = false
+            if item.color == 0 and #white > 0 and _M.table_contains(white, key_level) then
+                if item.contaminated and #valls > 0 and _M.table_contains(valls, key_level) then
+                    valid = true
+                end
+                valid = true
+            end
+            if item.color == 1 and #blue > 0 and _M.table_contains(blue, key_level) then
+                if item.contaminated and #valls > 0 and _M.table_contains(valls, key_level) then
+                    valid = true
+                end
+                valid = true
+            end
+            if item.color == 2 and #gold > 0 and _M.table_contains(gold, key_level) then
+                if item.contaminated and #valls > 0 and _M.table_contains(valls, key_level) then
+                    valid = true
+                end
+                valid = true
+            end
+
+            if not valid then
+                goto continue
+            end
+        end
+
+        -- 词缀长度检查
+        if entry_length > 0 then
+            if (item.fixedSuffixCount or 0) < entry_length and item.contaminated then
+                goto continue
+            end
+        end
+
+        local suffixes = nil
+        if (item.color or 0) > 0 then
+            suffixes = api_GetObjectSuffix(item.mods_obj)
+            if suffixes and #suffixes > 0 then
+                -- 排除词缀检查
+                if #not_use_map > 0 then
+                    if _M.match_item_suffixes(suffixes, not_use_map, true) then
+                        if trashest then
+                            best_key = item
+                            break
+                        end
+                        goto continue
+                    end
+                end
+            end
+        end
+
+        -- 通过所有过滤条件，添加到有效物品列表
+        table.insert(valid_items, item)
+        
+        ::continue::
+    end
+
+    -- 强满足版本：每个阶级单独处理
+    local best_priority_key = nil
+    local best_priority_score = -math.huge
+    local best_priority_reason = ""
+    local found_items = {}  -- 存储找到的物品
+
+    -- 辅助函数：根据词条名称获取物品属性值
+    local function get_item_priority_value(item, priority_name)
+        if priority_name == "怪物群大小" then
+            return item.monsterPackSize
+        elseif priority_name == "稀有怪物" then
+            return item.rareMonster
+        elseif priority_name == "物品稀有度" then
+            return item.itemRarity
+        elseif priority_name == "地图掉落机率" then
+            return item.mapDropChance
+        elseif priority_name == "换届石掉落几率" then
+            return item.mapDropChance  -- 假设换届石掉落几率使用mapDropChance属性
+        else
+            _M.dbgp("未知优先词条: " .. tostring(priority_name))
+            return nil
+        end
+    end
+
+    local items_by_tier = {}
+    if #valid_items > 0 then
+        -- _M.dbgp("开始处理 " .. #valid_items .. " 个有效物品的优先词缀")
+        
+        -- 按阶级分组物品
+        for i, item in ipairs(valid_items) do
+            local tier = item.mapLevel
+            if not items_by_tier[tier] then
+                items_by_tier[tier] = {}
+            end
+            table.insert(items_by_tier[tier], item)
+        end
+        
+        -- 对每个阶级单独处理
+        for tier, tier_items in pairs(items_by_tier) do
+            local level_config = priority_config_by_level[tier] or {}
+            local level_priority_enabled = level_config.priority_enabled or false
+            local level_priority_map = level_config.priority_map or {}
+
+            -- _M.printTable(level_config)
+            -- _M.printTable(level_priority_enabled)
+            -- _M.printTable(level_priority_map)
+
+            -- _M.dbgp(string.format("处理阶级%d: 配置开启=%s, 词缀数量=%d, 物品数量=%d", 
+            --     tier, tostring(level_priority_enabled), #level_priority_map, #tier_items))
+            
+            -- 如果该阶级没有开启优先词缀配置，跳过
+            if not level_priority_enabled or #level_priority_map == 0 then
+                -- _M.dbgp(string.format("阶级%d未开启优先词缀配置，跳过", tier))
+                goto continue_tier
+            end
+            
+            -- 第一轮：处理第一个优先词条
+            local first_priority_items = {}
+            for i, item in ipairs(tier_items) do
+                local first_priority_name = level_priority_map[1]  -- 第一个词条
+                if first_priority_name then
+                    local item_value = get_item_priority_value(item, first_priority_name)
+                    
+                    -- 检查第一个优先词条
+                    if item_value and item_value > 0 then
+                        local score = item_value
+                        local reason = string.format("阶级%d-第1词条-%s:%d", tier, first_priority_name, score)
+                        
+                        -- _M.dbgp(string.format("阶级%d钥匙满足第1词条(%s): %d", 
+                        --     tier, first_priority_name, score))
+                        
+                        table.insert(first_priority_items, {
+                            item = item,
+                            score = score,
+                            reason = reason,
+                            priority_index = 1,
+                            tier = tier
+                        })
+                    end
+                end
+            end
+            
+            if #first_priority_items == 0 then
+                -- _M.dbgp(string.format("阶级%d没有找到满足第1词条的物品，该阶级返回nil", tier))
+                best_priority_key = nil
+                best_priority_score = -math.huge
+                break  -- 该阶级没有满足条件的物品，整个函数返回nil
+            end
+            
+            -- _M.dbgp(string.format("阶级%d找到 %d 个满足第1词条的物品", tier, #first_priority_items))
+            
+            -- 第二轮：在满足第一个词条的物品中检查第二个词条
+            local second_priority_items = {}
+            for i, data in ipairs(first_priority_items) do
+                local item = data.item
+                
+                if #level_priority_map >= 2 then
+                    local second_priority_name = level_priority_map[2]  -- 第二个词条
+                    if second_priority_name then
+                        local item_value = get_item_priority_value(item, second_priority_name)
+                        
+                        -- 检查第二个优先词条
+                        if item_value and item_value > 0 then
+                            local total_score = data.score + item_value * 0.8  -- 第二个词条权重降低
+                            local reason = data.reason .. string.format("+第2词条-%s:%d", second_priority_name, item_value)
+                            
+                            -- _M.dbgp(string.format("阶级%d物品同时满足第2词条(%s): %d, 总分: %d", 
+                            --     tier, second_priority_name, item_value, total_score))
+                            -- _M.dbgp("阶级" .. tier .. "物品同时满足第2词条(" .. second_priority_name .. "): " .. item_value .. ", 总分: " .. total_score)
+                            
+                            table.insert(second_priority_items, {
+                                item = item,
+                                score = total_score,
+                                reason = reason,
+                                priority_index = 2,
+                                tier = tier
+                            })
+                        end
+                    end
+                end
+                
+                -- 如果没有第二个词条，保留第一个词条的数据
+                if #level_priority_map < 2 then
+                    table.insert(second_priority_items, data)
+                end
+            end
+            
+            if #second_priority_items > 0 then
+                -- _M.dbgp(string.format("阶级%d第二轮筛选后剩余 %d 个物品", tier, #second_priority_items))
+                
+                -- 第三轮：在满足前两个词条的物品中检查第三个词条
+                local third_priority_items = {}
+                for i, data in ipairs(second_priority_items) do
+                    local item = data.item
+                    
+                    if #level_priority_map >= 3 then
+                        local third_priority_name = level_priority_map[3]  -- 第三个词条
+                        if third_priority_name then
+                            local item_value = get_item_priority_value(item, third_priority_name)
+                            
+                            -- 检查第三个优先词条
+                            if item_value and item_value > 0 then
+                                local total_score = data.score + item_value * 0.6  -- 第三个词条权重进一步降低
+                                local reason = data.reason .. string.format("+第3词条-%s:%d", third_priority_name, item_value)
+                                
+                                -- _M.dbgp(string.format("阶级%d物品同时满足第3词条(%s): %d, 总分: %d", 
+                                --     tier, third_priority_name, item_value, total_score))
+                                -- _M.dbgp("阶级" .. tier .. "物品同时满足第3词条(" .. third_priority_name .. "): " .. item_value .. ", 总分: " .. total_score)
+                                
+                                table.insert(third_priority_items, {
+                                    item = item,
+                                    score = total_score,
+                                    reason = reason,
+                                    priority_index = 3,
+                                    tier = tier
+                                })
+                            end
+                        end
+                    end
+                    
+                    -- 如果没有第三个词条，保留之前的数据
+                    if #level_priority_map < 3 then
+                        table.insert(third_priority_items, data)
+                    end
+                end
+                
+                if #third_priority_items > 0 then
+                    -- _M.dbgp(string.format("阶级%d第三轮筛选后剩余 %d 个物品", tier, #third_priority_items))
+                    
+                    -- 第四轮：在满足前三个词条的物品中检查第四个词条
+                    local fourth_priority_items = {}
+                    for i, data in ipairs(third_priority_items) do
+                        local item = data.item
+                        
+                        if #level_priority_map >= 4 then
+                            local fourth_priority_name = level_priority_map[4]  -- 第四个词条
+                            if fourth_priority_name then
+                                local item_value = get_item_priority_value(item, fourth_priority_name)
+                                
+                                -- 检查第四个优先词条
+                                if item_value and item_value > 0 then
+                                    local total_score = data.score + item_value * 0.4  -- 第四个词条权重最低
+                                    local reason = data.reason .. string.format("+第4词条-%s:%d", fourth_priority_name, item_value)
+                                    
+                                    -- _M.dbgp(string.format("阶级%d物品同时满足第4词条(%s): %d, 总分: %d", 
+                                    --     tier, fourth_priority_name, item_value, total_score))
+                                    -- _M.dbgp("阶级" .. tier .. "物品同时满足第4词条(" .. fourth_priority_name .. "): " .. item_value .. ", 总分: " .. total_score)
+
+                                    table.insert(fourth_priority_items, {
+                                        item = item,
+                                        score = total_score,
+                                        reason = reason,
+                                        priority_index = 4,
+                                        tier = tier
+                                    })
+                                end
+                            end
+                        end
+                        
+                        -- 如果没有第四个词条，保留之前的数据
+                        if #level_priority_map < 4 then
+                            table.insert(fourth_priority_items, data)
+                        end
+                    end
+                    
+                    found_items = fourth_priority_items
+                else
+                    found_items = second_priority_items
+                end
+            else
+                found_items = first_priority_items
+            end
+            
+            -- 从该阶级最终筛选出的物品中选择分数最高的
+            local tier_best_score = -math.huge
+            local tier_best_item = nil
+            local tier_best_reason = ""
+            
+            for i, data in ipairs(found_items) do
+                if data.score > tier_best_score then
+                    tier_best_score = data.score
+                    tier_best_item = data.item
+                    tier_best_reason = data.reason
+                end
+            end
+            
+            -- 更新全局最优
+            if tier_best_score > best_priority_score then
+                best_priority_score = tier_best_score
+                best_priority_key = tier_best_item
+                best_priority_reason = tier_best_reason
+            end
+            
+            -- _M.dbgp(string.format("阶级%d最优: %s 总分数: %d", tier, tier_best_reason, tier_best_score))
+            -- _M.dbgp("阶级" .. tier .. "最优: " .. tier_best_reason .. "总分数: " .. tier_best_score )
+            
+            ::continue_tier::
+        end
+    else
+        -- _M.dbgp("没有有效物品可供处理")
+    end
+
+    -- 第三阶段：确定最终选择
+    if not trashest then
+        if best_priority_key then
+            -- 优先选择有优先词缀的物品
+            -- _M.dbgp("选择优先词缀数值最高的物品: " .. best_priority_reason .. "总分数: " .. tostring(best_priority_score))
+            best_key = best_priority_key
+            max_score = best_priority_score
+        else
+            -- 如果有任何阶级开启了优先配置但没有找到匹配物品，返回nil
+            local any_priority_enabled = false
+            -- _M.printTable(items_by_tier)
+            for tier, items in pairs(items_by_tier or {}) do
+                local level_config = priority_config_by_level[tier] or {}
+                if level_config.priority_enabled and #(level_config.priority_map or {}) > 0 then
+                    any_priority_enabled = true
+                    -- _M.dbgp(string.format("阶级%d开启了优先配置但未找到匹配物品", tier))
+                    break
+                end
+            end
+            
+            if any_priority_enabled then
+                -- _M.dbgp("有阶级开启了优先词缀配置但未找到匹配物品，返回nil")
+                return nil
+            elseif #valid_items > 0 then
+                -- 如果没有阶级开启优先配置，使用原来的评分逻辑
+                -- _M.dbgp("没有阶级开启优先词缀配置，使用普通评分逻辑")
+                
+                for i, item in ipairs(valid_items) do
+                    local suffixes = nil
+                    if (item.color or 0) > 0 then
+                        suffixes = api_GetObjectSuffix(item.mods_obj)
+                    end
+        
+                    -- 词缀分类和评分
+                    local categories = categorize_suffixes_utf8(suffixes or {})
+        
+                    -- trashest模式处理
+                    if trashest and
+                        not (categories['譫妄'][1] or categories['其他'][1] or
+                            categories['不打'][1] or categories['优先'][1]) then
+                        best_key = item
+                        break
+                    end
+        
+                    local key_level = item.mapLevel
+                    -- 计算评分
+                    local level_weight = key_level * 5
+                    -- local suffix_score = calculate_score_utf8(categories, {})
+                    local suffix_score = 0
+                    local color_score = 25 * (item.color or 0)
+                    if item.contaminated then
+                        color_score = color_score + 100
+                    end
+        
+                    local additional_score = 0
+                    -- 基于优先级逆序的四个参数加分 (item.itemRarity最重要)
+                    -- 优先级1: item.itemRarity (最重要)
+                    if item.itemRarity then
+                        -- 最高权重，基础分 + 分级奖励
+                        local rarity_score = item.itemRarity * 4.0  -- 最高权重系数
+                        if item.itemRarity >= 90 then
+                            rarity_score = rarity_score + 100  -- 顶级奖励
+                        elseif item.itemRarity >= 70 then
+                            rarity_score = rarity_score + 50   -- 高级奖励
+                        elseif item.itemRarity >= 50 then
+                            rarity_score = rarity_score + 25   -- 中级奖励
+                        end
+                        additional_score = additional_score + math.min(rarity_score, 300)  -- 设置上限
+                    end
+
+                    -- 优先级2: item.rareMonster (第二重要)
+                    if item.rareMonster then
+                        local rare_score = item.rareMonster * 3.0  -- 较高权重
+                        if item.rareMonster >= 25 then
+                            rare_score = rare_score + 75
+                        elseif item.rareMonster >= 15 then
+                            rare_score = rare_score + 40
+                        elseif item.rareMonster >= 8 then
+                            rare_score = rare_score + 20
+                        end
+                        additional_score = additional_score + math.min(rare_score, 250)
+                    end
+
+                    -- 优先级3: item.monsterPackSize (第三重要)
+                    if item.monsterPackSize then
+                        local pack_score = item.monsterPackSize * 2.0  -- 中等权重
+                        if item.monsterPackSize >= 35 then
+                            pack_score = pack_score + 50
+                        elseif item.monsterPackSize >= 25 then
+                            pack_score = pack_score + 25
+                        elseif item.monsterPackSize >= 15 then
+                            pack_score = pack_score + 10
+                        end
+                        additional_score = additional_score + math.min(pack_score, 180)
+                    end
+
+                    -- 优先级4: item.mapDropChance (最不重要)
+                    if item.mapDropChance then
+                        local map_score = item.mapDropChance * 1.5  -- 较低权重
+                        if item.mapDropChance >= 85 then
+                            map_score = map_score + 30
+                        elseif item.mapDropChance >= 65 then
+                            map_score = map_score + 15
+                        elseif item.mapDropChance >= 45 then
+                            map_score = map_score + 8
+                        end
+                        additional_score = additional_score + math.min(map_score, 150)
+                    end
+        
+                    local total_score
+                    if no_categorize_suffixes == 0 then
+                        total_score = level_weight + suffix_score + color_score + additional_score
+                    else
+                        total_score = level_weight + color_score + additional_score
+                    end
+        
+                    -- 记录最优
+                    if index == 0 then
+                        if total_score > max_score and total_score > 0 then
+                            max_score = total_score
+                            best_key = item
+                        end
+                    else
+                        if total_score < min_score then
+                            min_score = total_score
+                            best_key = item
+                        end
+                    end
+                end
+            else
+                _M.dbgp("没有找到任何有效的物品")
+                best_key = nil
+            end
+        end
+    end
+    
+    -- 第三阶段：确定最终选择
+    if best_priority_key then
+        -- 优先选择有优先词缀的物品
+        _M.dbgp("选择优先词缀数值最高的物品: " .. best_priority_reason .. "总分数: " .. tostring(best_priority_score))
+        best_key = best_priority_key
+        max_score = best_priority_score
+    elseif has_priority_config then
+        -- 优先配置已开启但未找到匹配物品，返回nil
+        _M.dbgp("优先词缀配置已开启但未找到匹配物品，返回nil")
+        return nil
+    elseif #valid_items > 0 then
+        -- 如果没有优先词缀配置或未开启，使用原来的评分逻辑
+        _M.dbgp("没有优先词缀配置或未开启，使用普通评分逻辑")
+        
+        for i, item in ipairs(valid_items) do
+            local suffixes = nil
+            if (item.color or 0) > 0 then
+                suffixes = api_GetObjectSuffix(item.mods_obj)
+            end
+
+            -- 词缀分类和评分
+            local categories = categorize_suffixes_utf8(suffixes or {})
+
+            -- trashest模式处理
+            if trashest and
+                not (categories['譫妄'][1] or categories['其他'][1] or
+                    categories['不打'][1] or categories['优先'][1]) then
+                best_key = item
+                break
+            end
+
+            local key_level = item.mapLevel
+            -- 计算评分
+            local level_weight = key_level * 5
+            -- local suffix_score = calculate_score_utf8(categories, {})
+            local suffix_score = 0
+            local color_score = 25 * (item.color or 0)
+            if item.contaminated then
+                color_score = color_score + 100
+            end
+
+            local additional_score = 0
+
+            local total_score
+            if no_categorize_suffixes == 0 then
+                total_score = level_weight + suffix_score + color_score + additional_score
+            else
+                total_score = level_weight + color_score + additional_score
+            end
+
+            -- 记录最优
+            if index == 0 then
+                if total_score > max_score and total_score > 0 then
+                    max_score = total_score
+                    best_key = item
+                end
+            else
+                if total_score < min_score then
+                    min_score = total_score
+                    best_key = item
+                end
+            end
+        end
+    else
+        -- _M.dbgp("没有找到任何有效的物品")
+        best_key = nil
+    end
+
+    -- 后续的点击和执行逻辑保持不变...
+    -- 后续处理逻辑（保持不变）
+    if best_key then
+        if score ~= 0 then
+            local final_score = 0
+            if index == 0 then
+                final_score = max_score or 0
+            else
+                final_score = min_score or 0
+            end
+            return best_key, final_score
+        end
+    else
+        _M.dbgp("警告: best_key 为 nil")
+    end
+
+    -- 执行选择
+    if best_key then
+        -- _M.api_print(f"█ 最优选择：{best_key.name_utf8} | 评分：{max_score}")
+        if score == 1 then
+            return best_key, best_key.mapLevel
+        end
+        if click == 1 then
+            if page_type == 7 then
+                local pos =  _M.get_center_position_store_max(
+                    {best_key.start_x or 0, best_key.start_y or 0},
+                    {best_key.end_x or 0, best_key.end_y or 0},
+                    15, 100, 22, 22)
+                _M.ctrl_left_click(pos[1], pos[2])
+                return best_key.mapLevel
+            end
+            if type_map == 1 then
+                -- _M.api_print(11111111111111)
+                _M.ctrl_left_click_store_items(best_key.obj or nil, inventory)
+                return best_key.mapLevel
+            end
+            if type_map == 3 then
+                _M.return_more_map(best_key.obj or nil, inventory, START_X, START_Y)
+                return best_key.mapLevel
+            end
+
+            _M.ctrl_left_click_bag_items(best_key.obj or nil, inventory)
+            return best_key.mapLevel
+        end
+        return best_key
+    else
+        -- _M.api_print("⚠️ 未找到符合条件的地图钥匙")
+        return nil
+    end
+
+    return best_key
+end
+
+-- 选择最优地图钥匙
+_M.select_best_map_key_orange = function(params)
     -- 解析参数表
     local inventory = params.inventory
     local click = params.click or 0
@@ -3277,91 +5128,6 @@ _M.select_best_map_key = function(params)
         return nil
     end
 
-    -- UTF-8安全清理函数（最终版）
-    local function clean_utf8(s)
-        if not s or s == "" then
-            return ""
-        end
-    
-        local result = {}
-        local i = 1
-        local len = #s
-        
-        while i <= len do
-            local byte = string.byte(s, i)
-            
-            -- ASCII字符（0-127）
-            if byte < 128 then
-                if not string.match(string.char(byte), "[%s　]") then
-                    table.insert(result, string.char(byte))
-                end
-                i = i + 1
-            -- UTF-8多字节字符
-            else
-                local char
-                if byte >= 0xC0 and byte < 0xE0 then  -- 2字节字符
-                    char = string.sub(s, i, i+1)
-                    i = i + 2
-                elseif byte >= 0xE0 and byte < 0xF0 then  -- 3字节字符（包括中文）
-                    char = string.sub(s, i, i+2)
-                    i = i + 3
-                elseif byte >= 0xF0 then  -- 4字节字符
-                    char = string.sub(s, i, i+3)
-                    i = i + 4
-                else  -- 非法UTF-8起始字节
-                    i = i + 1  -- 跳过无效字节
-                    goto continue
-                end
-                
-                -- 验证字符有效性
-                if utf8.len(char) == 1 then
-                    table.insert(result, char)
-                end
-            end
-            ::continue::
-        end
-        
-        return table.concat(result)
-    end
-
-    -- UTF-8安全文本提取（最终版）
-    local function extract_utf8_text(s)
-        if not s or s == "" then
-            return ""
-        end
-        
-        local result = {}
-        local i = 1
-        while i <= #s do
-            local c = string.sub(s, i, i)
-            
-            -- 处理通配符 {数字}
-            if c == "{" then
-                local j = i
-                while j <= #s and string.sub(s, j, j) ~= "}" do
-                    j = j + 1
-                end
-                if j <= #s then
-                    i = j + 1  -- 跳过整个{}块
-                else
-                    i = i + 1
-                end
-            -- 过滤特殊符号但保护多字节字符
-            elseif c:match("[+%-%%#%$%^%*%(%)]") and #c == 1 then
-                i = i + 1
-            else
-                -- 安全获取完整UTF-8字符
-                local char = utf8.char(utf8.codepoint(s, i))
-                table.insert(result, char)
-                i = i + #char  -- 正确跳过多字节字符
-            end
-        end
-        
-        return table.concat(result)
-    end
-
-    
-
     -- UTF-8优化的词缀分类
     local function categorize_suffixes_utf8(suffixes)
         -- _M.dbgp("开始UTF-8词缀分类...")
@@ -3386,10 +5152,10 @@ _M.select_best_map_key = function(params)
                 local processed = string.gsub(excl, "<rgb%(255,0,0%)>", "")
                 
                 -- 2. UTF-8安全清理
-                processed = clean_utf8(processed)
+                processed = _M.clean_utf8(processed)
                 
                 -- 3. UTF-8文本提取
-                processed = extract_utf8_text(processed)
+                processed = _M.extract_utf8_text(processed)
                 
                 processed = string.gsub(processed, "[%d%%%s]", "")
 
@@ -3413,11 +5179,11 @@ _M.select_best_map_key = function(params)
             -- _M.dbgp("移除RGB后: "..cleaned_suffix)
             
             -- 2. UTF-8安全清理
-            cleaned_suffix = clean_utf8(cleaned_suffix)
-            -- _M.dbgp("clean_utf8后: "..cleaned_suffix)
+            cleaned_suffix = _M.clean_utf8(cleaned_suffix)
+            -- _M.dbgp("_M.clean_utf8后: "..cleaned_suffix)
             
             -- 3. UTF-8文本提取
-            cleaned_suffix = extract_utf8_text(cleaned_suffix)
+            cleaned_suffix = _M.extract_utf8_text(cleaned_suffix)
             -- _M.dbgp("extract_utf8_text后: "..cleaned_suffix)
 
             if cleaned_suffix == "" then
@@ -3663,7 +5429,7 @@ _M.select_best_map_key = function(params)
             end
         end
 
-        local key_level = _M.extract_key_level(item.baseType_utf8)
+        local key_level = item.mapLevel
         -- _M.dbgp(string.format("钥匙等级: %d", key_level))
 
         -- 污染过滤
@@ -3744,10 +5510,10 @@ _M.select_best_map_key = function(params)
                 -- 排除词缀检查
                 if #not_use_map > 0 then
                     if _M.match_item_suffixes(suffixes, not_use_map, true) then
-                        _M.dbgp("匹配到排除词缀")
+                        -- _M.dbgp("匹配到排除词缀")
                         if trashest then
                             best_key = item
-                            _M.dbgp("trashest模式，选择此钥匙")
+                            -- _M.dbgp("trashest模式，选择此钥匙")
                             break
                         end
                         goto continue
@@ -3756,8 +5522,9 @@ _M.select_best_map_key = function(params)
 
                 -- 优先词缀检查
                 if #priority_map > 0 then
+                    -- if _M.analyze_map_modifiers(priority_map, item)then
                     if _M.match_item_suffixes(suffixes, priority_map, true) then
-                        _M.dbgp("匹配到优先词缀，直接选择")
+                        -- _M.dbgp("匹配到优先词缀，直接选择")
                         best_key = item
                         break
                     end
@@ -3803,18 +5570,74 @@ _M.select_best_map_key = function(params)
             -- _M.dbgp("污染钥匙额外加分100")
         end
 
+        -- 基于优先级逆序的四个参数加分 (item.itemRarity最重要)
+        local additional_score = 0
+
+        -- 优先级1: item.itemRarity (最重要)
+        if item.itemRarity then
+            -- 最高权重，基础分 + 分级奖励
+            local rarity_score = item.itemRarity * 4.0  -- 最高权重系数
+            if item.itemRarity >= 90 then
+                rarity_score = rarity_score + 100  -- 顶级奖励
+            elseif item.itemRarity >= 70 then
+                rarity_score = rarity_score + 50   -- 高级奖励
+            elseif item.itemRarity >= 50 then
+                rarity_score = rarity_score + 25   -- 中级奖励
+            end
+            additional_score = additional_score + math.min(rarity_score, 300)  -- 设置上限
+        end
+
+        -- 优先级2: item.rareMonster (第二重要)
+        if item.rareMonster then
+            local rare_score = item.rareMonster * 3.0  -- 较高权重
+            if item.rareMonster >= 25 then
+                rare_score = rare_score + 75
+            elseif item.rareMonster >= 15 then
+                rare_score = rare_score + 40
+            elseif item.rareMonster >= 8 then
+                rare_score = rare_score + 20
+            end
+            additional_score = additional_score + math.min(rare_score, 250)
+        end
+
+        -- 优先级3: item.monsterPackSize (第三重要)
+        if item.monsterPackSize then
+            local pack_score = item.monsterPackSize * 2.0  -- 中等权重
+            if item.monsterPackSize >= 35 then
+                pack_score = pack_score + 50
+            elseif item.monsterPackSize >= 25 then
+                pack_score = pack_score + 25
+            elseif item.monsterPackSize >= 15 then
+                pack_score = pack_score + 10
+            end
+            additional_score = additional_score + math.min(pack_score, 180)
+        end
+
+        -- 优先级4: item.mapDropChance (最不重要)
+        if item.mapDropChance then
+            local map_score = item.mapDropChance * 1.5  -- 较低权重
+            if item.mapDropChance >= 85 then
+                map_score = map_score + 30
+            elseif item.mapDropChance >= 65 then
+                map_score = map_score + 15
+            elseif item.mapDropChance >= 45 then
+                map_score = map_score + 8
+            end
+            additional_score = additional_score + math.min(map_score, 150)
+        end
+
         local total_score
         if no_categorize_suffixes == 0 then
-            total_score = level_weight + suffix_score + color_score
+            total_score = level_weight + suffix_score + color_score + additional_score
             -- _M.dbgp(string.format(
-            --                  "UTF-8总评分: 等级(%d*5=%d) + 词缀(%d) + 颜色(%d) = %d",
-            --                  key_level, level_weight, suffix_score, color_score,
-            --                  total_score))
+            --                 "UTF-8总评分: 等级(%d*5=%d) + 词缀(%d) + 颜色(%d) + 附加分(%d) = %d",
+            --                 key_level, level_weight, suffix_score, color_score, additional_score,
+            --                 total_score))
         else
-            total_score = level_weight + color_score
+            total_score = level_weight + color_score + additional_score
             -- _M.dbgp(string.format(
-            --                  "UTF-8总评分(忽略词缀): 等级(%d*5=%d) + 颜色(%d) = %d",
-            --                  key_level, level_weight, color_score, total_score))
+            --                 "UTF-8总评分(忽略词缀): 等级(%d*5=%d) + 颜色(%d) + 附加分(%d) = %d",
+            --                 key_level, level_weight, color_score, additional_score, total_score))
         end
 
         -- 记录最优
@@ -3866,51 +5689,33 @@ _M.select_best_map_key = function(params)
         _M.dbgp("警告: best_key 为 nil")
     end
 
-    -- 获取超大仓库物品中心点
-    local function get_center_position_store_max(start_cell, end_cell, start_x, start_y, w, h)
-        -- 参数类型检查
-        if not (type(start_cell) == "table" and type(end_cell) == "table") then
-            error("start_cell and end_cell must be tables")
-        end
-        
-        local start_row, start_col = start_cell[1], start_cell[2]
-        local end_row, end_col = end_cell[1], end_cell[2]
-
-        -- 计算中心位置为起始和结束格子的平均位置
-        local center_x = start_x + (((start_row + end_row) / 2) * w)
-        local center_y = start_y + (((start_col + end_col) / 2) * h)
-
-        -- 四舍五入
-        return {math.floor(center_x + 0.5), math.floor(center_y + 0.5)}
-    end
-
     -- 执行选择
     if best_key then
         -- _M.api_print(f"█ 最优选择：{best_key.name_utf8} | 评分：{max_score}")
         if score == 1 then
-            return best_key, _M.extract_key_level(best_key.baseType_utf8 or "未知")
+            return best_key, best_key.mapLevel
         end
         if click == 1 then
             if page_type == 7 then
-                local pos = get_center_position_store_max(
+                local pos =  _M.get_center_position_store_max(
                     {best_key.start_x or 0, best_key.start_y or 0},
                     {best_key.end_x or 0, best_key.end_y or 0},
                     15, 100, 22, 22)
                 _M.ctrl_left_click(pos[1], pos[2])
-                return _M.extract_key_level(best_key.baseType_utf8 or "未知")
+                return best_key.mapLevel
             end
             if type_map == 1 then
                 -- _M.api_print(11111111111111)
                 _M.ctrl_left_click_store_items(best_key.obj or nil, inventory)
-                return _M.extract_key_level(best_key.baseType_utf8 or "未知")
+                return best_key.mapLevel
             end
             if type_map == 3 then
                 _M.return_more_map(best_key.obj or nil, inventory, START_X, START_Y)
-                return _M.extract_key_level(best_key.baseType_utf8 or "未知")
+                return best_key.mapLevel
             end
 
             _M.ctrl_left_click_bag_items(best_key.obj or nil, inventory)
-            return _M.extract_key_level(best_key.baseType_utf8 or "未知")
+            return best_key.mapLevel
         end
         return best_key
     else
@@ -4402,6 +6207,7 @@ _M.match_item_suffixes = function(item_suffixes, config_suffixes, not_item)
     -- _M.dbgp(string.format("物品词缀数量: %d", #item_suffixes))
     -- _M.dbgp(string.format("配置规则数量: %d",
     --                            _M.table_size(config_suffixes)))
+    -- _M.printTable(config_suffixes)
 
     local min_matched_count = 0
     local required_suffixes = {}
@@ -4441,9 +6247,7 @@ _M.match_item_suffixes = function(item_suffixes, config_suffixes, not_item)
     local item_affixes = {}
     for _, affix in ipairs(item_suffixes) do
         table.insert(item_affixes, {affix.name_utf8, affix.value_list})
-        -- _M.dbgp(string.format("物品词缀: %s (值: %s)",
-        --                            affix.name_utf8 or "无",
-        --                            table.concat(affix.value_list or {}, ",")))
+        -- _M.dbgp(string.format("物品词缀: %s (值: %s)",affix.name_utf8 or "无",table.concat(affix.value_list or {}, ",")))
     end
 
     local matched_count = 0
@@ -4458,14 +6262,16 @@ _M.match_item_suffixes = function(item_suffixes, config_suffixes, not_item)
         if type(required_value) == "table" and #required_value >= 2 then
             required_template = required_value[1]
             required_val = required_value[2]
+            -- _M.dbgp("11111111")
             -- _M.dbgp(string.format("模板: %s, 需求值: %s",
             --                            required_template,
             --                            table.concat(required_val, ",")))
-        elseif type(required_suffixes) == "table" then
+        elseif type(required_suffixes) == "table" and not not_item then
+            -- _M.dbgp("22222222")
             required_template = required_key
             required_val = required_value
             -- _M.dbgp(string.format("模板: %s, 需求值: %s",
-            --                            required_template, tostring(required_val)))
+            --                         required_template, tostring(required_val)))
         else
             required_template = required_value
             required_val = nil
@@ -4481,12 +6287,10 @@ _M.match_item_suffixes = function(item_suffixes, config_suffixes, not_item)
             local item_value = affix_pair[2]
 
             -- _M.dbgp(string.format("尝试匹配: %s", item_affix))
-            if _M.match_affix_with_template(item_affix, required_template,
-                                            item_value, required_val) then
+
+            if _M.match_affix_with_template(item_affix, required_template,item_value, required_val) then
                 matched_count = matched_count + 1
-                table.insert(matched_details, string.format("%s 匹配 %s",
-                                                            item_affix,
-                                                            required_template))
+                table.insert(matched_details, string.format("%s 匹配 %s",item_affix,required_template))
                 -- _M.dbgp("√ 匹配成功")
                 if not must_contain_all then
                     -- _M.dbgp("√ 任意匹配模式，直接返回成功")
@@ -4501,13 +6305,13 @@ _M.match_item_suffixes = function(item_suffixes, config_suffixes, not_item)
 
     -- 输出匹配详情
     -- _M.dbgp("\n匹配详情:")
-    if #matched_details > 0 then
-        for i, detail in ipairs(matched_details) do
-            -- _M.dbgp(string.format("%d. %s", i, detail))
-        end
-    else
-        -- _M.dbgp("无匹配项")
-    end
+    -- if #matched_details > 0 then
+    --     for i, detail in ipairs(matched_details) do
+    --         _M.dbgp(string.format("%d. %s", i, detail))
+    --     end
+    -- else
+    --     _M.dbgp("无匹配项")
+    -- end
 
     -- _M.dbgp(string.format("\n总匹配数: %d (需要: %d)", matched_count,
     --                            min_matched_count > 0 and min_matched_count or
@@ -4596,22 +6400,28 @@ end
 _M.get_items_config_info = function(config)
     local item_congif_list = config["物品過濾"]
     local processed_configs = {}
+    
     for _, v in ipairs(item_congif_list) do
+        -- 直接处理原始表，添加优化字段
+        local config_item = v  -- 直接使用原始引用
         
-        v['名稱模式'] = (string.find(v['基礎類型名'] or '', '全部物品') and 'all') or 'specific'
-        v["颜色"] = {}
-        if v['白裝'] then table.insert(v['颜色'], 0) end
-        if v['藍裝'] then table.insert(v['颜色'], 1) end
-        if v['黃裝'] then table.insert(v['颜色'], 2) end
-        if v['暗金'] then table.insert(v['颜色'], 3) end
-        if type(v["等級"]) == "string" then
-            v["等級"] = _M.parse_level(v["等級"])
+        -- 添加优化字段
+        config_item['名稱模式'] = (string.find(config_item['基礎類型名'] or '', '全部物品') and 'all') or 'specific'
+        config_item["颜色"] = {}
+        if config_item['白裝'] then table.insert(config_item["颜色"], 0) end
+        if config_item['藍裝'] then table.insert(config_item["颜色"], 1) end
+        if config_item['黃裝'] then table.insert(config_item["颜色"], 2) end
+        if config_item['暗金'] then table.insert(config_item["颜色"], 3) end
+        
+        if type(config_item["等級"]) == "string" then
+            config_item["等級"] = _M.parse_level(config_item["等級"])
         end
         
-        table.insert(processed_configs, v)
+        table.insert(processed_configs, config_item)
     end
+    
     return processed_configs
-end 
+end
 
 -- confing 等级解析
 _M.parse_level = function(level_str)
@@ -4718,6 +6528,7 @@ _M.get_game_control_by_rect = function(data)
         index = data.index or 0,         -- 可选，默认 0，
         UI_info = data.UI_info or nil,
         refresh = data.refresh or false,
+        round_rect = data.round_rect or nil,
     }
     local text_list = {}
     -- 如果需要刷新或没有UI信息，则更新UI信息
@@ -4730,18 +6541,39 @@ _M.get_game_control_by_rect = function(data)
             return false
         end
     end
-    
-    for _, v in ipairs(config.UI_info) do
-        if v.left >= config.min_x and v.top >= config.min_y and v.right <= config.max_x and v.bottom <= config.max_y then
-            if config.index ~= 0 and config.text and config.text ~= "" then
-                if v.name_utf8 == config.text or v.text_utf8 == config.text then
+
+    if config.round_rect and config.round_rect > 0 then
+        local range = config.round_rect  -- 范围大小
+        for _, v in ipairs(config.UI_info) do
+            -- 使用 round_rect 作为范围容差来精准定位
+            if v.left >= config.min_x - range and v.left <= config.min_x + range and
+               v.top >= config.min_y - range and v.top <= config.min_y + range and
+               v.right >= config.max_x - range and v.right <= config.max_x + range and
+               v.bottom >= config.max_y - range and v.bottom <= config.max_y + range then
+                
+                if config.index ~= 0 and config.text and config.text ~= "" then
+                    if v.name_utf8 == config.text or v.text_utf8 == config.text then
+                        table.insert(text_list, v)
+                    end
+                else
+                    table.insert(text_list, v)
+                end
+            end
+        end
+    else
+        for _, v in ipairs(config.UI_info) do
+            if v.left >= config.min_x and v.top >= config.min_y and v.right <= config.max_x and v.bottom <= config.max_y then
+                if config.index ~= 0 and config.text and config.text ~= "" then
+                    if v.name_utf8 == config.text or v.text_utf8 == config.text then
+                        table.insert(text_list,v)
+                    end
+                else
                     table.insert(text_list,v)
                 end
-            else
-                table.insert(text_list,v)
             end
         end
     end
+    
     return text_list
 end
 
@@ -4866,12 +6698,27 @@ end
 --- @param item_name string 物品名称（baseType_utf8字段）
 --- @param inventory table 物品栏列表
 --- @return boolean 如果物品存在则返回true，否则返回false
-_M.check_item_in_inventory = function(item_name, inventory)
+_M.check_item_in_inventory = function(item_name, inventory, count, nums)
     if inventory then
+        local item_count = 0
         for _, item in ipairs(inventory) do
             if item.baseType_utf8 == item_name then
-                return true  -- 检查到物品，返回true
+                if count then
+                    if item.stackCount > 0 then
+                        item_count = item_count + item.stackCount
+                    else
+                        item_count = item_count + 1
+                    end
+                else
+                    return true  -- 检查到物品，返回true
+                end
             end
+        end
+        if count then
+            if nums then
+                return item_count
+            end
+            return item_count >= count
         end
     end
     return false
@@ -5063,6 +6910,9 @@ _M.ctrl_left_click_altar_items = function(target_name, bag_info, click)
                     api_ClickScreen(_M.toInt(center_position[1]), _M.toInt(center_position[2]),0)
                     api_Sleep(200)  -- 单位是毫秒
                     api_ClickScreen(_M.toInt(center_position[1]), _M.toInt(center_position[2]),1) -- 使用 click 方法模拟左键点击
+                    return true
+                elseif click == 3 then
+                    api_ClickScreen(_M.toInt(center_position[1]), _M.toInt(center_position[2]),2) -- 使用 click 方法模拟左键点击
                     return true
                 else
                     _M.ctrl_left_click(center_position[1], center_position[2])
@@ -5557,7 +7407,7 @@ _M.is_do_without_pick_up = function(item, items_info)
     if text ~= "" then
         item_key = text
     else
-        for k, v in ipairs(my_game_info.type_conversion) do
+        for k, v in pairs(my_game_info.type_conversion) do
             if item.category_utf8 == v then
                 item_key = k
                 break
@@ -5617,7 +7467,16 @@ _M.match_item = function(item, cfg, index)
                 return false
             end
         end
-        if not cfg['基礎類型名'] or cfg['基礎類型名'] == "" or not string.find(cfg['基礎類型名'],item.baseType_utf8) then 
+        local function split_str(input, sep)
+            sep = sep or "|"  -- 默认分隔符是 |
+            local result = {}
+            for item in string.gmatch(input, "([^"..sep.."]+)") do
+                table.insert(result, item)
+            end
+            return result
+        end
+        local item_name_list = split_str(cfg['基礎類型名'])
+        if not cfg['基礎類型名'] or cfg['基礎類型名'] == "" or not _M.table_contains(item_name_list,item.baseType_utf8) then  -- string.find(cfg['基礎類型名'],item.baseType_utf8)
             -- _M.dbgp("名稱不匹配2")
             return false
         end
@@ -5701,6 +7560,18 @@ _M.match_item = function(item, cfg, index)
     if not cfg['颜色'] or not next(cfg['颜色']) or not _M.table_contains(color,cfg['颜色']) then
         -- _M.dbgp("颜色不匹配1")
         return false
+    end
+    local quality = cfg["quality"] or nil
+    local sockets = cfg["sockets"] or nil
+    if quality and quality ~= "" and not item.contaminated then
+        if item.quality < tonumber(quality) then
+            return false
+        end 
+    end
+    if sockets and sockets ~= ""  and not item.contaminated then
+        if item.sockets < tonumber(sockets) then
+            return false
+        end 
     end
     -- 通货排除
     if item.category_utf8 == "StackableCurrency" and _M.table_contains(item.baseType_utf8,{'黃金',"金幣"}) then
@@ -5807,6 +7678,70 @@ _M.has_common_element = function(t1, t2)
     end
     
     return false
+end
+
+-- 快速点击背包物品
+_M.ctrl_left_click_interface_items = function(target_name, item_info, click_type)
+    if not item_info or type(item_info) ~= "table" then
+        _M.dbgp("仓库信息无效")
+        return false
+    end
+
+    for _, actor in ipairs(item_info) do
+        -- 更安全的属性访问和条件判断
+        local match = actor.baseType_utf8 and 
+                     (actor.baseType_utf8 == target_name or 
+                      (actor.obj and actor.obj == target_name))
+        
+        if match then
+            -- 添加坐标有效性检查
+            local x = (actor.RectSart_x + actor.RectEnd_x) / 2
+            local y = (actor.RectSart_y + actor.RectEnd_y) / 2
+
+            -- 支持左键/右键点击
+            if click_type == 1 then  
+                _M.right_click(x, y)
+            else
+                _M.ctrl_left_click(x, y)
+            end
+
+            return true
+        end
+    end
+
+    _M.dbgp(("未找到目标对象: %s"):format(target_name))
+    return false
+end
+-- 根据目标点排序最近列表
+    
+_M.sort_recent_point_list = function(point_list, x, y)
+    -- 计算每个点与目标点的距离，并存储到临时表
+    local points_with_distance = {}
+    for _, point in ipairs(point_list) do
+        local dx = point.x - x
+        local dy = point.y - y
+        local distance = math.sqrt(dx * dx + dy * dy)
+        table.insert(points_with_distance, {
+            point = point,
+            distance = distance
+        })
+    end
+
+
+    -- 按距离从小到大排序
+    table.sort(points_with_distance, function(a, b)
+        return a.distance < b.distance
+    end)
+
+
+    -- 提取排序后的坐标点（去掉临时存储的距离）
+    local sorted_points = {}
+    for _, item in ipairs(points_with_distance) do
+        table.insert(sorted_points, item.point)
+    end
+
+
+    return sorted_points
 end
 
 -- 获取指定text的物品排序

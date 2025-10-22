@@ -185,13 +185,15 @@ local my_game_info = {
         "藏身處：石灰岩", "藏身處：殞落", "藏身處：無畏隊",
         "藏身處：扭曲", "藏身處：瓦斯提里競技場",
         "藏身處：救贖烽塔", "皆伐營地", "阿杜拉車隊",
-        "高地神塔營地","城鎮傳送門","藏身處：海岸線"
+        "高地神塔營地","城鎮傳送門","藏身處：海岸線","藏身處：眾神高原",
+        "靈魂之井"
     },
     hideout = {
         "G_Endgame_Town", "HideoutFelled", "HideoutShrine", "HideoutLimestone",
         "HideoutCanal", "HideoutDreadnought", "HideoutTwisted",
         "HideoutRacetrack", "HideoutBeaconOfSalvation", "G1_town", "G2_town",
-        "G3_town", "G4_town", "P1_Town", "P2_Town","P3_Town","HideoutShoreline"
+        "G3_town", "G4_town", "P1_Town", "P2_Town","P3_Town","HideoutShoreline","HideoutSummit",
+        "Abyss_Hub"
     },
 
     boss_name = {
@@ -207,14 +209,18 @@ local my_game_info = {
         "Standard 聯盟"
     },
 
+    Citadel_map = {
+        "MapUberBoss_CopperCitadel", -- # 青铜城寨
+        "MapUberBoss_StoneCitadel", -- # 岩石城寨
+        "MapUberBoss_IronCitadel", -- # 钢铁城寨
+    },
+
     trash_map = {
         "MapLeaguePortal", -- # 界域之门
         "MapVoidReliquary", -- # 宝库
         "MapUberBoss_Monolith", "MapSwampTower", -- # 沉溺尖塔 有Boss
         "MapSwampTower_NoBoss", -- # 沉溺尖塔
-        "MapUberBoss_CopperCitadel", -- # 青铜城寨
-        "MapUberBoss_StoneCitadel", -- # 岩石城寨
-        "MapUberBoss_IronCitadel", -- # 钢铁城寨
+
         "MapSunTemple_NoBoss", -- # 太阳神殿
         "MapSunTemple", -- # 太阳神殿 有Boss
         "MapBloomingField", -- # 盛放田野 有Boss
@@ -224,9 +230,15 @@ local my_game_info = {
         "MapNecropolis", -- # 魔影墓场 有Boss
         "MapNecropolis_NoBoss", -- # 魔影墓场
         "MapForge", -- # 锻造 有Boss
-        "MapAlpineRidge_NoBoss", "MapAlpineRidge",
+        "MapAlpineRidge_NoBoss", "MapAlpineRidge", -- # 高山山脊
         "MapSandspit",-- 新版砂土
-        "MapVaalVault"
+        "MapVaalVault", -- # 瓦尔宝库 有Boss
+        "MapDerelictMansion", -- # 废弃宅邸"
+        "MapUberBoss_JadeCitadel", -- # 翠玉群岛
+        "MapOrnateChambers", -- # 华丽密室 有boss
+        "MapOrnateChambers_NoBoss", -- # 华丽密室
+        "MapChannel", -- # 水道 有Boss
+        "MapChannel_NoBoss", -- # 水道
     },
 
     not_attact_mons_path_name = {
@@ -242,7 +254,7 @@ local my_game_info = {
     not_attact_mons_CN_name = {
         "", "惡魔", "隱形", "視覺惡魔", "複製之躰", "複製體",
         "暴行雕像", "先祖戰士精魂", "骨牆", "潛伏之炎",
-        "複製體", "複製之體", "果息", "疾速地雷", "核息", "鮮明水母","芙雷雅．哈特林"
+        "複製體", "複製之體", "果息", "疾速地雷", "核息", "鮮明水母","祭祀妖精","芙雷雅．哈特林"
         -- "動亂",
     },
 
@@ -278,15 +290,15 @@ local my_game_info = {
         }, -- 女巫水球
         {1, "Metadata/Monsters/LeagueRitual/Daemons/volatile.ao", 10}, -- 祭坛追踪紫色爆炸球
         {1, "Metadata/Monsters/MonsterMods/VolatilePlants/volatile.ao", 10}, -- 追踪紫色爆炸球
-        {1, "Metadata/Effects/Spells/monsters_effects/Act4_FOUR/Yama/AOs/EyeSlamGroundEffect.ao", 35} -- 白之亞瑪 眼球技能
+        {1, "Metadata/Effects/Spells/monsters_effects/Act4_FOUR/Yama/AOs/EyeSlamGroundEffect.ao", 35} -- 白之亞瑪 眼球技能 -- 追踪紫色爆炸球
     },
-    
+
     MonitoringSkills_Circle = {
         -- 祭坛
         {
             1,
             "Metadata/Effects/Spells/monsters_effects/monster_mods/fire/explode_on_death/ao/fire_beacons.ao",
-            20
+            30
         }, -- 爆炸火圈
         {1, "Metadata/Monsters/LeagueRitual/Daemons/volatile_explode.ao", 15},
         {
@@ -479,26 +491,49 @@ local my_game_info = {
             20
         }, -- 邪魔毒蛇納普阿茲
         {2,"Metadata/Effects/Spells/monsters_effects/Act4_FOUR/GreatWhiteOne/ao/piranha_puddle_01.ao", 20}, --大白鲨boss
+
         {2,"Metadata/Effects/Spells/monsters_effects/Act4_FOUR/TwilightOrderGuardBoss/ao/SkyBeam.ao", 30}, --勇士-卜拉克斯
+        
         {2,"Metadata/Effects/Spells/monsters_effects/Act4_FOUR/GreatWhiteOne/ao/piranha_puddle_01.ao", 20}, --大白鲨boss
         {2,"Metadata/Effects/Spells/monsters_effects/Act4_FOUR/TwilightOrderGuardBoss/ao/SkyBeam.ao", 30}, --勇士-卜拉克斯
+
         {2,"Metadata/Effects/Spells/monsters_effects/League_Abyss/Cocoon3/fireTornado.ao",15}, --深渊精英怪火旋风
         {2,"Metadata/Effects/Spells/monsters_effects/League_Abyss/ExplodingRunes/Blackblood_rune.ao", 30}, --深渊符文技能
+
         {2,"Metadata/Effects/Spells/monsters_effects/Act2_FOUR/VultureRegurgitator/gas_cloud.ao", 30}, --毒气
         {2,"Metadata/Effects/Spells/monsters_effects/Act4_FOUR/Tavakai/moon_beam.ao", 50}, -- 塔瓦凱-月光光束
         {2,"Metadata/Effects/Spells/monsters_effects/Act4_FOUR/CaptainRoth/Sand/sand_tornado.ao", 30}, -- boss沙龙卷风
+
         {2,"Metadata/Effects/Spells/monsters_effects/Act1_FOUR/GuillotineExec/ao/guillotine_drop/guillotine_drop_marker.ao", 50}, -- 刽子手船锚标记
-        
 
+        {2,"Metadata/Effects/Spells/monsters_effects/Act2_FOUR/SaltGolemBoss/eruption_01.ao", 40}, -- 绯红海岸boss地裂1
+        {2,"Metadata/Effects/Spells/monsters_effects/Act2_FOUR/SaltGolemBoss/eruption_02.ao", 60}, -- 绯红海岸boss地裂2
+        {2,"Metadata/Effects/Spells/monsters_effects/Act2_FOUR/SaltGolemBoss/eruption_03.ao", 90}, -- 绯红海岸boss地裂3
+        -- {1,"Metadata/Effects/Spells/monsters_effects/League_Abyss/Kulemak/fissure_volatile.ao",5}, -- 骷髅马克追踪球
+        {2,"Metadata/Effects/Spells/monsters_effects/League_Abyss/Kulemak/volatile_degen.ao",30}, -- 骷髅马克毒地面
+        {2,"Metadata/Effects/Spells/monsters_effects/Act2_FOUR/MastadonBoss/ao/bone_storm.ao",30}, -- 深坑之王骨刺地面
+        {2,"EAAChaosGodOwlBossDashKick",30}, -- 天空先知 骑士踢
+        {2,"EAAChaosGodOwlBossNighttimeDaytime",50}, -- 天空先知 龙卷风
+        {2,"Metadata/Effects/Spells/monsters_effects/League_Abyss/collector/LivingBlood.ao",20}, -- 深渊精英怪血地面
+ 
     },
 
+    -- 监测技能 扇形  name ,angle, lenth
     MonitoringSkills_Sector = {
-        {"Metadata/Effects/Spells/monsters_effects/League_Abyss/FarudinCorpseStrider/spike_proj_impact.ao", 40, 60, 4}, --深渊精英怪地刺
+        {"Metadata/Effects/Spells/monsters_effects/League_Abyss/FarudinCorpseStrider/spike_proj_impact.ao", 40, 60}, --深渊精英怪地刺
+        {"GTKulemakBossMegaBeamAugment",130,200}, -- 骷髅马克三射线
     },
 
+    -- 监测技能 矩形
     MonitoringSkills_Rect = {
         {"Metadata/Effects/Spells/monsters_effects/Act1_FOUR/FungalArtillery/ao/abysslightning_projectile_impact.ao",20,5},
         {"SwollenMillerSlam",95,30},
+        {"EASAbyssPaleEliteBeamLong",120,30},
+        -- {"Metadata/Monsters/LeagueAbyss/Blackblood/PaleElite/HellscapePaleElite1.ao",95,30},
+        {"GAExecutionerMegaSlam",95,30},
+        {"GTKulemakBossMegaBeam",200,35}, -- 骷髅马克单射线
+        {"EAAKulemakBossTeleportEscapeNoCD",55,55}, -- 骷髅马克陨石坠
+        {"Metadata/Effects/Spells/monsters_effects/League_Abyss/Kulemak/augmented_initial_arena_cleave_telegraph.ao",200,200}  -- 骷髅马克冰幕
         
     },
 
@@ -511,108 +546,6 @@ local my_game_info = {
         "LifeFlask", "ManaFlask", "UtilityFlask", "Buckler", "Spear"
     },
 
-    -- # 数据结构：
-    -- # k: 地图名字 v0:对应的地图名字 v1:该地图的上一地图名字 v2: 是否有传送点 0：有 1: 无 v3:在地图页面的x轴 v4:在地图页面的y轴
-    task_area_list = {
-        G1_1 = { {"河岸", "河岸"}, "无" },
-        G1_town = { {"皆伐營地", "皆伐營地"}, "有" },
-        G1_2 = { {"皆伐", "皆伐"}, "有" },
-        G1_3 = { {"泥沼陋居", "泥沼陋居"}, "无" },
-        G1_4 = { {"葛瑞爾林", "葛瑞爾林"}, "有" },
-        G1_5 = { {"赤谷", "赤谷"}, "有" },
-        G1_6 = { {"纏縛陰林", "纏縛陰林"}, "有", "纏縛陰林" },
-        G1_7 = { {"不朽帝國之墓", "不朽帝國之墓"}, "有" },
-        G1_8 = { {"政務官陵墓", "政務官陵墓"}, "有", "政務官陵墓" },
-        G1_9 = { {"配偶的墓室", "配偶的墓室"}, "有", "配偶的墓室" },
-        G1_11 = { {"獵場", "獵場"}, "有" },
-        G1_12 = { {"弗雷索恩", "弗雷索恩"}, "有" },
-        G1_13_1 = { {"奧格姆農地", "奧格姆農地"}, "有" },
-        G1_13_2 = { {"奧格姆村", "奧格姆村"}, "有" },
-        G1_14 = { {"宅第壁壘", "宅第壁壘"}, "有" },
-        G1_15 = { {"奧格姆宅第", "奧格姆宅第"}, "有", "奧格姆宅第" },
-        G2_1 = { {"瓦斯提里郊區", "瓦斯提里郊區"}, "有" },
-        G2_town = { {"阿杜拉車隊", "阿杜拉車隊"}, "有" },
-        G2_2 = { {"叛徒之路", "叛徒之路"}, "有", "叛徒之路" },
-        G2_3 = { {"哈拉妮關口", "哈拉妮關口"}, "有" },
-        G2_3a = { {"哈拉妮關口", "哈拉妮關口"} },
-        G2_4_1 = { {"凱斯城", "凱斯城"}, "有" },
-        G2_4_2 = { {"失落之城", "失落之城"}, "有", "失落之城" },
-        G2_4_3 = { {"掩埋神殿", "掩埋神殿"}, "有", "掩埋神殿" },
-        G2_5_1 = { {"乳齒象惡地", "乳齒象惡地"}, "有" },
-        G2_5_2 = { {"骨坑", "骨坑"}, "有" },
-        G2_Abyss_Hub = {{"靈魂深井","靈魂之井"},"有","靈魂深井"},
-        Abyss_Hub = {{"靈魂深井","靈魂之井"},"有","靈魂深井"},
-        G2_6 = { {"泰坦之谷", "泰坦之谷"}, "有" },
-        G2_7 = { {"泰坦石窟", "泰坦石窟"}, "有", "泰坦石窟" },
-        G2_8 = { {"戴斯哈", "戴斯哈"}, "有" },
-        G2_9_1 = { {"悼念之路", "悼念之路"}, "有" },
-        G2_9_2 = { {"戴斯哈尖塔", "戴斯哈尖塔"}, "有" },
-        G2_10_1 = { {"莫頓挖石場", "莫頓挖石場"}, "有" },
-        G2_10_2 = { {"莫頓礦坑", "莫頓礦坑"}, "有", "莫頓礦坑" },
-        G2_12_1 = { {"無畏隊", "無畏隊"}, "有" },
-        G2_12_2 = { {"無畏隊先鋒", "無畏隊先鋒"}, "有" },
-        G2_13 = { {"絲克瑪試煉", "絲克瑪試煉"}, "有", "絲克瑪試煉" },
-        G3_1 = { {"風沙沼澤", "風沙沼澤"}, "有" },
-        G3_town = { {"高地神塔營地", "高地神塔營地"}, "有" },
-        G3_2_1 = { {"感染荒地", "感染荒地"}, "有" },
-        G3_2_2 = { {"瑪特蘭水道", "瑪特蘭水道"}, "无" },
-        G3_3 = { {"叢林遺跡", "叢林遺跡"}, "有" },
-        G3_4 = { {"劇毒墓穴", "劇毒墓穴"}, "无", "劇毒墓穴" },
-        G3_5 = { {"龍蜥濕地", "龍蜥濕地"}, "有" },
-        G3_6_1 = { {"吉卡尼的機械迷城", "吉卡尼的機械迷城"}, "有", "吉卡尼的機械迷城" },
-        G3_6_2 = { {"吉卡尼的聖域", "吉卡尼的聖域"}, "有", "吉卡尼的聖域" },
-        G3_7 = { {"阿札克泥沼", "阿札克泥沼"}, "有" },
-        G3_8 = { {"淹沒之城", "淹沒之城"}, "有" },
-        G3_9 = { {"熔岩寶庫", "熔岩寶庫"}, "有", "熔岩寶庫" },
-        G3_10_Airlock = { {"混沌神殿", "混沌神殿"}, "有", "混沌神殿" },
-        G3_11 = { {"污垢頂峰", "污垢頂峰"}, "有" },
-        G3_12 = { {"科佩克神殿", "科佩克神殿"}, "无", "高地神塔" },
-        G3_14 = { {"奧札爾", "奧札爾"}, "有" },
-        G3_16 = { {"阿戈拉", "阿戈拉"}, "有" },
-        G3_17 = { {"漆黑密室", "漆黑密室"}, "有", "漆黑密室" },
-        G4_town = { {"金司馬區", "金司馬區"}, "有" },
-        G4_1_1 = { {"金氏島", "金氏島"}, "有" },
-        G4_1_2 = { {"火山迷窟", "火山迷窟"}, "有" },
-        G4_2_1 = { {"凱吉灣", "凱吉灣"}, "有" },
-        G4_2_2 = { {"旅程結束", "旅程結束"}, "有" },
-        G4_3_1 = { {"瓦卡帕努島", "瓦卡帕努島"}, "有" },
-        G4_3_2 = { {"吟謠洞窟", "吟謠洞窟"}, "有" },
-        G4_4_1 = { {"悉妮蔻拉之眼", "悉妮蔻拉之眼"}, "有" },
-        G4_4_2 = { {"亡者之殿", "亡者之殿"}, "有" },
-        G4_4_3 = { {"祖靈的試煉", "祖靈的試煉"}, "有" },
-        G4_5_1 = { {"廢棄監獄", "廢棄監獄"}, "有" },
-        G4_5_2 = { {"單獨禁閉", "單獨禁閉"}, "有" },
-        G4_7 = { {"伯勞鳥之島", "伯勞鳥之島"}, "有" },
-        G4_8a = { {"阿拉塔斯", "阿拉塔斯"}, "有" },
-        G4_8b = { {"阿拉塔斯", "阿拉塔斯"}, "有" },
-        G4_10 = { {"挖掘", "挖掘"}, "有" },
-        G4_10_1 = { {"挖掘", "挖掘"}, "有" },
-        G4_11_1a = { {"尼加卡努", "尼加卡努"}, "有" },
-        G4_11_1b = { {"尼加卡努", "尼加卡努"}, "有" },
-        G4_11_2 = { {"部族之心", "部族之心"}, "有" },
-        P1_Town = { {"庇護所", "庇護所"}, "有" },
-        P1_1 = { {"火噬農地", "火噬農地"}, "有" },
-        P1_2 = { {"瑟雷之石", "瑟雷之石"}, "有" },
-        P1_3 = { {"黑木林", "黑木林"}, "有" },
-        P1_4 = { {"霍爾登", "霍爾登"}, "有" },
-        P1_5 = { {"狼之要塞", "狼之要塞"}, "有" },
-        P1_6 = { {"霍爾登宅第", "霍爾登宅第"}, "有" },
-        P2_Town = { {"卡里市集", "卡里市集"}, "有" },
-        P2_1 = { {"卡里交匯道", "卡里交匯道"}, "无" },
-        P2_2 = { {"卡塔爾之塘", "卡塔爾之塘"}, "有" },
-        P2_3 = { {"塞爾卡里庇護所", "塞爾卡里庇護所"}, "有" },
-        P2_5 = { {"賈萊關口", "賈萊關口"}, "有" },
-        P2_6 = { {"奇瑪", "奇瑪"}, "有" },
-        P2_7 = { {"奇瑪水源地", "奇瑪水源地"}, "有" },
-        P3_Town = { {"林間空地", "林間空地"}, "有" },
-        P3_1 = { {"灰燼森林", "灰燼森林"}, "无" },
-        P3_2 = { {"庫萊亞村", "庫萊亞村"}, "有" },
-        P3_3 = { {"冰川湖泊", "冰川湖泊"}, "有" },
-        P3_4 = { {"狂嗥洞穴", "狂嗥洞穴"}, "有" },
-        P3_5 = { {"庫萊亞山巔", "庫萊亞山巔"}, "有" },
-        P3_6 = { {"蝕刻溪谷", "蝕刻溪谷"}, "有" },
-        P3_7 = { {"庫阿西克寶庫", "庫阿西克寶庫"}, "有" }
-    },
 
     task_maps = {
         {"G1_town", {"抵達皆伐", "黑暗中的秘密", "神祕的影魅","石頭上的悲傷", "奧格姆的狂狼"}}, 
@@ -634,7 +567,7 @@ local my_game_info = {
         {"G4_town",{"奧瑞亞圍城戰"}},
         {"G2_Abyss_Hub",{"靈魂深井"}}
     },
-
+    
 
     mian_task = {
         "抵達皆伐", "黑暗中的秘密", "石頭上的悲傷",
@@ -1263,14 +1196,13 @@ local my_game_info = {
 
     -- # 通貨
     StackableCurrency_CN = {
-        "知識卷軸","鑑定通貨","寶石匠的稜鏡","玻璃彈珠","奧術蝕刻師",
+        "知識卷軸","寶石匠的稜鏡","玻璃彈珠","奧術蝕刻師",
         "磨刀石","護甲片","機率碎片","工匠碎片","富豪石碎片",
-        "蛻變石碎片","通貨碎片","完美工匠石","高階工匠石","低階工匠石",
+        "蛻變石碎片","完美工匠石","高階工匠石","低階工匠石",
         "卡蘭德的魔鏡","悉妮蔻拉的髮絲","破裂石","巧匠石","無效石",
         "機會石","神聖石","點金石","瓦爾寶珠","完美混沌石","高階混沌石",
         "混沌石","完美崇高石","高階崇高石","崇高石","完美富豪石","高階富豪石",
         "富豪石","完美蛻變石","高階蛻變石","蛻變石","完美增幅石","高階增幅石","增幅石"
-
     },
 
     -- # 鑒定通貨
@@ -1435,7 +1367,7 @@ local my_game_info = {
         "高階領導符文", "高階決心符文"
     },
 
-    -- # 徵兆
+    -- # 祭祀
     Sign_CN = {
         "密室之兆","增援之兆","狩獵之兆","回應祈禱之兆","重組之兆",
         "還價之兆","博弈之兆","聖化之兆","祝福之兆","大幅提升之兆",
@@ -1577,8 +1509,138 @@ local my_game_info = {
         'MapMesa_NoBoss', 'MapSwampTower_NoBoss', 'MapLostTowers_NoBoss'
     },
 
+    -- # 数据结构：
+    -- # k: 地图名字 v0:对应的地图名字 v1:该地图的上一地图名字 v2: 是否有传送点 0：有 1: 无 v3:在地图页面的x轴 v4:在地图页面的y轴
+    task_area_list = {
+        G1_1 = { {"河岸", "河岸"}, "无" },
+        G1_town = { {"皆伐營地", "皆伐營地"}, "有" },
+        G1_2 = { {"皆伐", "皆伐"}, "有" },
+        G1_3 = { {"泥沼陋居", "泥沼陋居"}, "无" },
+        G1_4 = { {"葛瑞爾林", "葛瑞爾林"}, "有" },
+        G1_5 = { {"赤谷", "赤谷"}, "有" },
+        G1_6 = { {"纏縛陰林", "纏縛陰林"}, "有", "纏縛陰林" },
+        G1_7 = { {"不朽帝國之墓", "不朽帝國之墓"}, "有" },
+        G1_8 = { {"政務官陵墓", "政務官陵墓"}, "有", "政務官陵墓" },
+        G1_9 = { {"配偶的墓室", "配偶的墓室"}, "有", "配偶的墓室" },
+        G1_11 = { {"獵場", "獵場"}, "有" },
+        G1_12 = { {"弗雷索恩", "弗雷索恩"}, "有" },
+        G1_13_1 = { {"奧格姆農地", "奧格姆農地"}, "有" },
+        G1_13_2 = { {"奧格姆村", "奧格姆村"}, "有" },
+        G1_14 = { {"宅第壁壘", "宅第壁壘"}, "有" },
+        G1_15 = { {"奧格姆宅第", "奧格姆宅第"}, "有", "奧格姆宅第" },
+        G2_1 = { {"瓦斯提里郊區", "瓦斯提里郊區"}, "有" },
+        G2_town = { {"阿杜拉車隊", "阿杜拉車隊"}, "有" },
+        G2_2 = { {"叛徒之路", "叛徒之路"}, "有", "叛徒之路" },
+        G2_3 = { {"哈拉妮關口", "哈拉妮關口"}, "有" },
+        G2_3a = { {"哈拉妮關口", "哈拉妮關口"} },
+        G2_4_1 = { {"凱斯城", "凱斯城"}, "有" },
+        G2_4_2 = { {"失落之城", "失落之城"}, "有", "失落之城" },
+        G2_4_3 = { {"掩埋神殿", "掩埋神殿"}, "有", "掩埋神殿" },
+        G2_5_1 = { {"乳齒象惡地", "乳齒象惡地"}, "有" },
+        G2_5_2 = { {"骨坑", "骨坑"}, "有" },
+        G2_Abyss_Hub = {{"靈魂深井","靈魂之井"},"有","靈魂深井"},
+        Abyss_Hub = {{"靈魂深井","靈魂之井"},"有","靈魂深井"},
+        G2_6 = { {"泰坦之谷", "泰坦之谷"}, "有" },
+        G2_7 = { {"泰坦石窟", "泰坦石窟"}, "有", "泰坦石窟" },
+        G2_8 = { {"戴斯哈", "戴斯哈"}, "有" },
+        G2_9_1 = { {"悼念之路", "悼念之路"}, "有" },
+        G2_9_2 = { {"戴斯哈尖塔", "戴斯哈尖塔"}, "有" },
+        G2_10_1 = { {"莫頓挖石場", "莫頓挖石場"}, "有" },
+        G2_10_2 = { {"莫頓礦坑", "莫頓礦坑"}, "有", "莫頓礦坑" },
+        G2_12_1 = { {"無畏隊", "無畏隊"}, "有" },
+        G2_12_2 = { {"無畏隊先鋒", "無畏隊先鋒"}, "有" },
+        G2_13 = { {"絲克瑪試煉", "絲克瑪試煉"}, "有", "絲克瑪試煉" },
+        G3_1 = { {"風沙沼澤", "風沙沼澤"}, "有" },
+        G3_town = { {"高地神塔營地", "高地神塔營地"}, "有" },
+        G3_2_1 = { {"感染荒地", "感染荒地"}, "有" },
+        G3_2_2 = { {"瑪特蘭水道", "瑪特蘭水道"}, "无" },
+        G3_3 = { {"叢林遺跡", "叢林遺跡"}, "有" },
+        G3_4 = { {"劇毒墓穴", "劇毒墓穴"}, "无", "劇毒墓穴" },
+        G3_5 = { {"龍蜥濕地", "龍蜥濕地"}, "有" },
+        G3_6_1 = { {"吉卡尼的機械迷城", "吉卡尼的機械迷城"}, "有", "吉卡尼的機械迷城" },
+        G3_6_2 = { {"吉卡尼的聖域", "吉卡尼的聖域"}, "有", "吉卡尼的聖域" },
+        G3_7 = { {"阿札克泥沼", "阿札克泥沼"}, "有" },
+        G3_8 = { {"淹沒之城", "淹沒之城"}, "有" },
+        G3_9 = { {"熔岩寶庫", "熔岩寶庫"}, "有", "熔岩寶庫" },
+        G3_10_Airlock = { {"混沌神殿", "混沌神殿"}, "有", "混沌神殿" },
+        G3_11 = { {"污垢頂峰", "污垢頂峰"}, "有" },
+        G3_12 = { {"科佩克神殿", "科佩克神殿"}, "无", "高地神塔" },
+        G3_14 = { {"奧札爾", "奧札爾"}, "有" },
+        G3_16 = { {"阿戈拉", "阿戈拉"}, "有" },
+        G3_17 = { {"漆黑密室", "漆黑密室"}, "有", "漆黑密室" },
+        G4_town = { {"金司馬區", "金司馬區"}, "有" },
+        G4_1_1 = { {"金氏島", "金氏島"}, "有" },
+        G4_1_2 = { {"火山迷窟", "火山迷窟"}, "有" },
+        G4_2_1 = { {"凱吉灣", "凱吉灣"}, "有" },
+        G4_2_2 = { {"旅程結束", "旅程結束"}, "有" },
+        G4_3_1 = { {"瓦卡帕努島", "瓦卡帕努島"}, "有" },
+        G4_3_2 = { {"吟謠洞窟", "吟謠洞窟"}, "有" },
+        G4_4_1 = { {"悉妮蔻拉之眼", "悉妮蔻拉之眼"}, "有" },
+        G4_4_2 = { {"亡者之殿", "亡者之殿"}, "有" },
+        G4_4_3 = { {"祖靈的試煉", "祖靈的試煉"}, "有" },
+        G4_5_1 = { {"廢棄監獄", "廢棄監獄"}, "有" },
+        G4_5_2 = { {"單獨禁閉", "單獨禁閉"}, "有" },
+        G4_7 = { {"伯勞鳥之島", "伯勞鳥之島"}, "有" },
+        G4_8a = { {"阿拉塔斯", "阿拉塔斯"}, "有" },
+        G4_8b = { {"阿拉塔斯", "阿拉塔斯"}, "有" },
+        G4_10 = { {"挖掘", "挖掘"}, "有" },
+        G4_10_1 = { {"挖掘", "挖掘"}, "有" },
+        G4_11_1a = { {"尼加卡努", "尼加卡努"}, "有" },
+        G4_11_1b = { {"尼加卡努", "尼加卡努"}, "有" },
+        G4_11_2 = { {"部族之心", "部族之心"}, "有" },
+        P1_Town = { {"庇護所", "庇護所"}, "有" },
+        P1_1 = { {"火噬農地", "火噬農地"}, "有" },
+        P1_2 = { {"瑟雷之石", "瑟雷之石"}, "有" },
+        P1_3 = { {"黑木林", "黑木林"}, "有" },
+        P1_4 = { {"霍爾登", "霍爾登"}, "有" },
+        P1_5 = { {"狼之要塞", "狼之要塞"}, "有" },
+        P1_6 = { {"霍爾登宅第", "霍爾登宅第"}, "有" },
+        P2_Town = { {"卡里市集", "卡里市集"}, "有" },
+        P2_1 = { {"卡里交匯道", "卡里交匯道"}, "无" },
+        P2_2 = { {"卡塔爾之塘", "卡塔爾之塘"}, "有" },
+        P2_3 = { {"塞爾卡里庇護所", "塞爾卡里庇護所"}, "有" },
+        P2_5 = { {"賈萊關口", "賈萊關口"}, "有" },
+        P2_6 = { {"奇瑪", "奇瑪"}, "有" },
+        P2_7 = { {"奇瑪水源地", "奇瑪水源地"}, "有" },
+        P3_Town = { {"林間空地", "林間空地"}, "有" },
+        P3_1 = { {"灰燼森林", "灰燼森林"}, "无" },
+        P3_2 = { {"庫萊亞村", "庫萊亞村"}, "有" },
+        P3_3 = { {"冰川湖泊", "冰川湖泊"}, "有" },
+        P3_4 = { {"狂嗥洞穴", "狂嗥洞穴"}, "有" },
+        P3_5 = { {"庫萊亞山巔", "庫萊亞山巔"}, "有" },
+        P3_6 = { {"蝕刻溪谷", "蝕刻溪谷"}, "有" },
+        P3_7 = { {"庫阿西克寶庫", "庫阿西克寶庫"}, "有" }
+    },
+
     type_3_boss = {
         "白之亞瑪"
+    },
+
+    ritual_inside_item = {
+        "卡蘭德的魔鏡",
+        "悉妮蔻拉的髮絲",
+        "獵首", 
+        "卡蘭德之觸",  
+        "機會之兆",
+        "均衡之符",
+        "左旋抺除之兆",
+        "左旋廢止之兆",
+        "右旋廢止之兆",
+        "右旋抺除之兆",
+        "削切之兆",
+        "完美崇高石",
+        "完美混沌石",
+        "神聖石",
+        "無效石",
+        "均勻喜悅之兆",
+        "重組之兆",
+        "左旋結晶之兆",
+        "無效石",
+        "破裂石",
+        "機會石",
+        "完美工匠石",
+        "願力斷片",
+        "地圖鑰匙（階級 15）",
     }
 }
 

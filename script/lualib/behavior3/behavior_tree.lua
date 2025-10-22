@@ -22,8 +22,20 @@ local trees = {}
 local mt = {}
 mt.__index = mt
 function mt:init(name, path)
-    path = path or './script/trees/'
+    -- path = path or './script/trees/'
+    local package_path = api_GetExecutablePath()
+    api_Log("path1111111-->"..package_path)
+
+    -- 确保路径以分隔符结尾，然后添加 script/trees/
+    local base_dir = package_path
+    if not base_dir:match("[\\/]$") then
+        base_dir = base_dir .. "/"
+    end
+    path = base_dir .. "script/trees/"
+    path = path:gsub("\\", "/")
+
     api_Log("path-->"..path)
+
     self.name = name
     self.tick = 0
     local file, err = io.open(string.format("%s%s%s", path, name, '.json'), 'r')

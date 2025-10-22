@@ -173,6 +173,18 @@ local game_str = {
     Black_Cathedral = "黑色大教堂",
     Hidden_Creature = "潛伏的生物",
     Enter_CH = "進入",
+    The_Invitation_of_Skeleton_Mark_TWCH = "骷髏馬克的邀請",
+    The_Container_of_Mark_the_Skeleton_TWCH = "骷髏馬克的容器",
+    Skull_Mark_TWCH = "骷髏馬克",
+    Obtain_the_ring_TWCH = "取得戒指",
+    Enhancement_Item_List_TWCH = {"瓦爾寶珠","點金石"},
+    Not_Identified_TWCH = "未鑑定",
+    Contaminated_TWCH = "已汙染",
+    Steam_Copy_Login_Request_TWCH = "Steam：複製的登入請求",
+    mini_target_ = {"AbyssCrackActive","AbyssPitActive","RuneMarkersActive"},
+
+    -- 暗金碑牌
+    Great_Plan_TWCH = "偉大計劃",
 
 
     -- 通货
@@ -294,6 +306,11 @@ local game_str = {
     current_state_SML = "current_state",
     interaction_enabled_SML = "interaction_enabled",
     goodbye_SML = "goodbye",
+    open_SML = "open",
+    dead_SML = "dead",
+    times_revived_SML = "times_revived",
+    is_corrupted_SML = "is_corrupted",
+    EPK_SML = "epk",
 
 
     -- 技能状态(Skill Buff)
@@ -311,6 +328,18 @@ local game_str = {
     MapWetlands_MDANA = "MapWetlands",
     MapUniqueSelenite_MDANA = "MapUniqueSelenite",
     MapLeaguePortal_MDANA = "MapLeaguePortal",
+    Abyss_Pinnacle_MDANA= "Abyss_Pinnacle",
+    Abyss_Hub_MDANA = "Abyss_Hub",
+
+    -- 地图玩法(Map play mod)
+    Legendary_Map_MPMD = "傳奇地圖",
+
+    -- 地图繁体中文名
+    MapUniqueParadise_TWCH = "純淨樂園",
+    MapUniqueSelenite_TWCH = "沉默洞穴",
+    MapUniqueMegalith_TWCH = "艾茲麥巨石",
+    MapUniqueLake_TWCH = "破裂迷湖",
+    MapUniqueWildwood_TWCH = "翠綠荒林",
 
     -- 怪物名称(Monster name)
     snake_king = "巨蛇女王．瑪娜莎",
