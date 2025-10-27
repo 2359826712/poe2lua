@@ -2,8 +2,8 @@
 
 -- api_Log(package)
 -- 每次加载时清除 otherworld 模块的缓存
-api_Log("清除 plot 模块的缓存")
-package.loaded['script/plot'] = nil
+api_Log("清除 otherworld 模块的缓存")
+package.loaded['script/otherworld'] = nil
 package.loaded['script/poe2api'] = nil
 package.loaded['json'] = nil
 
@@ -11,12 +11,12 @@ local package_path = api_GetExecutablePath()
 local script_dir = package_path:match("(.*[/\\])") .. "script/"
 -- api_Log("脚本目录: " .. script_dir)
 
-local plot = require 'script/plot'
+local otherworld = require 'script/otherworld'
 local poe2api = require 'script/poe2api'
 local json = require 'script.lualib.json'
 
 -- 创建行为树
-local bt = plot.create()
+local bt = otherworld.create()
 -- api_Log("版号: V 09.15.01")
 i = 0
 while true do
