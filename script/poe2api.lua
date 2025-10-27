@@ -1437,21 +1437,27 @@ _M.get_map_oringin = function(params)
         end
 
         -- 检查是否进入城寨
-        if enter_city and _M.table_contains(map_data.name_utf8, my_game_info.Citadel_map) then
-            -- _M.dbgp("[DEBUG] 地图包含城寨模式")
-            local map_level = _M.select_best_map_key({
-                inventory = bag_info,
-                key_level_threshold = key_level_threshold,
-                not_use_map = not_use_map,
-                priority_map = priority_map,
-                color = 2,
-                entry_length = 4
-            })
-            if not map_level or not_have_stackableCurrency then
-                return -1
-            else
-                return 9999
+        if _M.table_contains(map_data.name_utf8, my_game_info.Citadel_map) then
+            if enter_city then
+                -- _M.dbgp("[DEBUG] 地图包含城寨模式")
+                local map_level = _M.select_best_map_key({
+                    inventory = bag_info,
+                    key_level_threshold = key_level_threshold,
+                    not_use_map = not_use_map,
+                    priority_map = priority_map,
+                    min_level = 15
+                })
+                -- _M.printTable(map_level)
+                -- while true do
+                --     api_Sleep(1000)
+                -- end
+                if not map_level then
+                    return -1
+                else
+                    return 9999
+                end
             end
+            return -1
         end
 
         if _M.table_contains(map_data.mapPlayModes, "腐化聖域") then
@@ -2543,20 +2549,28 @@ _M.get_map = function(params)
             return -1
         end
 
-        if enter_city and _M.table_contains(map_data.mapPlayModes, my_game_info.Citadel_map) then
-            local map_level = _M.select_best_map_key({
-                inventory = bag_info,
-                key_level_threshold = key_level_threshold,
-                not_use_map = not_use_map,
-                priority_map = priority_map,
-                color = 2,
-                entry_length = 4
-            })
-            if not map_level or not_have_stackableCurrency then
-                return -1
-            else
-                return 9999
+        -- 检查是否进入城寨
+        if _M.table_contains(map_data.name_utf8, my_game_info.Citadel_map) then
+            if enter_city then
+                -- _M.dbgp("[DEBUG] 地图包含城寨模式")
+                local map_level = _M.select_best_map_key({
+                    inventory = bag_info,
+                    key_level_threshold = key_level_threshold,
+                    not_use_map = not_use_map,
+                    priority_map = priority_map,
+                    min_level = 15
+                })
+                -- _M.printTable(map_level)
+                -- while true do
+                --     api_Sleep(1000)
+                -- end
+                if not map_level then
+                    return -1
+                else
+                    return 9999
+                end
             end
+            return -1
         end
 
         if _M.table_contains(map_data.mapPlayModes, "腐化聖域") then
@@ -2565,7 +2579,8 @@ _M.get_map = function(params)
                 key_level_threshold = key_level_threshold,
                 not_use_map = not_use_map,
                 priority_map = priority_map,
-                min_level = 15
+                color = 2,
+                entry_length = 4
             })
             if not map_level then
                 return -1
@@ -7414,6 +7429,15 @@ _M.is_do_without_pick_up = function(item, items_info)
             end
         end
     end
+    local function split_str(input, sep)
+        sep = sep or "|"  -- 默认分隔符是 |
+        local result = {}
+        for item in string.gmatch(input, "([^"..sep.."]+)") do
+            table.insert(result, item)
+        end
+        return result
+    end
+    
     if item_key and item_key ~= "" then
         local item_type_list = {}
         for _, v in ipairs(items_info) do
@@ -7425,7 +7449,8 @@ _M.is_do_without_pick_up = function(item, items_info)
             local not_pick_up_item = nil
             for _, v in ipairs(item_type_list) do
                 if v["不撿"] then
-                    if v['基礎類型名'] == "全部物品" or (v["名稱"] and v["名稱"] ~= "" and not item.not_identified and string.find(v['基礎類型名'],item.baseType_utf8) and string.find(v["名稱"],item.name_utf8)) or ((not v["名稱"] or v["名稱"] == "") and string.find(v['基礎類型名'],item.baseType_utf8)) then
+                    local item_name_list = split_str(v['基礎類型名'])
+                    if v['基礎類型名'] == "全部物品" or (v["名稱"] and v["名稱"] ~= "" and not item.not_identified and _M.table_contains(item_name_list,item.baseType_utf8) and string.find(v["名稱"],item.name_utf8)) or ((not v["名稱"] or v["名稱"] == "") and _M.table_contains(item_name_list,item.baseType_utf8)) then
                         not_pick_up_item = v
                         break
                     end

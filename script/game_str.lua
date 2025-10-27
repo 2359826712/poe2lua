@@ -239,6 +239,7 @@ local game_str = {
     Boss_EN = "Boss",
     RitualRuneFinished_EN = "RitualRuneFinished",
     Abyss_Boss_EN = "Abyss_Boss",
+    MapUberBoss_IronCitadel_EN = "MapUberBoss_IronCitadel",  -- 钢铁城寨
     
 
 

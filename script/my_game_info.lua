@@ -239,6 +239,7 @@ local my_game_info = {
         "MapOrnateChambers_NoBoss", -- # 华丽密室
         "MapChannel", -- # 水道 有Boss
         "MapChannel_NoBoss", -- # 水道
+        "MapUniqueCastaway", -- 漂流者之所
     },
 
     not_attact_mons_path_name = {
@@ -628,7 +629,8 @@ local my_game_info = {
         ["魔符"] = "SoulCore",
         ["裂痕石"] = "Breachstone",
         ["深淵骸骨"] = "StackableCurrency",
-        ["族裔輔助寶石"] = "Support Skill Gem"
+        ["族裔輔助寶石"] = "Support Skill Gem",
+        ["探險日誌"] = "ExpeditionLogbook"
     },
 
     -- # 仓库类型
@@ -1178,7 +1180,9 @@ local my_game_info = {
         ["Spear"] = {1, 4},
         ["Buckler"] = {2, 2},
         ["VaultKey"] = {1, 1},
-        ["Support Skill Gem"] = {1, 1}
+        ["Support Skill Gem"] = {1, 1},
+        ["ExpeditionLogbook"] = {1, 1},
+        ["InstanceLocalItem"] = {2,3}
     },
 
     Treasure_Chest = {

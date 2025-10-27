@@ -207,6 +207,11 @@ local custom_nodes = {
                 env.space = monster_avoid["是否開啟"] or false
                 env.space_time = monster_avoid["閾值"] or 0
                 env.space_config = monster_avoid
+                env.is_open_gameplay_safe = config["全局設置"]["刷图通用設置"]["是否开启玩法保险箱"] or false
+                env.is_click_essence = config["全局設置"]["刷图通用設置"]["是否点击精髓"] or false
+                env.is_open_crack = config["全局設置"]["刷图通用設置"]["是否开启裂痕之手"] or false
+                env.is_deception_delusion = config["全局設置"]["刷图通用設置"]["是否开启诡妄之镜"] or false
+                env.is_sacrifice_shopping = config["全局設置"]["刷图通用設置"]["是否使用内置祭祀购买"] or false
 
                 local space_monster = {}
 
@@ -374,7 +379,7 @@ local custom_nodes = {
                 self.death_times = env.death_times or 0
             end
             local death_times = (self.death_times or 0) + (env.death_times or 0)
-            api_SetStatusText("死亡次数:"..(death_times or 0).."\n".."开图次数:"..(open_map_count or 0))
+            api_SetStatusText("开图次数:"..(open_map_count or 0))
             -- api_SetStatusText("开图次数:"..(env.open_map_count or 0))
 
             -- api_UpdateMapObstacles(1000)
@@ -541,6 +546,7 @@ local custom_nodes = {
                 env.is_dizhu_times = 0 --油次数
                 env.false_times = 0
                 env.is_over = false 
+                env.exp_add_bool = false
                 local current_time = api_GetTickCount64()
                 env.last_exception_time_move = 0.0
                 env.last_exp_check_move = current_time
@@ -584,7 +590,7 @@ local custom_nodes = {
                 end
                 
                 if player_info and next(player_info) then
-                   if poe2_api.table_contains(player_info.current_map_name_utf8,{game_str.MapAugury_MDANA,game_str.MapAugury_NoBoss_MDANA,"MapAzmerianRanges_NoBoss","MapAzmerianRanges",game_str.Abyss_Pinnacle_MDANA}) then
+                    if poe2_api.table_contains(player_info.current_map_name_utf8,{game_str.MapAugury_MDANA,game_str.MapAugury_NoBoss_MDANA,"MapAzmerianRanges_NoBoss","MapAzmerianRanges",game_str.Abyss_Pinnacle_MDANA,"MapSeepage","MapSeepage_NoBoss"}) then
                     -- 自动刷新屏障开关接口(缺失) 开
                     api_UpdateMapObstacles(100)
                     poe2_api.dbgp("自动刷新屏障开关接口(缺失) 开==================")
@@ -1141,13 +1147,17 @@ local custom_nodes = {
             --     return bret.RUNNING
             -- end
             -- poe2_api.dbgp("11111111111111111111111111")
-            -- for _,k in ipairs(env.current_map_info) do
+            -- local a = poe2_api.get_sorted_list(env.current_map_info,env.player_info)
+            -- for _,k in ipairs(a) do
             --     poe2_api.dbgp(k.name_utf8)
             --     poe2_api.dbgp(k.grid_x)
             --     poe2_api.dbgp(k.grid_y)
             --     poe2_api.dbgp(k.flagStatus)
             --     poe2_api.dbgp(k.flagStatus1)
             --     poe2_api.dbgp("==============================")
+            -- end
+            -- while true do
+            --     api_Sleep(1000)
             -- end
             -- poe2_api.dbgp("22222222222222222222222222222222")
             -- poe2_api.printTable(env.current_map_info)
@@ -1163,6 +1173,9 @@ local custom_nodes = {
             local bag_info_start_time = api_GetTickCount64()
             env.bag_info = api_Getinventorys(1,0)
             -- poe2_api.printTable(env.bag_info)
+            -- while true do
+            --     api_Sleep(1000)
+            -- end
             -- api_Sleep(10000)
             poe2_api.time_p("    获取背包信息信息... 耗时 --> ", api_GetTickCount64() - bag_info_start_time)
 
@@ -1342,11 +1355,11 @@ local custom_nodes = {
             --     api_Sleep(1000)
             -- end
 
-            if self.wear_items == nil then
-                self.wear_items = true
+            if env.wear_items == nil then
+                env.wear_items = true
             end
             -- 其他物品栏信息（批量处理）
-            if self.wear_items then
+            if env.wear_items then
                 local inventory_sections = {
                     {2, "item2"}, {3, "item3"}, {4, "item4"},
                     {5, "item5"}, {6, "item6"}, {7, "item7"},
@@ -1360,7 +1373,7 @@ local custom_nodes = {
                         env[section_name] = items
                     end
                 end
-                self.wear_items = false
+                env.wear_items = false
             end
 
             poe2_api.time_p("Get_Info... 总耗时 --> ", api_GetTickCount64() - start_time)
@@ -1404,7 +1417,7 @@ local custom_nodes = {
             end
             if not self.bool and  player_info.life ~= 0 and not poe2_api.click_text_UI({text=game_str.respawn_at_checkpoint_button,UI_info = env.UI_info,index = 1}) then
                 if not poe2_api.find_text({UI_info = env.UI_info, text = game_str.clear,min_x = 0 }) then
-                    api_ClickMove(poe2_api.toInt(player_info.grid_x), poe2_api.toInt(player_info.grid_y), poe2_api.toInt(player_info.world_z), 7)
+                    api_ClickMove(poe2_api.toInt(player_info.grid_x), poe2_api.toInt(player_info.grid_y),7)
                     api_Sleep(1000)
                     poe2_api.click_keyboard("enter",0)
                     api_Sleep(500)
@@ -1846,7 +1859,10 @@ local custom_nodes = {
     Check_LongTime_EXP_Add = {
         run = function(self, env)
             poe2_api.print_log("开始执行长时间经验检查...")
-
+            if not env.exp_add_bool then
+                self.number = 0
+                env.exp_add_bool = true
+            end
             -- env.need_SmallRetreat = true
             -- while true do
             --     return bret.RUNNING
@@ -2081,7 +2097,7 @@ local custom_nodes = {
             elseif return_town then
                 space_time = 15
             elseif buy_items then
-                space_time = 12
+                space_time = 60
             end
 
             -- 计算真实停滞时间
@@ -2106,13 +2122,15 @@ local custom_nodes = {
                     poe2_api.dbgp(string.format("检测到移动停滞(%.2f秒 > %d秒)，执行恢复操作", real_stagnation_time_move / 1000, space_time))
                     
                     -- 只有在不需要小退或回城时才执行移动恢复
-                    if not env.need_SmallRetreat and not env.need_ReturnToTown and not take_rest then
+                    if not env.need_SmallRetreat and not env.need_ReturnToTown and not take_rest and self.number < 30 then
                         perform_movement_recovery()
+                        self.number = self.number + 1
                         return bret.RUNNING
                     else
                         poe2_api.dbgp("已有回城或小退指令，跳过移动恢复")
                     end
                 else
+                    self.number = 0
                     -- 正常移动，重置移动检查状态
                     reset_states_move()
                 end
@@ -2721,6 +2739,8 @@ local custom_nodes = {
                                 and item[1].DemandLevel == item_player[1].DemandLevel
                                 and item[1].not_identified == item_player[1].not_identified
                                 and item[1].category_utf8 == item_player[1].category_utf8
+                                and item[1].quality == item_player[1].quality
+                                and item[1].sockets == item_player[1].sockets
                                 and item[1].color == item_player[1].color then
                                     local current_item = api_Getinventorys(v,0)
                                     if current_item and next(current_item) then
@@ -2731,6 +2751,8 @@ local custom_nodes = {
                                         and current_item[1].DemandLevel == item_player[1].DemandLevel
                                         and current_item[1].not_identified == item_player[1].not_identified
                                         and current_item[1].category_utf8 == item_player[1].category_utf8
+                                        and current_item[1].quality == item_player[1].quality
+                                        and current_item[1].sockets == item_player[1].sockets
                                         and current_item[1].color == item_player[1].color then
                                         else
                                             point = point_list[v]
@@ -3566,9 +3588,12 @@ local custom_nodes = {
             end
             local function get_missing_plaque()
                 local missing_plaque = {}
+                -- poe2_api.dbgp(14141414141414)
                 local inserted_plaques = api_Getinventorys(77,0)
+                -- poe2_api.dbgp(13131313131313)
                 -- poe2_api.printTable(inserted_plaques)
                 if next(env.settings_cfg_plaque) then
+                    -- poe2_api.dbgp(151515151515151)
                     for _, v1 in ipairs(env.settings_cfg_plaque) do
                         if not next(inserted_plaques) then
                             table.insert(missing_plaque,v1["基礎類型名"]) 
@@ -3590,22 +3615,45 @@ local custom_nodes = {
                         end
                     end
                 else
+                    -- poe2_api.dbgp(1717171717)
                     if not next(inserted_plaques) then
+                        -- poe2_api.dbgp(181818181818)
                         missing_plaque = env.stone_order
+                        return missing_plaque
                     end
-                    for _, v in ipairs(env.stone_order) do
+                    -- poe2_api.dbgp(191919)
+                    poe2_api.dbgp(#env.stone_order)
+                    poe2_api.printTable(env.stone_order)
+                    -- while true do
+                    --     api_Sleep(1000)
+                    -- end
+                    for i, v in ipairs(env.stone_order) do
                         local a = false
-                        for _, v2 in ipairs(inserted_plaques) do
-                            if v2.baseType_utf8 == v then
-                                a = true
-                                break
+                        -- poe2_api.dbgp(v)
+                        -- poe2_api.dbgp(i)
+                        -- poe2_api.dbgp(#env.stone_order)
+                        -- poe2_api.printTable(env.stone_order)
+                        -- poe2_api.dbgp(2020202020)
+                        if inserted_plaques and next(inserted_plaques) then
+                            -- poe2_api.dbgp(3434343434343)
+                            for _, v2 in ipairs(inserted_plaques) do
+                                if v2.baseType_utf8 == v then
+                                    a = true
+                                    break
+                                end
                             end
                         end
+                        -- poe2_api.dbgp(21212121212121212)
                         if not a then
-                            table.insert(missing_plaque,v) 
+                            -- poe2_api.dbgp(#missing_plaque)
+                            table.insert(missing_plaque,v)
+                            -- poe2_api.dbgp(#missing_plaque)
+                            -- poe2_api.dbgp(#env.stone_order)  
                         end  
                     end
+                    -- poe2_api.dbgp(29292929)
                 end
+                -- poe2_api.dbgp(161616161616161)
                 return missing_plaque
                         
             end
@@ -3735,32 +3783,32 @@ local custom_nodes = {
                                 
                             end
                         end
-                    else
-                        for _, v2 in ipairs(items_list) do
-                            if v2["類型"] == "碑牌" and v2["存倉頁名"] and v2["存倉頁名"] ~= "" and (v2["白裝"] or v2["藍裝"] or v2["黃裝"]) and not v2["不撿"] then
-                                if v == v2["基礎類型名"] then
-                                    if not v2["工會倉庫"] then
-                                        warehouse_type = {game_str.Warehouse_text,v2["存倉頁名"],v,1}
-                                        -- env.plaque_page = 
-                                    else
-                                        warehouse_type = {game_str.Guild_Warehouse_text,v2["存倉頁名"],v,1}
-                                        -- warehouse_type = game_str.Guild_Warehouse_text
-                                        -- env.plaque_page = v1["存倉頁名"]
-                                    end
-                                    return warehouse_type
-                                else
-                                    if not v2["工會倉庫"] then
-                                        warehouse_type = {game_str.Warehouse_text,v2["存倉頁名"],v,1}
-                                        -- env.plaque_page = 
-                                    else
-                                        warehouse_type = {game_str.Guild_Warehouse_text,v2["存倉頁名"],v,1}
-                                        -- warehouse_type = game_str.Guild_Warehouse_text
-                                        -- env.plaque_page = v1["存倉頁名"]
-                                    end
-                                    return warehouse_type
-                                end
-                            end
-                        end
+                    -- else
+                    --     for _, v2 in ipairs(items_list) do
+                    --         if v2["類型"] == "碑牌" and v2["存倉頁名"] and v2["存倉頁名"] ~= "" and (v2["白裝"] or v2["藍裝"] or v2["黃裝"]) and not v2["不撿"] then
+                    --             if v == v2["基礎類型名"] then
+                    --                 if not v2["工會倉庫"] then
+                    --                     warehouse_type = {game_str.Warehouse_text,v2["存倉頁名"],v,1}
+                    --                     -- env.plaque_page = 
+                    --                 else
+                    --                     warehouse_type = {game_str.Guild_Warehouse_text,v2["存倉頁名"],v,1}
+                    --                     -- warehouse_type = game_str.Guild_Warehouse_text
+                    --                     -- env.plaque_page = v1["存倉頁名"]
+                    --                 end
+                    --                 return warehouse_type
+                    --             else
+                    --                 if not v2["工會倉庫"] then
+                    --                     warehouse_type = {game_str.Warehouse_text,v2["存倉頁名"],v,1}
+                    --                     -- env.plaque_page = 
+                    --                 else
+                    --                     warehouse_type = {game_str.Guild_Warehouse_text,v2["存倉頁名"],v,1}
+                    --                     -- warehouse_type = game_str.Guild_Warehouse_text
+                    --                     -- env.plaque_page = v1["存倉頁名"]
+                    --                 end
+                    --                 return warehouse_type
+                    --             end
+                    --         end
+                    --     end
                     end
                 end
                 for _, v in ipairs(env.stone_order) do
@@ -3822,21 +3870,25 @@ local custom_nodes = {
             --     poe2_api.time_p("检查是否获得牌匾（SUCCESS1）... 耗时 --> ", api_GetTickCount64() - start_time)
             --     return bret.SUCCESS
             -- end
+            -- poe2_api.dbgp("1111111")
             if not next(env.stone_order) then
                 poe2_api.dbgp("未设置碑牌顺序，不需要取碑")
                 poe2_api.time_p("检查是否获得牌匾（SUCCESS1）... 耗时 --> ", api_GetTickCount64() - start_time)
                 return bret.SUCCESS
             end
+            -- poe2_api.dbgp("22222222")
             if not env.is_get_plaque then
                 poe2_api.dbgp("不需要去呗")
                 poe2_api.time_p("检查是否获得牌匾（SUCCESS2）... 耗时 --> ", api_GetTickCount64() - start_time)
                 return bret.SUCCESS
             end
+            -- poe2_api.dbgp("33333333")
             if not env.is_get_plaque_node then
                 poe2_api.dbgp("不需要公仓去呗")
                 poe2_api.time_p("检查是否获得牌匾（SUCCESS3）... 耗时 --> ", api_GetTickCount64() - start_time)
                 return bret.SUCCESS
             end
+            -- poe2_api.dbgp("4444444")
             if is_get_plaque(bag_info) then
                 env.is_get_plaque_node = false
                 poe2_api.dbgp("不需要公仓去呗1")
@@ -3844,7 +3896,9 @@ local custom_nodes = {
                 poe2_api.time_p("检查是否获得牌匾（SUCCESS4）... 耗时 --> ", api_GetTickCount64() - start_time)
                 return bret.SUCCESS
             end
+            -- poe2_api.dbgp("555555")
             local plaque_index = plaque_bag(bag_info)
+            -- poe2_api.dbgp("66666666")
             if pick_up_number ~= 0 and plaque_index and plaque_index == pick_up_number then
                 env.is_get_plaque_node = false
                 poe2_api.dbgp("不需要公仓去呗2")
@@ -3852,7 +3906,7 @@ local custom_nodes = {
                 poe2_api.time_p("检查是否获得牌匾（SUCCESS5）... 耗时 --> ", api_GetTickCount64() - start_time)
                 return bret.SUCCESS
             end
-
+            -- poe2_api.dbgp("777777777")
             if deep_equal_unordered(env.stone_order,env.not_exist_stone) then
                 -- poe2_api.printTable(env.stone_order)
                 poe2_api.dbgp("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$")
@@ -3863,9 +3917,13 @@ local custom_nodes = {
                 poe2_api.time_p("检查是否获得牌匾（SUCCESS6）... 耗时 --> ", api_GetTickCount64() - start_time)
                 return bret.SUCCESS
             end
+            -- poe2_api.dbgp("888888888")
             local items_info = poe2_api.get_items_config_info(env.user_config)
+            -- poe2_api.dbgp("9999999")
             local missing_plaque = get_missing_plaque()
+            -- poe2_api.dbgp("101010101")
             poe2_api.printTable(missing_plaque)
+            -- poe2_api.dbgp("121212121212121")
             -- api_Sleep(5000)
             local warehouse_type = get_warehouse_type(items_info,missing_plaque)
             if not warehouse_type then
@@ -3966,7 +4024,11 @@ local custom_nodes = {
                 for _,item in ipairs(items) do
                     local plaque_list = {}
                     local plaque_list_dark_gold = {}
+                    -- poe2_api.dbgp("item_name:",item)
+                    -- poe2_api.dbgp("plaque_type[2]:",env.plaque_type[2])
+                    -- poe2_api.dbgp("item_name:",item)
                     for _, v in ipairs(currency_info) do
+                        -- poe2_api.dbgp("v.baseType_utf8:",v.baseType_utf8)
                         if v.baseType_utf8 == item then
                             if env.plaque_type[2] == 0 and v.color == 3 and v.name_utf8 ~= game_str.Great_Plan_TWCH  then -- 
                                 table.insert(plaque_list_dark_gold,v)
@@ -4375,6 +4437,7 @@ local custom_nodes = {
                 end
                 poe2_api.dbgp("type:",self.type)
                 local currency = api_Getinventorys(precut_page.manage_index,index)
+                -- poe2_api.printTable(currency)
                 if currency and next(currency) then
                     poe2_api.dbgp("llllllllllllllllllllllllllllllllllllllllllllllllll")
                     if self.type ~= page then
@@ -8799,6 +8862,12 @@ local custom_nodes = {
                         return false
                     end
                     if poe2_api.is_do_without_pick_up(item,processed_configs) then
+                        if is_decompose and type(is_decompose)~="table" then
+                            if item.color == 3 and poe2_api.table_contains(item.category_utf8,my_game_info.equip_type) then
+                                return false
+                                
+                            end
+                        end
                         return true
                     end
                     for _, cfg in ipairs(processed_configs) do
@@ -9070,6 +9139,8 @@ local custom_nodes = {
                         and Attachments[1].DemandLevel == item[1].DemandLevel
                         and Attachments[1].not_identified == item[1].not_identified
                         and Attachments[1].category_utf8 == item[1].category_utf8
+                        and Attachments[1].quality == item[1].quality
+                        and Attachments[1].sockets == item[1].sockets
                         and Attachments[1].color == item[1].color then
                             local current_item = api_Getinventorys(v,0)
                             if current_item and next(current_item) then
@@ -9080,6 +9151,8 @@ local custom_nodes = {
                                 and current_item[1].DemandLevel == item[1].DemandLevel
                                 and current_item[1].not_identified == item[1].not_identified
                                 and current_item[1].category_utf8 == item[1].category_utf8
+                                and current_item[1].quality == item[1].quality
+                                and current_item[1].sockets == item[1].sockets
                                 and current_item[1].color == item[1].color then
                                 else
                                     point = point_list[v]
@@ -10082,10 +10155,11 @@ local custom_nodes = {
             end
             poe2_api.dbgp("3")
             if player_info.current_map_name_utf8 == game_str.MapUniqueWildwood then
+                poe2_api.dbgp("翠绿荒林时间：",self.path_time)
                 if self.path_time ~= 0 and api_GetTickCount64() - self.path_time > 10000 then
                     local function is_point(grid_x,grid_y)
-                        local point = api_FindNearestReachableInRange(math.floor(grid_x),math.floor(grid_y),15,0)
-                        local ralet = api_FindPath(player_info.grid_x,player_info.grid_y,math.floor(point.x),math.floor(point.y))
+                        -- local point = api_FindNearestReachableInRange(math.floor(grid_x),math.floor(grid_y),15,0)
+                        local ralet = api_FindPath(player_info.grid_x,player_info.grid_y,math.floor(grid_x),math.floor(grid_y))
                         return ralet
                     end
                     if distance and distance > 15 then
@@ -10094,10 +10168,14 @@ local custom_nodes = {
                             poe2_api.dbgp("翠绿荒林，拾取无路径跳出")
                             return bret.SUCCESS
                         end
+                        poe2_api.dbgp("翠绿荒林，拾取有路径")
                     elseif not distance then
                         poe2_api.dbgp("翠绿荒林，拾取无路径跳出11")
                         return bret.SUCCESS
                     end
+                    self.path_time = api_GetTickCount64()
+                end
+                if self.path_time == 0 then
                     self.path_time = api_GetTickCount64()
                 end
             end
@@ -10253,33 +10331,33 @@ local custom_nodes = {
                             return bret.RUNNING
                         end
                     end   
-                    if not player_info.isMoving then
-                        if not self.id1 then
-                            self.id1 = env.need_item.id
-                        end
-                        if self.id1 == env.need_item.id then
-                            self.number = self.number + 1
-                        else
-                            self.number = 1
-                            self.id1 = env.need_item.id
-                            -- poe2_api.dbgp("物品已捡起,更新状态")
-                            -- api_Sleep(1000)
-                        end
-                        if self.number % 10 == 0 then
-                            local point = api_FindRandomWalkablePosition(math.floor(player_info.grid_x),math.floor(player_info.grid_y),70)
-                            if point then
-                                api_ClickMove(poe2_api.toInt(point.x),poe2_api.toInt(point.y),7)
-                            end
-                        end
-                        poe2_api.dbgp("number: "..self.number)
-                        if self.number >= 50 then
-                            table.insert(env.pick_up_timeout,env.need_item.id)
-                            env.need_item = nil
-                            self.number = 0
-                            poe2_api.time_p("检查是否拾取（RUNNING7）... 耗时 --> ", api_GetTickCount64() - start_time)
-                            return bret.RUNNING
-                        end
-                    end
+                    -- if not player_info.isMoving then
+                    --     if not self.id1 then
+                    --         self.id1 = env.need_item.id
+                    --     end
+                    --     if self.id1 == env.need_item.id then
+                    --         self.number = self.number + 1
+                    --     else
+                    --         self.number = 1
+                    --         self.id1 = env.need_item.id
+                    --         -- poe2_api.dbgp("物品已捡起,更新状态")
+                    --         -- api_Sleep(1000)
+                    --     end
+                    --     if self.number % 10 == 0 then
+                    --         local point = api_FindRandomWalkablePosition(math.floor(player_info.grid_x),math.floor(player_info.grid_y),70)
+                    --         if point then
+                    --             api_ClickMove(poe2_api.toInt(point.x),poe2_api.toInt(point.y),7)
+                    --         end
+                    --     end
+                    --     poe2_api.dbgp("number: "..self.number)
+                    --     if self.number >= 50 then
+                    --         table.insert(env.pick_up_timeout,env.need_item.id)
+                    --         env.need_item = nil
+                    --         self.number = 0
+                    --         poe2_api.time_p("检查是否拾取（RUNNING7）... 耗时 --> ", api_GetTickCount64() - start_time)
+                    --         return bret.RUNNING
+                    --     end
+                    -- end
                     poe2_api.dbgp("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA")   
                 elseif distance < 50 then
                     local is_item = nil
@@ -10366,15 +10444,26 @@ local custom_nodes = {
         run = function(self, env)
             poe2_api.print_log("祭祀購買...")
             local current_time = api_GetTickCount64()
-            if not self.init then
-                self.init = true
-                self.deferred_items = {}
-            end
+            -- if not self.init then
+            --     self.init = true
+            --     self.deferred_items = {}
+            -- end
             local player_info = env.player_info
             local user_config = env.user_config
-
-            local _get_valid_items = function(all_items, tribute)
-                self.deferred_items = {}
+            -- if not env.not_more_ritual then
+            --     if poe2_api.find_text({UI_info = env.UI_info, text = game_str.the_gift_CN  }) then
+            --         -- local Attachments = api_Getinventorys(0xd,0)
+            --         -- if Attachments and #Attachments > 0 then
+            --         --     poe2_api.find_text({UI_info = env.UI_info, text = game_str.the_gift_CN , min_x = 0 , add_x = 272, click = 2})
+            --         --     return bret.RUNNING
+            --         -- end
+            --         poe2_api.find_text({UI_info = env.UI_info, text = game_str.the_gift_CN , min_x = 0 , add_x = 272, click = 2})
+            --         return bret.RUNNING
+            --     end
+            --     return bret.SUCCESS
+            -- end
+            local _get_valid_items = function(all_items, tribute,maxCount,finishedCount)
+                -- self.deferred_items = {}
                 if not all_items or #all_items == 0 then
                     return {}, {}, 0, {}, {}, {}
                 end
@@ -10389,20 +10478,37 @@ local custom_nodes = {
                 -- 以 inside_items 的顺序为准，合并 ritual_config 中剩下的物品
                 local merged_order = {}
                 local added_items = {}
-                
-                -- 首先添加 inside_items 中的所有项
-                for _, item in ipairs(inside_items) do
-                    table.insert(merged_order, item)
-                    added_items[item] = true
-                end
-                
-                -- 然后添加 ritual_config 中有但 inside_items 中没有的项
-                for _, item in ipairs(ritual_config) do
-                    if not added_items[item] then
+                -- if env.is_sacrifice_shopping then
+                    -- 首先添加 inside_items 中的所有项
+                    -- for _, item in ipairs(inside_items) do
+                    --     table.insert(merged_order, item)
+                    --     added_items[item] = true
+                    -- end
+                -- end
+                if not ritual_config or not next(ritual_config) then
+                    -- poe2_api.dbgp("未配置相关祭祀购买物品，按内置物品购买")
+                    for _, item in ipairs(inside_items) do
+                        table.insert(merged_order, item)
+                        added_items[item] = true
+                    end
+                else
+                    -- poe2_api.dbgp("按用户配置")
+                    for _, item in ipairs(ritual_config) do
                         table.insert(merged_order, item)
                         added_items[item] = true
                     end
                 end
+                -- while true do
+                --     api_Sleep(1000)
+                -- end
+                
+                -- 然后添加 ritual_config 中有但 inside_items 中没有的项
+                -- for _, item in ipairs(ritual_config) do
+                --     if not added_items[item] then
+                --         table.insert(merged_order, item)
+                --         added_items[item] = true
+                --     end
+                -- end
 
                 -- 创建优先级字典，确保顺序与 merged_order 一致
                 local priority_dict = {}
@@ -10452,7 +10558,9 @@ local custom_nodes = {
                 end
             
                 -- 按优先级排序物品
-                local all_config_items = {}
+                local all_config_items_shopping = {}
+                local all_config_items_cache = {}
+                local all_config_items_with_caching= {}
                 local all_config_items_no_price = {}
             
                 -- 遍历 ritual_config merged_order 的顺序
@@ -10472,19 +10580,35 @@ local custom_nodes = {
             
                         -- 添加到 all_config_items
                         for _, item in ipairs(item_groups[item_name]) do
-                            local condition1 = not item.totalDeferredConsumption or item.totalDeferredConsumption < tribute
-                            local condition2 = not item.tribute or item.tribute < tribute
-                            if condition1 or condition2 then
-                                table.insert(all_config_items, item)
+                            --  local condition2 = (item.totalDeferredConsumption >= item.tribute or math.abs(item.totalDeferredConsumption - item.tribute) <= 50) and item.tribute <= tribute
+                            if (item.totalDeferredConsumption >= item.tribute or math.abs(item.totalDeferredConsumption - item.tribute) <= 50) and item.tribute <= tribute then
+                                table.insert(all_config_items_shopping, item)
+                                -- break
+                            -- end
+                            -- local condition1 = not item.totalDeferredConsumption or item.totalDeferredConsumption <= tribute
+                            elseif not item.totalDeferredConsumption or item.totalDeferredConsumption <= tribute then
+                                -- table.insert(all_config_items_shopping, item)
+                                table.insert(all_config_items_cache, item)
+                            --     break
+                            -- end
+                            -- poe2_api.dbgp(item.tribute)
+                            -- poe2_api.dbgp(tribute)
+                            -- poe2_api.dbgp(maxRefreshCount)
+                            -- poe2_api.dbgp(currentRefreshCount)
+                            elseif not item.tribute or (60000 > item.tribute and item.tribute > tribute and maxCount ~= finishedCount) then
+                                table.insert(all_config_items_no_price, item)
                             end
+                            -- if condition1 or condition2 then
+                            --     table.insert(all_config_items, item)
+                            -- end
                         end
             
                         -- 添加到 all_config_items_no_price
-                        for _, item in ipairs(item_groups[item_name]) do
-                            if not item.tribute or (60000 > item.tribute and item.tribute > tribute) then
-                                table.insert(all_config_items_no_price, item)
-                            end
-                        end
+                        -- for _, item in ipairs(item_groups[item_name]) do
+                        --     if not item.tribute or (60000 > item.tribute and item.tribute > tribute and maxRefreshCount ~= currentRefreshCount) then
+                        --         table.insert(all_config_items_no_price, item)
+                        --     end
+                        -- end
                     end
                 end
             
@@ -10496,8 +10620,8 @@ local custom_nodes = {
                     end
                 end
                 poe2_api.dbgp("所有存在的配置物品: ",table.concat(mapped_items, ", "))
-            
-                return all_config_items, all_config_items_no_price, not_appeared_items
+                -- 可以最低价购买的物品  需缓存的物品   ？    隐藏物品
+                return all_config_items_shopping , all_config_items_cache, all_config_items_no_price, not_appeared_items
             end
 
             if poe2_api.table_contains(player_info.current_map_name_utf8, my_game_info.hideout) then
@@ -10505,21 +10629,28 @@ local custom_nodes = {
                 return bret.SUCCESS
             end
             -- poe2_api.printTable(env.team_info)
-            if env.team_info then
-                local nomarl_monster = poe2_api.is_have_mos({range_info = env.range_info, dis = env.min_attack_dis, player_info = env.player_info, stuck_monsters = env.stuck_monsters, not_sight = true})
-                poe2_api.dbgp(nomarl_monster, env.min_attack_dis)
-                if nomarl_monster then
-                    -- api_Sleep(10000)
-                    poe2_api.time_p("祭祀購買(SUCCESS)(组队且有怪)... 耗时 --> ", api_GetTickCount64() - current_time)
-                    return bret.SUCCESS
-                end
+            -- if env.team_info then
+            --     local nomarl_monster = poe2_api.is_have_mos({range_info = env.range_info, dis = env.min_attack_dis, player_info = env.player_info, stuck_monsters = env.stuck_monsters, not_sight = true})
+            --     poe2_api.dbgp(nomarl_monster, env.min_attack_dis)
+            --     if nomarl_monster then
+            --         -- api_Sleep(10000)
+            --         poe2_api.time_p("祭祀購買(SUCCESS)(组队且有怪)... 耗时 --> ", api_GetTickCount64() - current_time)
+            --         return bret.SUCCESS
+            --     end
+            -- end
+            local nomarl_monster = poe2_api.is_have_mos({range_info = env.range_info, dis = env.min_attack_dis, player_info = env.player_info, stuck_monsters = env.stuck_monsters, not_sight = true})
+            poe2_api.dbgp(nomarl_monster, env.min_attack_dis)
+            if nomarl_monster then
+                -- api_Sleep(10000)
+                poe2_api.time_p("祭祀購買(SUCCESS)(组队且有怪)... 耗时 --> ", api_GetTickCount64() - current_time)
+                return bret.SUCCESS
             end
             -- api_Sleep(10000)
             if env.afoot_altar and env.afoot_altar.stateMachineList[game_str.current_state_SML] == 2 and env.afoot_altar.stateMachineList[game_str.interaction_enabled_SML] == 0 then
                 poe2_api.time_p("祭祀購買正在打祭祀(SUCCESS)... 耗时 --> ", api_GetTickCount64() - current_time)
                 return bret.SUCCESS
             end
-
+            --  找不到祭祀组件或者不需要祭祀购买，关闭文本
             if not poe2_api.click_text_UI({UI_info = env.UI_info, text = game_str.ritual_open_shop_button_CT  }) or env.not_items_buy then
                 if poe2_api.find_text({UI_info = env.UI_info, text = game_str.the_gift_CN  }) then
                     poe2_api.find_text({UI_info = env.UI_info, text = game_str.the_gift_CN , min_x = 0 , add_x = 272, click = 2})
@@ -10536,6 +10667,8 @@ local custom_nodes = {
             -- for k, v in pairs(SacrificeItems.items) do
             --     poe2_api.dbgp("物品:", v.baseType_utf8, "价格:", v.totalDeferredConsumption, "贡品值:", v.tribute)
             -- end
+
+            --  第一次无数据，点击组件
             if not (0 < SacrificeItems.maxCount and SacrificeItems.maxCount < 10) or not (0 < SacrificeItems.finishedCount and SacrificeItems.finishedCount < 10) or #SacrificeItems.items == 0 then
                 if poe2_api.click_text_UI({UI_info = env.UI_info, text = game_str.ritual_open_shop_button_CT  ,click = 1 }) then
                     api_Sleep(500)
@@ -10543,37 +10676,204 @@ local custom_nodes = {
                 end
                 return bret.SUCCESS
             end
-            
-            local all_items, all_items_no_price, not_appeared_items = _get_valid_items(SacrificeItems.items, SacrificeItems.leftGifts)
-            
-            if SacrificeItems.MaxRefreshCount == SacrificeItems.CurrentRefreshCount and #all_items == 0 and (#all_items_no_price == 0 or SacrificeItems.maxCount == SacrificeItems.finishedCount) then
+            local Attachments = api_Getinventorys(0xd,0)
+            if Attachments and #Attachments > 0 then
+                if poe2_api.find_text({UI_info = env.UI_info, text = game_str.the_gift_CN  }) then
+                    poe2_api.find_text({UI_info = env.UI_info, text = game_str.the_gift_CN , min_x = 0 , add_x = 272, click = 2})
+                    return bret.RUNNING
+                    -- poe2_api.find_text({UI_info = env.UI_info, text = game_str.the_gift_CN , min_x = 0 , add_x = 272, click = 2})
+                    -- return bret.RUNNING
+                end
+                return bret.SUCCESS
+            end
+            if poe2_api.find_text({UI_info = env.UI_info, text = game_str.the_gift_CN  }) then
+                local Attachments = api_Getinventorys(0xd,0)
+                if Attachments and #Attachments > 0 then
+                    poe2_api.find_text({UI_info = env.UI_info, text = game_str.the_gift_CN , min_x = 0 , add_x = 272, click = 2})
+                    return bret.RUNNING
+                end
+                -- poe2_api.find_text({UI_info = env.UI_info, text = game_str.the_gift_CN , min_x = 0 , add_x = 272, click = 2})
+                -- return bret.RUNNING
+            end
+            -- 可购买          缓存物品      已缓存数        隐藏道具   
+            local all_config_items_shopping , all_config_items_cache, all_items_no_price, not_appeared_items = _get_valid_items(SacrificeItems.items, SacrificeItems.leftGifts,SacrificeItems.maxCount, SacrificeItems.finishedCount)
+            poe2_api.dbgp(#all_config_items_shopping)
+            poe2_api.dbgp(#all_config_items_cache)
+            poe2_api.dbgp(#all_items_no_price)
+            -- poe2_api.printTable(all_items_no_price)
+            poe2_api.dbgp(#not_appeared_items)
+            if not next(all_config_items_shopping) and not next(all_config_items_cache) and not next(all_items_no_price) and not next(not_appeared_items) and ((SacrificeItems.MaxRefreshCount == SacrificeItems.CurrentRefreshCount) or (SacrificeItems.MaxRefreshCount ~= SacrificeItems.CurrentRefreshCount and SacrificeItems.leftGifts < SacrificeItems.refreshCost and SacrificeItems.maxCount == SacrificeItems.finishedCount)) then
+                poe2_api.dbgp("qqqqqqqqqqqqqqqqqqqqqqqqqq")
                 env.buy_items =  false
                 env.have_ritual = false
                 env.not_more_ritual = false
                 env.not_items_buy = true
                 if poe2_api.find_text({UI_info = env.UI_info, text = game_str.the_gift_CN  }) then
-                    local Attachments = api_Getinventorys(0xd,0)
-                    if Attachments and #Attachments > 0 then
-                        poe2_api.find_text({UI_info = env.UI_info, text = game_str.the_gift_CN , min_x = 0 , add_x = 272, click = 2})
-                        return bret.RUNNING
-                    end
+                    -- local Attachments = api_Getinventorys(0xd,0)
+                    -- if Attachments and #Attachments > 0 then
+                    --     poe2_api.find_text({UI_info = env.UI_info, text = game_str.the_gift_CN , min_x = 0 , add_x = 272, click = 2})
+                    --     return bret.RUNNING
+                    -- end
                     poe2_api.find_text({UI_info = env.UI_info, text = game_str.the_gift_CN , min_x = 0 , add_x = 272, click = 2})
                     return bret.RUNNING
                 end
                 return bret.SUCCESS
+
             end
-            
-            poe2_api.dbgp("祭坛总数:", SacrificeItems.maxCount, " 已完成数量:", SacrificeItems.finishedCount, " 当前贡礼:", SacrificeItems.leftGifts)
-            poe2_api.dbgp("祭坛可刷新总数:", SacrificeItems.MaxRefreshCount, " 祭坛已刷新数:", SacrificeItems.CurrentRefreshCount)
-            
+            poe2_api.dbgp("wwwwwwwwwwwwwwwwwwwwwwwwwwwwwww")
+            -- poe2_api.dbgp("所有可购买和缓存物品")
+            -- poe2_api.printTable(all_items)
+            -- poe2_api.dbgp("已缓存数")
+            -- poe2_api.printTable(all_items_no_price)
+            -- poe2_api.dbgp("隐藏道具")
+            -- poe2_api.printTable(not_appeared_items)
+            env.buy_items = true
+            env.have_ritual = true
+            env.not_more_ritual = true
             local life = player_info.remainingPortalCount
             poe2_api.dbgp("剩余重生机会:", life, "次")
-            
-            if #all_items == 0 then
-                poe2_api.dbgp("没有可购买物品或者暂缓物品")
-                if SacrificeItems.leftGifts > SacrificeItems.refreshCost and SacrificeItems.MaxRefreshCount > SacrificeItems.CurrentRefreshCount and #not_appeared_items == 0 then
-                    if not poe2_api.find_text({UI_info = env.UI_info, text = game_str.the_gift_CN , min_x = 0}) then
+            if life >= 2 then
+                if not next(not_appeared_items) then
+                    if next(all_config_items_shopping) then
+                        if not poe2_api.find_text({UI_info = env.UI_info, text = game_str.the_gift_CN , min_x = 0}) then
+                            -- env.buy_items = true
+                            poe2_api.click_text_UI({UI_info = env.UI_info, text =game_str.ritual_open_shop_button_CT, click = 1})
+                            api_Sleep(1000)
+                            return bret.RUNNING
+                        end
+                        if not poe2_api.find_text({UI_info = env.UI_info, text = game_str.Temporary_prop_CN}) then
+                            poe2_api.find_text({UI_info = env.UI_info, text =game_str.Cancel_TWCH, click = 2})
+                            api_Sleep(1000)
+                            return bret.RUNNING
+                        end
                         env.buy_items = true
+                        poe2_api.find_text({UI_info = env.UI_info, text = game_str.the_gift_CN  ,click = 7 , min_x = 0})
+                        api_Sleep(100)
+                        for _, item in ipairs(all_config_items_shopping) do
+                            poe2_api.dbgp("正在购买 ",item.baseType_utf8 or item.name_utf8)
+                            poe2_api.dbgp("item.totalDeferredConsumption --> ", item.totalDeferredConsumption)
+                            poe2_api.dbgp("item.tribute --> ", item.tribute)
+                            if poe2_api.ctrl_left_click_altar_items(item.obj, all_config_items_shopping) then
+                                api_Sleep(500)
+                                return bret.RUNNING
+                            end
+                        end
+                    end
+                    if next(all_config_items_cache) then
+                        env.buy_items = true
+                        if not poe2_api.find_text({UI_info = env.UI_info, text = game_str.the_gift_CN , min_x = 0}) then
+                            -- env.buy_items = true
+                            poe2_api.click_text_UI({UI_info = env.UI_info, text =game_str.ritual_open_shop_button_CT, click = 1})
+                            api_Sleep(1000)
+                            return bret.RUNNING
+                        end
+                        if poe2_api.find_text({UI_info = env.UI_info, text = game_str.Temporary_prop_CN}) then
+                            poe2_api.find_text({UI_info = env.UI_info, text = game_str.Temporary_prop_CN, click = 2})
+                            api_Sleep(1000)
+                            return bret.RUNNING
+                        end
+                        poe2_api.find_text({UI_info = env.UI_info, text = game_str.the_gift_CN  ,click = 7 , min_x = 0})
+                        api_Sleep(100)
+                        for _, item in ipairs(all_config_items_cache) do
+                            poe2_api.dbgp("暫緩 ",item.baseType_utf8 or item.name_utf8, "贡礼: ", item.tribute)
+                            poe2_api.dbgp("item.totalDeferredConsumption --> ", item.totalDeferredConsumption)
+                            poe2_api.dbgp("item.tribute --> ", item.tribute)
+                            if poe2_api.ctrl_left_click_altar_items(item.obj, all_config_items_cache,2) then
+                                api_Sleep(500)
+                                poe2_api.find_text({UI_info = env.UI_info, text = game_str.Confirm_TWCH, click = 1, refresh = true})
+                                api_Sleep(100)
+                                poe2_api.find_text({UI_info = env.UI_info, text = game_str.Confirm_TWCH, click = 2, refresh = true})
+                                api_Sleep(500)
+                                return bret.RUNNING
+                            end
+                        end
+                    end
+                    if SacrificeItems.MaxRefreshCount > SacrificeItems.CurrentRefreshCount and SacrificeItems.leftGifts > SacrificeItems.refreshCost then
+                        env.buy_items = true
+                        if not poe2_api.find_text({UI_info = env.UI_info, text = game_str.the_gift_CN , min_x = 0}) then
+                            -- env.buy_items = true
+                            poe2_api.click_text_UI({UI_info = env.UI_info, text =game_str.ritual_open_shop_button_CT, click = 1})
+                            api_Sleep(2000)
+                            return bret.RUNNING
+                        end
+                        poe2_api.dbgp("第",SacrificeItems.CurrentRefreshCount,"次刷新贡礼")
+                        poe2_api.find_text({UI_info = env.UI_info, text = game_str.the_gift_CN , click = 2 ,min_x = 0 , add_x = 203, add_y = 53})
+                        api_Sleep(2000)
+                        return bret.RUNNING
+                    end
+                -- else
+                --     if poe2_api.find_text({UI_info = env.UI_info, text = game_str.the_gift_CN }) then
+                --         -- local Attachments = api_Getinventorys(0xd,0)
+                --         -- if Attachments and #Attachments > 0 then
+                --         --     poe2_api.find_text({UI_info = env.UI_info, text = game_str.the_gift_CN , min_x = 0 , add_x = 272, click = 2})
+                --         --     return bret.RUNNING
+                --         -- end
+                --         poe2_api.find_text({UI_info = env.UI_info, text = game_str.the_gift_CN , min_x = 0 , add_x = 272, click = 2})
+                --         return bret.RUNNING
+                --     end
+                --     return bret.SUCCESS
+                end
+            else
+                if next(all_config_items_shopping) then
+                    env.buy_items = true
+                    if not poe2_api.find_text({UI_info = env.UI_info, text = game_str.the_gift_CN , min_x = 0}) then
+                        -- env.buy_items = true
+                        poe2_api.click_text_UI({UI_info = env.UI_info, text =game_str.ritual_open_shop_button_CT, click = 1})
+                        api_Sleep(1000)
+                        return bret.RUNNING
+                    end
+                    if not poe2_api.find_text({UI_info = env.UI_info, text = game_str.Temporary_prop_CN}) then
+                        poe2_api.find_text({UI_info = env.UI_info, text =game_str.Cancel_TWCH, click = 2})
+                        api_Sleep(1000)
+                        return bret.RUNNING
+                    end
+                    poe2_api.find_text({UI_info = env.UI_info, text = game_str.the_gift_CN  ,click = 7 , min_x = 0})
+                    api_Sleep(100)
+                    for _, item in ipairs(all_config_items_shopping) do
+                        poe2_api.dbgp("正在购买 ",item.baseType_utf8 or item.name_utf8)
+                        poe2_api.dbgp("item.totalDeferredConsumption --> ", item.totalDeferredConsumption)
+                        poe2_api.dbgp("item.tribute --> ", item.tribute)
+                        if poe2_api.ctrl_left_click_altar_items(item.obj, all_config_items_shopping) then
+                            api_Sleep(500)
+                            return bret.RUNNING
+                        end
+                    end
+                end
+                if next(all_config_items_cache) then
+                    env.buy_items = true
+                    if not poe2_api.find_text({UI_info = env.UI_info, text = game_str.the_gift_CN , min_x = 0}) then
+                        -- env.buy_items = true
+                        poe2_api.click_text_UI({UI_info = env.UI_info, text =game_str.ritual_open_shop_button_CT, click = 1})
+                        api_Sleep(1000)
+                        return bret.RUNNING
+                    end
+                    if poe2_api.find_text({UI_info = env.UI_info, text = game_str.Temporary_prop_CN}) then
+                        poe2_api.find_text({UI_info = env.UI_info, text = game_str.Temporary_prop_CN, click = 2})
+                        api_Sleep(1000)
+                        return bret.RUNNING
+                    end
+                    poe2_api.find_text({UI_info = env.UI_info, text = game_str.the_gift_CN  ,click = 7 , min_x = 0})
+                    api_Sleep(100)
+                    for _, item in ipairs(all_config_items_cache) do
+                        poe2_api.dbgp("暫緩 ",item.baseType_utf8 or item.name_utf8, "贡礼: ", item.tribute)
+                        poe2_api.dbgp("item.totalDeferredConsumption --> ", item.totalDeferredConsumption)
+                        poe2_api.dbgp("item.tribute --> ", item.tribute)
+                        if poe2_api.ctrl_left_click_altar_items(item.obj, all_config_items_cache,2) then
+                            api_Sleep(500)
+                            -- return bret.RUNNING
+                            poe2_api.find_text({UI_info = env.UI_info, text = game_str.Confirm_TWCH, click = 1, refresh = true})
+                            api_Sleep(100)
+                            poe2_api.find_text({UI_info = env.UI_info, text = game_str.Confirm_TWCH, click = 2, refresh = true})
+                            api_Sleep(500)
+                            return bret.RUNNING
+                        end
+
+                    end
+                end
+                if SacrificeItems.MaxRefreshCount > SacrificeItems.CurrentRefreshCount and SacrificeItems.leftGifts > SacrificeItems.refreshCost then
+                    env.buy_items = true
+                    if not poe2_api.find_text({UI_info = env.UI_info, text = game_str.the_gift_CN , min_x = 0}) then
+                        -- env.buy_items = true
                         poe2_api.click_text_UI({UI_info = env.UI_info, text =game_str.ritual_open_shop_button_CT, click = 1})
                         api_Sleep(2000)
                         return bret.RUNNING
@@ -10583,107 +10883,22 @@ local custom_nodes = {
                     api_Sleep(2000)
                     return bret.RUNNING
                 end
-
-                if SacrificeItems.maxCount == SacrificeItems.finishedCount then
-                    env.buy_items = false
-                    env.have_ritual = false
-                    env.not_items_buy = true
-                    return bret.SUCCESS
-                end
-                
-                if poe2_api.find_text({UI_info = env.UI_info, text =game_str.the_gift_CN}) then
-                    poe2_api.find_text({UI_info = env.UI_info, text = game_str.the_gift_CN , min_x = 0 , add_x = 272, click = 2})
-                    env.buy_items =  false
-                    return bret.SUCCESS
-                end
-
-                env.buy_items =  false
-                env.have_ritual = true
-                return bret.SUCCESS
             end
-
-            if (SacrificeItems.finishedCount < SacrificeItems.maxCount and #all_items_no_price > 0 and life >= 2) or #not_appeared_items > 0  then
-                env.have_ritual = true
-                env.buy_items =  false
-                if poe2_api.find_text({UI_info = env.UI_info, text =game_str.the_gift_CN}) then
-                    poe2_api.find_text({UI_info = env.UI_info, text = game_str.the_gift_CN , min_x = 0 , add_x = 272, click = 2})
-                    env.buy_items =  false
-                end
-                return bret.SUCCESS
-            else
-                env.have_ritual = false
-            end
-
-            env.buy_items =  true
-
-            if not poe2_api.find_text({UI_info = env.UI_info, text =game_str.the_gift_CN}) then
-                poe2_api.click_text_UI({UI_info = env.UI_info, text =game_str.ritual_open_shop_button_CT, click = 1})
-                api_Sleep(1000)
+            if poe2_api.find_text({UI_info = env.UI_info, text = game_str.the_gift_CN}) then
+                -- local Attachments = api_Getinventorys(0xd,0)
+                -- if Attachments and #Attachments > 0 then
+                --     poe2_api.find_text({UI_info = env.UI_info, text = game_str.the_gift_CN , min_x = 0 , add_x = 272, click = 2})
+                --     return bret.RUNNING
+                -- end
+                poe2_api.find_text({UI_info = env.UI_info, text = game_str.the_gift_CN , min_x = 0 , add_x = 272, click = 2})
                 return bret.RUNNING
             end
+            env.buy_items =  false
+            -- env.have_ritual = true
+            -- env.not_more_ritual = false
+            -- env.not_items_buy = true
+            return bret.SUCCESS
             
-            -- Buy affordable items
-            local function buy_affordable(item)
-                if not poe2_api.find_text({UI_info = env.UI_info, text = game_str.Temporary_prop_CN}) then
-                    poe2_api.find_text({UI_info = env.UI_info, text =game_str.Cancel_TWCH, click = 2})
-                    api_Sleep(1000)
-                    return bret.RUNNING
-                end
-                poe2_api.dbgp("正在购买 ",item.baseType_utf8 or item.name_utf8)
-                poe2_api.dbgp("item.totalDeferredConsumption --> ", item.totalDeferredConsumption)
-                poe2_api.dbgp("item.tribute --> ", item.tribute)
-                if poe2_api.ctrl_left_click_altar_items(item.obj, all_items) then
-                    api_Sleep(500)
-                end
-            end
-            
-            -- Defer items
-            local function deferred(item)
-                if poe2_api.find_text({UI_info = env.UI_info, text = game_str.Temporary_prop_CN}) then
-                    poe2_api.find_text({UI_info = env.UI_info, text = game_str.Temporary_prop_CN, click = 2})
-                    api_Sleep(1000)
-                    return bret.RUNNING
-                end
-                
-                if poe2_api.find_text({UI_info = env.UI_info, text = game_str.Confirm_TWCH}) then
-                    poe2_api.find_text({UI_info = env.UI_info, text = game_str.the_gift_CN  ,click = 2 , min_x = 0 , add_x = 272})
-                    api_Sleep(500)
-                    return bret.RUNNING
-                end
-                poe2_api.dbgp("暫緩 ",item.baseType_utf8 or item.name_utf8, "贡礼: ", item.tribute)
-                poe2_api.dbgp("item.totalDeferredConsumption --> ", item.totalDeferredConsumption)
-                poe2_api.dbgp("item.tribute --> ", item.tribute)
-                if poe2_api.ctrl_left_click_altar_items(item.obj, all_items, 2) then
-                    api_Sleep(500)
-                end
-
-                poe2_api.find_text({UI_info = env.UI_info, text = game_str.Confirm_TWCH, click = 1, refresh = true})
-                api_Sleep(100)
-                poe2_api.find_text({UI_info = env.UI_info, text = game_str.Confirm_TWCH, click = 2, refresh = true})
-                api_Sleep(500)
-            end
-            
-            if #all_items > 0 then
-                poe2_api.printTable(all_items)
-                for _, item in ipairs(all_items) do
-                    SacrificeItems = api_GetSacrificeItems()
-
-                    poe2_api.find_text({UI_info = env.UI_info, text = game_str.the_gift_CN  ,click = 7 , min_x = 0})
-
-                    poe2_api.printTable(hand_item)
-                    if item.tribute < SacrificeItems.leftGifts then
-                        buy_affordable(item)
-                        api_Sleep(500)
-                        return bret.RUNNING
-                    else
-                        deferred(item)
-                        api_Sleep(500)
-                        return bret.RUNNING
-                    end
-                end
-            end
-            
-            return bret.RUNNING 
         end
     },
 
@@ -11513,6 +11728,8 @@ local custom_nodes = {
                                 and item[1].DemandLevel == item_player[1].DemandLevel
                                 and item[1].not_identified == item_player[1].not_identified
                                 and item[1].category_utf8 == item_player[1].category_utf8
+                                and item[1].quality == item_player[1].quality
+                                and item[1].sockets == item_player[1].sockets
                                 and item[1].color == item_player[1].color then
                                     local current_item = api_Getinventorys(v,0)
                                     if current_item and next(current_item) then
@@ -11523,6 +11740,8 @@ local custom_nodes = {
                                         and current_item[1].DemandLevel == item_player[1].DemandLevel
                                         and current_item[1].not_identified == item_player[1].not_identified
                                         and current_item[1].category_utf8 == item_player[1].category_utf8
+                                        and current_item[1].quality == item_player[1].quality
+                                        and current_item[1].sockets == item_player[1].sockets
                                         and current_item[1].color == item_player[1].color then
                                         else
                                             point = point_list[v]
@@ -12656,14 +12875,14 @@ local custom_nodes = {
                                 end
                             end
 
-                            if env.afoot_box then
-                                local distance = poe2_api.point_distance(env.afoot_box.grid_x, env.afoot_box.grid_y, env.player_info)
-                                if distance < 120 then
-                                    env.end_point = {valid_monsters.grid_x, valid_monsters.grid_y}
-                                    poe2_api.dbgp("移动到目标附近333")
-                                    return bret.SUCCESS
-                                end
-                            end
+                            -- if env.afoot_box then
+                            --     local distance = poe2_api.point_distance(env.afoot_box.grid_x, env.afoot_box.grid_y, env.player_info)
+                            --     if distance < 120 then
+                            --         env.end_point = {valid_monsters.grid_x, valid_monsters.grid_y}
+                            --         poe2_api.dbgp("移动到目标附近333")
+                            --         return bret.SUCCESS
+                            --     end
+                            -- end
                             
                             if poe2_api.table_contains(valid_monsters.rarity, {2, 3}) then
                                 poe2_api.dbgp("精英怪移动到目标附近")
@@ -13497,14 +13716,14 @@ local custom_nodes = {
                                 end
                             end
 
-                            if env.afoot_box then
-                                local distance = poe2_api.point_distance(env.afoot_box.grid_x, env.afoot_box.grid_y, env.player_info)
-                                if distance < 120 then
-                                    env.end_point = {valid_monsters.grid_x, valid_monsters.grid_y}
-                                    poe2_api.dbgp("移动到目标附近333")
-                                    return bret.FAIL
-                                end
-                            end
+                            -- if env.afoot_box then
+                            --     local distance = poe2_api.point_distance(env.afoot_box.grid_x, env.afoot_box.grid_y, env.player_info)
+                            --     if distance < 120 then
+                            --         env.end_point = {valid_monsters.grid_x, valid_monsters.grid_y}
+                            --         poe2_api.dbgp("移动到目标附近333")
+                            --         return bret.FAIL
+                            --     end
+                            -- end
                             
                             if poe2_api.table_contains(valid_monsters.rarity, {2, 3}) then
                                 poe2_api.dbgp("精英怪移动到目标附近")
@@ -14116,16 +14335,26 @@ local custom_nodes = {
                                         )
                                         -- poe2_api.printTable(map_level)
 
+
                                         if map_level and (#count > 1 or (entry_length > 0 and entry_length > map_level.fixedSuffixCount)) then
-                                            for _, k in ipairs(count) do
-                                                poe2_api.dbgp("22222")
-                                                poe2_api.select_best_map_key(
-                                                    {inventory = api_Getinventorys(0xe,0), index = 1, click = 1, 
-                                                    type = 3, START_X = center_x - 47, START_Y = center_y - 125}
-                                                )
-                                                api_Sleep(500)
+                                            -- for _, k in ipairs(count) do
+                                            --    poe2_api.dbgp("22222")
+                                            --    poe2_api.select_best_map_key(
+                                            --        {inventory = api_Getinventorys(0xe,0), index = 1, click = 1, 
+                                            --        type = 3, START_X = center_x - 47, START_Y = center_y - 125}
+                                            --    )
+                                            --    api_Sleep(500)
+                                            --end
+                                            local items = api_GetInventoryItemsInRect(center_x - 210,center_y - 290,center_x + 160,center_y + 20)
+                                            local map_item = nil
+                                            for i,v in ipairs(items) do 
+                                                if v.baseType_utf8 == map_level.baseType_utf8 and v.category_utf8 == map_level.category_utf8 and v.not_identified == map_level.not_identified and v.fixedSuffixCount == map_level.fixedSuffixCount and v.color == map_level.color then
+                                                    map_item = v
+                                                end
                                             end
-                                            
+                                            if map_item then
+                                                poe2_api.ctrl_left_click(((map_item.RectSart_x + map_item.RectEnd_x) / 2), ((map_item.RectSart_y + map_item.RectEnd_y) / 2))
+                                            end
                                             return bret.RUNNING
                                         elseif count and #count == 1 then
                                             need_put = false
@@ -15439,9 +15668,7 @@ local custom_nodes = {
             poe2_api.print_log("检查目标点...")
             local current_time = api_GetTickCount64()
             -- 使用参数
-            if self.no_mos_back == nil then
-                self.no_mos_back = env.user_config["全局設置"]["刷图通用設置"]["是否全圖"]
-            end
+            local no_mos_back = env.user_config["全局設置"]["刷图通用設置"]["是否全圖"] or false
             -- local no_mos_back = false
             local result = false
             env.radius = 120
@@ -15522,6 +15749,9 @@ local custom_nodes = {
                     local elite_boss = nil
                     local target = nil
                     poe2_api.dbgp("not_more_ritual: ",env.not_more_ritual)
+                    if poe2_api.table_contains(player_info.current_map_name_utf8,my_game_info.Citadel_map) and poe2_api.find_text({UI_info = env.UI_info, text = game_str.Map_completed_TWCH}) then
+                        return false
+                    end
                     if env.not_more_ritual and is_perform_a_ritual_sacrifice then
                         for _, item in ipairs(current_map_sorted_info) do
                             if item.name_utf8 == game_str.RitualRune_EN and item.flagStatus == 1 and item.flagStatus1 == 1 and afoot_altar and poe2_api.point_distance(item.grid_x,item.grid_y,afoot_altar)<20 then
@@ -15553,16 +15783,19 @@ local custom_nodes = {
                             end
                         end
                     end
-                    for _, item in ipairs(current_map_sorted_info) do
-                        if item.name_utf8 == game_str.Essence_EN and item.flagStatus == 1 and item.flagStatus1 == 1 then
-                            if not poe2_api.table_contains(player_info.current_map_name_utf8,my_game_info.PRIORITY_MAPS) or (poe2_api.table_contains(player_info.current_map_name_utf8,my_game_info.PRIORITY_MAPS) and not poe2_api.find_text({text = "地圖完成"})) then
-                                poe2_api.dbgp("小地图对象中精髓----------------------------")
-                                env.minimap_info = item
-                                env.end_point = {item.grid_x, item.grid_y}
-                                return true
+                    if env.is_click_essence then
+                        for _, item in ipairs(current_map_sorted_info) do
+                            if item.name_utf8 == game_str.Essence_EN and item.flagStatus == 1 and item.flagStatus1 == 1 then
+                                if (not poe2_api.table_contains(player_info.current_map_name_utf8,my_game_info.PRIORITY_MAPS) and player_info.current_map_name_utf8 ~= game_str.MapUniqueSelenite_MDANA) or ((poe2_api.table_contains(player_info.current_map_name_utf8,my_game_info.PRIORITY_MAPS) or player_info.current_map_name_utf8 == game_str.MapUniqueSelenite_MDANA) and not poe2_api.find_text({text = "地圖完成"})) then
+                                    poe2_api.dbgp("小地图对象中精髓----------------------------")
+                                    env.minimap_info = item
+                                    env.end_point = {item.grid_x, item.grid_y}
+                                    return true
+                                end
                             end
                         end
                     end
+                    
                     if string.find(player_info.current_map_name_utf8 , game_str.Delirium_) then
                         for _, item in ipairs(current_map_sorted_info) do
                             if item.name_utf8 == game_str.AfflictionInitiator_EN and item.flagStatus1 == 1 then
@@ -15701,6 +15934,10 @@ local custom_nodes = {
                 else
                     poe2_api.dbgp("小地图对象中已有目标--------------------------------------------------------------------------------------------")
                     local minimap_info = env.minimap_info
+                    if poe2_api.table_contains(player_info.current_map_name_utf8,my_game_info.Citadel_map) and poe2_api.find_text({UI_info = env.UI_info, text = game_str.Map_completed_TWCH}) then
+                        env.minimap_info = nil
+                        return "刷新"
+                    end
                     if string.find(minimap_info.name_utf8,game_str.Abyss) then
                         if env.is_abyss_complete then
                             env.minimap_info = nil
@@ -15854,7 +16091,7 @@ local custom_nodes = {
             end
 
             -- 主要逻辑
-            if self.no_mos_back then
+            if no_mos_back then
                 result = poe2_api.monster_monitor(45, env.UI_info)
             else
                 result = true
@@ -18369,9 +18606,11 @@ local custom_nodes = {
             local path_list = env.path_list
             local need_item = env.need_item
             
-            if not self.bool then
+            if not env.click_bool then
                 self.is_click_z = false
-                self.bool = true
+                self.id1 = nil
+                self.number1 = 0
+                env.click_bool = true
             end
             
             -- 辅助函数定义
@@ -18451,7 +18690,7 @@ local custom_nodes = {
                 else
                     text = interactive_object.name_utf8
                 end
-                if (distance and distance > dis) or (text ~= game_str.Switch_CH and not api_HasObstacleBetween(x, y)) then
+                if (distance and distance > dis) or ( not poe2_api.table_contains(text,{game_str.Switch_CH,game_str.Door_CH}) and not api_HasObstacleBetween(x, y)) then
                     env.end_point = {x, y}
                     return {x, y}
                 end
@@ -18579,7 +18818,7 @@ local custom_nodes = {
                                 --     self.is_click_z = true
                                 --     return bret.RUNNING
                                 -- end
-                                api_ClickMove(poe2_api.toInt(interactive_object.grid_x), poe2_api.toInt(interactive_object.grid_y), 1)
+                                api_ClickMove(poe2_api.toInt(interactive_object.grid_x), poe2_api.toInt(interactive_object.grid_y), 1,poe2_api.toInt(interactive_object.world_z)-40)
                             elseif poe2_api.table_contains(text,{game_str.Black_Cathedral,game_str.Abyss_Pinnacle_MDANA}) then
                                 poe2_api.click_keyboard("ctrl", 1)
                                 api_Sleep(200)
@@ -18641,7 +18880,43 @@ local custom_nodes = {
                         end
                     end
                     -- if  then
+                    if env.need_item and env.need_item == interactive_object then
+                        if not self.id1 then
+                            self.id1 = env.need_item.id
+                        end
+                        poe2_api.dbgp("tyepnumber: ",type(self.number1))
+                        if self.id1 == env.need_item.id then
+                            if not self.number1 then
+                                    self.number1 = 0
+                                end
+                            self.number1 = self.number1 + 1
+                        else
+                            self.number1 = 1
+                            self.id1 = env.need_item.id
+                            -- poe2_api.dbgp("物品已捡起,更新状态")
+                            -- api_Sleep(1000)
+                        end
+                        if self.number1 % 5 == 0 then
+                            local point = api_FindRandomWalkablePosition(math.floor(player_info.grid_x),math.floor(player_info.grid_y),70)
+                            if point then
+                                api_ClickMove(poe2_api.toInt(point.x),poe2_api.toInt(point.y),7)
+                            end
+                        end
+                        poe2_api.dbgp("number: "..self.number1)
 
+                        if self.number1 >= 20 then
+                            table.insert(env.pick_up_timeout,env.need_item.id)
+                            -- env.need_item = nil
+                            self.number1 = 0
+                            poe2_api.dbgp("拾取超时")
+                            -- while true do
+                            --     api_Sleep(1000)
+
+                            -- end
+                            -- poe2_api.time_p("点击交互文本（RUNNING7）... 耗时 --> ", api_GetTickCount64() - start_time)
+                            -- return bret.RUNNING
+                        end
+                    end
                 end
                 if text == game_str.The_Broken_Mirror_TWCH then
                     if next(interactive_object.stateMachineList) and interactive_object.stateMachineList[game_str.clicked_SML] == 1 then
@@ -18672,7 +18947,7 @@ local custom_nodes = {
                     if string.find(game_str.Ritual_PATH, interactive_object.path_name_utf8) then
                         env.afoot_altar = interactive_object
                     end
-                    if string.find(interactive_object.path_name_utf8,game_str.StrongBoxes_PATH) and (interactive_object.rarity ~= 3 or (interactive_object.rarity == 3 and interactive_object.name_utf8 ~= game_str.The_Researcher_Safe_Box_TWCH)) then
+                    if string.find(interactive_object.path_name_utf8,game_str.StrongBoxes_PATH) and (interactive_object.rarity ~= 3 or (interactive_object.rarity == 3 and interactive_object.name_utf8 ~= game_str.The_Researcher_Safe_Box_TWCH)) and env.is_open_gameplay_safe then
                         env.afoot_box = interactive_object
                     end
                     if interactive_object.path_name_utf8 == game_str.AbyssCrack_PATH then
@@ -20412,7 +20687,7 @@ local custom_nodes = {
                             break
                         end
                         
-                        local condition9 = (i.name_utf8 and i.name_utf8 ~= "" and poe2_api.table_contains(i.name_utf8,my_game_info.Treasure_Chest) and (i.name_utf8 ~= game_str.Safe_deposit_box_TWCH or not string.find(i.path_name_utf8,game_str.BasicStrongbox_PATH)) and (poe2_api.table_contains(i.name_utf8,{game_str.The_restraining_hand_of_the_cracked_king_TWCH,game_str.The_hand_of_inhibition_TWCH}) or i.rarity >= env.obj_color ) and not i.chestIsOpen and not is_target and not player_info.isInBossBattle)
+                        local condition9 = (i.name_utf8 and i.name_utf8 ~= "" and poe2_api.table_contains(i.name_utf8,my_game_info.Treasure_Chest) and (i.name_utf8 ~= game_str.Safe_deposit_box_TWCH or not string.find(i.path_name_utf8,game_str.BasicStrongbox_PATH)) and ((poe2_api.table_contains(i.name_utf8,{game_str.The_restraining_hand_of_the_cracked_king_TWCH,game_str.The_hand_of_inhibition_TWCH}) and env.is_open_crack) or i.rarity >= env.obj_color ) and not i.chestIsOpen and not is_target and not player_info.isInBossBattle)
                         if condition9 then
                             -- poe2_api.dbgp("条件9匹配: 宝箱 (名称:"..i.name_utf8..", 稀有度:"..(i.rarity or "无")..", 颜色阈值:"..(env.obj_color or "无")..")")
                             currency = i
@@ -20447,14 +20722,14 @@ local custom_nodes = {
                             break
                         end
                         
-                        local condition14 = (i.path_name_utf8 == game_str.Monolith_PATH and is_essence and not is_target and not player_info.isInBossBattle)
+                        local condition14 = (i.path_name_utf8 == game_str.Monolith_PATH and is_essence and not is_target and (not player_info.isInBossBattle or (player_info.isInBossBattle and poe2_api.find_text({UI_info = env.UI_info, text = game_str.Map_completed_TWCH})) )  and env.is_click_essence)
                         if condition14 then
                             -- poe2_api.dbgp("条件14匹配: 精髓")
                             currency = i
                             break
                         end
                         
-                        local condition15 = (i.path_name_utf8 == game_str.DeliriumInitiator_PATH and next(i.stateMachineList) and i.stateMachineList[game_str.interacted_SML] == 0 and not is_target and not player_info.isInBossBattle)
+                        local condition15 = (env.is_deception_delusion and i.path_name_utf8 == game_str.DeliriumInitiator_PATH and next(i.stateMachineList) and i.stateMachineList[game_str.interacted_SML] == 0 and not is_target and not player_info.isInBossBattle)
                         if condition15 then
                             -- poe2_api.dbgp("条件15匹配: 谵妄之镜 (交互状态:"..tostring(i.stateMachineList[game_str.interacted_SML])..")")
                             currency = i
@@ -20462,7 +20737,7 @@ local custom_nodes = {
                         end
                         
                         
-                        local condition16 = (string.find(i.path_name_utf8,game_str.DoodadDaemonShardPack_PATH) and next(i.stateMachineList) and i.stateMachineList[game_str.detonate_SML] == 0  and not player_info.isInBossBattle)
+                        local condition16 = (env.is_deception_delusion and string.find(i.path_name_utf8,game_str.DoodadDaemonShardPack_PATH) and next(i.stateMachineList) and i.stateMachineList[game_str.detonate_SML] == 0  and not player_info.isInBossBattle)
                         if condition16 then
                             -- poe2_api.dbgp("判断： ",not is_target)
                             -- api_Sleep(1000)
@@ -20471,7 +20746,7 @@ local custom_nodes = {
                             break
                         end
                         
-                        local condition17 = (i.path_name_utf8 == game_str.BreachObject_PATH and not is_target and not player_info.isInBossBattle)
+                        local condition17 = (i.path_name_utf8 == game_str.BreachObject_PATH and not is_target and not player_info.isInBossBattle and env.is_open_crack)
                         if condition17 then
                             -- poe2_api.dbgp("条件17匹配: 裂痕之手")
                             currency = i
@@ -20485,7 +20760,7 @@ local custom_nodes = {
                             break
                         end
                         
-                        local condition19 = (string.find(i.path_name_utf8,game_str.StrongBoxes_PATH) and (i.name_utf8 ~= game_str.The_Researcher_Safe_Box_TWCH or (i.name_utf8 == game_str.The_Researcher_Safe_Box_TWCH and i.rarity ~=3)) and next(i.stateMachineList) and i.stateMachineList[game_str.started_SML] == 0 and i.stateMachineList[game_str.opened_SML] == 0 and not is_target and not player_info.isInBossBattle)
+                        local condition19 = (string.find(i.path_name_utf8,game_str.StrongBoxes_PATH) and (i.name_utf8 ~= game_str.The_Researcher_Safe_Box_TWCH or (i.name_utf8 == game_str.The_Researcher_Safe_Box_TWCH and i.rarity ~=3)) and next(i.stateMachineList) and i.stateMachineList[game_str.started_SML] == 0 and i.stateMachineList[game_str.opened_SML] == 0 and not is_target and not player_info.isInBossBattle and env.is_open_gameplay_safe)
                         if condition19 then
                             -- poe2_api.dbgp("条件19匹配: 玩法保险箱 (名称:"..(i.name_utf8 or "无")..", 状态: started="..tostring(i.stateMachineList[game_str.started_SML])..", opened="..tostring(i.stateMachineList[game_str.opened_SML])..")")
                             currency = i
@@ -20506,7 +20781,7 @@ local custom_nodes = {
                             break
                         end
 
-                        local condition22 = string.find(i.path_name_utf8,game_str.Abyss_PATH) and i.is_selectable and (not next(i.stateMachineList) or (next(i.stateMachineList) and i.stateMachineList[game_str.unlocked_SML] == 1)) and not is_target and not player_info.isInBossBattle 
+                        local condition22 = string.find(i.path_name_utf8,game_str.Abyss_PATH) and i.is_selectable and (not next(i.stateMachineList) or (next(i.stateMachineList) and i.stateMachineList[game_str.unlocked_SML] == 1)) and not is_target and (not player_info.isInBossBattle or (player_info.isInBossBattle and poe2_api.find_text({UI_info = env.UI_info, text = game_str.Map_completed_TWCH})) )  
                         if condition22 then
                             -- poe2_api.dbgp("条件22匹配: 深淵寶箱")
                             currency = i
@@ -20798,6 +21073,14 @@ local custom_nodes = {
                 poe2_api.time_p("无需要交互的对象(SUCCESS1111)... 耗时 --> ", api_GetTickCount64() - current_time)
                 return bret.SUCCESS
             end
+            if poe2_api.table_contains(player_info.current_map_name_utf8,my_game_info.Citadel_map) and poe2_api.find_text({UI_info = env.UI_info, text = game_str.Map_completed_TWCH}) then
+                env.interactive_id = nil
+                env.interactiontimeout = 0
+                env.interaction_object = nil
+                poe2_api.dbgp("钢铁城寨完成跳出")
+                poe2_api.time_p("无需要交互的对象(SUCCESS2222)... 耗时 --> ", api_GetTickCount64() - current_time)
+                return bret.SUCCESS
+            end
             local interaction_object = env.interaction_object
             if string.find(player_info.current_map_name_utf8,game_str.Abyss_EN) and interaction_object.path_name_utf8 == game_str.AbyssSubAreaTransition_PATH then
                 env.interactiontimeout = 0
@@ -21013,7 +21296,7 @@ local custom_nodes = {
                         end
                         return false
                     end
-                    if game_str.Monolith_PATH == interaction_object.path_name_utf8 and next(interaction_object.stateMachineList) and interaction_object.stateMachineList[game_str.is_corrupted_SML] and interaction_object.stateMachineList[game_str.is_corrupted_SML] == 0 and get_item(game_str.Vaal_Orb_TWCH) then
+                    if env.is_click_essence and game_str.Monolith_PATH == interaction_object.path_name_utf8 and next(interaction_object.stateMachineList) and interaction_object.stateMachineList[game_str.is_corrupted_SML] and interaction_object.stateMachineList[game_str.is_corrupted_SML] == 0 and get_item(game_str.Vaal_Orb_TWCH) then
                         if player_info.isMoving then
                             poe2_api.dbgp("玩家正在移动，等待停止")
                             -- poe2_api.time_p("判断是否需要交互（RUNNING7）... 耗时 --> ", api_GetTickCount64() - start_time)
@@ -21033,7 +21316,7 @@ local custom_nodes = {
                         env.interaction_object = nil
                         return bret.RUNNING
                     end
-                    if (string.find(interaction_object.path_name_utf8,game_str.StrongBoxes_PATH) and interaction_object.rarity < 2) and next(interaction_object.stateMachineList) and interaction_object.stateMachineList[game_str.started_SML] == 0 and interaction_object.stateMachineList[game_str.opened_SML] == 0 then
+                    if (string.find(interaction_object.path_name_utf8,game_str.StrongBoxes_PATH) and interaction_object.rarity < 2) and next(interaction_object.stateMachineList) and interaction_object.stateMachineList[game_str.started_SML] == 0 and interaction_object.stateMachineList[game_str.opened_SML] == 0 and env.is_open_gameplay_safe then
                         if poe2_api.find_text({UI_info = env.UI_info,text = game_str.Not_Identified_TWCH,min_x=100,max_x=1300,max_y=850,sorted=true}) then
                             if get_item(game_str.The_Knowledge_Scroll)  then
                                 if player_info.isMoving then
@@ -21092,7 +21375,7 @@ local custom_nodes = {
                         return false
                     end
                     local essence_unpolluted = get_essence_unpolluted()
-                    if essence_unpolluted and get_item(game_str.Vaal_Orb_TWCH) then
+                    if env.is_click_essence and essence_unpolluted and get_item(game_str.Vaal_Orb_TWCH) then
                         if player_info.isMoving then
                             poe2_api.dbgp("玩家正在移动，等待停止")
                             -- poe2_api.time_p("判断是否需要交互（RUNNING7）... 耗时 --> ", api_GetTickCount64() - start_time)
@@ -21246,6 +21529,7 @@ local custom_nodes = {
                 if crrut_time - interactiontimeout > 30000 then
                     table.insert(env.interactive_id_list, interaction_object.id)
                     env.interaction_object = nil
+                    env.target_point_sort_list = {}
                     env.interactive_replytime = api_GetTickCount64()
                     poe2_api.time_p("判断是否需要交互（RUNNING10）... 耗时 --> ", api_GetTickCount64() - start_time)
                     return bret.RUNNING
@@ -21391,7 +21675,14 @@ local custom_nodes = {
                     poe2_api.time_p("是否有未激活/黑雾祭坛（FAIL3）... 耗时 --> ", api_GetTickCount64() - start_time)
                     return bret.FAIL
                 end
-
+                if poe2_api.table_contains(player_info.current_map_name_utf8,my_game_info.Citadel_map) and poe2_api.find_text({UI_info = env.UI_info, text = game_str.Map_completed_TWCH}) then
+                    env.center_radius = 0
+                    env.center_point = {}
+                    env.prestore_list = {}
+                    poe2_api.dbgp("")
+                    poe2_api.time_p("是否有未激活/黑雾祭坛（FAIL111111）... 耗时 --> ", api_GetTickCount64() - start_time)
+                    return bret.FAIL
+                end
                 if not get_mini_altar(current_map_info) then
                     poe2_api.dbgp("地图改变，已无祭坛")
                     env.center_radius = 0
@@ -21975,7 +22266,7 @@ local custom_nodes = {
             -- 瓦爾
             local wr = max_map_config[game_str.Vaal_Orb_TWCH]
             local text = nil
-            if max_map.color == 0 and dj ~= 0 and not max_map.contaminated and (not next(env.lack_of_currency) or not poe2_api.table_contains(env.lack_of_currency,game_str.Orb_of_Alchemy_TWCH)) then
+            if poe2_api.table_contains(max_map.color,{0,1}) and dj ~= 0 and not max_map.contaminated and (not next(env.lack_of_currency) or not poe2_api.table_contains(env.lack_of_currency,game_str.Orb_of_Alchemy_TWCH)) then
                 text = game_str.Orb_of_Alchemy_TWCH
             elseif max_map.color == 0 and tb ~= 0 and not max_map.contaminated and (not next(env.lack_of_currency) or not poe2_api.table_contains(env.lack_of_currency,game_str.Greater_Orb_of_Transmutation_TWCH)) then
                 text = game_str.Greater_Orb_of_Transmutation_TWCH
@@ -22166,7 +22457,9 @@ local custom_nodes = {
                     return bret.RUNNING
                 end
             elseif strengthened_map_obj.color == 1 then
-                if zf ~= 0 and strengthened_map_obj.fixedSuffixCount < 2 and (not next(env.lack_of_currency) or not poe2_api.table_contains(env.lack_of_currency,game_str.Greater_Orb_of_Augmentation_TWCH)) then
+                if dj ~= 0 and (not next(env.lack_of_currency) or not poe2_api.table_contains(env.lack_of_currency,game_str.Orb_of_Alchemy_TWCH)) then
+                    item_name = game_str.Orb_of_Alchemy_TWCH
+                elseif zf ~= 0 and strengthened_map_obj.fixedSuffixCount < 2 and (not next(env.lack_of_currency) or not poe2_api.table_contains(env.lack_of_currency,game_str.Greater_Orb_of_Augmentation_TWCH)) then
                     item_name = game_str.Greater_Orb_of_Augmentation_TWCH
                 elseif zf ~= 0 and strengthened_map_obj.fixedSuffixCount < 2 and (not next(env.lack_of_currency) or not poe2_api.table_contains(env.lack_of_currency,game_str.Orb_of_Augmentation_TWCH)) then
                     item_name = game_str.Orb_of_Augmentation_TWCH
@@ -22480,6 +22773,12 @@ local custom_nodes = {
                 poe2_api.time_p("是否有激活的保险箱（FAIL6）... 耗时 --> ", api_GetTickCount64() - start_time)
                 return bret.FAIL
             end
+            if poe2_api.table_contains(player_info.current_map_name_utf8,my_game_info.Citadel_map) and poe2_api.find_text({UI_info = env.UI_info, text = game_str.Map_completed_TWCH}) then
+                env.afoot_box = nil
+                env.box_target = nil
+                poe2_api.time_p("是否有激活的保险箱（FAIL33333333）... 耗时 --> ", api_GetTickCount64() - start_time)
+                return bret.FAIL
+            end
             local current_map_info = env.current_map_info
             -- -- 判断有无地图装置
             -- local function is_map_device(obj_list)
@@ -22563,7 +22862,7 @@ local custom_nodes = {
                     end
                 end
                 local distance = poe2_api.point_distance(env.afoot_box.grid_x,env.afoot_box.grid_y,player_info)
-                if distance and distance < 100 then
+                if distance and distance < 150 then
                     local a = false
                     for i, v in ipairs(env.range_info) do
                         if v.stateMachineList[game_str.started_SML] == 1 and v.stateMachineList[game_str.opened_SML] == 0 then
@@ -22667,7 +22966,7 @@ local custom_nodes = {
                 end 
             end
             local dis = poe2_api.point_distance(env.afoot_box.grid_x,env.afoot_box.grid_y,env.player_info)
-            if dis and dis <= 30 then
+            if dis and dis <= 50 then
                 if not self.box_id then
                     self.box_id = env.afoot_box.id
                     self.box_time = api_GetTickCount64()
