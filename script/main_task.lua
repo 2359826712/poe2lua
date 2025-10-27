@@ -334,14 +334,14 @@ local main_task= {
             map_name = 'G1_7',
             Boss = {'無盡悲歌的拉克朗'},
             interaction_object = {'拉克朗伯爵的戒指'},
-            interaction_object_map_name = {'GraveyardBossActive', 'GraveyardBossInactive'},
+            interaction_object_map_name = {'GraveyardBossActive', 'GraveyardBossInactive','拉克朗'},
             index = 58
         },
         ['讓拉克朗安息'] = {
             map_name = 'G1_7',
             Boss = {'無盡悲歌的拉克朗'},
             interaction_object = {'拉克朗伯爵的戒指'},
-            interaction_object_map_name = {'GraveyardBossActive', 'GraveyardBossInactive'},
+            interaction_object_map_name = {'GraveyardBossActive', 'GraveyardBossInactive','拉克朗'},
             index = 59
         },
         ['穿過紀念之門後，搜尋伯爵之墓'] = {
@@ -1143,47 +1143,47 @@ local main_task= {
             interaction_object_map_name= {'G2_9_1'},
             index = 186
         },
-        ['與黑衣幽魂對話，了解下一步該做什麼']= {
-            map_name= 'G3_1',
-            interaction_object= {'黑衣幽魂'},
-            index = 187
-        },
-        ['與黑衣幽魂交談，了解下一步該做什麼']= {
-            map_name= 'G3_1',
-            index = 188,
-            interaction_object= {'高地神塔營地'},
-            interaction_object_map_name= {'G3_town'}
-        },
-        ['穿越沙掠濕地，尋找高地神塔']= {
-            map_name= 'G3_1',
-            index = 188,
-            interaction_object= {'高地神塔營地'},
-            interaction_object_map_name= {'G3_town'}
-        },
-        ['風沙沼澤']= {
-            map_name= 'G3_town',
-            interaction_object= {'黑衣幽魂'},
-            index = 189
-        },
         ['與那些寶藏獵人會面']= {
             map_name= 'G3_town',
             grid_x= 354,
             grid_y= 800,
             interaction_object= {'奧斯瓦德', '艾瓦'},
-            index = 190
+            index = 187
         },
         ['詢問黑衣幽魂降低水位的方法']= {
             map_name= 'G3_town',
             grid_x= 460,
             grid_y= 756,
             interaction_object= {'黑衣幽魂'},
-            index = 191
+            index = 188
         },
         ['進入叢林遺跡以尋找瑪特蘭水道']= {
             map_name= 'G3_3',
             Boss={'神威銀拳'},
             interaction_object= {'感染荒地'},
             interaction_object_map_name= {'G3_2_1','SilverbackBlackfistBossActive'},
+            index = 189
+        },
+        ['與黑衣幽魂對話，了解下一步該做什麼']= {
+            map_name= 'G3_1',
+            interaction_object= {'黑衣幽魂'},
+            index = 190
+        },
+        ['與黑衣幽魂交談，了解下一步該做什麼']= {
+            map_name= 'G3_1',
+            index = 191,
+            interaction_object= {'高地神塔營地'},
+            interaction_object_map_name= {'G3_town'}
+        },
+        ['穿越沙掠濕地，尋找高地神塔']= {
+            map_name= 'G3_1',
+            index = 192,
+            interaction_object= {'高地神塔營地'},
+            interaction_object_map_name= {'G3_town'}
+        },
+        ['風沙沼澤']= {
+            map_name= 'G3_town',
+            interaction_object= {'黑衣幽魂'},
             index = 192
         },
         ['叢林遺跡']= {
@@ -1723,6 +1723,8 @@ local main_task= {
         },
         ["在金司馬區與圖貞對話"]= {
             map_name= 'G4_town',
+            grid_x = 1133,
+            grid_y = 1681,
             interaction_object= {'圖貞'},
             index = 277
         },
@@ -2039,6 +2041,10 @@ local main_task= {
             index = 327
         },
         ["攻擊並破壞力場"] = {
+            map_name= 'G4_8b',
+            index = 328
+        },
+        ["在伏擊中活下來"] = {
             map_name= 'G4_8b',
             index = 328
         },

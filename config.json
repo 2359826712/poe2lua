@@ -69,7 +69,11 @@
             "是否分解暗金": false,
             "是否刷城寨": false,
             "是否图内鉴定": false,
+            "是否开启玩法保险箱": false,
+            "是否开启裂痕之手": false,
+            "是否开启诡妄之镜": false,
             "是否打祭祀": false,
+            "是否点击精髓": false,
             "是否躲避技能": false,
             "是否进深渊": false,
             "是否追魂": false,
@@ -568,7 +572,7 @@
         "日志路径": "D:\\SteamLibrary\\steamapps\\common\\Path of Exile 2\\logs\\Client.txt",
         "職業": "遊俠",
         "隊伍人數": 3,
-        "隊長名": "king_ghjl"
+        "隊長名": "yayataoli"
     },
     "通貨交換設置": null
 }
