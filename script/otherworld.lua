@@ -30410,7 +30410,7 @@ local plot_nodes = {
                     env.map_name = "G4_4_2"
                     env.interaction_object = { "祖靈" }
                 elseif party_member_map({"Abyss_Hub"}) and task.task_name == "靈魂深井" then
-                    error "任務完成"
+                    poe2_api.print_log("任務完成") 
                     return bret.RUNNING
                 end
                 poe2_api.dbgp("[Query_Current_Task_Information_Local]SUCCESS1")
