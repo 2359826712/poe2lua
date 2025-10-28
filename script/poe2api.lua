@@ -1154,17 +1154,17 @@ _M.time_p = function(...)
     local args = {...}
     
     -- 检查是否是耗时日志格式：倒数第二个参数包含"耗时 -->"且最后一个参数是数字
-    if #args >= 2 and 
-       type(args[#args]) == "number" and 
-       tostring(args[#args-1]):find("耗时 %-%->") then
+    -- if #args >= 2 and 
+    --    type(args[#args]) == "number" and 
+    --    tostring(args[#args-1]):find("耗时 %-%->") then
         
-        local elapsed = args[#args]  -- 获取耗时值
+    --     local elapsed = args[#args]  -- 获取耗时值
         
-        -- 只有耗时超过阈值时才处理
-        if elapsed < threshold then
-            return  -- 不满足阈值条件，直接返回
-        end
-    end
+    --     -- 只有耗时超过阈值时才处理
+    --     if elapsed < threshold then
+    --         return  -- 不满足阈值条件，直接返回
+    --     end
+    -- end
     
     -- 以下是原有的日志处理逻辑
     local parts = {}
@@ -1482,6 +1482,9 @@ _M.get_map_oringin = function(params)
         end
 
         if _M.table_contains(map_data.mapPlayModes, game_str.Legendary_Map_MPMD) then
+            if not sorted_map or not next(sorted_map) or not _M.table_contains(sorted_map, game_str.Legendary_Map_MPMD) then
+                return -1
+            end
             -- _M.dbgp("[DEBUG] 地图是傳奇地圖")
             if _M.table_contains(map_data.name_cn_utf8, {game_str.MapUniqueParadise_TWCH, game_str.MapUniqueLake_TWCH, game_str.MapUniqueWildwood_TWCH, game_str.MapUniqueSelenite_TWCH, game_str.MapUniqueMegalith_TWCH}) then
                 -- _M.dbgp("[DEBUG] 是純净樂園，得分: 9999")
@@ -1490,8 +1493,7 @@ _M.get_map_oringin = function(params)
                     key_level_threshold = key_level_threshold,
                     not_use_map = not_use_map,
                     priority_map = priority_map,
-                    color = 2,
-                    entry_length = 4
+                    min_level = 11
                 })
                 if map_level then
                     map_level = _M.extract_key_level(map_level.baseType_utf8)
@@ -1863,6 +1865,9 @@ _M.get_map1 = function(params)
             end
         end
         if _M.table_contains(map_data.mapPlayModes, game_str.Legendary_Map_MPMD) then
+            if not sorted_map or not next(sorted_map) or not _M.table_contains(sorted_map, game_str.Legendary_Map_MPMD) then
+                return -1
+            end
             -- _M.dbgp("[DEBUG] 地图是傳奇地圖")
             if _M.table_contains(map_data.name_cn_utf8, {game_str.MapUniqueParadise_TWCH, game_str.MapUniqueLake_TWCH, game_str.MapUniqueWildwood_TWCH, game_str.MapUniqueSelenite_TWCH, game_str.MapUniqueMegalith_TWCH}) then
                 -- _M.dbgp("[DEBUG] 是純净樂園，得分: 9999")
@@ -2174,6 +2179,9 @@ _M.get_map2 = function(params)
             return 9999
         end
         if _M.table_contains(map_data.mapPlayModes, game_str.Legendary_Map_MPMD) then
+            if not sorted_map or not next(sorted_map) or not _M.table_contains(sorted_map, game_str.Legendary_Map_MPMD) then
+                return -1
+            end
             -- _M.dbgp("[DEBUG] 地图是傳奇地圖")
             if _M.table_contains(map_data.name_cn_utf8, {game_str.MapUniqueParadise_TWCH, game_str.MapUniqueLake_TWCH, game_str.MapUniqueWildwood_TWCH, game_str.MapUniqueSelenite_TWCH, game_str.MapUniqueMegalith_TWCH}) then
                 -- _M.dbgp("[DEBUG] 是純净樂園，得分: 9999")
@@ -2589,6 +2597,9 @@ _M.get_map = function(params)
             end
         end
         if _M.table_contains(map_data.mapPlayModes, game_str.Legendary_Map_MPMD) then
+            if not sorted_map or not next(sorted_map) or not _M.table_contains(sorted_map, game_str.Legendary_Map_MPMD) then
+                return -1
+            end
             if _M.table_contains(map_data.name_cn_utf8, {game_str.MapUniqueParadise_TWCH, game_str.MapUniqueLake_TWCH, game_str.MapUniqueWildwood_TWCH, game_str.MapUniqueSelenite_TWCH, game_str.MapUniqueMegalith_TWCH}) then
                 return 9999
             end
@@ -7885,8 +7896,9 @@ end
 -- 获取队伍信息
 _M.get_team_info = function(team_info ,config ,player_info, index)
     local team_members = team_info
-    local captain = config["劇情設置"]["隊長名"]
-    local leader = config["劇情設置"]["大號名"]
+    local plot_config = config["劇情設置"] or {}
+    local captain = plot_config["隊長名"]
+    local leader = plot_config["大號名"]
     local my_profession = '未知' -- 初始化您的職業为未知
     if player_info and team_members then
         for role, name_data in pairs(team_members) do

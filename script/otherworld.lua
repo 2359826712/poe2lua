@@ -5,6 +5,7 @@ local behavior_tree = require 'script.lualib.behavior3.behavior_tree'
 local bret = require 'script.lualib.behavior3.behavior_ret'
 
 api_Log("清除 poe2api 模块的缓存")
+package.loaded['script\\my_game_info'] = nil
 package.loaded['script\\poe2api'] = nil
 package.loaded['script\\game_str'] = nil
 package.loaded['json'] = nil
@@ -101,7 +102,7 @@ local custom_nodes = {
                 local user_info = poe2_api.load_ini(user_info_path)["UserInfo"]
                 -- 玩法優先級
                 local map_priority = config["刷圖設置"]["玩法優先級"]
-                local map_sorted_items_sort = poe2_api.sort_map_by_key(map_priority)
+                -- local map_sorted_items_sort = poe2_api.sort_map_by_key(map_priority)
                 poe2_api.printTable(map_priority)
                 if map_priority ~= nil and next(map_priority) then
                     env.sorted_map = map_priority
@@ -3789,36 +3790,41 @@ local custom_nodes = {
                                 
                             end
                         end
-                    -- else
-                    --     for _, v2 in ipairs(items_list) do
-                    --         if v2["類型"] == "碑牌" and v2["存倉頁名"] and v2["存倉頁名"] ~= "" and (v2["白裝"] or v2["藍裝"] or v2["黃裝"]) and not v2["不撿"] then
-                    --             if v == v2["基礎類型名"] then
-                    --                 if not v2["工會倉庫"] then
-                    --                     warehouse_type = {game_str.Warehouse_text,v2["存倉頁名"],v,1}
-                    --                     -- env.plaque_page = 
-                    --                 else
-                    --                     warehouse_type = {game_str.Guild_Warehouse_text,v2["存倉頁名"],v,1}
-                    --                     -- warehouse_type = game_str.Guild_Warehouse_text
-                    --                     -- env.plaque_page = v1["存倉頁名"]
-                    --                 end
-                    --                 return warehouse_type
-                    --             else
-                    --                 if not v2["工會倉庫"] then
-                    --                     warehouse_type = {game_str.Warehouse_text,v2["存倉頁名"],v,1}
-                    --                     -- env.plaque_page = 
-                    --                 else
-                    --                     warehouse_type = {game_str.Guild_Warehouse_text,v2["存倉頁名"],v,1}
-                    --                     -- warehouse_type = game_str.Guild_Warehouse_text
-                    --                     -- env.plaque_page = v1["存倉頁名"]
-                    --                 end
-                    --                 return warehouse_type
-                    --             end
-                    --         end
-                    --     end
+                    else
+                        if (poe2_api.table_contains(v,missing_plaque) or (warehouse_plaque_missing(missing_plaque,env.not_exist_stone))) then
+                            if not get_bag_plaque_index(v) and not poe2_api.table_contains(env.not_exist_stone,v) then
+                                for _, v2 in ipairs(items_list) do
+                                    if v2["類型"] == "碑牌" and v2["存倉頁名"] and v2["存倉頁名"] ~= "" and (v2["白裝"] or v2["藍裝"] or v2["黃裝"]) and not v2["不撿"] then
+                                        if v == v2["基礎類型名"] then
+                                            if not v2["工會倉庫"] then
+                                                warehouse_type = {game_str.Warehouse_text,v2["存倉頁名"],v,1}
+                                                -- env.plaque_page = 
+                                            else
+                                                warehouse_type = {game_str.Guild_Warehouse_text,v2["存倉頁名"],v,1}
+                                                -- warehouse_type = game_str.Guild_Warehouse_text
+                                                -- env.plaque_page = v1["存倉頁名"]
+                                            end
+                                            return warehouse_type
+                                        else
+                                            if not v2["工會倉庫"] then
+                                                warehouse_type = {game_str.Warehouse_text,v2["存倉頁名"],v,1}
+                                                -- env.plaque_page = 
+                                            else
+                                                warehouse_type = {game_str.Guild_Warehouse_text,v2["存倉頁名"],v,1}
+                                                -- warehouse_type = game_str.Guild_Warehouse_text
+                                                -- env.plaque_page = v1["存倉頁名"]
+                                            end
+                                            return warehouse_type
+                                        end
+                                    end
+                                end
+                            end
+                        end
+
                     end
                 end
                 for _, v in ipairs(env.stone_order) do
-                    if not poe2_api.table_contains(env.not_exist_stone,v) then
+                    if not poe2_api.table_contains(env.not_exist_stone,v) and v ~= "祭祀碑牌" then
                         for _, v1 in ipairs(items_list) do
                             if v1["類型"] == "碑牌" and v1["存倉頁名"] and v1["存倉頁名"] ~= "" and (v1["白裝"] or v1["藍裝"] or v1["黃裝"]) and not v1["不撿"] then
                                 if v["基礎類型名"] == v1["基礎類型名"] then
@@ -10468,17 +10474,18 @@ local custom_nodes = {
             --     end
             --     return bret.SUCCESS
             -- end
-            local _get_valid_items = function(all_items, tribute,maxCount,finishedCount)
+            -- SacrificeItems.items, SacrificeItems.leftGifts,SacrificeItems.maxCount, SacrificeItems.finishedCount,SacrificeItems.MaxRefreshCount , SacrificeItems.CurrentRefreshCount
+            local _get_valid_items = function(SacrificeItems)
                 -- self.deferred_items = {}
-                if not all_items or #all_items == 0 then
-                    return {}, {}, 0, {}, {}, {}
+                if not SacrificeItems.items or #SacrificeItems.items == 0 then
+                    return {}, {}, {}, {}, {}, {}
                 end
             
                 local ritual_config = user_config['刷圖設置']['祭祀購買']
                 local inside_items = my_game_info.ritual_inside_item
 
                 if not ritual_config then
-                    return {}, {}, 0, {}, {}, {}
+                    return {}, {}, {}, {}, {}, {}
                 end
 
                 -- 以 inside_items 的顺序为准，合并 ritual_config 中剩下的物品
@@ -10542,7 +10549,7 @@ local custom_nodes = {
             
                 -- 分类物品：同时匹配 baseType_utf8 和 name_utf8
                 local not_appeared_items = {}
-                for _, item in ipairs(all_items) do
+                for _, item in ipairs(SacrificeItems.items) do
                     local matched = false
                     
                     -- 检查 baseType_utf8
@@ -10587,21 +10594,24 @@ local custom_nodes = {
                         -- 添加到 all_config_items
                         for _, item in ipairs(item_groups[item_name]) do
                             --  local condition2 = (item.totalDeferredConsumption >= item.tribute or math.abs(item.totalDeferredConsumption - item.tribute) <= 50) and item.tribute <= tribute
-                            if (item.totalDeferredConsumption >= item.tribute or math.abs(item.totalDeferredConsumption - item.tribute) <= 50) and item.tribute <= tribute then
+                            if (item.totalDeferredConsumption >= item.tribute or math.abs(item.totalDeferredConsumption - item.tribute) <= 50) and item.tribute <= SacrificeItems.leftGifts then
                                 table.insert(all_config_items_shopping, item)
-                                -- break
+                                break
+                            elseif item.tribute <= SacrificeItems.leftGifts and (SacrificeItems.MaxRefreshCount == SacrificeItems.CurrentRefreshCount or (SacrificeItems.MaxRefreshCount ~= SacrificeItems.CurrentRefreshCount and SacrificeItems.leftGifts < SacrificeItems.refreshCost and SacrificeItems.maxCount == SacrificeItems.finishedCount)) then
+                                table.insert(all_config_items_shopping, item)
+                                break
                             -- end
                             -- local condition1 = not item.totalDeferredConsumption or item.totalDeferredConsumption <= tribute
-                            elseif not item.totalDeferredConsumption or item.totalDeferredConsumption <= tribute then
+                            elseif not item.totalDeferredConsumption or item.totalDeferredConsumption <= SacrificeItems.leftGifts then
                                 -- table.insert(all_config_items_shopping, item)
                                 table.insert(all_config_items_cache, item)
-                            --     break
+                                break
                             -- end
                             -- poe2_api.dbgp(item.tribute)
                             -- poe2_api.dbgp(tribute)
                             -- poe2_api.dbgp(maxRefreshCount)
                             -- poe2_api.dbgp(currentRefreshCount)
-                            elseif not item.tribute or (60000 > item.tribute and item.tribute > tribute and maxCount ~= finishedCount) then
+                            elseif not item.tribute or (60000 > item.tribute and item.tribute > SacrificeItems.leftGifts and SacrificeItems.maxCount ~= SacrificeItems.finishedCount) then
                                 table.insert(all_config_items_no_price, item)
                             end
                             -- if condition1 or condition2 then
@@ -10692,17 +10702,17 @@ local custom_nodes = {
                 end
                 return bret.SUCCESS
             end
-            if poe2_api.find_text({UI_info = env.UI_info, text = game_str.the_gift_CN  }) then
-                local Attachments = api_Getinventorys(0xd,0)
-                if Attachments and #Attachments > 0 then
-                    poe2_api.find_text({UI_info = env.UI_info, text = game_str.the_gift_CN , min_x = 0 , add_x = 272, click = 2})
-                    return bret.RUNNING
-                end
-                -- poe2_api.find_text({UI_info = env.UI_info, text = game_str.the_gift_CN , min_x = 0 , add_x = 272, click = 2})
-                -- return bret.RUNNING
-            end
+            -- if poe2_api.find_text({UI_info = env.UI_info, text = game_str.the_gift_CN  }) then
+            --     local Attachments = api_Getinventorys(0xd,0)
+            --     if Attachments and #Attachments > 0 then
+            --         poe2_api.find_text({UI_info = env.UI_info, text = game_str.the_gift_CN , min_x = 0 , add_x = 272, click = 2})
+            --         return bret.RUNNING
+            --     end
+            --     -- poe2_api.find_text({UI_info = env.UI_info, text = game_str.the_gift_CN , min_x = 0 , add_x = 272, click = 2})
+            --     -- return bret.RUNNING
+            -- end
             -- 可购买          缓存物品      已缓存数        隐藏道具   
-            local all_config_items_shopping , all_config_items_cache, all_items_no_price, not_appeared_items = _get_valid_items(SacrificeItems.items, SacrificeItems.leftGifts,SacrificeItems.maxCount, SacrificeItems.finishedCount)
+            local all_config_items_shopping , all_config_items_cache, all_items_no_price, not_appeared_items = _get_valid_items(SacrificeItems)
             poe2_api.dbgp(#all_config_items_shopping)
             poe2_api.dbgp(#all_config_items_cache)
             poe2_api.dbgp(#all_items_no_price)
@@ -11804,6 +11814,20 @@ local custom_nodes = {
                     poe2_api.dbgp("wufuzhuowu")
                 end
                 -- end
+                if poe2_api.find_text({UI_info = env.UI_info, text = "使用預設", min_y = 850,min_x = 900}) then
+                    poe2_api.find_text({UI_info = env.UI_info, text = "使用預設", add_x = 35, add_y = -85, min_y = 850,min_x = 900,click=2})
+                    -- poe2_api.click_keyboard("i")
+                    api_Sleep(500)
+                    return bret.RUNNING
+                end
+
+                if poe2_api.find_text({UI_info = env.UI_info, text = {"我需要的","我擁有的"}}) then
+                    -- poe2_api.find_text({UI_info = env.UI_info, text = "使用預設", add_x = 35, add_y = -85, min_y = 850,min_x = 900,click=2})
+                    poe2_api.click_keyboard("space")
+                    api_Sleep(500)
+                    poe2_api.dbgp("關閉頁面")
+                    return bret.RUNNING
+                end
                 
                 if poe2_api.find_text({UI_info = env.UI_info, text = game_str.backpack, add_x = 250, min_x = 1020}) then
                     poe2_api.click_keyboard("i")
@@ -20707,7 +20731,7 @@ local custom_nodes = {
                             break
                         end
                         
-                        local condition11 = (not i.isActive and i.is_selectable and i.rarity ==3 and i.type==1 and i.life>0 and i.name_utf8 ~= game_str.The_Container_of_Mark_the_Skeleton_TWCH and (((player_info.current_map_name_utf8 == game_str.MapVaalFoundry_MDANA and -150 < player_info.world_z - i.world_z and player_info.world_z - i.world_z < 150) or (player_info.current_map_name_utf8 == game_str.MapWetlands_MDANA and not is_monster({range_info=env.range_info,index = 0})) and is_bass) or not poe2_api.table_contains(player_info.current_map_name_utf8,{game_str.MapVaalFoundry_MDANA,game_str.MapWetlands_MDANA,game_str.MapSandspit_MDANA})) and not is_target and not poe2_api.find_text({UI_info = env.UI_info, text=game_str.The_Seal_of_Runes_TWCH,min_x=0}) and not poe2_api.table_contains(i.name_utf8,{game_str.Barbara_Soul_TWCH,game_str.The_Soul_of_Palasa_TWCH}) and ((not player_info.isInBossBattle and not is_elite_monster(current_map_info)) or player_info.isInBossBattle))
+                        local condition11 = (not i.isActive and i.is_selectable and i.rarity ==3 and i.type==1 and i.life>0 and i.name_utf8 ~= game_str.The_Container_of_Mark_the_Skeleton_TWCH and (((player_info.current_map_name_utf8 == game_str.MapVaalFoundry_MDANA and -150 < player_info.world_z - i.world_z and player_info.world_z - i.world_z < 150) or (player_info.current_map_name_utf8 == game_str.MapWetlands_MDANA and not is_monster({range_info=env.range_info,index = 0})) and is_bass) or (player_info.current_map_name_utf8 == game_str.MapUberBoss_IronCitadel_EN and player_info.isInBossBattle ) or not poe2_api.table_contains(player_info.current_map_name_utf8,{game_str.MapVaalFoundry_MDANA,game_str.MapWetlands_MDANA,game_str.MapSandspit_MDANA,game_str.MapUberBoss_IronCitadel_EN})) and not is_target and not poe2_api.find_text({UI_info = env.UI_info, text=game_str.The_Seal_of_Runes_TWCH,min_x=0}) and not poe2_api.table_contains(i.name_utf8,{game_str.Barbara_Soul_TWCH,game_str.The_Soul_of_Palasa_TWCH}) and ((not player_info.isInBossBattle and not is_elite_monster(current_map_info)) or player_info.isInBossBattle))
                         if condition11 then 
                             -- poe2_api.dbgp("条件11匹配: 非活跃稀有怪物 (地图:"..(player_info.current_map_name_utf8 or "无")..", Z轴差:"..(player_info.world_z - (i.world_z or 0))..")")
                             currency = i
@@ -21749,14 +21773,14 @@ local custom_nodes = {
         run = function(self, env)
             poe2_api.print_log("是否需要移动祭坛...")
             local start_time = api_GetTickCount64()
-            if not self.bool then
+            if not env.move_altar_bool then
                 self.object1 = nil
                 self.time = 0
                 self.break_object_list = {}
                 self.target = nil
                 self.target1 = nil
                 self.target2 = nil
-                self.bool = true
+                env.move_altar_bool = true
             end
             local player_info = env.player_info
             local afoot_altar = env.afoot_altar
@@ -22045,9 +22069,11 @@ local custom_nodes = {
                                 if self.time == 0 then
                                     self.time = api_GetTickCount64()
                                 end
-                                if api_GetTickCount64() - self.time > 3000 then
+                                if api_GetTickCount64() - self.time > 5000 then
                                     table.insert(self.break_object_list,self.target2.id)
+                                    self.target2 = nil
                                     self.time = 0
+                                    return bret.RUNNING
                                 end
                             end
                             env.end_point = {self.target2.grid_x,self.target2.grid_y}
@@ -38159,7 +38185,8 @@ local plot_nodes = {
 
 local all_nodes = {}
 for k, v in pairs(base_nodes) do all_nodes[k] = v end
-if config["劇情設置"]["是否启用剧情"] then
+local plot_config = config["劇情設置"] or false
+if plot_config and plot_config["是否启用剧情"] then
     for k, v in pairs(plot_nodes) do all_nodes[k] = v end
 else
     for k, v in pairs(custom_nodes) do all_nodes[k] = v end
@@ -38226,6 +38253,7 @@ local env_params = {
     is_set = false,
     end_point = {},
     teleport_area = nil,
+    teleport = nil,
     follow_role = nil,
     map_count = 0,
     task_name = nil,
@@ -38286,7 +38314,7 @@ local env_params = {
     open_map_UI = false,        -- 地图ui是否打开
     is_public_warehouse = true, --共倉點金是否存儲
     is_get_plaque_node = true,  --取碑牌节点，专用是否需要取碑牌
-    is_public_warehouse_plaque = true,
+    is_public_warehouse_plaque = true,  -- 共倉點金碑牌是否存儲
     last_retreat_time = 0,
     path_list_follow = nil,
     hard_chapter = false,
@@ -38354,6 +38382,8 @@ local env_params = {
     item0xa = nil,
     item0xb = nil,
     not_attack_mos = nil,
+    pick_up_number = 0, -- 取碑牌数量
+    
     min_attack_range = nil,
     back_city = false, --回城
     click_traverse = nil,
@@ -38484,7 +38514,7 @@ function otherworld_bt.create()
 
     if config then
         if config["全局設置"] then
-            if not config["劇情設置"]["是否启用剧情"] then
+            if not plot_config or not plot_config["是否启用剧情"] then
                 if config["全局設置"]["剧情地图设置"] and config["全局設置"]["剧情地图设置"]["是否開啟"] then
                     missions = "main_story_map"
                 elseif config["全局設置"]["跟随设置"] and config["全局設置"]["跟随设置"]["是否開啟"] then
