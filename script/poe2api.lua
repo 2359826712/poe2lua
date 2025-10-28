@@ -7896,9 +7896,9 @@ end
 -- 获取队伍信息
 _M.get_team_info = function(team_info ,config ,player_info, index)
     local team_members = team_info
-    local plot_config = config["劇情設置"] or {}
-    local captain = plot_config["隊長名"]
-    local leader = plot_config["大號名"]
+    local plot_config = config["全局設置"]["大带小设置"] or {}
+    local captain = plot_config["队长名"]
+    local leader = plot_config["大号名称"]
     local my_profession = '未知' -- 初始化您的職業为未知
     if player_info and team_members then
         for role, name_data in pairs(team_members) do
@@ -7931,7 +7931,7 @@ _M.get_team_info = function(team_info ,config ,player_info, index)
         -- 获取小號信息，排除线路、队长和大号
         local small_accounts_values = {}
         for role, name in pairs(team_members) do
-            if role ~= '隊長名' and role ~= '大號名' then
+            if role ~= '队长名' and role ~= '大号名称' then
                 table.insert(small_accounts_values, name)
             end
         end
@@ -7940,7 +7940,7 @@ _M.get_team_info = function(team_info ,config ,player_info, index)
         -- 获取小號信息，排除线路和大号
         local small_accounts_values = {}
         for role, name in pairs(team_members) do
-            if role ~= '大號名' then
+            if role ~= '大号名称' then
                 table.insert(small_accounts_values, name)
             end
         end
