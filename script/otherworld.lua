@@ -32926,32 +32926,22 @@ local plot_nodes = {
                                 poe2_api.find_text({ UI_info = UI_info, text = "崎點", click = 2, min_x = 0 })
                             else
                                 if string.find(me_area, "own") then
-                                    local towards_point = poe2_api.move_towards({ player_info.grid_x, player_info.grid_y },
-                                        waypoint_pos, 20)
-                                    api_ClickMove(poe2_api.toInt(towards_point[1]), poe2_api.toInt(towards_point[2]),0)
-                                    api_Sleep(100)
-                                    poe2_api.click_keyboard("space")
+                                    env.end_point = {423, 835}
+                                    return bret.SUCCESS
                                 end
                             end
                         end
                         return bret.RUNNING
                     elseif not waypoint_pos and point then
-                        local towards_point = poe2_api.move_towards({ player_info.grid_x, player_info.grid_y }, point, 20)
-                        api_ClickMove(poe2_api.toInt(towards_point[1]), poe2_api.toInt(towards_point[2]), 0)
-                        api_Sleep(100)
-                        poe2_api.click_keyboard("space")
-                        return bret.RUNNING
+                        env.end_point = {423, 835}
+                        return bret.SUCCESS
                     elseif waypoint_pos and not point then
                         if waypoint_point then
                             distance_between = (poe2_api.get_point_distance(waypoint_point[1], waypoint_point[2], waypoint_pos[1], waypoint_pos[2]) or nil)
                         end
                         if not distance_between or (distance_between and distance_between > 100) then
-                            local towards_point = poe2_api.move_towards({ player_info.grid_x, player_info.grid_y },
-                                waypoint_pos, 20)
-                            api_ClickMove(poe2_api.toInt(towards_point[1]), poe2_api.toInt(towards_point[2]),0)
-                            api_Sleep(100)
-                            poe2_api.click_keyboard("space")
-                            return bret.RUNNING
+                            env.end_point = {423, 835}
+                            return bret.SUCCESS
                         end
                     else
                         local waypoint_point_mini = mini_map_obj_flagStatus("Waypoint")
