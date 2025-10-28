@@ -25035,8 +25035,8 @@ local plot_nodes = {
                 if not env.team_info then
                     -- 组队信息初始化
                     env.team_info = {
-                        ["大號名"] = config["組隊設置"]["大號名"] or "",
-                        ["隊長名"] = config["組隊設置"]["隊長名"] or "",
+                        ["大號名"] = config["劇情設置"]["大號名"] or "",
+                        ["隊長名"] = config["劇情設置"]["隊長名"] or "",
                         ["小號名"] = {}
                     }
                 end
@@ -25105,7 +25105,7 @@ local plot_nodes = {
                         return bret.RUNNING
                     end
                 end
-                local log_path = poe2_api.load_config(json_path)["組隊設置"]["日志路径"]
+                local log_path = poe2_api.load_config(json_path)["劇情設置"]["日志路径"]
                 poe2_api.dbgp("log_path:" .. log_path)
                 if env.delete_log == false or self.delete_log == nil then
                     poe2_api.dbgp("尝试删除日志文件: " .. log_path)
@@ -28929,7 +28929,7 @@ local plot_nodes = {
                 return false
             end
             local is_target = is_monster(env.range_info, player_info,40)
-            if is_target and player_info.name_utf8 == env.user_config["組隊設置"]["大號名"] then
+            if is_target and player_info.name_utf8 == env.user_config["劇情設置"]["大號名"] then
                 poe2_api.dbgp("附近有怪，不捡")
                 poe2_api.time_p("检查是否拾取（SUCCESS3）... 耗时 --> ", api_GetTickCount64() - start_time)
                 return bret.SUCCESS
@@ -29458,10 +29458,10 @@ local plot_nodes = {
             poe2_api.dbgp("组队")
             local player_info = env.player_info
             local range_info = env.range_info
-            local captain_name = env.user_config["組隊設置"]["隊長名"] or ""
-            local leader_name = env.user_config["組隊設置"]["大號名"] or ""
+            local captain_name = env.user_config["劇情設置"]["隊長名"] or ""
+            local leader_name = env.user_config["劇情設置"]["大號名"] or ""
             local team_info_data = env.team_info_data
-            local log_path = poe2_api.load_config(json_path)["組隊設置"]["日志路径"]
+            local log_path = poe2_api.load_config(json_path)["劇情設置"]["日志路径"]
             local current_time = api_GetTickCount64()
             if player_info.current_map_name_utf8 == "G1_1" then
                 poe2_api.dbgp("在新手剧情不组队")
@@ -29471,7 +29471,7 @@ local plot_nodes = {
             if not self.current_time then
                 self.current_time = 0
             end
-            local num = env.user_config["組隊設置"]["隊伍人數"]
+            local num = env.user_config["劇情設置"]["隊伍人數"]
             if team_info_data and #team_info_data == num then
                 if env.bool then
                     self.current_time = 0
@@ -30002,8 +30002,8 @@ local plot_nodes = {
             local team_info = env.team_info
             local current_time = api_GetTickCount64()
             local user_config = env.user_config
-            local log_path = user_config["組隊設置"]["日志路径"]
-            local leader_name = env.user_config["組隊設置"]["大號名"] or ""
+            local log_path = user_config["劇情設置"]["日志路径"]
+            local leader_name = env.user_config["劇情設置"]["大號名"] or ""
             if player_info.name_utf8 ~= leader_name then
                 poe2_api.dbgp("Check_Role(FAIL1)")
                 return bret.FAIL
@@ -30174,7 +30174,7 @@ local plot_nodes = {
 
             -- 主逻辑
             local team_members = get_team_members()
-            local num = env.user_config["組隊設置"]["隊伍人數"] or 1
+            local num = env.user_config["劇情設置"]["隊伍人數"] or 1
             local expected_mission_count = num - 1
 
             -- 设置超时时间（如果在藏身处则30秒，否则5分钟）
@@ -31819,7 +31819,7 @@ local plot_nodes = {
             local player_info = env.player_info
             local user_config = env.user_config
             local current_time = api_GetTickCount64()
-            local user_new_item = poe2_api.get_BD_info(user_config["組隊設置"]["職業"], "装备信息")
+            local user_new_item = poe2_api.get_BD_info(user_config["劇情設置"]["職業"], "装备信息")
             local function is_items()
                 if range_items then
                     for _, item in ipairs(range_items) do
@@ -31865,7 +31865,7 @@ local plot_nodes = {
             local range_items = env.range_items
             local player_info = env.player_info
             local user_config = env.user_config
-            local user_new_item = poe2_api.get_BD_info(user_config["組隊設置"]["職業"], "装备信息")
+            local user_new_item = poe2_api.get_BD_info(user_config["劇情設置"]["職業"], "装备信息")
             local function processItem(item, player_info)
                 env.item_name = item.baseType_utf8
                 env.end_point = { item.grid_x, item.grid_y }
@@ -32052,7 +32052,7 @@ local plot_nodes = {
             local team_member_4 = poe2_api.get_team_info(team_info, user_config, player_info, 4)
             local current_map = player_info.current_map_name_utf8
             local current_map_info = env.current_map_info
-            local num = user_config["組隊設置"]["隊伍人數"]
+            local num = user_config["劇情設置"]["隊伍人數"]
             if task_area == "G2_Abyss_Hub" then
                 env.map_name = "Abyss_Hub"
             end
@@ -32635,7 +32635,7 @@ local plot_nodes = {
             local interaction_object = env.interaction_object
             local task_name = env.task_name
             local special_map_point = env.special_map_point
-            local num = user_config["組隊設置"]["隊伍人數"]
+            local num = user_config["劇情設置"]["隊伍人數"]
             local current_map_info = env.current_map_info
             local arena_list = poe2_api.get_sorted_obj("競技場", range_info, player_info)
 
@@ -33913,7 +33913,7 @@ local plot_nodes = {
                 
                 local function is_adjust_skills()
                     poe2_api.dbgp("[is_adjust_skills] 开始检查是否需要调整技能")
-                    local skills = poe2_api.get_BD_info(user_config["組隊設置"]['職業'], "技能")
+                    local skills = poe2_api.get_BD_info(user_config["劇情設置"]['職業'], "技能")
                     poe2_api.dbgp("skills",skills)
                     poe2_api.printTable(skills)
                     for k, v in pairs(skills) do
@@ -33947,7 +33947,7 @@ local plot_nodes = {
                 
                 local function is_exist(name)
                     poe2_api.dbgp("[is_exist] 检查物品是否存在: " .. tostring(name))
-                    local level = poe2_api.get_BD_info(user_config["組隊設置"]['職業'], "技能", env.skill_name, "level_skillstone")
+                    local level = poe2_api.get_BD_info(user_config["劇情設置"]['職業'], "技能", env.skill_name, "level_skillstone")
                     poe2_api.dbgp("[is_exist] 所需等级: " .. tostring(level))
                     if items and #items > 0 then
                         for _, item in ipairs(items) do
@@ -33983,7 +33983,7 @@ local plot_nodes = {
                     
                     local function get_skill()
                         poe2_api.dbgp("[get_skill] 获取角色技能")
-                        local skills = poe2_api.get_BD_info(user_config["組隊設置"]['職業'], "技能")
+                        local skills = poe2_api.get_BD_info(user_config["劇情設置"]['職業'], "技能")
                         for k, v in pairs(skills) do
                             local name = k:gsub(" ", "") .. "Player"
                             poe2_api.dbgp("[get_skill] 检查技能: " .. tostring(name))
@@ -34068,7 +34068,7 @@ local plot_nodes = {
                         return bret.SUCCESS
                     end
                     
-                    local skill = poe2_api.get_BD_info(user_config["組隊設置"]['職業'], "技能", env.skill_name, "skill_name")
+                    local skill = poe2_api.get_BD_info(user_config["劇情設置"]['職業'], "技能", env.skill_name, "skill_name")
                     if skill and not is_skills(skill) and not poe2_api.check_item_in_inventory(env.skill_name,items) and not is_exist("技能寶石") then
                         if poe2_api.find_text({UI_info = env.UI_info, text = "技能", min_x = 0, min_y = 32, max_x = 381, max_y = 81}) then
                             poe2_api.click_keyboard("space")
@@ -34240,7 +34240,7 @@ local plot_nodes = {
                     else
                         poe2_api.dbgp("[set_pos] 处理普通技能")
                         -- 检查位置是否在指定范围内 FallingThunderPlayer MeleeQuarterstaffPlayer
-                        local skill = poe2_api.get_BD_info(user_config["組隊設置"]['職業'], "技能", env.skill_name, "skill_name")
+                        local skill = poe2_api.get_BD_info(user_config["劇情設置"]['職業'], "技能", env.skill_name, "skill_name")
                         poe2_api.dbgp("[set_pos] 从配置获取的技能名称: " .. tostring(skill))
                         
                         if skill and 1104 <= k.left and k.left <= 1597 and 562 <= k.top and k.top <= 841 and string.find(k.text_utf8 or "", skill) then
@@ -34304,7 +34304,7 @@ local plot_nodes = {
             poe2_api.dbgp("[技能检查] 不是空技能/徒手技能/武器技能，继续检查配置")
 
             -- 检查技能是否存在
-            local skill_config_name = poe2_api.get_BD_info(env.user_config["組隊設置"]['職業'], "技能", skill_name, "skill_name")
+            local skill_config_name = poe2_api.get_BD_info(env.user_config["劇情設置"]['職業'], "技能", skill_name, "skill_name")
             poe2_api.dbgp("[技能检查] 从配置获取的技能名称: " .. tostring(skill_config_name))
 
             local skill_exists = false
@@ -35378,7 +35378,7 @@ local plot_nodes = {
                     end
                     return bret.RUNNING
                 end
-                local career = user_config["組隊設置"]["職業"]
+                local career = user_config["劇情設置"]["職業"]
                 local setinfo = my_game_info.newbie_gear[career]
                 local skilltext = setinfo["skill"]
                 if skilltext then
@@ -36352,8 +36352,6 @@ local plot_nodes = {
                         if (not name or not poe2_api.table_contains(name,interaction_object_map_name)) and not record_map then
                             goto continue 
                         end
-                        poe2_api.dbgp("name:",name)
-                        poe2_api.dbgp("interaction_object_map_name:",interaction_object_map_name)
                         if not record_map then
                             env.record_map = map_obj
                         end
@@ -36403,8 +36401,6 @@ local plot_nodes = {
                             end
                             return bret.SUCCESS
                         end
-                        poe2_api.dbgp("record_map:",record_map.name_utf8)
-                        poe2_api.dbgp("map_distance:",get_distance(record_map.grid_x, record_map.grid_y))
                         if get_distance(record_map.grid_x, record_map.grid_y) < map_distance then
                             if team_member_2 ~= "大號名" and poe2_api.table_contains(player_info.current_map_name_utf8,{"G3_12"}) then
                                 return bret.SUCCESS

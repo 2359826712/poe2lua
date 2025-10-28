@@ -273,6 +273,14 @@
             ]
         }
     },
+    "劇情設置": {
+        "大號名": "小母牛坐宇宙飞船",
+        "日志路径": "D:\\SteamLibrary\\steamapps\\common\\Path of Exile 2\\logs\\Client.txt",
+        "是否启用剧情": true,
+        "職業": "遊俠",
+        "隊伍人數": 3,
+        "隊長名": "yatakefu"
+    },
     "技能設置": {
         "e": {
             "Boss": false,
@@ -567,13 +575,5 @@
             "黃裝": true
         }
     ],
-    "劇情設置": {
-        "是否启用剧情": true,
-        "大號名": "小母牛坐宇宙飞船",
-        "日志路径": "D:\\SteamLibrary\\steamapps\\common\\Path of Exile 2\\logs\\Client.txt",
-        "職業": "遊俠",
-        "隊伍人數": 3,
-        "隊長名": "yayataoli"
-    },
     "通貨交換設置": null
 }

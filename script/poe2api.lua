@@ -7885,8 +7885,8 @@ end
 -- 获取队伍信息
 _M.get_team_info = function(team_info ,config ,player_info, index)
     local team_members = team_info
-    local captain = config["組隊設置"]["隊長名"]
-    local leader = config["組隊設置"]["大號名"]
+    local captain = config["劇情設置"]["隊長名"]
+    local leader = config["劇情設置"]["大號名"]
     local my_profession = '未知' -- 初始化您的職業为未知
     if player_info and team_members then
         for role, name_data in pairs(team_members) do
