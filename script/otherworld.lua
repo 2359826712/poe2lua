@@ -32614,7 +32614,7 @@ local plot_nodes = {
             if poe2_api.table_contains(task_area, {"G3_12"}) and not waypoint_name_utf8 then
                 waypoint_name_utf8  = poe2_api.task_area_list_data(task_area)[1][2]
             end
-            if waypoint_name_utf8 and party_pos(team_member_3) ~= player_info.current_map_name_utf8 and not player_info.isInBossBattle then
+            if waypoint_name_utf8 and (party_pos(team_member_3) ~= player_info.current_map_name_utf8 or poe2_api.find_text({ UI_info = UI_info, text = waypoint_name_utf8, min_x = 0, min_y = 0, max_x = 195, max_y = 590 }) ) and not player_info.isInBossBattle then
                 for i = 0, count - 1 do
                     if not poe2_api.find_text({ UI_info = UI_info, text = "你確定要傳送至此玩家的位置？" }) then
                         if poe2_api.find_text({ UI_info = UI_info, text = "快行" }) then
@@ -33689,6 +33689,17 @@ local plot_nodes = {
                         return bret.SUCCESS
                     end
                     return bret.FAIL
+                end
+            end
+            if current_map == "G1_7" then
+                if check_current_map_info_dis("Waypoint") then
+                    local point = get_current_map_info_pos("Waypoint")
+                    if check_current_map_info_dis("Waypoint") > 30 then
+                        env.end_point = { point[1], point[2] }
+                        return bret.SUCCESS
+                    else
+                        return bret.FAIL
+                    end
                 end
             end
             if (teleport_area == "G2_town" and current_map == "G2_1") or not check_current_map_info_dis("Waypoint") or (not check_pos_dis("傳送點") and check_current_map_info_dis("Waypoint") > 200) then
@@ -36397,6 +36408,17 @@ local plot_nodes = {
                         env.interaction_object_map_name_copy = {"CroneActive"}
                         env.modify_interaction = true
                     end
+                elseif player_info.current_map_name_utf8 == "G1_13_1" then
+                    if #mini_map_obj("FarmlandsUnasHutLandmarkInactive") == 0 then
+                        poe2_api.dbgp("G1_13_1小地图没有FarmlandsUnasHutLandmarkInactive")
+                        interaction_object_set = {'烏娜的魯特琴盒','烏娜的魯特琴'} 
+                        env.interaction_object = {'烏娜的魯特琴盒','烏娜的魯特琴'}
+                        interaction_object_map_name = {"FarmlandsUnasHutLandmarkActive"}
+                        env.interaction_object_map_name = {"FarmlandsUnasHutLandmarkActive"}
+                        env.interaction_object_copy = {'烏娜的魯特琴盒','烏娜的魯特琴'} 
+                        env.interaction_object_map_name_copy = {"FarmlandsUnasHutLandmarkActive"}
+                        env.modify_interaction = true
+                    end  
                 elseif player_info.current_map_name_utf8 == "G2_4_1" then
                     if #mini_map_obj("KabalaInactive") == 0 then
                         poe2_api.dbgp("G2_4_1小地图没有KabalaInactive")
