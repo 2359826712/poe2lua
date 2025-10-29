@@ -8120,4 +8120,24 @@ end
 -- 其他可能用到的API
 _M.get_current_time = function() return api_GetTickCount64() end
 
+-- 拆分字符串
+_M.split_string = function(type_str,delimiter)
+    -- local dark_gold_plauqe = {}
+    -- local ordinary = {}
+    local function split_by_pipe(input)
+        local result = {}
+        for item in string.gmatch(input, "([^"..delimiter.."]+)") do
+            table.insert(result, item)
+        end
+        return result
+    end
+    if string.find(type_str, delimiter) then
+        return split_by_pipe(type_str)  -- 返回拆分的列表
+    else
+        return {type_str}              -- 返回单元素列表
+    end
+end
+
+
+
 return _M

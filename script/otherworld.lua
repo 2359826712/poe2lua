@@ -3554,9 +3554,29 @@ local custom_nodes = {
                     return false
                 end
                 local plaque_index = 0
+                local plaque_type_list = {}
+                for _, v1 in ipairs(env.stone_order) do
+                    local split_cfg_list = poe2_api.split_string(v1,"|")
+                    for _, v2 in pairs(split_cfg_list) do
+                        local split_cfg_list = poe2_api.split_string(v2," ")
+                        if not poe2_api.table_contains(plaque_type_list,split_cfg_list[#split_cfg_list]) then
+                            table.insert(plaque_type_list,split_cfg_list[#split_cfg_list])
+                        end
+                    end
+                end
                 for _, v in pairs(bag_info) do
-                    if v.category_utf8 == game_str.TowerAugmentation and poe2_api.table_contains(env.stone_order,v.baseType_utf8) then
-                        plaque_index = plaque_index + 1
+                    if v.category_utf8 == game_str.TowerAugmentation  then -- and poe2_api.table_contains(env.stone_order,v.baseType_utf8)
+                        -- if v.baseType_utf8 == split_cfg_list[#split_cfg_list] then
+                        --     plaque_index = plaque_index + 1
+                        -- end
+                        if poe2_api.table_contains(plaque_type_list,v.baseType_utf8) then
+                            plaque_index = plaque_index + 1
+                        end
+                        
+                        -- if  then
+                            
+                        -- end
+                        
                     end
                 end
                 if plaque_index > 0 then
@@ -3601,25 +3621,44 @@ local custom_nodes = {
                 -- poe2_api.printTable(inserted_plaques)
                 if next(env.settings_cfg_plaque) then
                     -- poe2_api.dbgp(151515151515151)
+                    
                     for _, v1 in ipairs(env.settings_cfg_plaque) do
+                        local a = false
                         if not next(inserted_plaques) then
-                            table.insert(missing_plaque,v1["基礎類型名"]) 
+                            a = true
+                            local split_cfg = poe2_api.split_string(v1["基礎類型名"],"|")
+                            for _, v2 in ipairs(split_cfg) do
+                                local split_cfg_list = poe2_api.split_string(v2," ")
+                                if not poe2_api.table_contains(split_cfg_list[#split_cfg_list],missing_plaque) then
+                                    table.insert(missing_plaque,split_cfg_list[#split_cfg_list]) 
+                                end
+                            end
+                        else
+                            local split_cfg = poe2_api.split_string(v1["基礎類型名"],"|")
+                            for _, v3 in ipairs(split_cfg) do
+                                local split_cfg_list = poe2_api.split_string(v3," ")
+                                for _, v2 in ipairs(inserted_plaques) do
+                                    if v2.baseType_utf8 == split_cfg_list[#split_cfg_list] then
+                                        -- a = true
+                                        break
+                                    end
+                                end
+                                if not poe2_api.table_contains(split_cfg_list[#split_cfg_list],missing_plaque) then
+                                    table.insert(missing_plaque,split_cfg_list[#split_cfg_list]) 
+                                end
+                            end
                         end
                         -- if not poe2_api.table_contains(v1["基礎類型名"],inserted_plaques) then
 
                         --     table.insert(missing_plaque,v1["基礎類型名"]) 
 
                         -- end
-                        local a = false
-                        for _, v2 in ipairs(inserted_plaques) do
-                            if v2.baseType_utf8 == v1["基礎類型名"] then
-                                a = true
-                                break
-                            end
-                        end
-                        if not a then
-                            table.insert(missing_plaque,v1["基礎類型名"]) 
-                        end
+                        -- local a = false
+                        
+                        
+                        -- if not a then
+                        --     table.insert(missing_plaque,v1["基礎類型名"]) 
+                        -- end
                     end
                 else
                     -- poe2_api.dbgp(1717171717)
@@ -3664,7 +3703,33 @@ local custom_nodes = {
                 return missing_plaque
                         
             end
+            -- 配置同级碑牌的情况下，优先暗金，后普通
+            local function sort_by_space_criteria(list)
+                -- 分类
+                local with_spaces = {}
+                local without_spaces = {}
+                
+                for _, item in ipairs(list) do
+                    if string.find(item, " ") then
+                        table.insert(with_spaces, item)
+                    else
+                        table.insert(without_spaces, item)
+                    end
+                end
+                
+                -- 合并（空格项在前）
+                local result = {}
+                for _, item in ipairs(with_spaces) do
+                    table.insert(result, item)
+                end
+                for _, item in ipairs(without_spaces) do
+                    table.insert(result, item)
+                end
+                
+                return result
+            end
             
+                  
 
             -- poe2_api.printTable(missing_plaque)
             -- poe2_api.printTable(env.not_dark_gold_plaque_list)
@@ -3698,97 +3763,132 @@ local custom_nodes = {
                     end
                     return false
                 end
+                -- -- 拆分|
+                -- local function split_plaque_name(config_plaque_name,delimiter)
+                --     -- local dark_gold_plauqe = {}
+                --     -- local ordinary = {}
+                --     local function split_by_pipe(input)
+                --         local result = {}
+                --         for item in string.gmatch(input, "([^"..delimiter.."]+)") do
+                --             table.insert(result, item)
+                --         end
+                --         return result
+                --     end
+                --     if string.find(config_plaque_name, delimiter) then
+                --         return split_by_pipe(config_plaque_name)  -- 返回拆分的列表
+                --     else
+                --         return {config_plaque_name}              -- 返回单元素列表
+                --     end
+                    
+                -- end
+                -- 碑牌优先级顺序
                 for _, v in ipairs(env.stone_order) do
                     if next(env.settings_cfg_plaque) then
+                        -- 设置中的碑牌优先级顺序
                         for _, v1 in ipairs(env.settings_cfg_plaque) do
-                            if v == v1["基礎類型名"] then
-                                if (poe2_api.table_contains(v,missing_plaque) or warehouse_plaque_missing(missing_plaque,env.not_exist_stone))  then
-                                    if not get_bag_plaque_index(v1["基礎類型名"]) and not poe2_api.table_contains(env.not_exist_stone,v1["基礎類型名"]) then
-                                        if next(v1["物品詞綴"]) then
-                                            if (not next(env.not_dark_gold_plaque_list) or not poe2_api.table_contains(v1["基礎類型名"],env.not_dark_gold_plaque_list)) and not get_missing_plaque_dark_gold(v) then
-                                                for _, v2 in ipairs(items_list) do
-                                                    if v2["類型"] == "碑牌" and v2["存倉頁名"] and v2["存倉頁名"] ~= "" and v2["暗金"] and not v2["不撿"] then
-                                                        if v2["基礎類型名"] == v1["基礎類型名"] then
-                                                            if not v2["工會倉庫"] then
-                                                                warehouse_type = {game_str.Warehouse_text,v2["存倉頁名"],v,0}
-                                                                -- env.plaque_page = 
-                                                            else
-                                                                warehouse_type = {game_str.Guild_Warehouse_text,v2["存倉頁名"],v,0}
-                                                                -- warehouse_type = game_str.Guild_Warehouse_text
-                                                                -- env.plaque_page = v1["存倉頁名"]
-                                                            end
-                                                            return warehouse_type
-                                                        elseif v2["基礎類型名"] == "全部物品" then
-                                                            if not v2["工會倉庫"] then
-                                                                warehouse_type = {game_str.Warehouse_text,v2["存倉頁名"],v,0}
-                                                                -- env.plaque_page = 
-                                                            else
-                                                                warehouse_type = {game_str.Guild_Warehouse_text,v2["存倉頁名"],v,0}
-                                                                -- warehouse_type = game_str.Guild_Warehouse_text
-                                                                -- env.plaque_page = v1["存倉頁名"]
-                                                            end
-                                                            return warehouse_type
-                                                        end  
+                            -- 拆分|后的同级碑牌列表
+                            local split_vertical_line_plaque_name_list = poe2_api.split_string(v1["基礎類型名"],"|")
+                            local sort_split_vertical_line_plaque_name_list = sort_by_space_criteria(split_vertical_line_plaque_name_list)
+                            for _, plaque_cfg in ipairs(sort_split_vertical_line_plaque_name_list) do
+                                
+                                if v == v1["基礎類型名"] then
+                                    
+                                    -- 拆分空格后的碑牌 用于区分暗金与普通
+                                    local split_space_plaque_name_list = poe2_api.split_string(plaque_cfg," ")
+                                    local type_plaque_name = split_space_plaque_name_list[#split_space_plaque_name_list]
+                                    if (poe2_api.table_contains(type_plaque_name,missing_plaque) or warehouse_plaque_missing(missing_plaque,env.not_exist_stone))  then
+                                        poe2_api.dbgp(plaque_cfg)
+                                        if not get_bag_plaque_index(type_plaque_name) then
+                                            if #split_space_plaque_name_list > 1 then
+                                                if (not next(env.not_dark_gold_plaque_list) or not poe2_api.table_contains(type_plaque_name,env.not_dark_gold_plaque_list)) and not get_missing_plaque_dark_gold(type_plaque_name) then
+                                                    for _, v2 in ipairs(items_list) do
+                                                        if v2["類型"] == "碑牌" and v2["存倉頁名"] and v2["存倉頁名"] ~= "" and v2["暗金"] and not v2["不撿"] then
+                                                            if v2["基礎類型名"] == v1["基礎類型名"] then
+                                                                if not v2["工會倉庫"] then
+                                                                    warehouse_type = {game_str.Warehouse_text,v2["存倉頁名"],plaque_cfg,0,split_vertical_line_plaque_name_list,v1["物品詞綴"]}
+                                                                    -- env.plaque_page = 
+                                                                else
+                                                                    warehouse_type = {game_str.Guild_Warehouse_text,v2["存倉頁名"],plaque_cfg,0,split_vertical_line_plaque_name_list,v1["物品詞綴"]}
+                                                                    -- warehouse_type = game_str.Guild_Warehouse_text
+                                                                    -- env.plaque_page = v1["存倉頁名"]
+                                                                end
+                                                                return warehouse_type
+                                                            elseif v2["基礎類型名"] == "全部物品" then
+                                                                if not v2["工會倉庫"] then
+                                                                    warehouse_type = {game_str.Warehouse_text,v2["存倉頁名"],plaque_cfg,0,split_vertical_line_plaque_name_list,v1["物品詞綴"]}
+                                                                    -- env.plaque_page = 
+                                                                else
+                                                                    warehouse_type = {game_str.Guild_Warehouse_text,v2["存倉頁名"],plaque_cfg,0,split_vertical_line_plaque_name_list,v1["物品詞綴"]}
+                                                                    -- warehouse_type = game_str.Guild_Warehouse_text
+                                                                    -- env.plaque_page = v1["存倉頁名"]
+                                                                end
+                                                                return warehouse_type
+                                                            end  
+                                                        end
                                                     end
+                                                -- else
+                                                --     for _, v2 in ipairs(items_list) do
+                                                --         if v2["類型"] == "碑牌" and v2["存倉頁名"] and v2["存倉頁名"] ~= "" and (v2["白裝"] or v2["藍裝"] or v2["黃裝"]) and not v2["不撿"] then
+                                                --             if v1["基礎類型名"] == v2["基礎類型名"] then
+                                                --                 if not v2["工會倉庫"] then
+                                                --                     warehouse_type = {game_str.Warehouse_text,v2["存倉頁名"],type_plaque_name,1}
+                                                --                     -- env.plaque_page = 
+                                                --                 else
+                                                --                     warehouse_type = {game_str.Guild_Warehouse_text,v2["存倉頁名"],type_plaque_name,1}
+                                                --                     -- warehouse_type = game_str.Guild_Warehouse_text
+                                                --                     -- env.plaque_page = v1["存倉頁名"]
+                                                --                 end
+                                                --                 return warehouse_type
+                                                --             else
+                                                --                 if not v2["工會倉庫"] then
+                                                --                     warehouse_type = {game_str.Warehouse_text,v2["存倉頁名"],type_plaque_name,1}
+                                                --                     -- env.plaque_page = 
+                                                --                 else
+                                                --                     warehouse_type = {game_str.Guild_Warehouse_text,v2["存倉頁名"],type_plaque_name,1}
+                                                --                     -- warehouse_type = game_str.Guild_Warehouse_text
+                                                --                     -- env.plaque_page = v1["存倉頁名"]
+                                                --                 end
+                                                --                 return warehouse_type
+                                                --             end
+                                                --         end
+                                                --     end
                                                 end
                                             else
-                                                for _, v2 in ipairs(items_list) do
-                                                    if v2["類型"] == "碑牌" and v2["存倉頁名"] and v2["存倉頁名"] ~= "" and (v2["白裝"] or v2["藍裝"] or v2["黃裝"]) and not v2["不撿"] then
-                                                        if v1["基礎類型名"] == v2["基礎類型名"] then
-                                                            if not v2["工會倉庫"] then
-                                                                warehouse_type = {game_str.Warehouse_text,v2["存倉頁名"],v,1}
-                                                                -- env.plaque_page = 
+                                                if not poe2_api.table_contains(env.not_exist_stone,type_plaque_name) then
+                                                    for _, v2 in ipairs(items_list) do
+                                                        if v2["類型"] == "碑牌" and v2["存倉頁名"] and v2["存倉頁名"] ~= "" and (v2["白裝"] or v2["藍裝"] or v2["黃裝"]) and not v2["不撿"] then
+                                                            if v1["基礎類型名"] == v2["基礎類型名"] then
+                                                                if not v2["工會倉庫"] then
+                                                                    warehouse_type = {game_str.Warehouse_text,v2["存倉頁名"],type_plaque_name,1,split_vertical_line_plaque_name_list,v1["物品詞綴"]}
+                                                                    -- env.plaque_page = 
+                                                                else
+                                                                    warehouse_type = {game_str.Guild_Warehouse_text,v2["存倉頁名"],type_plaque_name,1,split_vertical_line_plaque_name_list,v1["物品詞綴"]}
+                                                                    -- warehouse_type = game_str.Guild_Warehouse_text
+                                                                    -- env.plaque_page = v1["存倉頁名"]
+                                                                end
+                                                                return warehouse_type
                                                             else
-                                                                warehouse_type = {game_str.Guild_Warehouse_text,v2["存倉頁名"],v,1}
-                                                                -- warehouse_type = game_str.Guild_Warehouse_text
-                                                                -- env.plaque_page = v1["存倉頁名"]
+                                                                if not v2["工會倉庫"] then
+                                                                    warehouse_type = {game_str.Warehouse_text,v2["存倉頁名"],type_plaque_name,1,split_vertical_line_plaque_name_list,v1["物品詞綴"]}
+                                                                    -- env.plaque_page = 
+                                                                else
+                                                                    warehouse_type = {game_str.Guild_Warehouse_text,v2["存倉頁名"],type_plaque_name,1,split_vertical_line_plaque_name_list,v1["物品詞綴"]}
+                                                                    -- warehouse_type = game_str.Guild_Warehouse_text
+                                                                    -- env.plaque_page = v1["存倉頁名"]
+                                                                end
+                                                                return warehouse_type
                                                             end
-                                                            return warehouse_type
-                                                        else
-                                                            if not v2["工會倉庫"] then
-                                                                warehouse_type = {game_str.Warehouse_text,v2["存倉頁名"],v,1}
-                                                                -- env.plaque_page = 
-                                                            else
-                                                                warehouse_type = {game_str.Guild_Warehouse_text,v2["存倉頁名"],v,1}
-                                                                -- warehouse_type = game_str.Guild_Warehouse_text
-                                                                -- env.plaque_page = v1["存倉頁名"]
-                                                            end
-                                                            return warehouse_type
                                                         end
                                                     end
                                                 end
-                                            end
-                                        else
-                                            for _, v2 in ipairs(items_list) do
-                                                if v2["類型"] == "碑牌" and v2["存倉頁名"] and v2["存倉頁名"] ~= "" and (v2["白裝"] or v2["藍裝"] or v2["黃裝"]) and not v2["不撿"] then
-                                                    if v1["基礎類型名"] == v2["基礎類型名"] then
-                                                        if not v2["工會倉庫"] then
-                                                            warehouse_type = {game_str.Warehouse_text,v2["存倉頁名"],v,1}
-                                                            -- env.plaque_page = 
-                                                        else
-                                                            warehouse_type = {game_str.Guild_Warehouse_text,v2["存倉頁名"],v,1}
-                                                            -- warehouse_type = game_str.Guild_Warehouse_text
-                                                            -- env.plaque_page = v1["存倉頁名"]
-                                                        end
-                                                        return warehouse_type
-                                                    else
-                                                        if not v2["工會倉庫"] then
-                                                            warehouse_type = {game_str.Warehouse_text,v2["存倉頁名"],v,1}
-                                                            -- env.plaque_page = 
-                                                        else
-                                                            warehouse_type = {game_str.Guild_Warehouse_text,v2["存倉頁名"],v,1}
-                                                            -- warehouse_type = game_str.Guild_Warehouse_text
-                                                            -- env.plaque_page = v1["存倉頁名"]
-                                                        end
-                                                        return warehouse_type
-                                                    end
-                                                end
+                                                
                                             end
                                         end
                                     end
+                                    
                                 end
-                                
                             end
+                            
                         end
                     else
                         if (poe2_api.table_contains(v,missing_plaque) or (warehouse_plaque_missing(missing_plaque,env.not_exist_stone))) then
@@ -3797,20 +3897,20 @@ local custom_nodes = {
                                     if v2["類型"] == "碑牌" and v2["存倉頁名"] and v2["存倉頁名"] ~= "" and (v2["白裝"] or v2["藍裝"] or v2["黃裝"]) and not v2["不撿"] then
                                         if v == v2["基礎類型名"] then
                                             if not v2["工會倉庫"] then
-                                                warehouse_type = {game_str.Warehouse_text,v2["存倉頁名"],v,1}
+                                                warehouse_type = {game_str.Warehouse_text,v2["存倉頁名"],v,1,{},{}}
                                                 -- env.plaque_page = 
                                             else
-                                                warehouse_type = {game_str.Guild_Warehouse_text,v2["存倉頁名"],v,1}
+                                                warehouse_type = {game_str.Guild_Warehouse_text,v2["存倉頁名"],v,1,{},{}}
                                                 -- warehouse_type = game_str.Guild_Warehouse_text
                                                 -- env.plaque_page = v1["存倉頁名"]
                                             end
                                             return warehouse_type
                                         else
                                             if not v2["工會倉庫"] then
-                                                warehouse_type = {game_str.Warehouse_text,v2["存倉頁名"],v,1}
+                                                warehouse_type = {game_str.Warehouse_text,v2["存倉頁名"],v,1,{},{}}
                                                 -- env.plaque_page = 
                                             else
-                                                warehouse_type = {game_str.Guild_Warehouse_text,v2["存倉頁名"],v,1}
+                                                warehouse_type = {game_str.Guild_Warehouse_text,v2["存倉頁名"],v,1,{},{}}
                                                 -- warehouse_type = game_str.Guild_Warehouse_text
                                                 -- env.plaque_page = v1["存倉頁名"]
                                             end
@@ -3829,20 +3929,20 @@ local custom_nodes = {
                             if v1["類型"] == "碑牌" and v1["存倉頁名"] and v1["存倉頁名"] ~= "" and (v1["白裝"] or v1["藍裝"] or v1["黃裝"]) and not v1["不撿"] then
                                 if v["基礎類型名"] == v1["基礎類型名"] then
                                     if not v1["工會倉庫"] then
-                                        warehouse_type = {game_str.Warehouse_text,v1["存倉頁名"],v,1}
+                                        warehouse_type = {game_str.Warehouse_text,v1["存倉頁名"],v,1,{},{}}
                                         -- env.plaque_page = 
                                     else
-                                        warehouse_type = {game_str.Guild_Warehouse_text,v1["存倉頁名"],v,1}
+                                        warehouse_type = {game_str.Guild_Warehouse_text,v1["存倉頁名"],v,1,{},{}}
                                         -- warehouse_type = game_str.Guild_Warehouse_text
                                         -- env.plaque_page = v1["存倉頁名"]
                                     end
                                     return warehouse_type
                                 else
                                     if not v1["工會倉庫"] then
-                                        warehouse_type = {game_str.Warehouse_text,v1["存倉頁名"],v,1}
+                                        warehouse_type = {game_str.Warehouse_text,v1["存倉頁名"],v,1,{},{}}
                                         -- env.plaque_page = 
                                     else
-                                        warehouse_type = {game_str.Guild_Warehouse_text,v1["存倉頁名"],v,1}
+                                        warehouse_type = {game_str.Guild_Warehouse_text,v1["存倉頁名"],v,1,{},{}}
                                         -- warehouse_type = game_str.Guild_Warehouse_text
                                         -- env.plaque_page = v1["存倉頁名"]
                                     end
@@ -3897,6 +3997,7 @@ local custom_nodes = {
             -- poe2_api.dbgp("33333333")
             if not env.is_get_plaque_node then
                 poe2_api.dbgp("不需要公仓去呗")
+                env.get_plaque_complete = true
                 poe2_api.time_p("检查是否获得牌匾（SUCCESS3）... 耗时 --> ", api_GetTickCount64() - start_time)
                 return bret.SUCCESS
             end
@@ -3910,6 +4011,8 @@ local custom_nodes = {
             end
             -- poe2_api.dbgp("555555")
             local plaque_index = plaque_bag(bag_info)
+            poe2_api.dbgp("plaque_index",plaque_index)
+            
             -- poe2_api.dbgp("66666666")
             if pick_up_number ~= 0 and plaque_index and plaque_index == pick_up_number then
                 env.is_get_plaque_node = false
@@ -3919,7 +4022,22 @@ local custom_nodes = {
                 return bret.SUCCESS
             end
             -- poe2_api.dbgp("777777777")
-            if deep_equal_unordered(env.stone_order,env.not_exist_stone) then
+            -- local split_stone_order = poe2_api.split_string(env.stone_order,"|")
+            local ordinary_plaque_list = {}
+            local dark_gold_plaque_list = {}
+            for _, v in ipairs(env.stone_order) do
+                for _, v1 in ipairs(poe2_api.split_string(v,"|")) do
+                    if string.find(v1," ") then
+                        table.insert(dark_gold_plaque_list,v1)
+                    else
+                        table.insert(ordinary_plaque_list,v1)
+                    end
+                end
+                
+            end
+
+
+            if deep_equal_unordered(ordinary_plaque_list,env.not_exist_stone) and deep_equal_unordered(dark_gold_plaque_list,env.not_dark_gold_plaque_list) then
                 -- poe2_api.printTable(env.stone_order)
                 poe2_api.dbgp("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$")
                 -- poe2_api.printTable(env.not_exist_stone)
@@ -3935,7 +4053,7 @@ local custom_nodes = {
             local missing_plaque = get_missing_plaque()
             -- poe2_api.dbgp("101010101")
             poe2_api.printTable(missing_plaque)
-            -- poe2_api.dbgp("121212121212121")
+            poe2_api.dbgp("121212121212121")
             -- api_Sleep(5000)
             local warehouse_type = get_warehouse_type(items_info,missing_plaque)
             if not warehouse_type then
@@ -3948,7 +4066,7 @@ local custom_nodes = {
             -- env.warehouse_type_interactive = warehouse_type
             env.warehouse_type_interactive = warehouse_type[1]
             env.plaque_page = warehouse_type[2]
-            env.plaque_type = {warehouse_type[3],warehouse_type[4]}
+            env.plaque_type = {warehouse_type[3],warehouse_type[4],warehouse_type[5],warehouse_type[6]}
             -- poe2_api.dbgp("warehouse_type_interactive:",warehouse_type[1])
             -- poe2_api.dbgp("plaque_page:",warehouse_type[2])
             -- poe2_api.dbgp("plaque_type:",warehouse_type[3],warehouse_type[4])
@@ -4039,82 +4157,123 @@ local custom_nodes = {
                     -- poe2_api.dbgp("item_name:",item)
                     -- poe2_api.dbgp("plaque_type[2]:",env.plaque_type[2])
                     -- poe2_api.dbgp("item_name:",item)
-                    for _, v in ipairs(currency_info) do
-                        -- poe2_api.dbgp("v.baseType_utf8:",v.baseType_utf8)
-                        if v.baseType_utf8 == item then
-                            if env.plaque_type[2] == 0 and v.color == 3 and v.name_utf8 ~= game_str.Great_Plan_TWCH  then -- 
-                                table.insert(plaque_list_dark_gold,v)
-                            elseif env.plaque_type[2] == 1 and v.color < 3 then
-                                table.insert(plaque_list,v)
+                    if string.find(item," ") then
+                        for _, v in ipairs(currency_info) do
+                            local item_list = poe2_api.split_string(item," ")
+                            if v.baseType_utf8 == item_list[2] and v.name_utf8 == item_list[1] then
+                                return v
                             end
-                        end   
-                    end
-                    if #plaque_list_dark_gold > 0 then
-                        if #plaque_list_dark_gold > 1 then
-                            for i, v in ipairs(plaque_list_dark_gold) do
-                                for _, v1 in ipairs(env.settings_cfg_plaque) do
-                                    if v.baseType_utf8 == v1["基礎類型名"] then
-                                        for i, v2 in ipairs(v1["物品詞綴"]) do
-                                            for _,v3 in ipairs(api_GetObjectSuffix(v.mods_obj)) do
-                                                -- for _, itemMod in ipairs(item1.mods) do
-                                                if v2 == v3.name_utf8 then
-                                                    return v
-                                                    -- if next(v3.value_list) then
-                                                    --     -- max_index = get_num_max(modText,plaque_list)
-                                                    --     -- if max_index <= v3.value_list[1] then
-                                                    --     --     table.insert(matchedThisRound, item1)
-                                                    --     --     break  -- 这个物品已经匹配，不用检查其他mods
-                                                    --     -- end
-                                                    --     table.insert(matchedThisRound, item1)
-                                                    --     break
-                                                    -- else
-                                                    --     table.insert(matchedThisRound, item1)
-                                                    --     break  -- 这个物品已经匹配，不用检查其他mods
-                                                    -- end
-                                                end
-                                                -- end
-                                            end
+                        end
+                    else
+                        if next(env.plaque_type[3]) then
+                            for _, v1 in ipairs(env.plaque_type[3]) do
+                                if not string.find(v1," ") then
+                                    for _, v in ipairs(currency_info) do
+                                        if v.baseType_utf8 == v1 then
+                                            table.insert(plaque_list,v)
                                         end
                                     end
+                                    
                                 end
-                                    -- if item == v["基礎類型名"] then
-                                    --     if next(v["物品詞綴"]) then
-                                    --         local results = {}  -- 最终匹配到的物品
-
-                                    --         -- 按优先级顺序遍历 a 表
-                                    --         for i, modText in ipairs(v["物品詞綴"]) do
                             end
-                            -- local max_plaque = nil
-                            -- local max_index = nil
-                            -- local index = nil
-                            -- for _, v1 in ipairs(plaque_list_dark_gold) do
-                            --     poe2_api.dbgp("ddddddddddddddddddddddddddddddddddddddddddddddd")
-                            --     -- if string.find(item,"總督的先行者碑牌") then
-                            --     --     index = get_number_after_text(api_GetObjectSuffix(v1.mods_obj),"範圍內最多")
-                            --     -- else
-                            --     --     index = get_number_after_text(api_GetObjectSuffix(v1.mods_obj),"範圍內")
-                            --     -- end
-                            --     index = get_number_after_text(api_GetObjectSuffix(v1.mods_obj),"剩餘")
-                            --     poe2_api.dbgp("index:",index)
-                            --     -- api_Sleep(1000000)
-                            --     if index then
-                            --         if not max_index or index > max_index then
-                            --             max_index = index
-                            --             max_plaque = v1
-                            --         end
-                            --     end  
-                            -- end
-                            -- if max_plaque then
-                            --     poe2_api.dbgp("max_plaque:",max_plaque.baseType_utf8)
-                            --     -- api_Sleep(1000000)
-                            --     return max_plaque
-                            -- end
                         else
-                            poe2_api.dbgp("max_plaque:",plaque_list_dark_gold[1].baseType_utf8)
-                            -- api_Sleep(1000000)
-                            return plaque_list_dark_gold[1]
+                            for _, v in ipairs(currency_info) do
+                                if v.baseType_utf8 == item then
+                                    table.insert(plaque_list,v)
+                                end
+                            end
                         end
                     end
+                    -- for _, v in ipairs(currency_info) do
+                    --     -- poe2_api.dbgp("v.baseType_utf8:",v.baseType_utf8)
+                    --     if string.find(item," ") then
+                    --         local item_list = poe2_api.split_string(item," ")
+                    --         if v.baseType_utf8 == item_list[2] and v.name_utf8 == item_list[1] then
+                    --             return v
+                    --         end
+                    --     else
+                    --         for _, v1 in ipairs(env.plaque_type[3]) do
+                    --             if not string.find(v1," ") then
+                    --                 if v.baseType_utf8 == v1 then
+                    --                     table.insert(plaque_list,v)
+                    --                 end
+                    --             end
+                    --         end
+                    --     end
+                    --     if v.baseType_utf8 == item then
+                    --         if env.plaque_type[2] == 0 and v.color == 3 and v.name_utf8 ~= game_str.Great_Plan_TWCH  then -- 
+                    --             table.insert(plaque_list_dark_gold,v)
+                    --         elseif env.plaque_type[2] == 1 and v.color < 3 then
+                    --             table.insert(plaque_list,v)
+                    --         end
+                    --     end   
+                    -- end
+                    -- if #plaque_list_dark_gold > 0 then
+                    --     if #plaque_list_dark_gold > 1 then
+                    --         for i, v in ipairs(plaque_list_dark_gold) do
+                    --             for _, v1 in ipairs(env.settings_cfg_plaque) do
+                    --                 if v.baseType_utf8 == v1["基礎類型名"] then
+                    --                     for i, v2 in ipairs(v1["物品詞綴"]) do
+                    --                         for _,v3 in ipairs(api_GetObjectSuffix(v.mods_obj)) do
+                    --                             -- for _, itemMod in ipairs(item1.mods) do
+                    --                             if v2 == v3.name_utf8 then
+                    --                                 return v
+                    --                                 -- if next(v3.value_list) then
+                    --                                 --     -- max_index = get_num_max(modText,plaque_list)
+                    --                                 --     -- if max_index <= v3.value_list[1] then
+                    --                                 --     --     table.insert(matchedThisRound, item1)
+                    --                                 --     --     break  -- 这个物品已经匹配，不用检查其他mods
+                    --                                 --     -- end
+                    --                                 --     table.insert(matchedThisRound, item1)
+                    --                                 --     break
+                    --                                 -- else
+                    --                                 --     table.insert(matchedThisRound, item1)
+                    --                                 --     break  -- 这个物品已经匹配，不用检查其他mods
+                    --                                 -- end
+                    --                             end
+                    --                             -- end
+                    --                         end
+                    --                     end
+                    --                 end
+                    --             end
+                    --                 -- if item == v["基礎類型名"] then
+                    --                 --     if next(v["物品詞綴"]) then
+                    --                 --         local results = {}  -- 最终匹配到的物品
+
+                    --                 --         -- 按优先级顺序遍历 a 表
+                    --                 --         for i, modText in ipairs(v["物品詞綴"]) do
+                    --         end
+                    --         -- local max_plaque = nil
+                    --         -- local max_index = nil
+                    --         -- local index = nil
+                    --         -- for _, v1 in ipairs(plaque_list_dark_gold) do
+                    --         --     poe2_api.dbgp("ddddddddddddddddddddddddddddddddddddddddddddddd")
+                    --         --     -- if string.find(item,"總督的先行者碑牌") then
+                    --         --     --     index = get_number_after_text(api_GetObjectSuffix(v1.mods_obj),"範圍內最多")
+                    --         --     -- else
+                    --         --     --     index = get_number_after_text(api_GetObjectSuffix(v1.mods_obj),"範圍內")
+                    --         --     -- end
+                    --         --     index = get_number_after_text(api_GetObjectSuffix(v1.mods_obj),"剩餘")
+                    --         --     poe2_api.dbgp("index:",index)
+                    --         --     -- api_Sleep(1000000)
+                    --         --     if index then
+                    --         --         if not max_index or index > max_index then
+                    --         --             max_index = index
+                    --         --             max_plaque = v1
+                    --         --         end
+                    --         --     end  
+                    --         -- end
+                    --         -- if max_plaque then
+                    --         --     poe2_api.dbgp("max_plaque:",max_plaque.baseType_utf8)
+                    --         --     -- api_Sleep(1000000)
+                    --         --     return max_plaque
+                    --         -- end
+                    --     else
+                    --         poe2_api.dbgp("max_plaque:",plaque_list_dark_gold[1].baseType_utf8)
+                    --         -- api_Sleep(1000000)
+                    --         return plaque_list_dark_gold[1]
+                    --     end
+                    -- end
                     poe2_api.dbgp("plaque_list:",#plaque_list)
                     if #plaque_list > 0 then
                         if #plaque_list > 1 then
@@ -4158,113 +4317,113 @@ local custom_nodes = {
                                     return max_index
                                 end
                             end
-                            if next(env.settings_cfg_plaque) then
-                                for _, v in ipairs(env.settings_cfg_plaque) do
-                                    if item == v["基礎類型名"] then
-                                        if next(v["物品詞綴"]) then
-                                            local results = {}  -- 最终匹配到的物品
+                            -- if next(env.settings_cfg_plaque) then
+                            --     for _, v in ipairs(env.settings_cfg_plaque) do
+                            --         if item == v["基礎類型名"] then
+                            if env.plaque_type[4] and next(env.plaque_type[4]) then
+                                local results = {}  -- 最终匹配到的物品
 
-                                            -- 按优先级顺序遍历 a 表
-                                            for i, modText in ipairs(v["物品詞綴"]) do
-                                                local matchedThisRound = {}  -- 这一轮匹配到的物品
-                                                
-                                                -- 查找所有包含当前优先级词缀的物品
-                                                -- 该类型所有物品表
-                                                for _, item1 in ipairs(plaque_list) do
-                                                    -- 该物品词缀标
-                                                    for _,v3 in ipairs(api_GetObjectSuffix(item1.mods_obj)) do
-                                                        -- for _, itemMod in ipairs(item1.mods) do
-                                                        if modText == v3.name_utf8 then
-                                                            if next(v3.value_list) then
-                                                                -- max_index = get_num_max(modText,plaque_list)
-                                                                -- if max_index <= v3.value_list[1] then
-                                                                --     table.insert(matchedThisRound, item1)
-                                                                --     break  -- 这个物品已经匹配，不用检查其他mods
-                                                                -- end
-                                                                table.insert(matchedThisRound, item1)
-                                                                break
-                                                            else
-                                                                table.insert(matchedThisRound, item1)
-                                                                break  -- 这个物品已经匹配，不用检查其他mods
-                                                            end
-                                                            
-                                                            
-                                                        end
-                                                        -- end
-                                                    end
+                                -- 按优先级顺序遍历 a 表
+                                for i, modText in ipairs(env.plaque_type[4]) do
+                                    local matchedThisRound = {}  -- 这一轮匹配到的物品
+                                    
+                                    -- 查找所有包含当前优先级词缀的物品
+                                    -- 该类型所有物品表
+                                    for _, item1 in ipairs(plaque_list) do
+                                        -- 该物品词缀标
+                                        for _,v3 in ipairs(api_GetObjectSuffix(item1.mods_obj)) do
+                                            -- for _, itemMod in ipairs(item1.mods) do
+                                            if modText == v3.name_utf8 then
+                                                if next(v3.value_list) then
+                                                    -- max_index = get_num_max(modText,plaque_list)
+                                                    -- if max_index <= v3.value_list[1] then
+                                                    --     table.insert(matchedThisRound, item1)
+                                                    --     break  -- 这个物品已经匹配，不用检查其他mods
+                                                    -- end
+                                                    table.insert(matchedThisRound, item1)
+                                                    break
+                                                else
+                                                    table.insert(matchedThisRound, item1)
+                                                    break  -- 这个物品已经匹配，不用检查其他mods
                                                 end
                                                 
-                                                -- 如果这一轮找到了物品，就返回这些物品，不再继续查找低优先级的词缀
-                                                if #matchedThisRound > 0 then
-                                                    if #matchedThisRound > 1 then
-                                                        for i1, v5 in ipairs(v["物品詞綴"]) do
-                                                            if i1>i then
-                                                                local matchedThisRound1 = {}  -- 这一轮匹配到的物品
                                                 
-                                                                -- 查找所有包含当前优先级词缀的物品
-                                                                -- 该类型所有物品表
-                                                                for _, item1 in ipairs(matchedThisRound) do
-                                                                    -- 该物品词缀标
-                                                                    for _,v3 in ipairs(api_GetObjectSuffix(item1.mods_obj)) do
-                                                                        -- for _, itemMod in ipairs(item1.mods) do
-                                                                        if v5 == v3.name_utf8 then
-                                                                            if next(v3.value_list) then
-                                                                                -- max_index = get_num_max(v5,matchedThisRound)
-                                                                                -- if max_index <= v3.value_list[1] then
-                                                                                --     table.insert(matchedThisRound1, item1)
-                                                                                --     break  -- 这个物品已经匹配，不用检查其他mods
-                                                                                -- end
-                                                                                table.insert(matchedThisRound1, item1)
-                                                                                break
-                                                                            else
-                                                                                table.insert(matchedThisRound1, item1)
-                                                                                break  -- 这个物品已经匹配，不用检查其他mods
-                                                                            end
-                                                                        end
-                                                                        -- end
-                                                                    end
-                                                                end
-                                                                if #matchedThisRound1 > 0 then
-                                                                    
-
-                                                                    return matchedThisRound1[1]
-                                                                    -- if #matchedThisRound1 > 1 then
-
-                                                                    -- else
-                                                                    --     return matchedThisRound1[1]
-                                                                    -- end
-                                                                end
-                                                            end
-                                                        end
-                                                        return matchedThisRound[1]
-                                                        -- for _, v4 in ipairs(matchedThisRound) do
-                                                        
-                                                        -- end
-                                                    else
-                                                        return matchedThisRound[1]
-                                                    end
-                                                    
-                                                    -- results = matchedThisRound
-                                                    -- break
-                                                end
                                             end
-                                            -- if #results > 0 then
-
-                                            --     -- return results
-
-                                            -- end
-                                            -- for _, v1 in ipairs(plaque_list) do
-                                            --     if get_zuiyou_cizhui(v["物品詞綴"],v1) then
-                                            --         table.insert(plaque_zuiyou_list,v1)
-                                            --     end
                                             -- end
                                         end
                                     end
-                                end
-                                -- if #plaque_zuiyou_list > 0 then
                                     
+                                    -- 如果这一轮找到了物品，就返回这些物品，不再继续查找低优先级的词缀
+                                    if #matchedThisRound > 0 then
+                                        if #matchedThisRound > 1 then
+                                            for i1, v5 in ipairs(env.plaque_type[4]) do
+                                                if i1>i then
+                                                    local matchedThisRound1 = {}  -- 这一轮匹配到的物品
+                                    
+                                                    -- 查找所有包含当前优先级词缀的物品
+                                                    -- 该类型所有物品表
+                                                    for _, item1 in ipairs(matchedThisRound) do
+                                                        -- 该物品词缀标
+                                                        for _,v3 in ipairs(api_GetObjectSuffix(item1.mods_obj)) do
+                                                            -- for _, itemMod in ipairs(item1.mods) do
+                                                            if v5 == v3.name_utf8 then
+                                                                if next(v3.value_list) then
+                                                                    -- max_index = get_num_max(v5,matchedThisRound)
+                                                                    -- if max_index <= v3.value_list[1] then
+                                                                    --     table.insert(matchedThisRound1, item1)
+                                                                    --     break  -- 这个物品已经匹配，不用检查其他mods
+                                                                    -- end
+                                                                    table.insert(matchedThisRound1, item1)
+                                                                    break
+                                                                else
+                                                                    table.insert(matchedThisRound1, item1)
+                                                                    break  -- 这个物品已经匹配，不用检查其他mods
+                                                                end
+                                                            end
+                                                            -- end
+                                                        end
+                                                    end
+                                                    if #matchedThisRound1 > 0 then
+                                                        
+
+                                                        return matchedThisRound1[1]
+                                                        -- if #matchedThisRound1 > 1 then
+
+                                                        -- else
+                                                        --     return matchedThisRound1[1]
+                                                        -- end
+                                                    end
+                                                end
+                                            end
+                                            return matchedThisRound[1]
+                                            -- for _, v4 in ipairs(matchedThisRound) do
+                                            
+                                            -- end
+                                        else
+                                            return matchedThisRound[1]
+                                        end
+                                        
+                                        -- results = matchedThisRound
+                                        -- break
+                                    end
+                                end
+                                -- if #results > 0 then
+
+                                --     -- return results
+
+                                -- end
+                                -- for _, v1 in ipairs(plaque_list) do
+                                --     if get_zuiyou_cizhui(v["物品詞綴"],v1) then
+                                --         table.insert(plaque_zuiyou_list,v1)
+                                --     end
                                 -- end
                             end
+                            --         end
+                            --     end
+                            --     -- if #plaque_zuiyou_list > 0 then
+                                    
+                            --     -- end
+                            -- end
                             if not a then
                                 for _, v1 in ipairs(plaque_list) do
                                 
@@ -4430,6 +4589,19 @@ local custom_nodes = {
             end
             local tab_list_button = poe2_api.click_text_UI({text = game_str.tab_list_button, UI_info = env.UI_info,ret_data = true})
             local precut_page = get_warehouse(page,godown_info)
+            local function get_plaque_type()
+                local type_list = {}
+                for _, v in ipairs(env.stone_order) do
+                    local plaque_list = poe2_api.split_string(v,"|")
+                    for _, v1 in ipairs(plaque_list) do
+                        local plaque_type = poe2_api.split_string(v1," ")
+                        if not poe2_api.table_contains(type_list,plaque_type[#plaque_type]) then
+                            table.insert(type_list,plaque_type[#plaque_type])
+                        end
+                    end
+                end
+                return type_list
+            end
             -- 背包操作
             local function bag_operate(data)
                 if not precut_page then
@@ -4468,6 +4640,7 @@ local custom_nodes = {
                     local get_index = false
                     local get_plaque = api_Getinventorys(77,0)
                     local placed_plaque = {}
+                    
                     if next(get_plaque) then
                         for _, v in ipairs(get_plaque) do
                             table.insert(placed_plaque,v.baseType_utf8)
@@ -4491,7 +4664,7 @@ local custom_nodes = {
                         -- end 
                         local stele_number = 0
                         for _, v1 in ipairs(api_Getinventorys(1,0)) do
-                            if v1.category_utf8 == game_str.TowerAugmentation and poe2_api.table_contains(env.stone_order,v1.baseType_utf8) then
+                            if v1.category_utf8 == game_str.TowerAugmentation and poe2_api.table_contains(get_plaque_type(),v1.baseType_utf8) then
                                 stele_number = stele_number + 1
                             end
                         end
@@ -4534,6 +4707,11 @@ local custom_nodes = {
                                 api_Sleep(1000)
                             end
                             get_index = true
+                            if not string.find(env.plaque_type[1]," ") then
+                                if env.plaque_type[1] ~= item.baseType_utf8 then
+                                    removeDuplicates(env.plaque_type[1],env.not_exist_stone)
+                                end
+                            end
                             return false
                             -- table.insert(env.not_exist_stone,item)
                         else
@@ -6601,14 +6779,14 @@ local custom_nodes = {
                         if text ~= "" then
                             item_key = text
                         else
-                            for k, v in ipairs(my_game_info.type_conversion) do
+                            for k, v in pairs(my_game_info.type_conversion) do
                                 if not_config_altar_item.category_utf8 == v then
                                     item_key = k
                                     break
                                 end
                             end
                         end
-                        error("未配置购物祭祀物品：->"..not_config_altar_item.name_utf8 .."<-,物品类型为:->".. item_key .."<-,相关存储页请在物品配置中添加")
+                        error("未配置购物祭祀物品：->"..not_config_altar_item.baseType_utf8 .."<-,物品类型为:->".. item_key .."<-,相关存储页请在物品配置中添加")
                     end
                 end
                 if env.tower_do then
@@ -11200,7 +11378,7 @@ local custom_nodes = {
                     end
 
                     poe2_api.dbgp("躲避")
-                    if poe2_api.table_contains(space_monsters,monster.rarity) then
+                    if poe2_api.table_contains(space_monster,monster.rarity) then
                         _handle_space_action(monster, space, space_monster, space_time, player_info) 
                     else
                         if env.keep_distance then
@@ -11458,7 +11636,7 @@ local custom_nodes = {
                     end
 
                     poe2_api.dbgp("躲避")
-                    if poe2_api.table_contains(space_monsters,monster.rarity) then
+                    if poe2_api.table_contains(space_monster,monster.rarity) then
                         _handle_space_action(monster, space, space_monster, space_time, player_info) 
                     else
                         if env.keep_distance then
@@ -14529,7 +14707,8 @@ local custom_nodes = {
                                             local current_item = current_order[i]
                                             -- 检查这个物品是否在正确顺序中
                                             for j = 1, #env.stone_order do
-                                                if current_item == env.stone_order[j] then
+                                                -- if current_item == env.stone_order[j] then
+                                                if string.find(env.stone_order[j],current_item) then
                                                     table.insert(current_correct_items, current_item)
                                                     table.insert(current_correct_indices, {current_index = i, correct_index = j})
                                                     break
@@ -14621,11 +14800,27 @@ local custom_nodes = {
                                         -- 按照指定顺序放置碑牌
                                         for _, stone_name in ipairs(env.stone_order) do
                                             for _, item in ipairs(env.bag_info) do
-                                                if item.category_utf8 == game_str.TowerAugmentation and item.baseType_utf8 == stone_name then
+                                                if item.category_utf8 == game_str.TowerAugmentation then -- and item.baseType_utf8 == stone_name 
                                                     poe2_api.dbgp("按顺序放置碑牌: " .. stone_name)
-                                                    poe2_api.ctrl_left_click_bag_items(item.obj, env.bag_info)
-                                                    api_Sleep(400)
-                                                    return false
+                                                    local split_stones = poe2_api.split_string(stone_name, "|")
+                                                    for _, v in ipairs(split_stones) do
+                                                        if string.find(v," ") then 
+                                                            if string.find(v,item.name_utf8) then
+                                                                poe2_api.ctrl_left_click_bag_items(item.obj, env.bag_info)
+                                                                api_Sleep(400)
+                                                                return false
+                                                            end
+                                                        else
+                                                            if item.baseType_utf8 == v then
+                                                                poe2_api.ctrl_left_click_bag_items(item.obj, env.bag_info)
+                                                                api_Sleep(400)
+                                                                return false
+                                                            end
+                                                        end
+                                                    end
+                                                    
+                                                    
+                                                    
                                                 end
                                             end
                                         end
@@ -15252,6 +15447,7 @@ local custom_nodes = {
             env.sale_completed = false  -- 未完成售卖
             env.one_not_plaque = false  -- 找碑牌顺序是否已执行一遍
             env.storage_complete = false  -- 是否存储完成
+            env.get_plaque_complete = false  -- 是否获取碑牌完成
             -- env.drop_items = false
             -- env.not_exist_stone = {}
             -- env.is_get_plaque_node = true
@@ -16884,8 +17080,8 @@ local custom_nodes = {
 
             if env.one_other_map then
                 poe2_api.dbgp("已开图，不插碑")
-                env.is_public_warehouse = true
-                env.strengthened_map_obj = nil
+                -- env.is_public_warehouse = true
+                -- env.strengthened_map_obj = nil
                 poe2_api.time_p("是否需要插入碑牌（SUCCESS2）... 耗时 --> ", api_GetTickCount64() - start_time)
                 return bret.SUCCESS
             end
@@ -16924,8 +17120,17 @@ local custom_nodes = {
                 if not env.bag_info or not next(env.bag_info) then return false end
                 local num = 0
                 for i, v in ipairs(env.bag_info) do
-                    if v.category_utf8 == game_str.TowerAugmentation and poe2_api.table_contains(env.stone_order,v.baseType_utf8) then
-                        num = num + 1
+                    if v.category_utf8 == game_str.TowerAugmentation  then -- and poe2_api.table_contains(env.stone_order,v.baseType_utf8)
+                        for _, v1 in ipairs(env.stone_order) do
+                            local split_cfg_list = poe2_api.split_string(v1,"|")
+                            for _, v2 in pairs(split_cfg_list) do
+                                local split_cfg_list = poe2_api.split_string(v2," ")
+                                if v.baseType_utf8 == split_cfg_list[#split_cfg_list] then
+                                    num = num + 1
+                                end
+                            end
+                        end
+                        
                     end
                 end
                 if num > 0 then
@@ -16933,12 +17138,16 @@ local custom_nodes = {
                 end
                 return false
             end 
-            if not_exist_stone and next(not_exist_stone) and stone_order and next(stone_order) then
-                if not get_bag_plaque() and deep_equal_unordered(not_exist_stone, stone_order)  then
-                    poe2_api.dbgp("没有可用碑牌")
-                    poe2_api.time_p("是否需要插入碑牌（SUCCESS3）... 耗时 --> ", api_GetTickCount64() - start_time)
-                    return bret.SUCCESS
-                end
+            -- if not_exist_stone and next(not_exist_stone) and stone_order and next(stone_order) then
+            --     if not get_bag_plaque() and deep_equal_unordered(not_exist_stone, stone_order)  then
+            --         poe2_api.dbgp("没有可用碑牌")
+            --         poe2_api.time_p("是否需要插入碑牌（SUCCESS3）... 耗时 --> ", api_GetTickCount64() - start_time)
+            --         return bret.SUCCESS
+            --     end
+            -- end
+            if env.get_plaque_complete then
+                poe2_api.time_p("是否需要插入碑牌（SUCCESS111）... 耗时 --> ", api_GetTickCount64() - start_time)
+                return bret.SUCCESS
             end
             local max_map = poe2_api.select_best_map_key({inventory=env.bag_info,key_level_threshold=env.user_map,not_use_map = env.not_use_map})
             if not max_map then
@@ -18143,9 +18352,9 @@ local custom_nodes = {
                     return true, current_left
                 end
 
-                if poe2_api.find_text({UI_info = env.UI_info, text = game_str.I_Have,refresh = true, min_x=0, max_y = 120}) and poe2_api.find_text({UI_info = env.UI_info, text = game_str.Already_owned_TWCH, min_x = 0}) and poe2_api.find_text({UI_info = env.UI_info, text = game_str.ALL_text_TWCH, min_x = 0}) then
+                if poe2_api.find_text({UI_info = env.UI_info, text = game_str.What_I_need_TWCH,refresh = true, min_x=0, max_y = 120}) and poe2_api.find_text({UI_info = env.UI_info, text = game_str.Already_owned_TWCH, min_x = 0}) and poe2_api.find_text({UI_info = env.UI_info, text = game_str.ALL_text_TWCH, min_x = 0}) then
                     poe2_api.dbgp("验证左边通货不正确")
-                    poe2_api.find_text({UI_info = env.UI_info, text = game_str.I_Have,refresh = true, min_x=0, max_y = 120, add_x = 370, click = 2})
+                    poe2_api.find_text({UI_info = env.UI_info, text = game_str.What_I_need_TWCH,refresh = true, min_x=0, max_y = 120, add_x = 370, click = 2})
                     api_Sleep(1000)
                 end
                 
@@ -18156,6 +18365,7 @@ local custom_nodes = {
                 local a, currency = _select_currency(expected, game_str.What_I_need_TWCH)
 
                 api_Sleep(500)
+                env.UI_info = UiElements:Update()
 
                 poe2_api.dbgp("验证左边通货:", expected)
                 
@@ -18233,6 +18443,7 @@ local custom_nodes = {
                 local a, currency = _select_currency(expected, game_str.I_Have)
 
                 api_Sleep(500)
+                env.UI_info = UiElements:Update()
 
                 poe2_api.dbgp("再次验证右边通货:", expected)
                 local poesition_left = poe2_api.find_text({UI_info = env.UI_info, text=game_str.I_Have,refresh = true, min_x=0, position=1, delay = 50})
@@ -18465,7 +18676,11 @@ local custom_nodes = {
             end
     
             -- 获取当前处理的通货对索引
-            local current_pair_index = env.current_pair_index or 1
+            local current_pair_index = 1
+            if env.current_pair_index ~= 0 then
+                current_pair_index = env.current_pair_index
+            end
+
             poe2_api.dbgp("当前处理通货对索引:", current_pair_index)
             
             -- 获取拥有的和需要的通货列表
@@ -18475,7 +18690,7 @@ local custom_nodes = {
             poe2_api.dbgp("需要的通货列表:", #needed_currencies)
     
             -- 检查通货对是否有效
-            if #owned_currencies < current_pair_index + 1 or #needed_currencies < current_pair_index + 1 then
+            if #owned_currencies < current_pair_index or #needed_currencies < current_pair_index then
                 poe2_api.dbgp("通货对处理完成，重置状态")
                 env.last_execution_time = api_GetTickCount64()
                 env.current_pair_index = 0
@@ -18493,7 +18708,7 @@ local custom_nodes = {
             end
     
             -- 1. 检查并修正左边通货（严格按索引匹配）
-            local left_status, selected_currency_left = _verify_left_currency(needed_currencies[current_pair_index + 1])  -- Lua数组从1开始
+            local left_status, selected_currency_left = _verify_left_currency(needed_currencies[current_pair_index])  -- Lua数组从1开始
             poe2_api.dbgp("left_status:", tostring(left_status), "selected_currency_left:", selected_currency_left)
             if not left_status then
                 poe2_api.dbgp("左边通货选择失败，跳过当前对")
@@ -18504,7 +18719,7 @@ local custom_nodes = {
 
             api_Sleep(800)
             -- 2. 检查并修正右边通货（严格按索引匹配）
-            local right_status, selected_currency_right = _verify_right_currency(owned_currencies[current_pair_index + 1])
+            local right_status, selected_currency_right = _verify_right_currency(owned_currencies[current_pair_index])
             poe2_api.dbgp("right_status:", tostring(right_status), "selected_currency_right:", selected_currency_right)
             if not right_status then
                 -- poe2_api.dbgp("右边通货选择失败，跳过当前对")
@@ -20667,14 +20882,14 @@ local custom_nodes = {
                             break
                         end
                         
-                        local condition11 = (not i.isActive and i.is_selectable and i.rarity ==3 and i.type==1 and i.life>0 and i.name_utf8 ~= game_str.The_Container_of_Mark_the_Skeleton_TWCH and (((player_info.current_map_name_utf8 == game_str.MapVaalFoundry_MDANA and -150 < player_info.world_z - i.world_z and player_info.world_z - i.world_z < 150) or (player_info.current_map_name_utf8 == game_str.MapWetlands_MDANA and not is_monster({range_info=env.range_info,index = 0})) and is_bass) or (player_info.current_map_name_utf8 == game_str.MapUberBoss_IronCitadel_EN and player_info.isInBossBattle ) or not poe2_api.table_contains(player_info.current_map_name_utf8,{game_str.MapVaalFoundry_MDANA,game_str.MapWetlands_MDANA,game_str.MapSandspit_MDANA,game_str.MapUberBoss_IronCitadel_EN})) and not is_target and not poe2_api.find_text({UI_info = env.UI_info, text=game_str.The_Seal_of_Runes_TWCH,min_x=0}) and not poe2_api.table_contains(i.name_utf8,{game_str.Barbara_Soul_TWCH,game_str.The_Soul_of_Palasa_TWCH}) and ((not player_info.isInBossBattle and not is_elite_monster(current_map_info)) or player_info.isInBossBattle))
+                        local condition11 = (not poe2_api.table_contains(stuck_monsters, i.id) and not i.isActive and i.is_selectable and i.rarity ==3 and i.type==1 and i.life>0 and i.name_utf8 ~= game_str.The_Container_of_Mark_the_Skeleton_TWCH and (((player_info.current_map_name_utf8 == game_str.MapVaalFoundry_MDANA and -150 < player_info.world_z - i.world_z and player_info.world_z - i.world_z < 150) or (player_info.current_map_name_utf8 == game_str.MapWetlands_MDANA and not is_monster({range_info=env.range_info,index = 0})) and is_bass) or (player_info.current_map_name_utf8 == game_str.MapUberBoss_IronCitadel_EN and player_info.isInBossBattle ) or not poe2_api.table_contains(player_info.current_map_name_utf8,{game_str.MapVaalFoundry_MDANA,game_str.MapWetlands_MDANA,game_str.MapSandspit_MDANA,game_str.MapUberBoss_IronCitadel_EN})) and not is_target and not poe2_api.find_text({UI_info = env.UI_info, text=game_str.The_Seal_of_Runes_TWCH,min_x=0}) and not poe2_api.table_contains(i.name_utf8,{game_str.Barbara_Soul_TWCH,game_str.The_Soul_of_Palasa_TWCH}) and ((not player_info.isInBossBattle and not is_elite_monster(current_map_info)) or player_info.isInBossBattle))
                         if condition11 then 
                             -- poe2_api.dbgp("条件11匹配: 非活跃稀有怪物 (地图:"..(player_info.current_map_name_utf8 or "无")..", Z轴差:"..(player_info.world_z - (i.world_z or 0))..")")
                             currency = i
                             break
                         end
                         
-                        local condition12 = (i.isActive and i.is_selectable and i.rarity ==3 and i.type==1 and i.life>0 and ((player_info.current_map_name_utf8 == game_str.MapVaalFoundry_MDANA and is_bass) or player_info.current_map_name_utf8 ~= game_str.MapVaalFoundry_MDANA) and not is_target1 and not poe2_api.find_text({UI_info = env.UI_info,text=game_str.The_Seal_of_Runes_TWCH,min_x=0}) and not poe2_api.table_contains(i.name_utf8 ,{game_str.Barbara_Soul_TWCH,game_str.The_Soul_of_Palasa_TWCH}))
+                        local condition12 = (not poe2_api.table_contains(stuck_monsters, i.id) and i.isActive and i.is_selectable and i.rarity ==3 and i.type==1 and i.life>0 and ((player_info.current_map_name_utf8 == game_str.MapVaalFoundry_MDANA and is_bass) or player_info.current_map_name_utf8 ~= game_str.MapVaalFoundry_MDANA) and not is_target1 and not poe2_api.find_text({UI_info = env.UI_info,text=game_str.The_Seal_of_Runes_TWCH,min_x=0}) and not poe2_api.table_contains(i.name_utf8 ,{game_str.Barbara_Soul_TWCH,game_str.The_Soul_of_Palasa_TWCH}))
                         if condition12 then
                             -- poe2_api.dbgp("条件12匹配: 活跃稀有怪物 (地图:"..(player_info.current_map_name_utf8 or "无")..")")
                             currency = i
@@ -20740,7 +20955,7 @@ local custom_nodes = {
                             break
                         end
 
-                        local condition21 = (not i.is_friendly and i.isActive and i.is_selectable and i.rarity ==2 and i.type==1 and i.life>0 and string.find(env.player_info.current_map_name_utf8,game_str.Abyss))
+                        local condition21 = (not i.is_friendly and i.isActive and i.is_selectable and i.rarity ==2 and i.type==1 and i.life>0 and string.find(env.player_info.current_map_name_utf8,game_str.Abyss) and not poe2_api.table_contains(stuck_monsters, i.id))
                         if condition21 then
                             -- poe2_api.dbgp("条件21匹配: 活跃稀有怪物 (地图:"..(player_info.current_map_name_utf8 or "无")..")")
                             currency = i
@@ -20868,7 +21083,7 @@ local custom_nodes = {
                             currency = i
                             break
                         end
-                        local condition36 = next(i.stateMachineList) and i.stateMachineList[game_str.doomepk_SML] == 0 and i.life > 0 and i.type == 1 and not is_target and not player_info.isInBossBattle 
+                        local condition36 = next(i.stateMachineList) and i.stateMachineList[game_str.doomepk_SML] == 0 and i.life > 0 and i.type == 1 and not is_target and not player_info.isInBossBattle and not poe2_api.table_contains(stuck_monsters, i.id)
                         if condition36 then
                             -- poe2_api.dbgp("条件36匹配: 深淵裂缝怪物")
                             currency = i
@@ -27459,7 +27674,7 @@ local plot_nodes = {
                         if text ~= "" then
                             item_key = text
                         else
-                            for k, v in ipairs(my_game_info.type_conversion) do
+                            for k, v in pairs(my_game_info.type_conversion) do
                                 if not_config_altar_item.category_utf8 == v then
                                     item_key = k
                                     break
@@ -35505,7 +35720,7 @@ local plot_nodes = {
                     end
 
                     poe2_api.dbgp("躲避")
-                    if poe2_api.table_contains(space_monsters,monster.rarity) then
+                    if poe2_api.table_contains(space_monster,monster.rarity) then
                         _handle_space_action(monster, space, space_monster, space_time, player_info) 
                     else
                         if env.keep_distance then
