@@ -32007,7 +32007,13 @@ local plot_nodes = {
                                 return false
                             end
                             return true
-                        elseif poe2_api.table_contains(item.category_utf8, { 'QuestItem', "Active Skill Gem" }) and not poe2_api.table_contains(item.baseType_utf8, { "黃金", "金幣", "紅色蘑菇", "綠色蘑菇", "藍色蘑菇", "龍蜥最後通牒雕刻","獻祭匕首" }) and item.grid_x ~= 0 then
+                        elseif player_info.current_map_name_utf8 == "G1_1" and poe2_api.table_contains(item.category_utf8, {"Active Skill Gem" }) then
+                            local point = api_FindNearestReachableInRange(item.grid_x, item.grid_y, 20)
+                            if not api_FindPath(player_info.grid_x, player_info.grid_y, point.x, point.y) then
+                                return false
+                            end
+                            return true
+                        elseif poe2_api.table_contains(item.category_utf8, { 'QuestItem'}) and not poe2_api.table_contains(item.baseType_utf8, { "黃金", "金幣", "紅色蘑菇", "綠色蘑菇", "藍色蘑菇", "龍蜥最後通牒雕刻","獻祭匕首" }) and item.grid_x ~= 0 then
                             local point = api_FindNearestReachableInRange(item.grid_x, item.grid_y, 20)
                             if not api_FindPath(player_info.grid_x, player_info.grid_y, point.x, point.y) then
                                 return false
@@ -34296,7 +34302,7 @@ local plot_nodes = {
                 return bret.FAIL
             end
             if poe2_api.find_text({ UI_info = env.UI_info, text = "技能", min_x = 0, min_y = 32, max_x = 381, max_y = 81 }) then
-                poe2_api.click_keyboard("esc")
+                poe2_api.click_keyboard("space")
                 return bret.RUNNING
             end
             poe2_api.time_p("Not_In_New_Area_Skill",api_GetTickCount64() - current_time ) 
@@ -36480,7 +36486,7 @@ local plot_nodes = {
                             env.modify_interaction = true
                         end
                     else
-                        if #mini_map_obj("G4_4_2BossInactive") == 0 then
+                        if #mini_map_obj("G4_4_2BossInactive") == 0 and not self.complete_task then
                             poe2_api.dbgp("G4_4_1-地图没有-G4_4_2BossInactive")
                             interaction_object_set = {"表示敬意"} 
                             env.interaction_object = {"表示敬意"}  
@@ -36835,113 +36841,172 @@ local plot_nodes = {
                 end
                 if interaction_object_map_name then
                     poe2_api.dbgp("小地图")
-                    for _,map_obj in ipairs(current_map_info) do
+                    
+                    -- 调试信息：显示当前搜索的目标和地图信息
+                    poe2_api.dbgp("搜索目标: " )
+                    poe2_api.printTable(interaction_object_map_name)
+                    poe2_api.dbgp("地图对象数量: " .. tostring(#current_map_info))
+                    
+                    for _, map_obj in ipairs(current_map_info) do
                         local name = map_obj.name_utf8
-                        if task_name == "找出亡者之殿" and name == "娜瓦莉" then
-                            if map_obj.flagStatus1 ~= 0 then
+                        poe2_api.dbgp("检查地图对象: " .. tostring(name))
+                        
+                        -- 处理亡者之殿任务的特殊逻辑
+                        if task_name == "找出亡者之殿" and name == "娜瓦莉" and poe2_api.table_contains(name, interaction_object_map_name) then
+                            if map_obj.flagStatus1 ~= 0 or self.complete_task then
                                 goto continue
                             end
-                            if get_distance(map_obj.grid_x, map_obj.grid_y) < 35 then
-                                if self.map_task_time ==0 then
+                            if get_distance(map_obj.grid_x, map_obj.grid_y) < 35  and not self.complete_task then
+                                if self.map_task_time == 0 then
                                     self.map_task_time = api_GetTickCount64()
                                 end
-                                if api_GetTickCount64() - self.map_task_time > 60*1000 then
+                                poe2_api.dbgp(api_GetTickCount64() - self.map_task_time)
+                                if api_GetTickCount64() - self.map_task_time > 60 * 1000 then
                                     self.complete_task = true
-                                    return bret.RUNNING
                                 end
-                            else
-                                self.map_task_time = 0
+                                return bret.RUNNING
+                            end
+                        elseif task_name == "找出亡者之殿" and name ~= "娜瓦莉" and poe2_api.table_contains("娜瓦莉", interaction_object_map_name) then
+                            goto continue
+                        elseif task_name ~= "找出亡者之殿" then
+                            self.complete_task = false
+                        end
+                        
+                        -- 检查是否为交互目标对象
+                        local is_target = false
+                        if name and poe2_api.table_contains(name, interaction_object_map_name) then
+                            is_target = true
+                        end
+                        
+                        -- 如果没有找到目标且当前对象不是目标，则跳过
+                        if not record_map and not is_target then
+                            goto continue
+                        end
+                        
+                        -- 如果是目标对象且尚未记录，则记录下来
+                        if is_target and not record_map then
+                            env.record_map = map_obj
+                            record_map = env.record_map
+                            poe2_api.dbgp("找到目标地图对象: " .. tostring(name))
+                            poe2_api.dbgp("坐标: " .. tostring(map_obj.grid_x) .. ", " .. tostring(map_obj.grid_y))
+                        end
+                        
+                        -- 确保 record_map 不为 nil
+                        if not record_map then
+                            poe2_api.dbgp("警告: record_map 为 nil，跳过后续处理")
+                            goto continue
+                        end
+                        
+                        poe2_api.dbgp("当前 record_map: " .. tostring(record_map.name_utf8))
+                        
+                        -- 检查是否找到不同的目标对象
+                        if record_map and is_target then
+                            if record_map.grid_x ~= map_obj.grid_x or record_map.grid_y ~= map_obj.grid_y then
+                                poe2_api.dbgp("发现不同的目标对象，重置记录")
+                                poe2_api.dbgp("原目标: " .. tostring(record_map.name_utf8) .. " (" .. tostring(record_map.grid_x) .. "," .. tostring(record_map.grid_y) .. ")")
+                                poe2_api.dbgp("新目标: " .. tostring(name) .. " (" .. tostring(map_obj.grid_x) .. "," .. tostring(map_obj.grid_y) .. ")")
+                                env.record_map = nil
+                                env.map_result = nil
+                                record_map = nil
+                                return bret.RUNNING
                             end
                         end
-                        if (not name or not poe2_api.table_contains(name,interaction_object_map_name)) and not record_map then
-                            goto continue 
-                        end
-                        if not record_map then
-                            env.record_map = map_obj
-                        end
-                        poe2_api.printTable(interaction_object_map_name)
-                        record_map = env.record_map
-                        if record_map and name and poe2_api.table_contains(name,interaction_object_map_name) and record_map.grid_x ~= map_obj.grid_x and record_map.grid_y ~= map_obj.grid_y then
-                            poe2_api.dbgp("未找到目标地图")
-                            env.record_map = nil
-                            env.map_result = nil
-                            return bret.RUNNING
-                        end
-                        local map_distance = 30
-                        if team_member_2 ~= "大号名称" and poe2_api.table_contains(player_info.current_map_name_utf8,{"G3_12"}) then
-                            map_distance = 25
-                        end
+                        
+                        -- 处理 G4_3_1_BossActive 的特殊逻辑
                         if record_map and record_map.name_utf8 == "G4_3_1_BossActive" and record_map.flagStatus1 == 1 then
                             poe2_api.dbgp("G4_3_1_BossActive")
                             local player_position = api_FindNearestReachableInRange(record_map.grid_x, record_map.grid_y, 50)
                             if not env.prestore_boss_list or not next(env.prestore_boss_list) then
-                                local result_list = api_GetCalculateCircleGridPoints(poe2_api.toInt(player_position.x),poe2_api.toInt(player_position.y),100,math.floor(15))
+                                local result_list = api_GetCalculateCircleGridPoints(poe2_api.toInt(player_position.x), poe2_api.toInt(player_position.y), 100, math.floor(15))
                                 if result_list then
-                                    poe2_api.dbgp("22222:",#result_list)
+                                    poe2_api.dbgp("生成圆形路径点数量: " .. tostring(#result_list))
                                     env.prestore_boss_list = result_list
                                     poe2_api.dbgp("获取圆点列表")
                                     return "刷新"
                                 else
-                                    local point = api_FindRandomWalkablePosition(math.floor(player_position.x),math.floor(player_position.y),80)
+                                    local point = api_FindRandomWalkablePosition(math.floor(player_position.x), math.floor(player_position.y), 80)
                                     if point then
-                                        env.end_point = {point.x,point.y}
+                                        env.end_point = { point.x, point.y }
                                     else
                                         poe2_api.dbgp("获取圆形范围内均匀分布的网格点失败,随机移动")
                                         return "刷新"
                                     end
-                                    
                                 end
                             else
-                                local distance = poe2_api.point_distance(env.prestore_boss_list[1].x,env.prestore_boss_list[1].y,player_info)
+                                local distance = poe2_api.point_distance(env.prestore_boss_list[1].x, env.prestore_boss_list[1].y, player_info)
                                 if distance and distance < 25 then
-                                    table.remove(env.prestore_boss_list,1)
+                                    table.remove(env.prestore_boss_list, 1)
                                     if #env.prestore_boss_list == 0 then
                                         env.record_map = nil
+                                        record_map = nil
                                     end
-                                    poe2_api.dbgp("移动到圆点列表第一个点完成")
+                                    poe2_api.dbgp("移动到圆点列表第一个点完成，剩余点数: " .. tostring(#env.prestore_boss_list))
                                     return "刷新"
                                 end
                                 poe2_api.dbgp("移动到圆形范围内第一个点")
-                                env.end_point = {env.prestore_boss_list[1].x,env.prestore_boss_list[1].y}
+                                env.end_point = { env.prestore_boss_list[1].x, env.prestore_boss_list[1].y }
                             end
                             return bret.SUCCESS
                         end
+                        
+                        -- 检查是否到达目标
+                        local map_distance = 30
+                        if team_member_2 ~= "大号名称" and poe2_api.table_contains(player_info.current_map_name_utf8, { "G3_12" }) then
+                            map_distance = 25
+                        end
+                        
+                        poe2_api.dbgp("目标距离: " .. tostring(get_distance(record_map.grid_x, record_map.grid_y)) .. "，阈值: " .. tostring(map_distance))
+                        
                         if get_distance(record_map.grid_x, record_map.grid_y) < map_distance then
-                            if team_member_2 ~= "大号名称" and poe2_api.table_contains(player_info.current_map_name_utf8,{"G3_12"}) then
+                            if team_member_2 ~= "大号名称" and poe2_api.table_contains(player_info.current_map_name_utf8, { "G3_12" }) then
                                 return bret.SUCCESS
                             end
                             env.record_map = nil
+                            -- 处理 BOSS 战斗逻辑
                             if boss_name and #boss_name > 0 then
-                                local boss_list = poe2_api.get_sorted_obj(boss_name,range_info,player_info)
-                                if boss_list and #boss_list > 0 and boss_list[1].life >0 then
+                                local boss_list = poe2_api.get_sorted_obj(boss_name, range_info, player_info)
+                                if boss_list and #boss_list > 0 and boss_list[1].life > 0 then
                                     local boss = boss_list[1]
-                                    local toward_boss = poe2_api.move_towards({local_x,local_y},{boss.grid_x,boss.grid_y},20)
-                                    api_ClickMove(poe2_api.toInt(toward_boss[1]),poe2_api.toInt(toward_boss[2]),0)
+                                    local toward_boss = poe2_api.move_towards({ local_x, local_y }, { boss.grid_x, boss.grid_y }, 20)
+                                    api_ClickMove(poe2_api.toInt(toward_boss[1]), poe2_api.toInt(toward_boss[2]), 0)
                                     api_Sleep(100)
                                     poe2_api.click_keyboard("space")
                                 end
-                                local toward_record_map = poe2_api.move_towards({local_x,local_y},{record_map.grid_x, record_map.grid_y},20)
-                                api_ClickMove(poe2_api.toInt(toward_record_map[1]),poe2_api.toInt(toward_record_map[2]),0)
+                                local toward_record_map = poe2_api.move_towards({ local_x, local_y }, { record_map.grid_x, record_map.grid_y }, 20)
+                                api_ClickMove(poe2_api.toInt(toward_record_map[1]), poe2_api.toInt(toward_record_map[2]), 0)
                                 api_Sleep(100)
                                 poe2_api.click_keyboard("space")
                             end
+                            
                             env.is_arrive_end = true
                             return bret.SUCCESS
                         end
+                        
+                        -- 寻找路径到目标
                         local record_map_near_point = api_FindNearestReachableInRange(record_map.grid_x, record_map.grid_y, 30)
                         local player_near_point = api_FindNearestReachableInRange(local_x, local_y, 30)
-                        if not map_result then
-                            map_result = true
-                            env.map_result = true
-                            self.path_result = api_FindPath(player_near_point.x, player_near_point.y, record_map_near_point.x, record_map_near_point.y)
-                        end
-                        if self.path_result and #self.path_result > 0 then
-                            env.end_point = {record_map_near_point.x,record_map_near_point.y}
-                            return bret.SUCCESS
-                        else
+                        
+                        if not record_map_near_point or not player_near_point then
+                            poe2_api.dbgp("无法找到可达点")
                             env.not_need_active = true
                             return bret.RUNNING
                         end
+                        
+                        if not env.map_result then
+                            env.map_result = true
+                            self.path_result = api_FindPath(player_near_point.x, player_near_point.y, record_map_near_point.x, record_map_near_point.y)
+                            poe2_api.dbgp("路径查找结果: " .. tostring(self.path_result and #self.path_result or 0) .. " 个点")
+                        end
+                        
+                        if self.path_result and #self.path_result > 0 then
+                            env.end_point = { record_map_near_point.x, record_map_near_point.y }
+                            return bret.SUCCESS
+                        else
+                            poe2_api.dbgp("无法找到路径")
+                            env.not_need_active = true
+                            return bret.RUNNING
+                        end
+                        
                         ::continue::
                     end
                 end
