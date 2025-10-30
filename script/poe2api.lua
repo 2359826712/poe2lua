@@ -7444,7 +7444,7 @@ _M.is_do_without_pick_up = function(item, items_info)
         sep = sep or "|"  -- 默认分隔符是 |
         local result = {}
         for item in string.gmatch(input, "([^"..sep.."]+)") do
-            table.insert(result, item)
+            table.insert(result, string.match(item, "^%s*(.-)%s*$"))
         end
         return result
     end
@@ -7507,7 +7507,7 @@ _M.match_item = function(item, cfg, index)
             sep = sep or "|"  -- 默认分隔符是 |
             local result = {}
             for item in string.gmatch(input, "([^"..sep.."]+)") do
-                table.insert(result, item)
+                table.insert(result, string.match(item, "^%s*(.-)%s*$"))
             end
             return result
         end
@@ -8127,7 +8127,7 @@ _M.split_string = function(type_str,delimiter)
     local function split_by_pipe(input)
         local result = {}
         for item in string.gmatch(input, "([^"..delimiter.."]+)") do
-            table.insert(result, item)
+            table.insert(result, string.match(item, "^%s*(.-)%s*$"))
         end
         return result
     end

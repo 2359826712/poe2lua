@@ -15,7 +15,7 @@ local main_task= {
         ["尋找米勒，並在皆伐尋求庇護"] = {
             map_name = "G1_1",
             Boss = {"浮腫米勒"},
-            interaction_object_map_name = {"MillerActive"},
+            interaction_object_map_name = {"MillerActive","G1_town"},
             index = 4
         },
         ['擊殺浮腫米勒並終止他的怒火'] = {

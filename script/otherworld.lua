@@ -2380,7 +2380,7 @@ local custom_nodes = {
                 local hp_cfg = prot.health_recovery or {}
                 if hp_cfg.enable then
                     local threshold = player.max_life * (hp_cfg.threshold / 100)
-                    local interval = (hp_cfg.interval or 0) / 1000
+                    local interval = (hp_cfg.interval or 0) 
                     
                     poe2_api.dbgp(string.format("血量检查: 当前 %.1f < 阈值 %.1f (%.1f%%) 且冷却 %.1fs >= 间隔 %.1fs", 
                         player.life, threshold, hp_cfg.threshold, 
@@ -2397,7 +2397,7 @@ local custom_nodes = {
                 local mp_cfg = prot.mana_recovery or {}
                 if mp_cfg.enable then
                     local threshold = player.max_mana * (mp_cfg.threshold / 100)
-                    local interval = (mp_cfg.interval or 0) / 1000
+                    local interval = (mp_cfg.interval or 0) 
                     
                     poe2_api.dbgp(string.format("蓝量检查: 当前 %.1f < 阈值 %.1f (%.1f%%) 且冷却 %.1fs >= 间隔 %.1fs", 
                         player.mana, threshold, mp_cfg.threshold, 
@@ -2414,7 +2414,7 @@ local custom_nodes = {
                 local shield_cfg = prot.shield_recovery or {}
                 if shield_cfg.enable then
                     local threshold = player.max_shield * (shield_cfg.threshold / 100)
-                    local interval = (shield_cfg.interval or 0) / 1000
+                    local interval = (shield_cfg.interval or 0) 
                     
                     poe2_api.dbgp(string.format("护盾检查: 当前 %.1f < 阈值 %.1f (%.1f%%) 且冷却 %.1fs >= 间隔 %.1fs", 
                         player.shield, threshold, shield_cfg.threshold, 
@@ -17690,7 +17690,7 @@ local custom_nodes = {
                         -- 处理分割的通货(如"混沌石|崇高石")
                         local currency_parts = {}
                         for part in string.gmatch(currency, "([^|]+)") do
-                            table.insert(currency_parts, part)
+                            table.insert(currency_parts, string.match(part, "^%s*(.-)%s*$"))
                         end
                         
                         for _, part in ipairs(currency_parts) do
@@ -17717,7 +17717,7 @@ local custom_nodes = {
                         -- 处理分割的通货(如"混沌石|崇高石")
                         local currency_parts = {}
                         for part in string.gmatch(currency, "([^|]+)") do
-                            table.insert(currency_parts, part)
+                            table.insert(currency_parts, string.match(part, "^%s*(.-)%s*$"))
                         end
                         
                         for _, part in ipairs(currency_parts) do
@@ -17788,7 +17788,7 @@ local custom_nodes = {
                                 -- 处理分割货币
                                 if string.find(other_owned, "|") then
                                     for part in string.gmatch(other_owned, "([^|]+)") do
-                                        existing_currencies[part] = true
+                                        existing_currencies[string.match(part, "^%s*(.-)%s*$")] = true
                                     end
                                 else
                                     existing_currencies[other_owned] = true
@@ -17828,7 +17828,7 @@ local custom_nodes = {
                 -- 处理包含"|"的分割货币
                 if string.find(owned, "|") then
                     for part in string.gmatch(owned, "([^|]+)") do
-                        if item_nums_dict[part] then
+                        if item_nums_dict[string.match(part, "^%s*(.-)%s*$")] then
                             add_unique_pair(part, needed, valid_owned, valid_needed)
                         end
                     end
@@ -34037,6 +34037,8 @@ local plot_nodes = {
                 poe2_api.dbgp('技能槽信息')
                 env.skill_slots = api_GetSkillSlots()
                 local skill_slots = env.skill_slots
+                
+                poe2_api.printTable(skill_slots)
                 local function check_skill_in_pos(name)
                     poe2_api.dbgp("[check_skill_in_pos] 检查技能是否在技能栏上: " .. tostring(name))
                     for _, k in ipairs(skill_slots) do
@@ -34145,14 +34147,16 @@ local plot_nodes = {
                     poe2_api.dbgp("[is_exist] 物品不存在: " .. tostring(name))
                     return false
                 end
-
-                
                 -- 判断武器技能是否存在
                 local function is_weapon_skill()
                     poe2_api.dbgp("[is_weapon_skill] 检查武器技能")
                     for _, skill_info in pairs(env.allskill_info) do
                         if skill_info.name_utf8 ~= "" and not skill_info.name_utf8:find("WeaponGrantedSummon") then
-                            if skill_info.name_utf8:find("WeaponGranted") or poe2_api.table_contains(skill_info.name_utf8, {"FireboltPlayer","MeleeBowPlayer","MeleeCrossbowPlayer","MeleeSpearOffHandPlayer","Melee1HMacePlayer","MeleeQuarterstaffPlayer"}) then
+                            if user_config["全局設置"]["大带小设置"]['小号职业'] == "女獵人" then
+                                poe2_api.dbgp("[is_weapon_skill] 找到武器技能: " .. tostring("SpearThrowPlayer"))
+                                return "SpearThrowPlayer"
+                            end
+                            if skill_info.name_utf8:find("WeaponGranted") or poe2_api.table_contains(skill_info.name_utf8, {"FireboltPlayer","SpearThrowPlayer","MeleeBowPlayer","MeleeCrossbowPlayer","MeleeSpearOffHandPlayer","Melee1HMacePlayer","MeleeQuarterstaffPlayer"}) then
                                 poe2_api.dbgp("[is_weapon_skill] 找到武器技能: " .. tostring(skill_info.name_utf8))
                                 return skill_info.name_utf8
                             end
@@ -34404,7 +34408,7 @@ local plot_nodes = {
                             return true
                         end
                         
-                    elseif skill_name == "MeleeUnarmedPlayer" or string.find(skill_name or "", "WeaponGranted") or poe2_api.table_contains(skill_name, {"FireboltPlayer", "MeleeBowPlayer", "MeleeCrossbowPlayer", "MeleeSpearOffHandPlayer", "Melee1HMacePlayer", "MeleeQuarterstaffPlayer"}) then
+                    elseif skill_name == "MeleeUnarmedPlayer" or string.find(skill_name or "", "WeaponGranted") or poe2_api.table_contains(skill_name, {"FireboltPlayer","SpearThrowPlayer", "MeleeBowPlayer", "MeleeCrossbowPlayer", "MeleeSpearOffHandPlayer", "Melee1HMacePlayer", "MeleeQuarterstaffPlayer"}) then
                         poe2_api.dbgp("[set_pos] 处理武器技能: " .. tostring(skill_name))
                         if skill_name == "MeleeUnarmedPlayer" then
                             poe2_api.dbgp("[set_pos] 处理徒手技能")
@@ -34491,7 +34495,7 @@ local plot_nodes = {
                 return false
             end
             -- 检查空技能名、徒手技能或武器技能
-            if skill_name == "" or skill_name == "MeleeUnarmedPlayer" or string.find(skill_name or "", "WeaponGranted") then
+            if skill_name == "" or skill_name == "MeleeUnarmedPlayer" or skill_name == "SpearThrowPlayer" or string.find(skill_name or "", "WeaponGranted") then
                 poe2_api.dbgp("[技能检查] 满足条件（空技能/徒手技能/武器技能），返回成功")
                 return bret.SUCCESS
             end
@@ -36418,7 +36422,7 @@ local plot_nodes = {
                         env.interaction_object_copy = {'烏娜的魯特琴盒','烏娜的魯特琴'} 
                         env.interaction_object_map_name_copy = {"FarmlandsUnasHutLandmarkActive"}
                         env.modify_interaction = true
-                    end  
+                    end
                 elseif player_info.current_map_name_utf8 == "G2_4_1" then
                     if #mini_map_obj("KabalaInactive") == 0 then
                         poe2_api.dbgp("G2_4_1小地图没有KabalaInactive")
