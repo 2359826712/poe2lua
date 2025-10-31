@@ -2357,6 +2357,12 @@ local main_task= {
             interaction_object_map_name= {'P2_5'},
             index = 376
         },
+        ["進入賈萊關口"] = {
+            map_name= 'P2_1',
+            interaction_object= {'賈萊關口'},
+            interaction_object_map_name= {'P2_5'},
+            index = 376
+        },
         ["賈萊關口"] = {
             map_name= 'P2_5',
             interaction_object= {'奇瑪'},

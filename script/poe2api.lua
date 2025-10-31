@@ -14,6 +14,8 @@ local START_X_max = 15  -- 超大仓库 起始X坐标
 local START_Y_max = 100  -- 超大仓库 起始X坐标
 local CELL_WIDTH_max = 22  -- 超大仓库 每个格子宽度
 local CELL_HEIGHT_max = 22  -- 超大仓库 每个格子高度
+local last_record_time = nil  -- 上次记录的时间戳
+local INTERVAL = 10          -- 间隔时间（秒）
 
 _M.point_distance = function(x, y, ac)
     -- 检查参数有效性
@@ -8137,6 +8139,28 @@ _M.split_string = function(type_str,delimiter)
         return {type_str}              -- 返回单元素列表
     end
 end
+
+
+
+-- -- 记录调用时间的函数
+-- _M.record_call_time = function(index,)
+--     -- local current_time = os.time()
+--     local recorded = false
+    
+--     -- 首次调用或满足间隔条件时记录
+--     if last_record_time == nil then
+--         if index == 1 then
+--             _M.click_keyboard()
+--         end
+--         last_record_time = api_GetTickCount64()
+--         recorded = true
+--     elseif(api_GetTickCount64() - last_record_time >= INTERVAL) then
+--         last_record_time = api_GetTickCount64()
+--         recorded = true
+--     end
+    
+--     return recorded
+-- end
 
 
 

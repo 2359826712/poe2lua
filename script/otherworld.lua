@@ -3636,14 +3636,16 @@ local custom_nodes = {
                         else
                             local split_cfg = poe2_api.split_string(v1["基礎類型名"],"|")
                             for _, v3 in ipairs(split_cfg) do
+                                local b = false
                                 local split_cfg_list = poe2_api.split_string(v3," ")
                                 for _, v2 in ipairs(inserted_plaques) do
                                     if v2.baseType_utf8 == split_cfg_list[#split_cfg_list] then
                                         -- a = true
+                                        b = true
                                         break
                                     end
                                 end
-                                if not poe2_api.table_contains(split_cfg_list[#split_cfg_list],missing_plaque) then
+                                if not b and not poe2_api.table_contains(split_cfg_list[#split_cfg_list],missing_plaque) then
                                     table.insert(missing_plaque,split_cfg_list[#split_cfg_list]) 
                                 end
                             end
@@ -4160,7 +4162,7 @@ local custom_nodes = {
                     if string.find(item," ") then
                         for _, v in ipairs(currency_info) do
                             local item_list = poe2_api.split_string(item," ")
-                            if v.baseType_utf8 == item_list[2] and v.name_utf8 == item_list[1] then
+                            if v.baseType_utf8 == item_list[2] and v.name_utf8 == item_list[1] and v.name_utf8 ~= game_str.Great_Plan_TWCH then
                                 return v
                             end
                         end
@@ -4169,7 +4171,7 @@ local custom_nodes = {
                             for _, v1 in ipairs(env.plaque_type[3]) do
                                 if not string.find(v1," ") then
                                     for _, v in ipairs(currency_info) do
-                                        if v.baseType_utf8 == v1 then
+                                        if v.baseType_utf8 == v1 and v.color < 3 then
                                             table.insert(plaque_list,v)
                                         end
                                     end
@@ -4178,7 +4180,7 @@ local custom_nodes = {
                             end
                         else
                             for _, v in ipairs(currency_info) do
-                                if v.baseType_utf8 == item then
+                                if v.baseType_utf8 == item and v.color < 3 then
                                     table.insert(plaque_list,v)
                                 end
                             end
@@ -11102,13 +11104,13 @@ local custom_nodes = {
         run = function(self, env)
             poe2_api.dbgp("DodgeAction_Inside")
             -- local is_initialized  = false
-            if not env.is_initialized then
+            if not env.dodgeAction_initialized then
                 poe2_api.dbgp("DodgeAction_Inside 初始化")
                 self.last_space_time = 0.0 -- 上次按下空格的时间
                 self.last_space_time_keep = 0.0 -- 上次按下空格的时间
                 self.space_cooldown = 1500  -- 空格键冷却时间（秒）
                 self.last_space_time1 = 0.0
-                env.is_initialized = true
+                env.dodgeAction_initialized = true
             end
 
             local is_bird = false
@@ -14552,7 +14554,7 @@ local custom_nodes = {
                                 map_level = poe2_api.select_best_map_key(
                                     {inventory = bag_info, 
                                     click = 1, key_level_threshold = user_map, not_use_map = not_use_map, 
-                                    entry_length = entry_length}
+                                    entry_length = entry_length,color=color}
                                 )
 
                                 poe2_api.dbgp("map_level",map_level)
@@ -22358,7 +22360,7 @@ local custom_nodes = {
                 poe2_api.time_p("判断地图钥匙是否需要强化（SUCCESS1）... 耗时 --> ", api_GetTickCount64() - start_time)
                 return bret.SUCCESS
             end
-            local max_map = poe2_api.select_best_map_key({inventory=bag_info,key_level_threshold=env.user_map,not_use_map = not_use_map})
+            local max_map = poe2_api.select_best_map_key({inventory=bag_info,key_level_threshold=env.user_map,not_use_map = not_use_map,vall = true})
             if not max_map then
                 poe2_api.dbgp("没有最优地图，不强化地图钥匙")
                 env.is_public_warehouse = true
@@ -22845,9 +22847,10 @@ local custom_nodes = {
             local map_update_to =env.map_update_to
             local user_map = env.user_map
             local map_up = env.map_up
+            local not_use_map = env.not_use_map
             local not_have_stackableCurrency = env.not_have_stackableCurrency
             -- if the_update_map then
-            local map_level = poe2_api.select_best_map_key({inventory = env.bag_info,key_level_threshold=user_map,vall = true})
+            local map_level = poe2_api.select_best_map_key({inventory = env.bag_info,key_level_threshold=user_map,not_use_map = not_use_map,vall = true})
             if map_level then
                 poe2_api.dbgp("map_update_to-->",4)
                 if (map_level.color > 0 and map_level.fixedSuffixCount >= 4) or (next(env.lack_of_currency) and poe2_api.table_contains(env.lack_of_currency,game_str.Exalted_Orb_TWCH)) then
