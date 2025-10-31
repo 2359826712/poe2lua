@@ -30471,7 +30471,22 @@ local plot_nodes = {
                     poe2_api.dbgp("[Query_Current_Task_Information_Local]RUNNING1")
                     return bret.RUNNING
                 end
-
+                if self.update and self.update == env.task_name then
+                    if not self.update_time or self.update_time == 0 then
+                        self.update_time =  api_GetTickCount64()
+                    end
+                    if player_info.life <=0 or string.find(player_info.current_map_name_utf8 , "own") then
+                        self.update_time = api_GetTickCount64()
+                    end
+                    local task_time = api_GetTickCount64() - self.update_time
+                    if task_time > 1000 * 60 * 60 then
+                        env.back_city = true
+                        return bret.RUNNING
+                    end
+                else
+                    self.update_time = nil
+                end
+                self.update = task.task_name
                 if task.boss_name then
                     poe2_api.dbgp("检测到boss_name：", task.boss_name)
                     env.boss_name = task.boss_name
