@@ -32638,7 +32638,7 @@ local plot_nodes = {
             if poe2_api.table_contains(task_area, {"G3_12"}) and not waypoint_name_utf8 then
                 waypoint_name_utf8  = poe2_api.task_area_list_data(task_area)[1][2]
             end
-            if waypoint_name_utf8 and (party_pos(team_member_3) ~= player_info.current_map_name_utf8 or poe2_api.find_text({ UI_info = UI_info, text = waypoint_name_utf8, min_x = 0, min_y = 0, max_x = 195, max_y = 590 }) ) and not player_info.isInBossBattle then
+            if waypoint_name_utf8 and (party_pos(team_member_3) ~= player_info.current_map_name_utf8 or (poe2_api.find_text({ UI_info = UI_info, text = waypoint_name_utf8, min_x = 0, min_y = 0, max_x = 195, max_y = 590 })and not check_pos_dis(team_member_3)) ) and not player_info.isInBossBattle then
                 for i = 0, count - 1 do
                     if not poe2_api.find_text({ UI_info = UI_info, text = "你確定要傳送至此玩家的位置？" }) then
                         if poe2_api.find_text({ UI_info = UI_info, text = "快行" }) then
@@ -34297,12 +34297,6 @@ local plot_nodes = {
                             poe2_api.click_keyboard("space")
                             return bret.RUNNING
                         end
-                        if poe2_api.find_text({UI_info = env.UI_info, text = "點擊  <N>{<normal>{I}} 查看背包。", min_x = 450, min_y = 600}) then
-                            poe2_api.click_keyboard("w")
-                        end
-                        if poe2_api.find_text({UI_info = env.UI_info, text = "按下<normal>{<n>{W}}來使用你的新技能", min_x = 0}) then
-                            poe2_api.click_keyboard("w")
-                        end
                         return bret.SUCCESS
                     end
                 else
@@ -35543,7 +35537,7 @@ local plot_nodes = {
         run = function(self, env)
             poe2_api.dbgp("DodgeAction1111111111111")
             
-            if not env.DodgeAction_is_initialized then
+            if not env.DodgeAction_is_initialized or not self.last_space_time then
                 poe2_api.dbgp("DodgeAction 初始化")
                 self.last_space_time = 0.0 -- 上次按下空格的时间
                 self.space_cooldown = 1500  -- 空格键冷却时间（秒）
