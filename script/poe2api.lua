@@ -3513,6 +3513,7 @@ _M.select_best_map_key = function(params)
     local color = params.color or 0
     local vall = params.vall or false
     local instill = params.instill or false
+    local trash_map = params.trash_map or false
 
     -- 新增：优先打词缀配置
     local priority_map = params.priority_map or {}
@@ -3808,7 +3809,7 @@ _M.select_best_map_key = function(params)
                     if _M.match_item_suffixes(suffixes, not_use_map, true) then
                         -- _M.dbgp("检查排除词缀3")
                         -- _M.printTable(suffixes)
-                        if trashest then
+                        if trashest or trash_map then
                             best_key = item
                             break
                         end
@@ -3825,7 +3826,7 @@ _M.select_best_map_key = function(params)
     end
 
     -- 如果是trashest模式，直接返回第一个匹配的垃圾物品
-    if trashest and best_key then
+    if (trashest or trash_map) and best_key then
         _M.dbgp("trashest模式：选择第一个匹配的垃圾物品")
         if click == 1 then
             if page_type == 7 then
