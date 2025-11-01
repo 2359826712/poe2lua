@@ -5844,8 +5844,17 @@ local custom_nodes = {
                 return bret.FAIL
             else
                 poe2_api.print_log("打开滴注")
-                if env.is_refinement then
-                    poe2_api.ctrl_left_click_bag_items(env.is_refinement,env.bag_info,1)
+                local function check_refinement()
+                    for _, item in ipairs(env.bag_info) do
+                        if string.find(item.baseType_utf8, game_str.Refine) then
+                            return item
+                        end
+                    end
+                    return false
+                end
+                local it = check_refinement()
+                if it then
+                    poe2_api.ctrl_left_click_bag_items(it.baseType_utf8,env.bag_info,1)
                     api_Sleep(800)
                 end
                 return bret.RUNNING
@@ -10821,6 +10830,7 @@ local custom_nodes = {
             end
 
             if poe2_api.table_contains(player_info.current_map_name_utf8, my_game_info.hideout) then
+                env.buy_items =  false
                 poe2_api.time_p("祭祀購買(SUCCESS)(不在异界)... 耗时 --> ", api_GetTickCount64() - current_time)
                 return bret.SUCCESS
             end
@@ -10837,12 +10847,14 @@ local custom_nodes = {
             local nomarl_monster = poe2_api.is_have_mos({range_info = env.range_info, dis = env.min_attack_dis, player_info = env.player_info, stuck_monsters = env.stuck_monsters, not_sight = true})
             poe2_api.dbgp(nomarl_monster, env.min_attack_dis)
             if nomarl_monster then
+                env.buy_items =  false
                 -- api_Sleep(10000)
                 poe2_api.time_p("祭祀購買(SUCCESS)(组队且有怪)... 耗时 --> ", api_GetTickCount64() - current_time)
                 return bret.SUCCESS
             end
             -- api_Sleep(10000)
             if env.afoot_altar and env.afoot_altar.stateMachineList[game_str.current_state_SML] == 2 and env.afoot_altar.stateMachineList[game_str.interaction_enabled_SML] == 0 then
+                env.buy_items =  false
                 poe2_api.time_p("祭祀購買正在打祭祀(SUCCESS)... 耗时 --> ", api_GetTickCount64() - current_time)
                 return bret.SUCCESS
             end
@@ -10852,6 +10864,7 @@ local custom_nodes = {
                     poe2_api.find_text({UI_info = env.UI_info, text = game_str.the_gift_CN , min_x = 0 , add_x = 272, click = 2})
                     return bret.RUNNING
                 end
+                env.buy_items =  false
                 poe2_api.time_p("祭祀購買(SUCCESS)... 耗时 --> ", api_GetTickCount64() - current_time)
                 return bret.SUCCESS
             end
@@ -10870,6 +10883,7 @@ local custom_nodes = {
                     api_Sleep(500)
                     return bret.RUNNING
                 end
+                env.buy_items =  false
                 return bret.SUCCESS
             end
             local Attachments = api_Getinventorys(0xd,0)
@@ -10880,6 +10894,7 @@ local custom_nodes = {
                     -- poe2_api.find_text({UI_info = env.UI_info, text = game_str.the_gift_CN , min_x = 0 , add_x = 272, click = 2})
                     -- return bret.RUNNING
                 end
+                env.buy_items =  false
                 return bret.SUCCESS
             end
             -- if poe2_api.find_text({UI_info = env.UI_info, text = game_str.the_gift_CN  }) then
@@ -26543,7 +26558,7 @@ local plot_nodes = {
                 local hp_cfg = prot.health_recovery or {}
                 if hp_cfg.enable then
                     local threshold = player.max_life * (hp_cfg.threshold / 100)
-                    local interval = (hp_cfg.interval or 0) / 1000
+                    local interval = (hp_cfg.interval or 0)
                     
                     poe2_api.dbgp(string.format("血量检查: 当前 %.1f < 阈值 %.1f (%.1f%%) 且冷却 %.1fs >= 间隔 %.1fs", 
                         player.life, threshold, hp_cfg.threshold, 
@@ -26560,7 +26575,7 @@ local plot_nodes = {
                 local mp_cfg = prot.mana_recovery or {}
                 if mp_cfg.enable then
                     local threshold = player.max_mana * (mp_cfg.threshold / 100)
-                    local interval = (mp_cfg.interval or 0) / 1000
+                    local interval = (mp_cfg.interval or 0)
                     
                     poe2_api.dbgp(string.format("蓝量检查: 当前 %.1f < 阈值 %.1f (%.1f%%) 且冷却 %.1fs >= 间隔 %.1fs", 
                         player.mana, threshold, mp_cfg.threshold, 
@@ -26577,7 +26592,7 @@ local plot_nodes = {
                 local shield_cfg = prot.shield_recovery or {}
                 if shield_cfg.enable then
                     local threshold = player.max_shield * (shield_cfg.threshold / 100)
-                    local interval = (shield_cfg.interval or 0) / 1000
+                    local interval = (shield_cfg.interval or 0)
                     
                     poe2_api.dbgp(string.format("护盾检查: 当前 %.1f < 阈值 %.1f (%.1f%%) 且冷却 %.1fs >= 间隔 %.1fs", 
                         player.shield, threshold, shield_cfg.threshold, 
