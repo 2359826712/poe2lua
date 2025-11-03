@@ -11119,15 +11119,14 @@ local custom_nodes = {
         run = function(self, env)
             poe2_api.dbgp("DodgeAction_Inside")
             -- local is_initialized  = false
-            if not env.dodgeAction_initialized then
+            if not env.dodgeAction_initialized or not self.last_space_time then
                 poe2_api.dbgp("DodgeAction_Inside 初始化")
-                self.last_space_time = 0.0 -- 上次按下空格的时间
-                self.last_space_time_keep = 0.0 -- 上次按下空格的时间
+                self.last_space_time = 0 -- 上次按下空格的时间
+                self.last_space_time_keep = 0 -- 上次按下空格的时间
                 self.space_cooldown = 1500  -- 空格键冷却时间（秒）
-                self.last_space_time1 = 0.0
+                self.last_space_time1 = 0
                 env.dodgeAction_initialized = true
             end
-
             local is_bird = false
             for _,k in ipairs(env.player_info.buffs) do
                 -- poe2_api.printTable(k)
@@ -11441,7 +11440,7 @@ local custom_nodes = {
         run = function(self, env)
             poe2_api.dbgp("DodgeAction1111111111111")
             
-            if not env.DodgeAction_is_initialized then
+            if not env.DodgeAction_is_initialized or not self.last_space_time then
                 poe2_api.dbgp("DodgeAction 初始化")
                 self.last_space_time = 0.0 -- 上次按下空格的时间
                 self.space_cooldown = 1500  -- 空格键冷却时间（秒）
@@ -16375,7 +16374,7 @@ local custom_nodes = {
                     return false
                 end
 
-                if (string.find(env.player_info.current_map_name_utf8, game_str.Delirium_) and check_Delirium_object()) or ((point.x == -1 and point.y == -1) and not string.find(env.player_info.current_map_name_utf8, game_str.Delirium_)) or (poe2_api.find_text({UI_info = env.UI_info, text = game_str.Map_completed_TWCH}) and (result or poe2_api.find_text({UI_info = env.UI_info, text = game_str.The_arena_TWCH,min_x=0,max_x=1600}))) or (poe2_api.find_text({UI_info = env.UI_info, text =game_str.There_are_0_remaining_monsters_TWCH}) and not poe2_api.table_contains(player_info.current_map_name_utf8,my_game_info.PRIORITY_MAPS) and not string.find(env.player_info.current_map_name_utf8, game_str.Delirium_)) or poe2_api.find_text({UI_info = env.UI_info, text = game_str.Return_to_the_surface_TWCH,min_x = 0,min_y = 0}) then
+                if (string.find(env.player_info.current_map_name_utf8, game_str.Delirium_) and check_Delirium_object()) or ((point.x == -1 and point.y == -1) and not string.find(env.player_info.current_map_name_utf8, game_str.Delirium_)) or (poe2_api.find_text({UI_info = env.UI_info, text = game_str.Map_completed_TWCH}) and (result or poe2_api.find_text({UI_info = env.UI_info, text = game_str.The_arena_TWCH,min_x=0,max_x=1600}))) or (poe2_api.find_text({UI_info = env.UI_info, text =game_str.There_are_0_remaining_monsters_TWCH}) and not poe2_api.table_contains(player_info.current_map_name_utf8,my_game_info.PRIORITY_MAPS) and not string.find(env.player_info.current_map_name_utf8, game_str.Delirium_) and env.player_info.current_map_name_utf8 ~= game_str.MapUniqueVault_EN) or poe2_api.find_text({UI_info = env.UI_info, text = game_str.Return_to_the_surface_TWCH,min_x = 0,min_y = 0}) then
                     poe2_api.dbgp(game_str.Map_completed_TWCH)
                     
                     -- 提前结束迷雾状态
@@ -18804,7 +18803,7 @@ local custom_nodes = {
             local path_list = env.path_list
             local need_item = env.need_item
             
-            if not env.click_bool then
+            if not env.click_bool or not self.number1 then
                 self.is_click_z = false
                 self.id1 = nil
                 self.number1 = 0
@@ -20765,6 +20764,9 @@ local custom_nodes = {
                 else
                     env.obj_color = 1
                 end
+                if env.player_info.current_map_name_utf8 == game_str.MapUniqueVault_EN then
+                    env.obj_color = 0
+                end
             end
             -- 判断自身一定范围内是否有激活怪
             local is_target = is_monster({range_info = env.range_info, mate = player_info, distance = 70, index = 2})
@@ -21941,7 +21943,7 @@ local custom_nodes = {
         run = function(self, env)
             poe2_api.print_log("是否需要移动祭坛...")
             local start_time = api_GetTickCount64()
-            if not env.move_altar_bool then
+            if not env.move_altar_bool or not self.break_object_list then
                 self.object1 = nil
                 self.time = 0
                 self.break_object_list = {}
@@ -23099,7 +23101,7 @@ local custom_nodes = {
         run = function(self, env)
 
             poe2_api.print_log("移动到玩法保险箱...")
-            if not env.afoot_box_bool then
+            if not env.afoot_box_bool or not self.box_time then
                 self.box_time = 0
                 self.box_id = nil
                 env.afoot_box_bool = true

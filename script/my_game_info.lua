@@ -494,9 +494,6 @@ local my_game_info = {
         {2,"Metadata/Effects/Spells/monsters_effects/Act4_FOUR/GreatWhiteOne/ao/piranha_puddle_01.ao", 20}, --大白鲨boss
 
         {2,"Metadata/Effects/Spells/monsters_effects/Act4_FOUR/TwilightOrderGuardBoss/ao/SkyBeam.ao", 30}, --勇士-卜拉克斯
-        
-        {2,"Metadata/Effects/Spells/monsters_effects/Act4_FOUR/GreatWhiteOne/ao/piranha_puddle_01.ao", 20}, --大白鲨boss
-        {2,"Metadata/Effects/Spells/monsters_effects/Act4_FOUR/TwilightOrderGuardBoss/ao/SkyBeam.ao", 30}, --勇士-卜拉克斯
 
         {2,"Metadata/Effects/Spells/monsters_effects/League_Abyss/Cocoon3/fireTornado.ao",15}, --深渊精英怪火旋风
         {2,"Metadata/Effects/Spells/monsters_effects/League_Abyss/ExplodingRunes/Blackblood_rune.ao", 30}, --深渊符文技能
@@ -516,6 +513,9 @@ local my_game_info = {
         {2,"EAAChaosGodOwlBossDashKick",30}, -- 天空先知 骑士踢
         {2,"EAAChaosGodOwlBossNighttimeDaytime",50}, -- 天空先知 龙卷风
         {2,"Metadata/Effects/Spells/monsters_effects/League_Abyss/collector/LivingBlood.ao",20}, -- 深渊精英怪血地面
+        {3,"GAScorpionBossStabTailSlam",40}, -- 沙丘居民.卡拉许的尾部重击
+        {3,"EAASharkBossSandnado",80},  --  沙吐boss  沙旋风
+        {1,"EAASharkBossBurrowEmerge",30},  --  沙吐boss  地底咬合
  
     },
 
@@ -534,7 +534,16 @@ local my_game_info = {
         {"GAExecutionerMegaSlam",95,30},
         {"GTKulemakBossMegaBeam",200,35}, -- 骷髅马克单射线
         {"EAAKulemakBossTeleportEscapeNoCD",55,55}, -- 骷髅马克陨石坠
-        {"Metadata/Effects/Spells/monsters_effects/League_Abyss/Kulemak/augmented_initial_arena_cleave_telegraph.ao",200,200}  -- 骷髅马克冰幕
+        {"Metadata/Effects/Spells/monsters_effects/League_Abyss/Kulemak/augmented_initial_arena_cleave_telegraph.ao",200,200},  -- 骷髅马克冰幕
+        {"MPSBalbalaCoin",30,30},-- 帕拉隆刚苏醒的重击
+        {"BalbalaHideAndSeekSlam",40,40},-- 帕拉隆刚苏醒的重击
+        -- {"EAABalbalaDaggerSummonMultiThrow",50,50},-- 帕拉隆  铺设的地刺
+        {"EAAQuadrillaBossSlam",100,30},  --  碎顱者．澤寇亞  出场重击
+        {"EAAQuadrillaBossCleaveRight",100,30},  --  碎顱者．澤寇亞  右重击
+        {"EAAQuadrillaBossCleaveLeft",100,30},  --  碎顱者．澤寇亞  左重击
+        {"EAAQuadrillaBossSpin",100,30},  --  碎顱者．澤寇亞  左重击
+        {"Metadata/Effects/Spells/monsters_effects/Act2_FOUR/Balbala/bladegrass_dagger.ao",20,20},-- 帕拉隆  铺设的地刺
+        {"Metadata/Effects/Spells/monsters_effects/Act2_FOUR/Balbala/knifecopy_proj.ao",100,20},-- 帕拉隆  飞刺
         
     },
 

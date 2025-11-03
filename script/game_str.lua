@@ -240,6 +240,7 @@ local game_str = {
     RitualRuneFinished_EN = "RitualRuneFinished",
     Abyss_Boss_EN = "Abyss_Boss",
     MapUberBoss_IronCitadel_EN = "MapUberBoss_IronCitadel",  -- 钢铁城寨
+    MapUniqueVault_EN = "MapUniqueVault",  -- 卡玛隆秘宝库
     
 
 

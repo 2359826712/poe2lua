@@ -527,7 +527,7 @@
                           },
                           {
                             "id": 99,
-                            "name": "DodgeAction_Inside",
+                            "name": "DodgeAction",
                             "desc": "躲避技能"
                           },
                           {
