@@ -2177,6 +2177,12 @@ local main_task= {
             interaction_object_map_name= {'P1_2'},
             index = 351
         },
+        ['接近黑暗'] = {
+            map_name= 'P1_1',
+            interaction_object= {'瑟雷之石'},
+            interaction_object_map_name= {'P1_2'},
+            index = 351
+        },
         ['瑟雷之石'] = {
             map_name= 'P1_2',
             index = 352
