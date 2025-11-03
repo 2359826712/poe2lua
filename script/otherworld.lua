@@ -25567,9 +25567,40 @@ local plot_nodes = {
                 poe2_api.click_keyboard("space")
                 return bret.RUNNING
             end
-            if poe2_api.find_text({ text = "Standard", UI_info = env.UI_info }) then
-                poe2_api.find_text({ text = "Standard", UI_info = env.UI_info, click = 2 })
+            if poe2_api.find_text({UI_info=env.UI_info ,text="自力模式"}) then
+                api_ClickScreen(985,450,0)
                 api_Sleep(1000)
+                api_ClickScreen(985,450,1)
+                api_Sleep(1000)
+                poe2_api.find_text({UI_info=env.UI_info ,text="繼續",min_x=640,min_y=450,click=2})
+                api_Sleep(1000)
+                return bret.RUNNING
+            end
+            local role_name = poe2_api.load_config(json_path)["全局設置"]["大带小设置"]["小号职业"]
+            if poe2_api.find_text({UI_info=env.UI_info,text="請從上方選擇你想要遊玩的角色。"}) or (poe2_api.find_text({UI_info=env.UI_info,text="繼續",min_y=780}) and not poe2_api.find_text({UI_info=env.UI_info,text=role_name,min_x=0})) then
+                api_Sleep(1000)
+                local role_point = poe2_api.role_point(role_name) 
+                poe2_api.printTable(role_point)
+                if role_point then
+                    api_ClickScreen(role_point[1], role_point[2],0)
+                    api_Sleep(1000)
+                    api_ClickScreen(role_point[1], role_point[2],1)
+                else
+                    return bret.RUNNING
+                end
+                return bret.RUNNING
+            end
+            if role_name and poe2_api.find_text({UI_info=env.UI_info,text=role_name,min_x=0}) then
+                poe2_api.find_text({UI_info=env.UI_info,text="繼續",min_x=640,min_y=450,click=2})
+                local random_string = poe2_api.get_name_text()
+                api_Sleep(2000)
+                if poe2_api.click_text_UI({UI_info=env.UI_info,text="name_frame",click=1,min_x=0}) then
+                    poe2_api.paste_text(random_string)
+                    api_Sleep(1000)
+                end
+                if poe2_api.find_text({UI_info=env.UI_info,text=random_string,min_x=0}) then
+                    poe2_api.click_text_UI({UI_info=env.UI_info,text="create_button",click=1})
+                end
                 return bret.RUNNING
             end
             local creat_new_role = env.creat_new_role
