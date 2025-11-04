@@ -31995,9 +31995,8 @@ local plot_nodes = {
                     poe2_api.dbgp("[Is_Move]与队友距离小于25")
                     return bret.SUCCESS
                 end
-            else
-                return bret.RUNNING
             end
+            return bret.RUNNING
         end
     },
 
