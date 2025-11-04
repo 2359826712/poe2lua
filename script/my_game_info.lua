@@ -550,6 +550,7 @@ local my_game_info = {
         {"EAARathbreakerLacerateSlam",100,30},  --  碎顱者．澤寇亞  左重击
         {"EASForsakenSonDouBleLacerate",100,30},  --  堕落之子 哈斯克  交叉火焰
         {"EASForsakenSonDoubleSlam",100,30},  --  堕落之子 哈斯克  火焰重击
+        {"MAASExecutionerBossTriggerSlam",100,30},  --  死亡化身  蓄力劈砍
         
         
     },

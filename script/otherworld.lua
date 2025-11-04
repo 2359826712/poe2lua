@@ -2100,7 +2100,7 @@ local custom_nodes = {
                 end
                 space_time = 30
             elseif map_strenght then
-                space_time = 120
+                space_time = 60
             elseif return_town then
                 space_time = 15
             elseif buy_items then
@@ -16582,9 +16582,9 @@ local custom_nodes = {
                         poe2_api.dbgp("重置地图信息")
                         api_RestoreOriginalMap()
                         api_UpdateMapObstacles(env.radius * 2)
-                        self.false_times = self.false_times + 3000
+                        self.false_times = self.false_times + 4000
                         env.false_times = (env.false_times or 0) + 1
-                        self.last_action_time = current_time + 3000
+                        self.last_action_time = current_time + 4000
                         return bret.RUNNING
                     else
                         env.return_town = false
@@ -19208,7 +19208,7 @@ local custom_nodes = {
                 if text == game_str.The_arena_TWCH then
                     api_UpdateMapObstacles(100)
                 end
-                if poe2_api.table_contains(text,{game_str.Water_gate_control_rod_TWCH,game_str.Handle_CH,game_str.Obtain_the_ring_TWCH}) then
+                if poe2_api.table_contains(text,{game_str.Water_gate_control_rod_TWCH,game_str.Handle_CH,game_str.Obtain_the_ring_TWCH,game_str.The_Stone_Array_Altar_TWCH}) then
                     api_Sleep(500)
                     poe2_api.dbgp1("点击水闸门控制杆,等待目标")
                     poe2_api.dbgp1("wait_target: ",wait_target)
@@ -20752,21 +20752,7 @@ local custom_nodes = {
             end
             
             
-            -- 等待特定交互对象时间间隔
-            if env.wait_target 
-             and not poe2_api.find_text({UI_info = env.UI_info, text = game_str.Handle_CH,min_x=300,max_x=1100})
-             and not poe2_api.find_text({UI_info = env.UI_info, text = game_str.Water_gate_control_rod_TWCH,min_x=300,max_x=1100}) then
-                if self.timeout == 0 then
-                    self.timeout = api_GetTickCount64()
-                end
-                if api_GetTickCount64() - self.timeout < 5000 then
-                    poe2_api.dbgp("等待交互把手或者水閘門控制桿时间到达")
-                    poe2_api.time_p("判断是否需要交互（RUNNING1）... 耗时 --> ", api_GetTickCount64() - start_time)
-                    return bret.RUNNING
-                end
-                env.wait_target = false
-                self.timeout = 0
-            end
+            
             -- 清空不交互对象id列表
             if env.interactive_replytime ~=0 then
                 if api_GetTickCount64() - env.interactive_replytime > 15000 then
@@ -21473,6 +21459,22 @@ local custom_nodes = {
                         end
                     end
                 end
+                -- 等待特定交互对象时间间隔
+                -- 等待特定交互对象时间间隔
+                if env.wait_target 
+                 and not poe2_api.find_text({UI_info = env.UI_info, text = game_str.Handle_CH,min_x=300,max_x=1100})
+                 and not poe2_api.find_text({UI_info = env.UI_info, text = game_str.Water_gate_control_rod_TWCH,min_x=300,max_x=1100}) then
+                    if self.timeout == 0 then
+                        self.timeout = api_GetTickCount64()
+                    end
+                    if api_GetTickCount64() - self.timeout < 5000 then
+                        poe2_api.dbgp("等待交互把手或者水閘門控制桿时间到达")
+                        poe2_api.time_p("判断是否需要交互（RUNNING1）... 耗时 --> ", api_GetTickCount64() - start_time)
+                        return bret.RUNNING
+                    end
+                    env.wait_target = false
+                    self.timeout = 0
+                end
                 if self.wait then
                     if api_GetTickCount64() - self.current_time < self.wait_time then
                         poe2_api.dbgp("等待中")
@@ -21587,7 +21589,8 @@ local custom_nodes = {
                     
                         poe2_api.ctrl_left_click_bag_items(game_str.Vaal_Orb_TWCH,env.bag_info,1)
                         api_Sleep(100)
-                        poe2_api.find_text({text = game_str.Monsters_are_imprisoned_by_powerful_essence_TWCH, UI_info = env.UI_info, min_x=200,max_y=750,match=2,max_x=1200,sorted = true, click=2})
+                        api_ClickMove(poe2_api.toInt(interaction_object.grid_x), poe2_api.toInt(interaction_object.grid_y), 1)
+                        -- poe2_api.find_text({text = game_str.Monsters_are_imprisoned_by_powerful_essence_TWCH, UI_info = env.UI_info, min_x=200,max_y=750,match=2,max_x=1200,sorted = true, click=2})
                         env.interactive_id = nil
                         env.interactiontimeout = 0
                         env.interaction_object = nil
@@ -21666,7 +21669,8 @@ local custom_nodes = {
                     
                         poe2_api.ctrl_left_click_bag_items(game_str.Vaal_Orb_TWCH,env.bag_info,1)
                         api_Sleep(100)
-                        poe2_api.find_text({text = game_str.Monsters_are_imprisoned_by_powerful_essence_TWCH, UI_info = env.UI_info, min_x=200,max_y=750,match=2,max_x=1200,sorted = true, click=2})
+                        api_ClickMove(poe2_api.toInt(interaction_object.grid_x), poe2_api.toInt(interaction_object.grid_y), 1)
+                        -- poe2_api.find_text({text = game_str.Monsters_are_imprisoned_by_powerful_essence_TWCH, UI_info = env.UI_info, min_x=200,max_y=750,match=2,max_x=1200,sorted = true, click=2})
                         env.interactive_id = nil
                         env.interactiontimeout = 0
                         env.interaction_object = nil
@@ -23770,7 +23774,7 @@ local custom_nodes = {
                 local rand_x = 14 + math.random(-7, 7)
                 local rand_y = leader_teleport_point[2] + 21 + math.random(-7, 7)
                 api_ClickScreen(poe2_api.toInt(rand_x), poe2_api.toInt(rand_y), 1)
-                api_Sleep(800)
+                api_Sleep(1500)
                 return bret.RUNNING
             end
             -- end
@@ -31996,9 +32000,9 @@ local plot_nodes = {
                 else
                     poe2_api.dbgp("[Is_Move]与队友距离小于25")
                     return bret.SUCCESS
-                end
+                end 
             end
-            return bret.RUNNING
+            return bret.RUNNING 
         end
     },
 
