@@ -516,6 +516,8 @@ local my_game_info = {
         {3,"GAScorpionBossStabTailSlam",40}, -- 沙丘居民.卡拉许的尾部重击
         {3,"EAASharkBossSandnado",80},  --  沙吐boss  沙旋风
         {1,"EAASharkBossBurrowEmerge",30},  --  沙吐boss  地底咬合
+        {1,"ForsakenCyclone",40},  --  堕落之子 哈斯克  旋转火焰移动
+        {1,"GAExecutionerMegaSlam",40},  --  堕落之子 哈斯克  旋转火焰移动
         
     },
 
@@ -529,7 +531,7 @@ local my_game_info = {
     MonitoringSkills_Rect = {
         {"Metadata/Effects/Spells/monsters_effects/Act1_FOUR/FungalArtillery/ao/abysslightning_projectile_impact.ao",20,5},
         {"SwollenMillerSlam",95,30},
-        {"EASAbyssPaleEliteBeamLong",120,30},
+        {"EASAbyssPaleEliteBeamLong",60,60},   -- 死亡化身  蓄力劈砍
         -- {"Metadata/Monsters/LeagueAbyss/Blackblood/PaleElite/HellscapePaleElite1.ao",95,30},
         {"GAExecutionerMegaSlam",95,30},
         {"GTKulemakBossMegaBeam",200,35}, -- 骷髅马克单射线
@@ -545,6 +547,10 @@ local my_game_info = {
         {"EAAQuadrillaBossSpin",100,30},  --  碎顱者．澤寇亞  左重击
         {"Metadata/Effects/Spells/monsters_effects/Act2_FOUR/Balbala/bladegrass_dagger.ao",20,20},-- 帕拉隆  铺设的地刺
         {"Metadata/Effects/Spells/monsters_effects/Act2_FOUR/Balbala/knifecopy_proj.ao",100,20},-- 帕拉隆  飞刺
+        {"EAARathbreakerLacerateSlam",100,30},  --  碎顱者．澤寇亞  左重击
+        {"EASForsakenSonDouBleLacerate",100,30},  --  堕落之子 哈斯克  交叉火焰
+        {"EASForsakenSonDoubleSlam",100,30},  --  堕落之子 哈斯克  火焰重击
+        
         
     },
     

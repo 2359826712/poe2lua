@@ -8600,7 +8600,7 @@ local custom_nodes = {
                                 local min_x = a[1] - 48
                                 local min_y = a[2] - 48
                                 local max_x = a[1] + 48
-                                local max_y = a[2] + 48
+                                local max_y = a[2] + 2
                                 
                                 the_maps_num = poe2_api.find_text_position({UI_info = env.UI_info, 
                                     refresh = true,
@@ -15698,15 +15698,17 @@ local custom_nodes = {
                 --     end
                 -- else
                 -- 备用方案：使用按键释放
-                if env.valid_monsters and next(env.valid_monsters) and skill.target == "敵對" then
-                    api_ClickMove(env.valid_monsters.grid_x, env.valid_monsters.grid_y, 0)
-                elseif env.target_point and next(env.target_point) then
-                    api_ClickMove(env.target_point[1], env.target_point[2], 0)
-                elseif skill.target == "自身" then
-                    api_ClickMove(env.player_info.grid_x, env.player_info.grid_y, 0)
+                -- if env.valid_monsters and next(env.valid_monsters) and skill.target == "敵對" then
+                --     api_ClickMove(env.valid_monsters.grid_x, env.valid_monsters.grid_y, 0)
+                -- elseif env.target_point and next(env.target_point) then
+                --     api_ClickMove(env.target_point[1], env.target_point[2], 0)
+                -- elseif skill.target == "自身" then
+                --     api_ClickMove(env.player_info.grid_x, env.player_info.grid_y, 0)
+                -- end
+                if not poe2_api.find_text({UI_info = env.UI_info, text = game_str.the_gift_CN , min_x = 0}) then
+                    poe2_api.click_keyboard(skill.key)
+                    poe2_api.dbgp("通过按键释放辅助技能:", skill.key)
                 end
-                poe2_api.click_keyboard(skill.key)
-                poe2_api.dbgp("通过按键释放辅助技能:", skill.key)
                 -- end
             end
 
@@ -27905,7 +27907,7 @@ local plot_nodes = {
                 return bret.FAIL
             end
 
-            if not self.bool then
+            if not env.store_Items_bool or not self.num then
                 self.type = 0
                 self.timeout = 0
                 self.is_wait = false
@@ -27913,7 +27915,7 @@ local plot_nodes = {
                 self.current = nil
                 self.obj = nil
                 self.num = 0
-                self.bool = true
+                env.store_Items_bool = true
                 return bret.RUNNING
             end
             local store_item = env.store_item
