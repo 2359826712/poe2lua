@@ -2035,17 +2035,17 @@ local custom_nodes = {
                 poe2_api.print_log("移动恢复操作完成")
             end
             
-            -- 每20秒按一次alt键
-            if self.last_alt_press_time == nil or api_GetTickCount64() - self.last_alt_press_time >= 20000 and not poe2_api.find_text({UI_info = env.UI_info, text = game_str.Currency_exchange, min_x = 0, max_y = 200}) then
-                poe2_api.dbgp("执行ALT键检查")
-                api_ClickScreen(100, 850, 0)
-                poe2_api.click_keyboard("alt")
-                api_Sleep(100)
-                poe2_api.click_keyboard("alt", 2)
-                api_Sleep(100)
-                poe2_api.click_keyboard("alt", 2)
-                self.last_alt_press_time = api_GetTickCount64()
-            end
+            -- -- 每20秒按一次alt键
+            -- if self.last_alt_press_time == nil or api_GetTickCount64() - self.last_alt_press_time >= 20000 and not poe2_api.find_text({UI_info = env.UI_info, text = game_str.Currency_exchange, min_x = 0, max_y = 200}) then
+            --     poe2_api.dbgp("执行ALT键检查")
+            --     api_ClickScreen(100, 850, 0)
+            --     poe2_api.click_keyboard("alt")
+            --     api_Sleep(100)
+            --     poe2_api.click_keyboard("alt", 2)
+            --     api_Sleep(100)
+            --     poe2_api.click_keyboard("alt", 2)
+            --     self.last_alt_press_time = api_GetTickCount64()
+            -- end
 
             -- 初始化位置记录
             if not env.last_position then
@@ -2143,8 +2143,8 @@ local custom_nodes = {
                 end
             end
 
-            -- 检查功能是否启用
-            if not _check_feature_enabled() or string.find(env.player_info.current_map_name_utf8, game_str.Delirium_) then
+            -- 检查功能是否启用     not _check_feature_enabled() or
+            if string.find(env.player_info.current_map_name_utf8, game_str.Delirium_) then
                 poe2_api.dbgp("所有异常处理功能未启用，跳过检测流程")
                 return bret.SUCCESS
             end
@@ -11117,7 +11117,7 @@ local custom_nodes = {
     DodgeAction_Inside = {
         name = "躲避",
         run = function(self, env)
-            poe2_api.dbgp("DodgeAction_Inside")
+            poe2_api.print_log("DodgeAction_Inside")
             -- local is_initialized  = false
             if not env.dodgeAction_initialized or not self.last_space_time then
                 poe2_api.dbgp("DodgeAction_Inside 初始化")
@@ -11432,6 +11432,81 @@ local custom_nodes = {
             env.end_point = nil
             env.path_list = nil
             return bret.RUNNING
+        end
+    },
+
+    -- 交互躲避技能
+    DodgeAction_Interaction = {
+        name = "交互躲避技能",
+        run = function(self, env)
+            poe2_api.print_log("交互躲避技能")
+            -- local is_initialized  = false
+            if not env.dodgeAction_initialized_interaction then
+                poe2_api.dbgp("DodgeAction_Interaction 初始化")
+                self.last_space_time = 0.0 -- 上次按下空格的时间
+                self.last_space_time_keep = 0.0 -- 上次按下空格的时间
+                self.space_cooldown = 1500  -- 空格键冷却时间（秒）
+                self.last_space_time1 = 0.0
+                env.dodgeAction_initialized_interaction = true
+            end
+
+            local is_bird = false
+            for _,k in ipairs(env.player_info.buffs) do
+                -- poe2_api.printTable(k)
+                -- poe2_api.dbgp("k.name_en", k.name_en)
+                if k.name_en == game_str.on_rhoa_mount_SKBUF then
+                    is_bird = true
+                    break
+                end
+            end
+
+            if string.find(env.player_info.current_map_name_utf8 , game_str.Delirium_) then
+                api_UpdateMapObstacles(240)
+            end
+
+            local _handle_space_action_path_name = function(player_info)
+                local ret = nil
+                local start_time = api_GetTickCount64()
+                local danger = api_IsPointInAnyActive(player_info.grid_x , player_info.grid_y , 100)
+                poe2_api.dbgp("耗时 === 》》》",api_GetTickCount64() - start_time)
+                poe2_api.printTable(danger)
+                if danger and danger.inside then
+                    local safe_point = danger.safeTile
+                    -- local safe_point = api_FindNearestSafeTile(player_info.grid_x , player_info.grid_y , 60 , 5)
+
+                    if safe_point and safe_point.x ~= -1 and safe_point.y ~= -1 then
+                        if not api_ClickMove(poe2_api.toInt(safe_point.x), poe2_api.toInt(safe_point.y), 7) or not api_HasObstacleBetween(safe_point.x, safe_point.y) then
+                            poe2_api.dbgp("安全点过远或有障碍物")
+                            env.end_point = {safe_point.x, safe_point.y}
+                            poe2_api.dbgp("推荐走路躲避")
+                            return bret.FAIL
+                        end
+                        api_ClickMove(poe2_api.toInt(safe_point.x), poe2_api.toInt(safe_point.y), 7)
+                        api_Sleep(200)
+                        env.end_point = nil
+                        env.path_list = nil
+                        if not is_bird and danger.action == 2 then
+                        -- if not is_bird then
+                            poe2_api.dbgp("推荐翻滚躲避")
+                            poe2_api.click_keyboard("space")
+                        end
+                        return true
+                    end
+                end
+                return false
+            end
+
+           
+
+            -- 躲避技能
+            local a = _handle_space_action_path_name(env.player_info)
+            if a then
+                return bret.RUNNING
+
+            else
+
+                return bret.SUCCESS
+            end  
         end
     },
 
@@ -15609,30 +15684,30 @@ local custom_nodes = {
                 local base_cd = skill.interval
                 local actual_cd = (math.max(base_cd * (1 + math.random() * 0.2), 0.1)) * 1000
                 env.sup_skill_cooldowns_sups[skill.name] = skill_start + actual_cd
-                if env.user_config["全局設置"]["内存模式"] then
-                    -- 释放辅助技能
-                    if skill.id and skill.id ~= 0 then
-                        -- 辅助技能通常不需要目标位置，使用玩家当前位置
-                        if env.target_point and next(env.target_point) then
-                            api_CastSkill(skill.id, 0, env.player_info.grid_x, env.player_info.grid_y, env.target_point[1], env.target_point[2])
-                        else
-                            api_CastSkill(skill.id, 0, env.player_info.grid_x, env.player_info.grid_y, env.player_info.grid_x, env.player_info.grid_y)
-                        end
+                -- if env.user_config["全局設置"]["内存模式"] then
+                --     -- 释放辅助技能
+                --     if skill.id and skill.id ~= 0 then
+                --         -- 辅助技能通常不需要目标位置，使用玩家当前位置
+                --         if env.target_point and next(env.target_point) then
+                --             api_CastSkill(skill.id, 0, env.player_info.grid_x, env.player_info.grid_y, env.target_point[1], env.target_point[2])
+                --         else
+                --             api_CastSkill(skill.id, 0, env.player_info.grid_x, env.player_info.grid_y, env.player_info.grid_x, env.player_info.grid_y)
+                --         end
                         
-                        poe2_api.dbgp("通过技能ID释放辅助技能:", skill.key, "技能ID:", skill.id)
-                    end
-                else
-                    -- 备用方案：使用按键释放
-                    if env.valid_monsters and next(env.valid_monsters) and skill.target == "敵對" then
-                        api_ClickMove(env.valid_monsters.grid_x, env.valid_monsters.grid_y, 0)
-                    elseif env.target_point and next(env.target_point) then
-                        api_ClickMove(env.target_point[1], env.target_point[2], 0)
-                    elseif skill.target == "自身" then
-                        api_ClickMove(env.player_info.grid_x, env.player_info.grid_y, 0)
-                    end
-                    poe2_api.click_keyboard(skill.key)
-                    poe2_api.dbgp("通过按键释放辅助技能:", skill.key)
+                --         poe2_api.dbgp("通过技能ID释放辅助技能:", skill.key, "技能ID:", skill.id)
+                --     end
+                -- else
+                -- 备用方案：使用按键释放
+                if env.valid_monsters and next(env.valid_monsters) and skill.target == "敵對" then
+                    api_ClickMove(env.valid_monsters.grid_x, env.valid_monsters.grid_y, 0)
+                elseif env.target_point and next(env.target_point) then
+                    api_ClickMove(env.target_point[1], env.target_point[2], 0)
+                elseif skill.target == "自身" then
+                    api_ClickMove(env.player_info.grid_x, env.player_info.grid_y, 0)
                 end
+                poe2_api.click_keyboard(skill.key)
+                poe2_api.dbgp("通过按键释放辅助技能:", skill.key)
+                -- end
             end
 
            -- 检查并释放辅助技能
@@ -18991,91 +19066,91 @@ local custom_nodes = {
                     return bret.FAIL
                 end
                 if interactive_object then
-                    if env.user_config["全局設置"]["内存模式"] and env.need_item and env.need_item == interactive_object then
-                        poe2_api.dbgp("内存模式")
-                        -- api_Sleep(3000)
-                        -- if not poe2_api.find_text({text = text, UI_info = env.UI_info, min_x=200,max_y=750,match=2,max_x=1200,sorted = true, click=1}) then
-                        --     api_ClickMove(poe2_api.toInt(interactive_object.grid_x), poe2_api.toInt(interactive_object.grid_y), 0)
-                        -- end
-                        -- api_ClickMove(poe2_api.toInt(interactive_object.grid_x), poe2_api.toInt(interactive_object.grid_y), 0)
-                        api_SendActionPacket(game_str.PickUpSkillId,interactive_object.id)
-                        api_Sleep(10)
-                    else
-                        poe2_api.dbgp("模拟模式")
-                        if player_info.isMoving then
-                            poe2_api.dbgp("等待静止")
+                    -- if env.user_config["全局設置"]["内存模式"] and env.need_item and env.need_item == interactive_object then
+                    --     poe2_api.dbgp("内存模式")
+                    --     -- api_Sleep(3000)
+                    --     -- if not poe2_api.find_text({text = text, UI_info = env.UI_info, min_x=200,max_y=750,match=2,max_x=1200,sorted = true, click=1}) then
+                    --     --     api_ClickMove(poe2_api.toInt(interactive_object.grid_x), poe2_api.toInt(interactive_object.grid_y), 0)
+                    --     -- end
+                    --     -- api_ClickMove(poe2_api.toInt(interactive_object.grid_x), poe2_api.toInt(interactive_object.grid_y), 0)
+                    --     api_SendActionPacket(game_str.PickUpSkillId,interactive_object.id)
+                    --     api_Sleep(10)
+                    -- else
+                    poe2_api.dbgp("模拟模式")
+                    if player_info.isMoving then
+                        poe2_api.dbgp("等待静止")
+                        api_Sleep(200)
+                        return bret.RUNNING
+                    end
+                    -- api_Sleep(3000)
+                    if (not text or text == "" or poe2_api.table_contains(text,{game_str.Door_CH,game_str.The_Holy_Temple_TWCH,game_str.Abyss_Pinnacle_MDANA}) or not poe2_api.find_text({text = text, UI_info = env.UI_info, min_x=200,max_y=750,match=2,max_x=1200,sorted = true, click=2})) then
+                        if poe2_api.table_contains(text,{game_str.Door_CH,game_str.The_Holy_Temple_TWCH}) then
+                            -- if text == game_str.Door_CH and poe2_api.find_text({text = "出土遺物", UI_info = env.UI_info, min_x=200,max_y=750,match=2,max_x=1200,sorted = true}) then
+                            --     poe2_api.click_keyboard("z")
+                            --     self.is_click_z = true
+                            --     return bret.RUNNING
+                            -- end
+                            api_ClickMove(poe2_api.toInt(interactive_object.grid_x), poe2_api.toInt(interactive_object.grid_y), 1,poe2_api.toInt(interactive_object.world_z)-40)
+                        elseif poe2_api.table_contains(text,{game_str.Black_Cathedral,game_str.Abyss_Pinnacle_MDANA}) then
+                            poe2_api.click_keyboard("ctrl", 1)
                             api_Sleep(200)
-                            return bret.RUNNING
-                        end
-                        -- api_Sleep(3000)
-                        if (not text or text == "" or poe2_api.table_contains(text,{game_str.Door_CH,game_str.The_Holy_Temple_TWCH,game_str.Abyss_Pinnacle_MDANA}) or not poe2_api.find_text({text = text, UI_info = env.UI_info, min_x=200,max_y=750,match=2,max_x=1200,sorted = true, click=2})) then
-                            if poe2_api.table_contains(text,{game_str.Door_CH,game_str.The_Holy_Temple_TWCH}) then
-                                -- if text == game_str.Door_CH and poe2_api.find_text({text = "出土遺物", UI_info = env.UI_info, min_x=200,max_y=750,match=2,max_x=1200,sorted = true}) then
-                                --     poe2_api.click_keyboard("z")
-                                --     self.is_click_z = true
-                                --     return bret.RUNNING
+                            api_ClickMove(poe2_api.toInt(interactive_object.grid_x), poe2_api.toInt(interactive_object.grid_y), 1)
+                            api_Sleep(200)
+                            poe2_api.click_keyboard("ctrl", 2)
+                        else
+                            if env.need_item and env.need_item == interactive_object then
+                                -- poe2_api.dbgp("需要物品")
+                                -- api_Sleep(2000)
+                                -- if env.user_config["全局設置"]["内存模式"] then
+                                --     -- poe2_api.dbgp("内存模式")
+                                --     -- api_Sleep(1000)
+                                    
+                                -- else
+                                --     api_ClickMove(poe2_api.toInt(interactive_object.grid_x), poe2_api.toInt(interactive_object.grid_y), 1)
                                 -- end
-                                api_ClickMove(poe2_api.toInt(interactive_object.grid_x), poe2_api.toInt(interactive_object.grid_y), 1,poe2_api.toInt(interactive_object.world_z)-40)
-                            elseif poe2_api.table_contains(text,{game_str.Black_Cathedral,game_str.Abyss_Pinnacle_MDANA}) then
-                                poe2_api.click_keyboard("ctrl", 1)
-                                api_Sleep(200)
                                 api_ClickMove(poe2_api.toInt(interactive_object.grid_x), poe2_api.toInt(interactive_object.grid_y), 1)
-                                api_Sleep(200)
-                                poe2_api.click_keyboard("ctrl", 2)
                             else
-                                if env.need_item and env.need_item == interactive_object then
-                                    -- poe2_api.dbgp("需要物品")
-                                    -- api_Sleep(2000)
-                                    -- if env.user_config["全局設置"]["内存模式"] then
-                                    --     -- poe2_api.dbgp("内存模式")
-                                    --     -- api_Sleep(1000)
-                                        
-                                    -- else
-                                    --     api_ClickMove(poe2_api.toInt(interactive_object.grid_x), poe2_api.toInt(interactive_object.grid_y), 1)
-                                    -- end
-                                    api_ClickMove(poe2_api.toInt(interactive_object.grid_x), poe2_api.toInt(interactive_object.grid_y), 1)
-                                else
-                                    -- poe2_api.dbgp("需要物品1111")
-                                    -- api_Sleep(2000)
-                                    local ok, value = pcall(function() 
-                                        return interactive_object.path_name_utf8 
-                                    end)
-                                    if ok and value ~= nil then
-                                        local path_name_list = {
-                                            game_str.DeliriumInitiator_PATH,
-                                            game_str.BreachObject_PATH
-                                        }
-                                        if string.find(game_str.Ritual_PATH, interactive_object.path_name_utf8) then
-                                            poe2_api.find_text({text = game_str.Click_to_start_the_ritual_TWCH, UI_info = env.UI_info, min_x=200,max_y=750,match=2,max_x=1200,sorted = true, click=2})
-                                        elseif game_str.Monolith_PATH == interactive_object.path_name_utf8 then
-                                            poe2_api.find_text({text = game_str.Monsters_are_imprisoned_by_powerful_essence_TWCH, UI_info = env.UI_info, min_x=200,max_y=750,match=2,max_x=1200,sorted = true, click=2})
-                                        elseif poe2_api.table_contains(interactive_object.path_name_utf8, path_name_list) then
-                                            api_ClickMove(poe2_api.toInt(interactive_object.grid_x), poe2_api.toInt(interactive_object.grid_y), 1)
-                                        elseif interactive_object.name_utf8 == game_str.Switch_CH then
-                                            api_ClickMove(poe2_api.toInt(interactive_object.grid_x), poe2_api.toInt(interactive_object.grid_y), 1)
-                                        elseif interactive_object.name_utf8 == game_str.Obtain_the_ring_TWCH then
-                                            if not env.user_config["全局設置"]["骷髅马克玩法"]["骷髅马克是否打本体"] then
-                                                poe2_api.find_text({text = "拿走手指", UI_info = env.UI_info, min_x=200,max_y=750,match=2,max_x=1200,sorted = true, click=2})
-                                            else
-                                                poe2_api.find_text({text = "返還手指", UI_info = env.UI_info, min_x=200,max_y=750,match=2,max_x=1200,sorted = true, click=2})
-                                            end
+                                -- poe2_api.dbgp("需要物品1111")
+                                -- api_Sleep(2000)
+                                local ok, value = pcall(function() 
+                                    return interactive_object.path_name_utf8 
+                                end)
+                                if ok and value ~= nil then
+                                    local path_name_list = {
+                                        game_str.DeliriumInitiator_PATH,
+                                        game_str.BreachObject_PATH
+                                    }
+                                    if string.find(game_str.Ritual_PATH, interactive_object.path_name_utf8) then
+                                        poe2_api.find_text({text = game_str.Click_to_start_the_ritual_TWCH, UI_info = env.UI_info, min_x=200,max_y=750,match=2,max_x=1200,sorted = true, click=2})
+                                    elseif game_str.Monolith_PATH == interactive_object.path_name_utf8 then
+                                        poe2_api.find_text({text = game_str.Monsters_are_imprisoned_by_powerful_essence_TWCH, UI_info = env.UI_info, min_x=200,max_y=750,match=2,max_x=1200,sorted = true, click=2})
+                                    elseif poe2_api.table_contains(interactive_object.path_name_utf8, path_name_list) then
+                                        api_ClickMove(poe2_api.toInt(interactive_object.grid_x), poe2_api.toInt(interactive_object.grid_y), 1)
+                                    elseif interactive_object.name_utf8 == game_str.Switch_CH then
+                                        api_ClickMove(poe2_api.toInt(interactive_object.grid_x), poe2_api.toInt(interactive_object.grid_y), 1)
+                                    elseif interactive_object.name_utf8 == game_str.Obtain_the_ring_TWCH then
+                                        if not env.user_config["全局設置"]["骷髅马克玩法"]["骷髅马克是否打本体"] then
+                                            poe2_api.find_text({text = "拿走手指", UI_info = env.UI_info, min_x=200,max_y=750,match=2,max_x=1200,sorted = true, click=2})
                                         else
-                                            if interactive_object.path_name_utf8 ~= game_str.AbyssCrack_PATH then
-                                                if poe2_api.table_contains(text,my_game_info.Treasure_Chest) then
-                                                    api_ClickMove(poe2_api.toInt(interactive_object.grid_x), poe2_api.toInt(interactive_object.grid_y), 1)
-                                                else
-                                                    api_ClickMove(poe2_api.toInt(interactive_object.grid_x), poe2_api.toInt(interactive_object.grid_y), 1)
-                                                end
-                                                
-                                            end
+                                            poe2_api.find_text({text = "返還手指", UI_info = env.UI_info, min_x=200,max_y=750,match=2,max_x=1200,sorted = true, click=2})
                                         end
                                     else
-                                        api_ClickMove(poe2_api.toInt(interactive_object.grid_x), poe2_api.toInt(interactive_object.grid_y), 1)
+                                        if interactive_object.path_name_utf8 ~= game_str.AbyssCrack_PATH then
+                                            if poe2_api.table_contains(text,my_game_info.Treasure_Chest) then
+                                                api_ClickMove(poe2_api.toInt(interactive_object.grid_x), poe2_api.toInt(interactive_object.grid_y), 1)
+                                            else
+                                                api_ClickMove(poe2_api.toInt(interactive_object.grid_x), poe2_api.toInt(interactive_object.grid_y), 1)
+                                            end
+                                            
+                                        end
                                     end
+                                else
+                                    api_ClickMove(poe2_api.toInt(interactive_object.grid_x), poe2_api.toInt(interactive_object.grid_y), 1)
                                 end
                             end
                         end
                     end
+                    -- end
                     -- if  then
                     if env.need_item and env.need_item == interactive_object then
                         if not self.id1 then
@@ -22119,9 +22194,11 @@ local custom_nodes = {
             if distance then
                 if distance > 100 then
                     if self.target then
-                        if not get_monster(env.range_info,self.target) then
+                        local target = get_monster(env.range_info,self.target)
+                        if not target then
                             self.target = nil
                         end
+                        self.target = target
                     end
                     if not self.target then
                         local is_target = is_monster({range_info=env.range_info,mate=afoot_altar,distance=105})
@@ -22150,10 +22227,10 @@ local custom_nodes = {
                             return bret.FAIL
                         end
                     else
-                        local distance = poe2_api.point_distance(is_target.grid_x, is_target.grid_y, player_info)
+                        local distance = poe2_api.point_distance(self.target.grid_x, self.target.grid_y, player_info)
                         if distance and distance > env.min_attack_dis then
                             poe2_api.dbgp("怪物超出攻击距离，移动")
-                            env.end_point = {is_target.grid_x,is_target.grid_y}
+                            env.end_point = {self.target.grid_x,self.target.grid_y}
                             poe2_api.time_p("是否需要移动祭坛（SUCCESS8）... 耗时 --> ", api_GetTickCount64() - start_time)
                             return bret.SUCCESS
                         end
@@ -22180,9 +22257,12 @@ local custom_nodes = {
                         end
                     end
                     if self.target1 then
-                        if not get_monster(env.range_info,self.target1) then
+                        local target = get_monster(env.range_info,self.target1)
+                        if not target then
                             self.target1 = nil
                         end
+                        self.target1 = target
+
                     end
                     if not self.target1 then
                         local cutt = api_GetTickCount64()
@@ -22299,7 +22379,11 @@ local custom_nodes = {
                     end
                     poe2_api.printTable(self.target1)
                     local distance = poe2_api.point_distance(self.target1.grid_x,self.target1.grid_y,player_info)
-                    if distance and distance > 180 then
+                    local dis = 70
+                    if env.min_attack_dis and env.min_attack_dis ~= 0 then
+                        dis = env.min_attack_dis
+                    end
+                    if distance and distance > dis then
 
                         poe2_api.dbgp("怪物超出攻击距离，移动")
                         env.end_point = {self.target1.grid_x,self.target1.grid_y}
@@ -27910,10 +27994,12 @@ local plot_nodes = {
             end
             if store_item[3] == 1 then
                 if self.num > 16 then
+                    self.num = 0
                     error("仓库已满，手动清理1111")
                 end
             else
                 if self.num > 8 then
+                    self.num = 0
                     currency_exchange_is_opens = currency_exchange_is_opens["是否自動對換"] or false
                     if currency_exchange_is_opens then
                         if env.exchange_status then
@@ -39124,38 +39210,38 @@ function otherworld_bt.create()
                 elseif config["全局設置"]["跟随设置"] and config["全局設置"]["跟随设置"]["是否開啟"] then
                     missions = "follows"
                 else
-                    if config["全局設置"]["内存模式"] then
-                        if config["全局設置"]["界域之门"] and config["全局設置"]["界域之门"]["是否開啟"] then
-                            missions = "attack_target_inside_sp"
-                        else
-                            missions = "attack_target_inside"
-                        end
+                    -- if config["全局設置"]["内存模式"] then
+                    --     if config["全局設置"]["界域之门"] and config["全局設置"]["界域之门"]["是否開啟"] then
+                    --         missions = "attack_target_inside_sp"
+                    --     else
+                    --         missions = "attack_target_inside"
+                    --     end
+                    -- else
+                    if config["全局設置"]["界域之门"] and config["全局設置"]["界域之门"]["是否開啟"] then
+                        missions = "attack_target_sp"
                     else
-                        if config["全局設置"]["界域之门"] and config["全局設置"]["界域之门"]["是否開啟"] then
-                            missions = "attack_target_sp"
-                        else
-                            missions = "attack_target"
-                        end
+                        missions = "attack_target"
                     end
+                    -- end
                 end
             else
                 missions = "story_complete"
             end
             
         else
-            if config["全局設置"]["内存模式"] then
-                if config["全局設置"]["界域之门"] and config["全局設置"]["界域之门"]["是否開啟"] then
-                    missions = "attack_target_inside_sp"
-                else
-                    missions = "attack_target_inside"
-                end
+            -- if config["全局設置"]["内存模式"] then
+            --     if config["全局設置"]["界域之门"] and config["全局設置"]["界域之门"]["是否開啟"] then
+            --         missions = "attack_target_inside_sp"
+            --     else
+            --         missions = "attack_target_inside"
+            --     end
+            -- else
+            if config["全局設置"]["界域之门"] and config["全局設置"]["界域之门"]["是否開啟"] then
+                missions = "attack_target_sp"
             else
-                if config["全局設置"]["界域之门"] and config["全局設置"]["界域之门"]["是否開啟"] then
-                    missions = "attack_target_sp"
-                else
-                    missions = "attack_target"
-                end
+                missions = "attack_target"
             end
+            -- end
         end
     end
     -- local bt = behavior_tree.new("attack_target 2", env_params)

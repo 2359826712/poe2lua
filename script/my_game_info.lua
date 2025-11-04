@@ -227,8 +227,8 @@ local my_game_info = {
         "MapVaalFoundry", --# 瓦尔铸造厂 有Boss
         -- # "MapAugury", --# 预兆 有Boss
         -- # "MapAugury_NoBoss", --# 预兆
-        "MapNecropolis", -- # 魔影墓场 有Boss
-        "MapNecropolis_NoBoss", -- # 魔影墓场
+        -- "MapNecropolis", -- # 魔影墓场 有Boss
+        -- "MapNecropolis_NoBoss", -- # 魔影墓场
         "MapForge", -- # 锻造 有Boss
         "MapAlpineRidge_NoBoss", "MapAlpineRidge", -- # 高山山脊
         "MapSandspit",-- 新版砂土
@@ -491,7 +491,7 @@ local my_game_info = {
             "Metadata/Effects/Spells/monsters_effects/Act3_FOUR/ViperNapuatzi/ao/spear_aura/spear_aura.ao",
             20
         }, -- 邪魔毒蛇納普阿茲
-        {2,"Metadata/Effects/Spells/monsters_effects/Act4_FOUR/GreatWhiteOne/ao/piranha_puddle_01.ao", 20}, --大白鲨boss
+        {2,"Metadata/Effects/Spells/monsters_effects/Act4_FOUR/GreatWhiteOne/ao/piranha_puddle_01.ao", 20}, --大白鲨boss  鱼旋风 
 
         {2,"Metadata/Effects/Spells/monsters_effects/Act4_FOUR/TwilightOrderGuardBoss/ao/SkyBeam.ao", 30}, --勇士-卜拉克斯
 
@@ -516,7 +516,7 @@ local my_game_info = {
         {3,"GAScorpionBossStabTailSlam",40}, -- 沙丘居民.卡拉许的尾部重击
         {3,"EAASharkBossSandnado",80},  --  沙吐boss  沙旋风
         {1,"EAASharkBossBurrowEmerge",30},  --  沙吐boss  地底咬合
- 
+        
     },
 
     -- 监测技能 扇形  name ,angle, lenth
@@ -535,6 +535,7 @@ local my_game_info = {
         {"GTKulemakBossMegaBeam",200,35}, -- 骷髅马克单射线
         {"EAAKulemakBossTeleportEscapeNoCD",55,55}, -- 骷髅马克陨石坠
         {"Metadata/Effects/Spells/monsters_effects/League_Abyss/Kulemak/augmented_initial_arena_cleave_telegraph.ao",200,200},  -- 骷髅马克冰幕
+        -- {"MeleeAtAnimationSpeedBoss",30,30},-- 帕拉隆刚苏醒的重击
         {"MPSBalbalaCoin",30,30},-- 帕拉隆刚苏醒的重击
         {"BalbalaHideAndSeekSlam",40,40},-- 帕拉隆刚苏醒的重击
         -- {"EAABalbalaDaggerSummonMultiThrow",50,50},-- 帕拉隆  铺设的地刺
@@ -546,6 +547,7 @@ local my_game_info = {
         {"Metadata/Effects/Spells/monsters_effects/Act2_FOUR/Balbala/knifecopy_proj.ao",100,20},-- 帕拉隆  飞刺
         
     },
+    
 
     -- # 商人npc
     merchant_npc = {"烏娜"},
