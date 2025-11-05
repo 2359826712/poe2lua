@@ -37221,6 +37221,7 @@ local plot_nodes = {
             end
             if self.last_click_time == nil or self.last_click_interaction ==  nil then
                 self.last_click_time = 0
+                self.last_click_interaction = 0 
             end 
             if self.last_click_interaction == 0 then
                 self.last_click_interaction = api_GetTickCount64()
