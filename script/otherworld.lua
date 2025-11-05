@@ -27800,31 +27800,6 @@ local plot_nodes = {
                 map_ys_level_min)
 
             if not store then
-                -- poe2_api.dbgp("ooooooooooooooo")
-                local not_config_altar_item = nil
-                for _, v in ipairs(bag_info) do
-                    if poe2_api.table_contains(altar_shop_config, v.baseType_utf8) then
-                        not_config_altar_item = v
-                    end
-                end
-                if not_config_altar_item then
-                    if not is_not_altar_shop(not_config_altar_item) then
-                        local text = poe2_api.get_item_type(not_config_altar_item)
-                        local item_key = ""
-                        if text ~= "" then
-                            item_key = text
-                        else
-                            for k, v in pairs(my_game_info.type_conversion) do
-                                if not_config_altar_item.category_utf8 == v then
-                                    item_key = k
-                                    break
-                                end
-                            end
-                        end
-                        error("未配置购物祭祀物品：->" ..
-                            not_config_altar_item.name_utf8 .. "<-,物品类型为:->" .. item_key .. "<-,相关存储页请在物品配置中添加")
-                    end
-                end
                 env.exchange_status = false
                 if poe2_api.find_text({ UI_info = env.UI_info, text = "強調物品", min_y = 700, min_x = 250 }) then
                     poe2_api.click_keyboard('space')
@@ -29067,7 +29042,6 @@ local plot_nodes = {
             local config = env.user_config
             local need_item = env.need_item
             local is_decompose = config["全局設置"]["刷图通用設置"]["是否分解暗金"] or false
-            local altar_shop_config = config['刷圖設置']["祭祀購買"]
             local stuck_monsters = env.stuck_monsters
             -- local item_list = env.range_items
             local player_info = env.player_info
@@ -29184,15 +29158,6 @@ local plot_nodes = {
                                 break
                             end
 
-                        end
-                        if poe2_api.table_contains(item.baseType_utf8,altar_shop_config) then
-                            -- poe2_api.dbgp("kkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkk")
-                            if env.pick_up_timeout and next(env.pick_up_timeout) and poe2_api.table_contains(item.id,env.pick_up_timeout) then
-                                break
-                            end
-                            env.interactive = item
-                            env.need_item = item
-                            return true
                         end
                         if is_decompose then
                             -- poe2_api.dbgp("mmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm")
