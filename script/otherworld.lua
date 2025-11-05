@@ -37227,7 +37227,7 @@ local plot_nodes = {
                 self.last_click_interaction = api_GetTickCount64()
             end
             if api_GetTickCount64() - self.last_click_interaction > 15*1000 then
-                local obj_walk_point = api_FindRandomWalkablePosition(obj.grid_x, obj.grid_y,30)
+                local obj_walk_point = api_FindRandomWalkablePosition(player_info.grid_x, player_info.grid_y,30)
                 api_ClickMove(obj_walk_point.x,obj_walk_point.y,0)
                 poe2_api.click_keyboard("space")
                 self.last_click_interaction  = 0
