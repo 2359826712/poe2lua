@@ -25411,7 +25411,6 @@ local plot_nodes = {
                             return bret.RUNNING
                         else
                             poe2_api.dbgp("日志文件删除失败: " .. (error_msg or "未知错误"))
-                            return bret.RUNNING
                         end
                     else
                         poe2_api.dbgp("日志路径无效或为空")
