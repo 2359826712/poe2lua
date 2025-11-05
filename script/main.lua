@@ -21,7 +21,6 @@ local bt = otherworld.create()
 i = 0
 while true do
     i = i + 1
-    
     -- 记录开始时间（毫秒）
     local start_time = api_GetTickCount64()  -- 转换为 ms
 
