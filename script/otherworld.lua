@@ -36955,9 +36955,13 @@ local plot_nodes = {
                                     env.end_point = {interaction_point.x,interaction_point.y}
                                     return bret.SUCCESS
                                 else
-                                    if obj.name_utf8 == "把手" and player_info.current_map_name_utf8 == "G4_5_1" then
+                                    if obj.name_utf8 == "把手" and player_info.current_map_name_utf8 == "G4_5_1" and team_member_2 == "大号名称" then
                                         api_ClickMove(poe2_api.toInt(obj.grid_x),poe2_api.toInt(obj.grid_y),1,poe2_api.toInt(obj.world_z))
                                         api_Sleep(500)
+                                        return bret.RUNNING
+                                    elseif obj.name_utf8 == "把手" and player_info.current_map_name_utf8 == "G4_5_1" and team_member_2 ~= "大号名称" then
+                                        api_Sleep(500)
+                                        env.not_need_active = true
                                         return bret.RUNNING
                                     end
                                     env.is_arrive_end = true
