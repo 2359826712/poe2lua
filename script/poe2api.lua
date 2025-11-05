@@ -172,8 +172,18 @@ _M.find_text = function(params)
 
     -- 辅助函数：执行点击操作
     local function perform_click(x, y, click_type, add_x, add_y)
-        local final_x = math.floor(x + add_x)
-        local final_y = math.floor(y + add_y)
+        local final_x = x
+        local final_y = y
+        if (not add_x or add_x == 0) and (not add_y or add_y == 0) then
+            _M.dbgp("add_x, add_y")
+            local a = math.random(-15, 15)
+            final_x = math.floor(x + a)
+            local b = math.random(-5, 5)
+            final_y = math.floor(y + b)
+        else
+            final_x = math.floor(x + add_x)
+            final_y = math.floor(y + add_y)
+        end
         _M.dbgp("文本坐标",final_x, final_y)
         if click_type == 1 then
             api_ClickScreen(final_x, final_y, 0)
@@ -202,8 +212,17 @@ _M.find_text = function(params)
 
     -- 辅助函数：执行点击操作
     local function perform_click_delay(x, y, click_type, add_x, add_y)
-        local final_x = math.floor(x + add_x)
-        local final_y = math.floor(y + add_y)
+        local final_x = x
+        local final_y = y
+        if (not add_x or add_x == 0) and (not add_y or add_y == 0) then
+            local a = math.random(-15, 15)
+            final_x = math.floor(x + a)
+            local b = math.random(-5, 5)
+            final_y = math.floor(y + b)
+        else
+            final_x = math.floor(x + add_x)
+            final_y = math.floor(y + add_y)
+        end
         _M.dbgp("文本坐标",final_x, final_y)
         if click_type == 1 then
             api_ClickScreen(final_x, final_y, 0, defaults.delay, defaults.delay + 15)

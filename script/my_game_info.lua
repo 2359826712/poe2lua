@@ -291,7 +291,9 @@ local my_game_info = {
         }, -- 女巫水球
         {1, "Metadata/Monsters/LeagueRitual/Daemons/volatile.ao", 10}, -- 祭坛追踪紫色爆炸球
         {1, "Metadata/Monsters/MonsterMods/VolatilePlants/volatile.ao", 10}, -- 追踪紫色爆炸球
-        {1, "Metadata/Effects/Spells/monsters_effects/Act4_FOUR/Yama/AOs/EyeSlamGroundEffect.ao", 35} -- 白之亞瑪 眼球技能 -- 追踪紫色爆炸球
+        {1, "Metadata/Effects/Spells/monsters_effects/Act4_FOUR/Yama/AOs/EyeSlamGroundEffect.ao", 35}, -- 白之亞瑪 眼球技能 -- 追踪紫色爆炸球
+        {1,"Metadata/Monsters/SirenMonster/WaterBallMonster.ao",30},  -- 深邃之女 水球技能
+        {1,"Metadata/Effects/Spells/monsters_effects/Act4_FOUR/Siren/water_dump_01.ao",50}  -- 深邃之女 大水球技能
     },
 
     MonitoringSkills_Circle = {
@@ -518,13 +520,24 @@ local my_game_info = {
         {1,"EAASharkBossBurrowEmerge",30},  --  沙吐boss  地底咬合
         {1,"ForsakenCyclone",40},  --  堕落之子 哈斯克  旋转火焰移动
         {1,"GAExecutionerMegaSlam",40},  --  堕落之子 哈斯克  旋转火焰移动
+        {1,"Metadata/Effects/Spells/monsters_effects/Act1_FOUR/FungusBehemoth/swamp_mortar_spam_impact.ao",20},  --  真菌巨靈 连续掼蛋
+        {1,"Metadata/Effects/Spells/monsters_effects/Act1_FOUR/FungusBehemoth/swamp_boulder.ao",50},  --  真菌巨靈 天外陨石
+        {1,"Metadata/Effects/Spells/monsters_effects/Act2_FOUR/GreatShakeSkeletonBoss/groundDust.ao",50},  --  骨之暴君  头槌
+        {1,"MAASRudjaEnragedAttacks",50},  --  炼狱工程师 手提炸弹
         
+        {1,"Metadata/Effects/Spells/monsters_effects/Act4_FOUR/Siren/WaterGeyserGroundEffect.ao",30},  --  深邃之女  水柱
+        {1,"MAASRudjaEnragedAttacks",50},  --  炼狱工程师 手提炸弹
+        {1,"Metadata/Monsters/SirenMonster/WaterBallMonster.ao",40},  -- 深邃之女 水球技能
+        {1,"Metadata/Effects/Spells/monsters_effects/Act4_FOUR/Siren/water_dump_01.ao",50},  -- 深邃之女 大水球技能
+        {1,"Metadata/Effects/Spells/monsters_effects/Act4_FOUR/Siren/water_dump_01.ao",50},  -- 深邃之女 大水球技能
+        {1,"Metadata/Effects/Spells/monsters_effects/Act3_FOUR/Doryani/solar_orb.ao",40},  -- 多里亚里 太阳球技能
     },
 
     -- 监测技能 扇形  name ,angle, lenth
     MonitoringSkills_Sector = {
         {"Metadata/Effects/Spells/monsters_effects/League_Abyss/FarudinCorpseStrider/spike_proj_impact.ao", 40, 60}, --深渊精英怪地刺
         {"GTKulemakBossMegaBeamAugment",130,200}, -- 骷髅马克三射线
+        {"MAASGiantSnakeBossSweep",130,50}, -- 骨之暴君  横扫
     },
 
     -- 监测技能 矩形
@@ -551,8 +564,13 @@ local my_game_info = {
         {"EASForsakenSonDouBleLacerate",100,30},  --  堕落之子 哈斯克  交叉火焰
         {"EASForsakenSonDoubleSlam",100,30},  --  堕落之子 哈斯克  火焰重击
         {"MAASExecutionerBossTriggerSlam",100,30},  --  死亡化身  蓄力劈砍
-        
-        
+        -- {"Metadata/Effects/Spells/monsters_effects/Act2_FOUR/RudjaDreadEngineer/tar_GRDZONE.ao",100,20},  --  炼狱工程师  喷射火焰
+        {"EASRudjaFlamethrowerRight",100,20},  --  炼狱工程师  喷射火焰
+        {"EASRudjaFlamethrowerLeft",100,20},  --  炼狱工程师  喷射火焰
+        {"EDSSirenBossScreech",100,30},  --  深邃之女  喷射水柱
+        {"GSSirenBossWaterJet",150,30},  --  深邃之女  喷射水柱
+        {"GSDoryaniHumanBossBeamBladt",150,80},  --  多利亚里  激光喷射
+        {"GSDoryaniCrabFrostLaser",150,30},  --  多利亚里  移动冰激光喷射
     },
     
 

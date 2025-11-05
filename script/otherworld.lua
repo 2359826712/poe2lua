@@ -10267,7 +10267,7 @@ local custom_nodes = {
                         local dis = poe2_api.point_distance(i.grid_x, i.grid_y, player_info)
                         if dis and dis < 25 then
                             if not string.find(player_info.current_map_name_utf8,game_str.Abyss) then
-                                poe2_api.find_text({text = i.name_utf8,UI_info = env.UI_info,min_x=200,min_y=200,click=2})
+                                poe2_api.find_text({text = i.name_utf8,UI_info = env.UI_info,min_x=200,max_x= 1350,click=2})
                             else
                                 poe2_api.find_text({text = i.name_utf8,UI_info = env.UI_info,min_x=200,click=2})
                             end
@@ -10451,7 +10451,7 @@ local custom_nodes = {
                                 local dis = poe2_api.point_distance(i.grid_x, i.grid_y, player_info)
                                 if dis and dis < 25 then
                                     if not string.find(player_info.current_map_name_utf8,game_str.Abyss) then
-                                        poe2_api.find_text({text = i.name_utf8,UI_info = env.UI_info,min_x=200,min_y=200,click=2})
+                                        poe2_api.find_text({text = i.name_utf8,UI_info = env.UI_info,min_x=200,max_x= 1350,click=2})
                                     else
                                         poe2_api.find_text({text = i.name_utf8,UI_info = env.UI_info,min_x=200,click=2})
                                         env.bag_man = true
@@ -18964,7 +18964,7 @@ local custom_nodes = {
                 else
                     text = interactive_object.name_utf8
                 end
-                if (distance and distance > dis) or ( not poe2_api.table_contains(text,{game_str.Switch_CH,game_str.Door_CH}) and not api_HasObstacleBetween(x, y)) then
+                if (distance and distance > dis) or ( not poe2_api.table_contains(text,{game_str.Switch_CH,game_str.Door_CH,game_str.MapDevice}) and not api_HasObstacleBetween(x, y)) then
                     env.end_point = {x, y}
                     return {x, y}
                 end
@@ -21437,7 +21437,7 @@ local custom_nodes = {
                     env.interactiontimeout = api_GetTickCount64()
                 end
                 if interaction_object.is_selectable and interaction_object.rarity ==3 and interaction_object.type==1 and interaction_object.life>0 then
-                    if is_target1 then
+                    if is_target1 or is_target then
                         env.interactiontimeout = 0
                         env.interaction_object = nil
                         env.interactive_id = nil
@@ -21575,27 +21575,27 @@ local custom_nodes = {
                         end
                         return false
                     end
-                    if env.is_click_essence and game_str.Monolith_PATH == interaction_object.path_name_utf8 and next(interaction_object.stateMachineList) and interaction_object.stateMachineList[game_str.is_corrupted_SML] and interaction_object.stateMachineList[game_str.is_corrupted_SML] == 0 and get_item(game_str.Vaal_Orb_TWCH) then
-                        if player_info.isMoving then
-                            poe2_api.dbgp("玩家正在移动，等待停止")
-                            -- poe2_api.time_p("判断是否需要交互（RUNNING7）... 耗时 --> ", api_GetTickCount64() - start_time)
-                            return bret.RUNNING
-                        end
-                        if not poe2_api.find_text({text = game_str.backpack,UI_info = env.UI_info, min_x = 1020,min_y=32,max_x=1600,max_y=78}) then
-                            poe2_api.click_keyboard("i")
-                            api_Sleep(100)
-                            return bret.RUNNING
-                        end
+                    -- if env.is_click_essence and game_str.Monolith_PATH == interaction_object.path_name_utf8 and next(interaction_object.stateMachineList) and interaction_object.stateMachineList[game_str.is_corrupted_SML] and interaction_object.stateMachineList[game_str.is_corrupted_SML] == 0 and get_item(game_str.Vaal_Orb_TWCH) then
+                    --     if player_info.isMoving then
+                    --         poe2_api.dbgp("玩家正在移动，等待停止")
+                    --         -- poe2_api.time_p("判断是否需要交互（RUNNING7）... 耗时 --> ", api_GetTickCount64() - start_time)
+                    --         return bret.RUNNING
+                    --     end
+                    --     if not poe2_api.find_text({text = game_str.backpack,UI_info = env.UI_info, min_x = 1020,min_y=32,max_x=1600,max_y=78}) then
+                    --         poe2_api.click_keyboard("i")
+                    --         api_Sleep(100)
+                    --         return bret.RUNNING
+                    --     end
                     
-                        poe2_api.ctrl_left_click_bag_items(game_str.Vaal_Orb_TWCH,env.bag_info,1)
-                        api_Sleep(100)
-                        api_ClickMove(poe2_api.toInt(interaction_object.grid_x), poe2_api.toInt(interaction_object.grid_y), 1)
-                        -- poe2_api.find_text({text = game_str.Monsters_are_imprisoned_by_powerful_essence_TWCH, UI_info = env.UI_info, min_x=200,max_y=750,match=2,max_x=1200,sorted = true, click=2})
-                        env.interactive_id = nil
-                        env.interactiontimeout = 0
-                        env.interaction_object = nil
-                        return bret.RUNNING
-                    end
+                    --     poe2_api.ctrl_left_click_bag_items(game_str.Vaal_Orb_TWCH,env.bag_info,1)
+                    --     api_Sleep(100)
+                    --     api_ClickMove(poe2_api.toInt(interaction_object.grid_x), poe2_api.toInt(interaction_object.grid_y), 1)
+                    --     -- poe2_api.find_text({text = game_str.Monsters_are_imprisoned_by_powerful_essence_TWCH, UI_info = env.UI_info, min_x=200,max_y=750,match=2,max_x=1200,sorted = true, click=2})
+                    --     env.interactive_id = nil
+                    --     env.interactiontimeout = 0
+                    --     env.interaction_object = nil
+                    --     return bret.RUNNING
+                    -- end
                     if (string.find(interaction_object.path_name_utf8,game_str.StrongBoxes_PATH) and interaction_object.rarity < 2) and next(interaction_object.stateMachineList) and interaction_object.stateMachineList[game_str.started_SML] == 0 and interaction_object.stateMachineList[game_str.opened_SML] == 0 and env.is_open_gameplay_safe then
                         if poe2_api.find_text({UI_info = env.UI_info,text = game_str.Not_Identified_TWCH,min_x=100,max_x=1300,max_y=850,sorted=true}) then
                             if get_item(game_str.The_Knowledge_Scroll)  then
@@ -21716,7 +21716,7 @@ local custom_nodes = {
                     --             if i.name_utf8 ~= "" and i.type == 5 and poe2_api.table_contains(i.name_utf8,my_game_info.hideout_CH) then
                     --                 local dis = poe2_api.point_distance(i.grid_x, i.grid_y, player_info)
                     --                 if dis and dis < 25 then
-                    --                     poe2_api.find_text({text = i.name_utf8,UI_info = env.UI_info,min_x=0,min_y=200,click=2})
+                    --                     poe2_api.find_text({text = i.name_utf8,UI_info = env.UI_info,min_x=0,max_x= 1350,click=2})
                     --                     api_Sleep(200)
                     --                     env.is_map_complete = true
                     --                     poe2_api.time_p("判断是否需要交互（RUNNING8）... 耗时 --> ", api_GetTickCount64() - start_time)
@@ -29339,7 +29339,7 @@ local plot_nodes = {
                             if i.name_utf8 ~= "" and i.type == 5 and poe2_api.table_contains(i.name_utf8,my_game_info.hideout_CH) then
                                 local dis = poe2_api.point_distance(i.grid_x, i.grid_y, player_info)
                                 if dis and dis < 25 then
-                                    poe2_api.find_text({text = i.name_utf8,UI_info = env.UI_info,min_x=0,min_y=200,click=2})
+                                    poe2_api.find_text({text = i.name_utf8,UI_info = env.UI_info,min_x=0,max_x= 1350,click=2})
                                     api_Sleep(200)
                                     env.need_item = nil
                                     poe2_api.time_p("检查是否拾取（RUNNING3）... 耗时 --> ", api_GetTickCount64() - start_time)
