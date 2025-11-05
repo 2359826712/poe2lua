@@ -32257,8 +32257,8 @@ local plot_nodes = {
             if range_items then
                 for _, item in ipairs(range_items) do
                     if item.baseType_utf8 == item_name then
-                        if poe2_api.find_text({ UI_info = UI_info, text = item.baseType_utf8, sorted = true }) then
-                            poe2_api.find_text({ UI_info = UI_info, text = item.baseType_utf8, sorted = true, click = 2 })
+                        if poe2_api.find_text({ UI_info = UI_info, text = item.baseType_utf8, sorted = true ,refresh = true}) then
+                            poe2_api.find_text({ UI_info = UI_info, text = item.baseType_utf8, sorted = true,refresh = true, click = 2 })
                         else
                             api_ClickMove(poe2_api.toInt(item.grid_x), poe2_api.toInt(item.grid_y), 1)
                         end
@@ -33215,7 +33215,7 @@ local plot_nodes = {
                 self.follow = false
             end
             if not self.follow and ((special_map_point and interaction_object and string.find(me_area, "G2_town")) or (me_area ~= task_area and poe2_api.table_contains(task_area, { "G3_1", "G3_2_2" }) and not party_dis_memember(range_info))
-                    or (me_area ~= task_area and poe2_api.table_contains(task_area, { "G3_12",  "G3_14", "G3_16", "G3_17" })) or poe2_api.table_contains(task_name, { "回到過去，進入奧札爾", "探索科佩克神殿並尋找瓦爾的知識展覽室" }) or (poe2_api.table_contains(party_pos(team_member_4), { "G2_1","G4_2_2" }))) then
+                    or (me_area ~= task_area and poe2_api.table_contains(task_area, { "G3_12",  "G3_14", "G3_16", "G3_17" })) or poe2_api.table_contains(task_name, { "回到過去，進入奧札爾"}) or (poe2_api.table_contains(party_pos(team_member_4), { "G2_1","G4_2_2" }))) then
                 
                 poe2_api.dbgp("大号跟随传送")
                 if not poe2_api.find_text({ UI_info = env.UI_info, text = "/clear", min_x = 0 })and not self.bool2 then
@@ -37219,9 +37219,19 @@ local plot_nodes = {
             
                 return true
             end
-            if self.last_click_time == nil then
+            if self.last_click_time == nil or self.last_click_interaction ==  nil then
                 self.last_click_time = 0
             end 
+            if self.last_click_interaction == 0 then
+                self.last_click_interaction = api_GetTickCount64()
+            end
+            if api_GetTickCount64() - self.last_click_interaction > 15*1000 then
+                local obj_walk_point = api_FindRandomWalkablePosition(obj.grid_x, obj.grid_y,30)
+                api_ClickMove(obj_walk_point.x,obj_walk_point.y,0)
+                poe2_api.click_keyboard("space")
+                self.last_click_interaction  = 0
+                return bret.RUNNING
+            end
             if not interaction_object or #interaction_object == 0 then
                 env.is_not_ui = true
                 return bret.RUNNING 
