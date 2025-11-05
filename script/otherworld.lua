@@ -38124,11 +38124,7 @@ local plot_nodes = {
             -- 安全区域特殊处理
             if poe2_api.table_contains(my_game_info.hideout, player_info.current_map_name_utf8) then
                 poe2_api.dbgp("当前位于安全区域")
-                if poe2_api.find_text({ UI_info = env.UI_info, text = "再會" }) then
-                    poe2_api.dbgp("检测到再會按钮，将执行点击操作")
-                    poe2_api.find_text({ UI_info = env.UI_info, text = "再會", click = 2 })
-                    return bret.RUNNING
-                end
+                
                 -- 检测地图启动失败情况
                 if poe2_api.find_text({ UI_info = env.UI_info, text = "啟動失敗。地圖無法進入。" }) then
                     poe2_api.dbgp("检测到地图启动失败提示，设置need_SmallRetreat为true")
@@ -38487,6 +38483,11 @@ local plot_nodes = {
                 return bret.SUCCESS
             end
             if not env.is_arrive_end then
+                if poe2_api.find_text({ UI_info = env.UI_info, text = "再會" }) then
+                    poe2_api.dbgp("检测到再會按钮，将执行点击操作")
+                    poe2_api.find_text({ UI_info = env.UI_info, text = "再會", click = 2 })
+                    return bret.RUNNING
+                end
                 return bret.FAIL
             end
         end
