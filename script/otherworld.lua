@@ -1437,6 +1437,10 @@ local custom_nodes = {
                 end
             end  
             poe2_api.dbgp("完成")
+            if poe2_api.find_text({UI_info = env.UI_info, text = game_str.Private_message, add_x = 265, min_x = 0, max_x = 400, click = 2}) then
+                api_Sleep(1000)
+                return bret.RUNNING
+            end
             local elapsed_ms = (api_GetTickCount64()) - start_time
             poe2_api.time_p("执行清理... 耗时 --> ", api_GetTickCount64() - start_time)
             return bret.SUCCESS
@@ -29973,9 +29977,10 @@ local plot_nodes = {
                 if self.current_time == 0  then
                     self.current_time = api_GetTickCount64()
                 end
-                if (not env.bool1) or (api_GetTickCount64() - self.current_time > 1000*10) then
+                if (not env.bool1) or (api_GetTickCount64() - self.current_time > 1000*2) then
                     poe2_api.dbgp("发送名字给队长")
                     env.bool1 = true
+                    self.current_time = 0
                     poe2_api.click_keyboard("enter")
                     api_Sleep(200)
                     poe2_api.paste_text("@"..captain_name.." "..player_info.name_utf8)
@@ -32283,6 +32288,7 @@ local plot_nodes = {
                         end
                         api_Sleep(200)
                         env.waypoint = api_GetTeleportationPoint()
+
                         api_Sleep(1000)
                         return bret.RUNNING
                     end
@@ -32307,6 +32313,11 @@ local plot_nodes = {
                             if poe2_api.find_text({ UI_info = env.UI_info, text = "快行", refresh = true }) then
                                 api_ClickScreen(poe2_api.toInt(waypoint_screen[1]), poe2_api.toInt(waypoint_screen[2]), 0)
                                 api_Sleep(600)
+                                if not poe2_api.find_text({ UI_info = env.UI_info, text = "哈拉妮關口",min_x = 0, refresh = true }) then
+                                    poe2_api.dbgp("[Need_Twice_Teleport]没有找到哈拉妮關口")
+                                    waypoint_screen = nil
+                                    return bret.RUNNING
+                                end
                                 api_ClickScreen(poe2_api.toInt(waypoint_screen[1]), poe2_api.toInt(waypoint_screen[2]), 1)
                                 api_Sleep(600)
                                 if poe2_api.find_text({ UI_info = env.UI_info, text = "快行" }) then
@@ -37234,7 +37245,7 @@ local plot_nodes = {
                     end
                 end
                 if interaction_object[2] == "把手" and player_info.current_map_name_utf8 == "G4_5_2" then
-                    if poe2_api.find_text({UI_info = UI_info,text = interaction_object[2], min_x = 160,refresh = true}) then
+                    if poe2_api.find_text({UI_info = UI_info,text = interaction_object[2], min_x = 160,refresh = true}) and team_member_2 == "大号名称" then
                         poe2_api.find_text({UI_info = UI_info,text = interaction_object[2], click = 2, min_x = 160,refresh = true})
                         if poe2_api.find_text({UI_info = UI_info,text = "記錄點",  min_x = 160,refresh = true}) then
                             api_Sleep(12000)
@@ -37242,6 +37253,9 @@ local plot_nodes = {
                         else
                             api_Sleep(5000)
                         end
+                        return bret.RUNNING
+                    else 
+                        env.is_not_ui = true
                         return bret.RUNNING
                     end         
                 end
