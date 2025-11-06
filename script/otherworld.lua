@@ -32314,7 +32314,7 @@ local plot_nodes = {
                                 api_ClickScreen(poe2_api.toInt(waypoint_screen[1]), poe2_api.toInt(waypoint_screen[2]), 0)
                                 api_Sleep(600)
                                 if not poe2_api.find_text({ UI_info = env.UI_info, text = "腐化痕跡",min_x = 0, refresh = true }) then
-                                    poe2_api.dbgp("[Need_Twice_Teleport]没有找到哈拉妮關口")
+                                    poe2_api.dbgp("[Need_Twice_Teleport]没有找到腐化痕跡")
                                     waypoint_screen = nil
                                     api_Sleep(600)
                                     poe2_api.click_keyboard("space")
