@@ -32287,6 +32287,11 @@ local plot_nodes = {
                         return bret.RUNNING
                     end
                     if string.find(player_info.current_map_name_utf8, "G2_town") then
+                        if poe2_api.find_text({ UI_info = env.UI_info, text = "再會",min_x = 0 }) then
+                            poe2_api.dbgp("检测到再會按钮，将执行点击操作")
+                            poe2_api.find_text({ UI_info = env.UI_info, text = "再會",min_x = 0, click = 2 })
+                            return bret.RUNNING
+                        end
                         if not poe2_api.find_text({ UI_info = env.UI_info, text = "快行", refresh = true }) then
                             if poe2_api.find_text({ UI_info = env.UI_info, text = "沙漠", min_y = 100, min_x = 195, max_x = 1185, max_y = 880, refresh = true }) then
                                 poe2_api.find_text({ UI_info = env.UI_info, text = "沙漠", click = 2, min_y = 100, min_x = 195, max_x = 1185, max_y = 880, refresh = true })
