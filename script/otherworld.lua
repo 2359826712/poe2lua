@@ -33363,7 +33363,7 @@ local plot_nodes = {
                         local near_point_actor = api_CollectReachableInCircleSimple(actor.grid_x, actor.grid_y, 25)
                         local near_sorted = poe2_api.sort_recent_point_list(near_point_actor, player_info.grid_x, player_info.grid_y)
 
-                        local result = api_FindPath(near_point.x, near_point.y, near_sorted[1].x, near_sorted[2].y)
+                        local result = api_FindPath(near_point.x, near_point.y, near_sorted[1].x, near_sorted[1].y)
                         if result and #result > 0 then
                             return true
                         end
@@ -37719,12 +37719,12 @@ local plot_nodes = {
             end
             local target = check_pos(team_member_3)
             if target then
-                if poe2_api.point_distance(target.grid_x, target.grid_y, player_info) <= 20 then
-                    poe2_api.dbgp("与队长距离小于20")
+                if poe2_api.point_distance(target.grid_x, target.grid_y, player_info) <= 25 then
+                    poe2_api.dbgp("与队长距离小于25")
                     env.path_list_follow = {}
                     local player_walk_point = api_FindRandomWalkablePosition(player_info.grid_x, player_info.grid_y, 30)
                     local dis = poe2_api.point_distance(player_walk_point.x, player_walk_point.y, player_info)
-                    if dis >= 20 then
+                    if dis >= 10 then
                         api_ClickMove(poe2_api.toInt(player_walk_point.x), poe2_api.toInt(player_walk_point.y) , 0)
                         api_Sleep(200)
                         poe2_api.click_keyboard("space")
