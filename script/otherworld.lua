@@ -28138,6 +28138,7 @@ local plot_nodes = {
         end
     },
 
+
     -- 存储动作
     Store_Items = {
         run = function(self, env)
@@ -33330,7 +33331,7 @@ local plot_nodes = {
                     if not member_names[actor.name_utf8] or actor.name_utf8 == team_member_3 then
                         goto continue
                     end
-                    
+
                     -- 检查路径是否可达
                     local point = api_FindNearestReachableInRange(actor.grid_x, actor.grid_y, 25)
                     local path =  api_FindPath(player_info.grid_x, player_info.grid_y, point.x, point.y)
