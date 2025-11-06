@@ -27270,8 +27270,9 @@ local plot_nodes = {
     Is_Store_Items = {
         run = function(self, env)
             poe2_api.print_log("是否存储...")
+            local start_time = api_GetTickCount64()
             local config = env.user_config
-            local map_config = config['刷圖設置']["地圖鑰匙"]
+            local map_config = config['刷圖設置'][game_str.Map_Key_CH]
             local altar_shop_config = config['刷圖設置']["祭祀購買"]
             -- local dist_ls = config['刷圖設置']['異界地圖']['涂油设置']
             local not_use_map = env.not_use_map
@@ -27291,7 +27292,7 @@ local plot_nodes = {
             local function deep_equal_unordered_full(a, b)
                 if type(a) ~= type(b) then return false end
                 if type(a) ~= "table" then return a == b end
-
+            
                 -- 检查所有键值对（包括非数字键）
                 local visited = {}
                 for k, v in pairs(a) do
@@ -27300,14 +27301,14 @@ local plot_nodes = {
                     end
                     visited[k] = true
                 end
-
+            
                 -- 检查 b 中有没有 a 没有的键
                 for k, _ in pairs(b) do
                     if not visited[k] then
                         return false
                     end
                 end
-
+            
                 return true
             end
             local function get_object(name, data_list)
@@ -27346,13 +27347,13 @@ local plot_nodes = {
             -- 祭祀购买是否配置了存储页
             local function is_not_altar_shop(item)
                 local text = poe2_api.get_item_type(item)
-                poe2_api.print_log("祭祀购买物品类型:" .. text)
+                poe2_api.print_log("祭祀购买物品类型:"..text)
                 local item_key = ""
                 if text ~= "" then
                     item_key = text
                 else
                     poe2_api.dbgp("999999999999999999")
-                    poe2_api.dbgp("item.category_utf8:" .. item.category_utf8)
+                    poe2_api.dbgp("item.category_utf8:"..item.category_utf8)
                     for k, v in pairs(my_game_info.type_conversion) do
                         -- poe2_api.dbgp("k:"..k.." v:"..v)
                         if item.category_utf8 == v then
@@ -27361,44 +27362,46 @@ local plot_nodes = {
                         end
                     end
                 end
-                poe2_api.dbgp("item_key:" .. type(item_key))
+                poe2_api.dbgp("item_key:"..type(item_key))
                 if item_key and item_key ~= "" then
                     local item_type_list = {}
                     for _, v in ipairs(items_info) do
-                        poe2_api.dbgp("type(v):" .. v['類型'])
-
+                        poe2_api.dbgp("type(v):"..v['類型'])
+                        
                         if v['類型'] == item_key then
                             poe2_api.dbgp("10101010101")
-                            table.insert(item_type_list, v)
+                            table.insert(item_type_list,v)
                         end
                     end
-
+                    
                     if item_type_list and next(item_type_list) then
+                        
                         for _, v in ipairs(item_type_list) do
                             if not v["不撿"] then
-                                if v['基礎類型名'] == "全部物品" or string.find(v['基礎類型名'], item.baseType_utf8) then
+                                if v['基礎類型名'] == "全部物品" or string.find(v['基礎類型名'],item.baseType_utf8) then
                                     return true
                                 end
                             end
                         end
                     end
                 else
-                    error("物品名称:" .. item.name_utf8 .. "新物品类型:" .. item.category_utf8 .. "请联系我们添加，感谢您的支持")
+                    error("物品名称:"..item.name_utf8.."新物品类型:"..item.category_utf8.."请联系我们添加，感谢您的支持")
                 end
                 return false
+
             end
             -- 背包排序
             local function get_store_bag_info(bag)
-                local function item_save_as1(goods, cfg_object)
+                local function item_save_as1(goods,cfg_object)
                     local satisfy = {}
                     for _, v in ipairs(items_info) do
-                        if not v["不撿"] and v["存倉頁名"] and v["存倉頁名"] ~= "" and string.find(v["基礎類型名"], goods.baseType_utf8) then
-                            table.insert(satisfy, v)
+                        if not v["不撿"] and v["存倉頁名"] and v["存倉頁名"] ~= "" and string.find(v["基礎類型名"],goods.baseType_utf8) then
+                            table.insert(satisfy,v)
                         end
                     end
                     if next(satisfy) then
                         for _, v in ipairs(satisfy) do
-                            if not deep_equal_unordered_full(v, cfg_object) then
+                            if not deep_equal_unordered_full(v,cfg_object) then
                                 if v["工會倉庫"] then
                                     return 1
                                 else
@@ -27406,56 +27409,59 @@ local plot_nodes = {
                                 end
                             end
                         end
+                    
                     end
                     return false
                 end
                 local store_bag = {}
                 local store_bag1 = {}
                 local store_bag2 = {}
-                for _, v in ipairs(bag) do
+                for _,v in ipairs(bag) do
+                    
                     for _, item in ipairs(items_info) do
-                        if poe2_api.match_item(v, item, 1) and not item["工會倉庫"] and not item["不撿"] then
-                            local a = item_save_as1(v, item)
+                        if poe2_api.match_item(v,item) and not item["工會倉庫"] and not item["不撿"] then
+                            local a = item_save_as1(v,item)
                             if a then
                                 if a == 1 then
-                                    table.insert(store_bag2, v)
+                                    table.insert(store_bag2,v)
                                     break
                                 end
                             end
-                            table.insert(store_bag1, v)
-                        elseif poe2_api.match_item(v, item, 1) and item["工會倉庫"] and not item["不撿"] then
-                            local a = item_save_as1(v, item)
+                            table.insert(store_bag1,v)
+                        elseif poe2_api.match_item(v,item) and item["工會倉庫"] and not item["不撿"] then
+                            local a = item_save_as1(v,item)
                             if a then
                                 if a == 2 then
-                                    table.insert(store_bag1, v)
+                                    table.insert(store_bag1,v)
                                     break
                                 end
                             end
-                            table.insert(store_bag2, v)
+                            table.insert(store_bag2,v)
                         end
                     end
                 end
-                poe2_api.dbgp("store_bag1:" .. #store_bag1)
-                poe2_api.dbgp("store_bag2:" .. #store_bag2)
+                poe2_api.dbgp("store_bag1:"..#store_bag1)
+                poe2_api.dbgp("store_bag2:"..#store_bag2)
                 for _, v in ipairs(store_bag1) do
                     table.insert(store_bag, v)
                 end
-
+                
                 for _, v in ipairs(store_bag2) do
                     table.insert(store_bag, v)
                 end
-
+               
                 return store_bag
+                
             end
             -- 判断是否需要存储
-            local function get_store_item(bag, is_insert_stone, unique_storage_pages, public_warehouse_pages,
-                                          map_ys_level_min)
+            local function get_store_item(bag,unique_storage_pages,public_warehouse_pages,map_ys_level_min)
+                 
                 -- 获取背包中的地图钥匙
                 local function get_map_number()
                     local items = {}
                     for _, item in ipairs(bag) do
-                        if item.category_utf8 == "Map" then
-                            table.insert(items, item)
+                        if item.category_utf8 == game_str.Map_EN then
+                            table.insert(items,item)
                         end
                     end
                     if items and next(items) then
@@ -27463,22 +27469,41 @@ local plot_nodes = {
                     end
                     return false
                 end
-
+                -- 获取背包地图数量
+                local function map_index()
+                    local number = get_map_number()
+                    if number and #number >= 4 then
+                        return true
+                    end
+                    return false
+                    
+                end
+                
                 -- 获取背包中不打等级的地图钥匙
                 local function get_map_not_level()
                     local map = get_map_number()
                     if map then
                         local tiers = {}
                         for _, v in ipairs(map_config) do
-                            table.insert(tiers, tonumber(v["階級"]))
+                            table.insert(tiers,tonumber(v["階級"]))
                         end
                         if tiers and next(tiers) then
                             for _, v1 in ipairs(map) do
-                                if not poe2_api.table_contains(poe2_api.extract_level(v1.baseType_utf8), tiers) then
+                                if not poe2_api.table_contains(poe2_api.extract_level(v1.baseType_utf8),tiers) then
                                     return v1
                                 end
+                                for _, v in ipairs(map_config) do
+                                    if poe2_api.extract_level(v1.baseType_utf8) == v["階級"]  then
+                                        if v1.color == 2 and not v["黃"] then
+                                            return v1
+                                        end
+                                        if v1.contaminated and not v["已污染"] then
+                                            return v1
+                                        end
+                                    end
+                                end
                             end
-                        end
+                        end 
                     end
                     return false
                 end
@@ -27486,8 +27511,8 @@ local plot_nodes = {
                 local function get_map_not_entry()
                     local map = get_map_number()
                     if map then
-                        for _, item in ipairs(map) do
-                            if item.color > 0 and not item.not_identified and match_item_suffixes(api_GetObjectSuffix(item.mods_obj), not_use_map) then
+                        for _,item in ipairs(map) do
+                            if item.color > 0 and not item.not_identified and match_item_suffixes(api_GetObjectSuffix(item.mods_obj),not_use_map) then
                                 return item
                             end
                         end
@@ -27497,19 +27522,15 @@ local plot_nodes = {
                 -- 找不是疯癫的地图
                 local function get_map_not_crazy()
                     local map = get_map_number()
-                    local max_map = poe2_api.select_best_map_key({
-                        inventory = bag,
-                        key_level_threshold = user_map,
-                        not_use_map =
-                            not_use_map,
-                        priority_map = priority_map
-                    })
+                    local max_map = poe2_api.select_best_map_key({inventory=bag,key_level_threshold=user_map,not_use_map = not_use_map,priority_map = priority_map})
                     if max_map then
                         local max_map_level = poe2_api.extract_level(max_map.baseType_utf8)
                         local is_oiled = nil
-                        for _, v in ipairs(map_config) do
+                        for _,v in ipairs(map_config) do
                             if v["階級"] == max_map_level then
-                                is_oiled = v["塗油設置"]["是否塗油"]
+                                if v["塗油設置"]  then
+                                    is_oiled = v["塗油設置"]["是否塗油"]
+                                end
                             end
                         end
                         if is_oiled then
@@ -27517,7 +27538,7 @@ local plot_nodes = {
                                 local item_entry = api_GetObjectSuffix(item.mods_obj)
                                 if item_entry and next(item_entry) then
                                     for _, entry in ipairs(item_entry) do
-                                        if string.find(entry.name_utf8, "譫妄") then
+                                        if string.find(entry.name_utf8,game_str.Delirium) then
                                             -- table.insert()
                                             return true
                                         end
@@ -27535,31 +27556,64 @@ local plot_nodes = {
                     end
                     return false
                 end
-
+                
                 -- 是否另存为
-                local function item_save_as(goods, cfg_object)
+                local function item_save_as(goods,cfg_object)
                     local satisfy = {}
                     for _, v in ipairs(items_info) do
-                        if not v["不撿"] and v["存倉頁名"] and v["存倉頁名"] ~= "" and string.find(v["基礎類型名"], goods.baseType_utf8) then
-                            table.insert(satisfy, v)
+                        if not v["不撿"] and v["存倉頁名"] and v["存倉頁名"] ~= "" and string.find(v["基礎類型名"],goods.baseType_utf8) then
+                            local color = goods.color or -1
+                            if  v['颜色'] and next(v['颜色']) and poe2_api.table_contains(color,v['颜色']) then
+                                table.insert(satisfy,v)
+                            end
+                            
                         end
                     end
                     if satisfy and next(satisfy) then
                         for _, v in ipairs(satisfy) do
-                            if not deep_equal_unordered_full(v, cfg_object) then
+                            if not deep_equal_unordered_full(v,cfg_object) then
                                 if v["工會倉庫"] then
-                                    return { goods, v["存倉頁名"], 1 }
+                                    
+                                    if poe2_api.table_contains(game_str.Enhancement_Item_List_TWCH,goods.baseType_utf8) then
+                                        local mininumber = nil
+                                        local miniobj = nil
+                                        for _, v in ipairs(bag) do
+                                            if v.baseType_utf8 == goods.baseType_utf8 and poe2_api.table_contains(game_str.Enhancement_Item_List_TWCH,goods.baseType_utf8) then
+                                                if not mininumber or mininumber > v.stackCount then
+                                                    miniobj = v
+                                                    mininumber = v.stackCount
+                                                end
+                                            end
+                                        end
+                                        return {miniobj,v["存倉頁名"],1}
+                                    else
+                                        return {goods,v["存倉頁名"],1}
+                                    end
                                 else
-                                    return { goods, v["存倉頁名"], 0 }
+                                    if poe2_api.table_contains(game_str.Enhancement_Item_List_TWCH,goods.baseType_utf8) then
+                                        local mininumber = nil
+                                        local miniobj = nil
+                                        for _, v in ipairs(bag) do
+                                            if v.baseType_utf8 == goods.baseType_utf8 and poe2_api.table_contains(game_str.Enhancement_Item_List_TWCH,goods.baseType_utf8) then
+                                                if not mininumber or mininumber > v.stackCount then
+                                                    miniobj = v
+                                                    mininumber = v.stackCount
+                                                end
+                                            end
+                                        end
+                                        return {miniobj,v["存倉頁名"],0}
+                                    else
+                                        return {goods,v["存倉頁名"],0}
+                                    end
                                 end
                             end
                         end
-                    end
+                    end  
                     return false
                 end
                 -- 判断是否设置了词缀
                 local function is_valid_affix(affix)
-                    return affix and (affix["name"] and affix.name ~= "")
+                    return affix and (affix["name"] and affix.name ~= "")         
                 end
                 local function get_ct_config(object_cfg)
                     local affixes = object_cfg["物品詞綴"] or {}
@@ -27578,40 +27632,64 @@ local plot_nodes = {
                     end
                     return false
                 end
-                local min_map = poe2_api.select_best_map_key({
-                    inventory = bag,
-                    index = 1,
-                    no_categorize_suffixes = 1,
-                    min_level =
-                        map_ys_level_min,
-                    trashest = true
-                })
-
+                local function plaque_optimal(item)
+                    if next(env.settings_cfg_plaque) then
+                        for _, v in ipairs(env.settings_cfg_plaque) do
+                            if string.find(item.baseType_utf8,v["基礎類型名"]) then
+                                poe2_api.dbgp("fffffffffffffffffffffffffffffffffffff")
+                                if next(v["物品詞綴"]) then
+                                    return true
+                                end
+                            end
+                        end
+                    end 
+                    return false
+                end
+                local min_map = poe2_api.select_best_map_key({inventory=bag,index = 1,no_categorize_suffixes = 1,min_level=map_ys_level_min,trashest=true})
+                
                 if unique_storage_pages and next(unique_storage_pages) then
                     for _, i in ipairs(unique_storage_pages) do
                         for _, b in ipairs(bag) do
                             -- poe2_api.dbgp("b.baseType_utf8:"..b.baseType_utf8)
                             for _, item in ipairs(items_info) do
-                                if poe2_api.match_item(b, item, 1) and item["存倉頁名"] == i and not item["工會倉庫"] and not item["不撿"] then
+                                if poe2_api.match_item(b,item) and item["存倉頁名"] == i and not item["工會倉庫"] and not item["不撿"] then
                                     if ((item["名稱"] and item["名稱"] ~= "" and item["名稱"] ~= "全部物品") or get_ct_config(item)) and b.not_identified then
                                         poe2_api.dbgp("1")
                                         break
                                     end
-                                    if b.baseType_utf8 == "知識卷軸" then
+                                    if b.baseType_utf8 == game_str.The_Knowledge_Scroll then
                                         break
                                     end
-                                    if b.category_utf8 ~= "StackableCurrency" and poe2_api.is_do_without_pick_up(b, items_info) then
+                                    if b.category_utf8 ~= game_str.StackableCurrency and poe2_api.is_do_without_pick_up(b,items_info) then
                                         poe2_api.dbgp("2")
                                         break
                                     end
-                                    if b.category_utf8 == "QuestItem" then
+                                    if b.category_utf8 == game_str.QuestItem then
                                         poe2_api.dbgp("3")
                                         break
                                     end
-                                    if b.category_utf8 == "Map" then
+                                    if poe2_api.table_contains(game_str.Enhancement_Item_List_TWCH,b.baseType_utf8) then
+                                        local number = 0
+                                        for _, v in ipairs(bag) do
+                                            if v.baseType_utf8 == b.baseType_utf8 and poe2_api.table_contains(game_str.Enhancement_Item_List_TWCH,v.baseType_utf8) then
+                                                number = number + v.stackCount
+                                            end
+                                        end
+                                        -- poe2_api.dbgp("number:"..number)
+                                        -- api_Sleep(3000)
+                                        if number <= 20 then
+                                            break
+                                        end
+                                    end
+                                    if env.special_mode_enabled then
+                                        if b.baseType_utf8 == env.special_map_type then
+                                            break
+                                        end
+                                    end
+                                    if b.category_utf8 == game_str.Map_EN then
                                         local map_not_level = get_map_not_level()
                                         if map_not_level then
-                                            env.store_item = { map_not_level, i, 0 }
+                                            env.store_item = {map_not_level,i,0}
                                             poe2_api.dbgp("4")
                                             return true
                                         end
@@ -27619,43 +27697,127 @@ local plot_nodes = {
                                             if not_use_map then
                                                 local not_entry = get_map_not_entry()
                                                 if not_entry then
-                                                    env.store_item = { not_entry, i, 0 }
+                                                    env.store_item = {not_entry,i,0}
                                                     poe2_api.dbgp("5")
                                                     return true
-                                                end
-                                            end
+                                                end    
+                                            end   
+                                        end
+                                        if not map_index() then
+                                            poe2_api.dbgp("6")
+                                            break
                                         end
                                         local crazy = get_map_not_crazy()
                                         if crazy then
-                                            env.store_item = { crazy, i, 0 }
+                                            env.store_item = {crazy,i,0}
                                             poe2_api.dbgp("7")
                                             return true
                                         end
                                         if min_map and b.obj ~= min_map.obj then
                                             poe2_api.dbgp("8")
                                             break
+                                        end 
+                                    end
+                                    -- if is_insert_stone then
+                                    if b.category_utf8 == game_str.TowerAugmentation and env.is_get_plaque then
+                                        poe2_api.dbgp("9")
+                                        break
+                                    end
+                                    -- end
+                                    local item_entry = item["物品詞綴"] or {}
+                                    if item_entry and next(item_entry) then
+                                        local function get_cfg_entry(entry_list)
+                                            for k, v in pairs(entry_list) do
+                                                if v and type(v) ~= "boolean" then  -- 确保 v 不是 nil 且不是 boolean
+                                                    if v["詞綴"] and next(v["詞綴"]) then  -- 检查 "詞綴" 是否存在
+                                                        return true
+                                                    end
+                                                end
+                                            end
+                                            return false
+                                        end
+                                        local function get_cfg_entry_tower()
+                                            for k, v in pairs(item_entry) do
+                                                if v and type(v) ~= "boolean" then  -- 确保 v 不是 nil 且不是 boolean
+                                                    if v["詞綴"] and next(v["詞綴"]) then  -- 检查 "詞綴" 是否存在
+                                                        for i, v1 in ipairs(v["詞綴"]) do
+                                                            if not string.find(v1["name"],"範圍內") then
+                                                                return true
+                                                            end
+                                                        end
+                                                    end
+                                                end
+                                            end
+                                            return false
+                                        end
+                                        
+                                        if get_cfg_entry(item_entry) then
+                                            local a = false
+                                            if b.category_utf8 == game_str.TowerAugmentation then
+                                                if get_cfg_entry_tower() then
+                                                    if env.plaque_upgrade then
+                                                        if b.color == 0 or (b.color == 1 and b.fixedSuffixCount<2) or b.not_identified then
+                                                            env.tower_do = true
+                                                            break
+                                                        end
+                                                    -- else
+                                                    --     a = true
+                                                    end
+                                                end
+                                            else
+                                                a = false
+                                            end
+                                            if not a then
+                                                if poe2_api.table_contains(b.category_utf8,my_game_info.equip_type) and not b.not_identified then
+                                                    local suffixes = api_GetObjectSuffix(b.mods_obj)
+                                                    if suffixes and next(suffixes) and not poe2_api.filter_item(b,suffixes,config["物品過濾"]) then
+                                                        break
+                                                    end
+                                                end
+                                            end
+                                            
+                                        end
+                                        
+                                    end
+                                    if b.category_utf8 == game_str.TowerAugmentation then
+                                        if plaque_optimal(b) and env.plaque_upgrade then
+                                            if b.color == 0 or (b.color == 1 and b.fixedSuffixCount<2) or b.not_identified then
+                                                -- poe2_api.dbgp("qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq")
+                                                env.tower_do = true
+                                                break
+                                            end
                                         end
                                     end
-                                    if is_insert_stone then
-                                        if b.category_utf8 == "TowerAugmentation" and env.is_get_plaque then
-                                            poe2_api.dbgp("9")
-                                            break
-                                        end
-                                    end
-                                    if poe2_api.table_contains(b.category_utf8, my_game_info.equip_type) and b.color > 0 and not b.not_identified then
-                                        local suffixes = api_GetObjectSuffix(b.mods_obj)
-                                        if suffixes and next(suffixes) and not poe2_api.filter_item(b, suffixes, config["物品過濾"]) then
-                                            poe2_api.dbgp("10")
-                                            break
-                                        end
-                                    end
-                                    local save_as = item_save_as(b, item)
+                                    -- if poe2_api.table_contains(b.category_utf8,my_game_info.equip_type) and not b.not_identified then
+                                    --     local suffixes = api_GetObjectSuffix(b.mods_obj)
+                                    --     if suffixes and next(suffixes) and not poe2_api.filter_item(b,suffixes,config["物品過濾"]) then
+                                    --         poe2_api.dbgp("10")
+                                    --         break
+                                    --     end
+                                    -- end
+                                    local save_as = item_save_as(b,item)
                                     if save_as and next(save_as) then
-                                        env.store_item = save_as
+                                        env.store_item  = save_as
                                         poe2_api.dbgp("11")
                                         return true
                                     end
-                                    env.store_item = { b, i, 0 }
+                                    if poe2_api.table_contains(game_str.Enhancement_Item_List_TWCH,b.baseType_utf8) then
+                                        local mininumber = nil
+                                        local miniobj = nil
+                                        for _, v in ipairs(bag) do
+                                            if v.baseType_utf8 == b.baseType_utf8 and poe2_api.table_contains(game_str.Enhancement_Item_List_TWCH,v.baseType_utf8) then
+                                                if not mininumber or mininumber > v.stackCount then
+                                                    miniobj = v
+                                                    mininumber = v.stackCount
+                                                end
+                                            end
+                                        end
+                                        env.store_item = {miniobj,i,0}
+                                        -- return {miniobj,v["存倉頁名"],0}
+                                    else
+                                        env.store_item = {b,i,0}
+                                        -- return {goods,v["存倉頁名"],0}
+                                    end
                                     return true
                                 end
                             end
@@ -27666,60 +27828,163 @@ local plot_nodes = {
                     for _, i in ipairs(public_warehouse_pages) do
                         for _, b in ipairs(bag) do
                             for _, item in ipairs(items_info) do
-                                if poe2_api.match_item(b, item, 1) and item["存倉頁名"] == i and item["工會倉庫"] and not item["不撿"] then
+                                if poe2_api.match_item(b,item) and item["存倉頁名"] == i and item["工會倉庫"] and not item["不撿"] then
                                     if ((item["名稱"] and item["名稱"] ~= "" and item["名稱"] ~= "全部物品") or get_ct_config(item)) and b.not_identified then
                                         break
                                     end
-                                    if b.baseType_utf8 == "知識卷軸" then
+                                    if b.baseType_utf8 == game_str.The_Knowledge_Scroll then
                                         break
                                     end
-                                    if b.category_utf8 ~= "StackableCurrency" and poe2_api.is_do_without_pick_up(b, items_info) then
+                                    if b.category_utf8 ~= game_str.StackableCurrency and poe2_api.is_do_without_pick_up(b,items_info) then
                                         break
                                     end
-                                    if b.category_utf8 == "QuestItem" then
+                                    if b.category_utf8 == game_str.QuestItem then
                                         break
                                     end
-                                    if b.category_utf8 == "Map" then
+                                    if poe2_api.table_contains(game_str.Enhancement_Item_List_TWCH,b.baseType_utf8) then
+                                        local number = 0
+                                        for _, v in ipairs(bag) do
+                                            if v.baseType_utf8 == b.baseType_utf8 and poe2_api.table_contains(game_str.Enhancement_Item_List_TWCH,v.baseType_utf8) then
+                                                number = number + v.stackCount
+                                            end
+                                        end
+                                        if number <= 20 then
+                                            break
+                                        end
+                                    end
+                                    if env.special_mode_enabled then
+                                        if b.baseType_utf8 == env.special_map_type then
+                                            break
+                                        end
+                                    end
+                                    if b.category_utf8 == game_str.Map_EN then
                                         local map_not_level = get_map_not_level()
                                         if map_not_level then
-                                            env.store_item = { map_not_level, i, 1 }
+                                            env.store_item = {map_not_level,i,1}
                                             return true
                                         end
                                         if b.color > 0 then
                                             if not_use_map then
                                                 local not_entry = get_map_not_entry()
                                                 if not_entry then
-                                                    env.store_item = { not_entry, i, 1 }
+                                                    env.store_item = {not_entry,i,1}
                                                     return true
-                                                end
-                                            end
+                                                end    
+                                            end   
+                                        end
+                                        if not map_index() then
+                                            break
                                         end
                                         local crazy = get_map_not_crazy()
                                         if crazy then
-                                            env.store_item = { crazy, i, 1 }
+                                            env.store_item = {crazy,i,1}
                                             return true
                                         end
                                         if min_map and b.obj ~= min_map.obj then
                                             break
+                                        end 
+                                    end
+                                    -- if is_insert_stone then
+                                    if b.category_utf8 == game_str.TowerAugmentation and env.is_get_plaque then
+                                        break
+                                    end
+                                    -- end
+                                    local item_entry = item["物品詞綴"] or {}
+                                    if item_entry and next(item_entry) then
+                                        local function get_cfg_entry(entry_list)
+                                            for k, v in pairs(entry_list) do
+                                                if v and type(v) ~= "boolean" then  -- 确保 v 不是 nil 且不是 boolean
+                                                    if v["詞綴"] and next(v["詞綴"]) then  -- 检查 "詞綴" 是否存在
+                                                        return true
+                                                    end
+                                                end
+                                            end
+                                            return false
+                                        end
+                                        local function get_cfg_entry_tower()
+                                            for k, v in pairs(item_entry) do
+                                                if v and type(v) ~= "boolean" then  -- 确保 v 不是 nil 且不是 boolean
+                                                    if v["詞綴"] and next(v["詞綴"]) then  -- 检查 "詞綴" 是否存在
+                                                        for i, v1 in ipairs(v["詞綴"]) do
+                                                            if not string.find(v1["name"],"範圍內") then
+                                                                return true
+                                                            end
+                                                        end
+                                                    end
+                                                end
+                                            end
+                                            return false
+                                        end
+                                        
+                                        if get_cfg_entry(item_entry) then
+                                            local a = false
+                                            if b.category_utf8 == game_str.TowerAugmentation then
+                                                if get_cfg_entry_tower() then
+                                                    if env.plaque_upgrade then
+                                                        if b.color == 0 or (b.color == 1 and b.fixedSuffixCount<2) or b.not_identified then
+                                                            env.tower_do = true
+                                                            break
+                                                        end
+                                                    -- else
+                                                    --     a = true
+                                                    end
+                                                end
+                                            else
+                                                a = false
+                                            end
+                                            if not a then
+                                                if poe2_api.table_contains(b.category_utf8,my_game_info.equip_type) and not b.not_identified then
+                                                    local suffixes = api_GetObjectSuffix(b.mods_obj)
+                                                    if suffixes and next(suffixes) and not poe2_api.filter_item(b,suffixes,config["物品過濾"]) then
+                                                        break
+                                                    end
+                                                end
+                                            end
+                                            
+                                        end
+                                        
+                                        
+                                    end
+                                    -- poe2_api.dbgp("qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq")
+                                    if b.category_utf8 == game_str.TowerAugmentation then
+                                        -- poe2_api.dbgp("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa")
+                                        if plaque_optimal(b)  and env.plaque_upgrade then
+                                            -- poe2_api.dbgp("bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb")
+                                            if b.color == 0 or (b.color == 1 and b.fixedSuffixCount<2) or b.not_identified then
+                                                -- poe2_api.dbgp("cccccccccccccccccccccccccccc")
+                                                env.tower_do = true
+                                                break
+                                            end
                                         end
                                     end
-                                    if is_insert_stone then
-                                        if b.category_utf8 == "TowerAugmentation" and env.is_get_plaque then
-                                            break
-                                        end
-                                    end
-                                    if poe2_api.table_contains(b.category_utf8, my_game_info.equip_type) and b.color > 0 and not b.not_identified then
-                                        local suffixes = api_GetObjectSuffix(b.mods_obj)
-                                        if suffixes and next(suffixes) and not poe2_api.filter_item(b, suffixes, config["物品過濾"]) then
-                                            break
-                                        end
-                                    end
-                                    local save_as = item_save_as(b, item)
+                                    -- if poe2_api.table_contains(b.category_utf8,my_game_info.equip_type) and not b.not_identified then
+                                    --     local suffixes = api_GetObjectSuffix(b.mods_obj)
+                                    --     if suffixes and next(suffixes) and not poe2_api.filter_item(b,suffixes,config["物品過濾"]) then
+                                    --         break
+                                    --     end
+                                    -- end
+                                    local save_as = item_save_as(b,item)
                                     if save_as and next(save_as) then
-                                        env.store_item = save_as
+                                        env.store_item  = save_as
                                         return true
                                     end
-                                    env.store_item = { b, i, 1 }
+                                    if poe2_api.table_contains(game_str.Enhancement_Item_List_TWCH,b.baseType_utf8) then
+                                        local mininumber = nil
+                                        local miniobj = nil
+                                        for _, v in ipairs(bag) do
+                                            if v.baseType_utf8 == b.baseType_utf8 and poe2_api.table_contains(game_str.Enhancement_Item_List_TWCH,v.baseType_utf8) then
+                                                if not mininumber or mininumber > v.stackCount then
+                                                    miniobj = v
+                                                    mininumber = v.stackCount
+                                                end
+                                            end
+                                        end
+                                        env.store_item = {miniobj,i,1}
+                                        -- return {miniobj,v["存倉頁名"],0}
+                                    else
+                                        env.store_item = {b,i,1}
+                                        -- return {goods,v["存倉頁名"],0}
+                                    end
                                     return true
                                 end
                             end
@@ -27733,7 +27998,7 @@ local plot_nodes = {
             local current_map_info = env.current_map_info
             -- 没有人物信息
             if not next(player_info) then
-                poe2_api.time_p("Is_Store_Items", api_GetTickCount64() - current_map)
+                poe2_api.time_p("是否存储物品（RUNNING1）... 耗时 --> ", api_GetTickCount64() - start_time)
                 return bret.RUNNING
             end
             if not get_object("倉庫", env.range_info) then
@@ -27742,76 +28007,89 @@ local plot_nodes = {
             end
             -- 是否需要合成
             if env.is_need_strengthen then
-                poe2_api.time_p("Is_Store_Items", api_GetTickCount64() - current_map)
+                poe2_api.time_p("是否存储物品（SUCCESS2）... 耗时 --> ", api_GetTickCount64() - start_time)
                 return bret.SUCCESS
             end
             -- 背包为空
             if not bag_info or not next(bag_info) then
-                poe2_api.time_p("Is_Store_Items", api_GetTickCount64() - current_map)
+                poe2_api.time_p("是否存储物品（SUCCESS3）... 耗时 --> ", api_GetTickCount64() - start_time)
                 return bret.SUCCESS
+            end
+            local point = poe2_api.get_space_point({width=1,height=1,info=env.bag_info})
+            if not point then
+                env.is_public_warehouse = true
+                env.is_public_warehouse_plaque = true
+                -- poe2_api.time_p("是否存储物品（RUNNING6）... 耗时 --> ", api_GetTickCount64() - start_time)
+                -- return bret.RUNNING
             end
             -- 是否需要点金
             if not env.is_public_warehouse then
-                poe2_api.time_p("Is_Store_Items", api_GetTickCount64() - current_map)
+                poe2_api.time_p("是否存储物品（SUCCESS4）... 耗时 --> ", api_GetTickCount64() - start_time)
                 return bret.SUCCESS
             end
             -- 碑牌是否需要点金
             if not env.is_public_warehouse_plaque then
-                poe2_api.time_p("Is_Store_Items", api_GetTickCount64() - current_map)
+                poe2_api.time_p("是否存储物品（SUCCESS5）... 耗时 --> ", api_GetTickCount64() - start_time)
                 return bret.SUCCESS
             end
             local items_info = poe2_api.get_items_config_info(config)
             local unique_storage_pages = {}
             for _, v in ipairs(items_info) do
                 if v['存倉頁名'] and v['存倉頁名'] ~= "" and not v['工會倉庫'] and not v["不撿"] then
-                    table.insert(unique_storage_pages, v['存倉頁名'])
+                    table.insert(unique_storage_pages,v['存倉頁名'])
                 end
             end
-
+            
             local public_warehouse_pages = {}
             for _, v in ipairs(items_info) do
                 if v['存倉頁名'] and v['存倉頁名'] ~= "" and v['工會倉庫'] and not v["不撿"] then
-                    table.insert(public_warehouse_pages, v['存倉頁名'])
+                    table.insert(public_warehouse_pages,v['存倉頁名'])
                 end
             end
             -- 未配置物品过滤
             if (not unique_storage_pages or not next(unique_storage_pages)) and (not public_warehouse_pages or not next(public_warehouse_pages)) then
-                poe2_api.time_p("Is_Store_Items", api_GetTickCount64() - current_map)
+                poe2_api.time_p("是否存储物品（SUCCESS6）... 耗时 --> ", api_GetTickCount64() - start_time)
                 return bret.SUCCESS
             end
             local map_level_type = {}
             local map_ys_level_min = 0
             for _, v in ipairs(items_info) do
-                if string.find(v["類型"], "地圖鑰匙") and not v["不撿"] then
-                    table.insert(map_level_type, v['等級'])
+                if string.find(v["類型"],game_str.Map_Key_CH) and not v["不撿"] then
+                    table.insert(map_level_type,v['等級'])
                 end
             end
             if next(map_level_type) then
                 local map_type = map_level_type[1]["type"]
                 if map_type == "exact" then
                     local item_level = map_level_type[1]["value"]
-                    map_ys_level_min = item_level - 3
+                    map_ys_level_min = item_level-3
                 else
                     local min_level = map_level_type[1]["min"]
                     map_ys_level_min = min_level
                 end
             end
             -- 是否需要插入碑牌
-            local is_insert_stone = env.is_insert_stone
+            -- local is_insert_stone = env.is_insert_stone
             local bag_store_info = get_store_bag_info(bag_info)
             -- poe2_api.dbgp("bag_store_info",type(bag_store_info),#bag_store_info)
-            local store = get_store_item(bag_store_info, is_insert_stone, unique_storage_pages, public_warehouse_pages,
-                map_ys_level_min)
-
+            local store = get_store_item(bag_store_info,unique_storage_pages,public_warehouse_pages,map_ys_level_min)
+            
             if not store then
-                env.exchange_status = false
-                if poe2_api.find_text({ UI_info = env.UI_info, text = "強調物品", min_y = 700, min_x = 250 }) then
-                    poe2_api.click_keyboard('space')
-                    api_Sleep(500)
+                if env.tower_do then
+                    env.store = true
+                    -- api_Sleep(10000)
+                    poe2_api.time_p("是否存储物品（RUNNING333）... 耗时 --> ", api_GetTickCount64() - start_time)
+                    return bret.RUNNING
                 end
-                poe2_api.time_p("Is_Store_Items", api_GetTickCount64() - current_map)
+                
+                env.exchange_status = false
+                env.storage_complete = true
+                poe2_api.time_p("是否存储物品（SUCCESS8）... 耗时 --> ", api_GetTickCount64() - start_time)
                 return bret.SUCCESS
             end
+            env.store = false
+            env.tower_do = false
+            env.storage_complete = false
             poe2_api.find_text({ text = "再會", UI_info = env.UI_info, click = 2 })
             if poe2_api.find_text({ text = { '重鑄台' }, UI_info = env.UI_info, min_x = 0 }) and poe2_api.find_text({ text = '摧毀三個相似的物品，重鑄為一個新的物品', UI_info = env.UI_info, min_x = 0 }) then
                 poe2_api.click_keyboard('space')
@@ -27828,32 +28106,35 @@ local plot_nodes = {
                 return bret.RUNNING
             end
             local store_item = env.store_item
-            poe2_api.dbgp("store_item", store_item[1].baseType_utf8, store_item[3])
+            poe2_api.dbgp("store_item",store_item[1].baseType_utf8,store_item[3])
             -- api_Sleep(5000)
             if store_item[3] == 0 then
-                if poe2_api.find_text({ UI_info = env.UI_info, text = "強調物品", min_y = 700, min_x = 250 }) and poe2_api.find_text({ UI_info = env.UI_info, text = "公會倉庫", min_x = 0, min_y = 32, max_x = 381, max_y = 81 }) then
-                    poe2_api.click_keyboard('space')
+                if poe2_api.find_text({UI_info=env.UI_info,text=game_str.Emphasize_the_item,min_y=700,min_x=250}) and poe2_api.find_text({UI_info=env.UI_info,text=game_str.Guild_Warehouse,min_x=0,min_y=32,max_x=381,max_y=78}) then
+                    -- poe2_api.click_keyboard('space')
+                    poe2_api.find_text({UI_info = env.UI_info, text = game_str.Guild_Warehouse, min_x=0,min_y=32,max_x=381,max_y=78, click = 2, add_x = 253})
                     api_Sleep(500)
-                    poe2_api.time_p("Is_Store_Items", api_GetTickCount64() - current_map)
+                    poe2_api.time_p("是否存储物品（RUNNING4）... 耗时 --> ", api_GetTickCount64() - start_time)
                     return bret.RUNNING
                 end
             elseif store_item[3] == 1 then
-                poe2_api.dbgp("公仓")
-                if poe2_api.find_text({ UI_info = env.UI_info, text = "強調物品", min_y = 700, min_x = 250 }) and poe2_api.find_text({ UI_info = env.UI_info, text = "倉庫", min_x = 0, min_y = 32, max_x = 381, max_y = 81 }) then
-                    poe2_api.click_keyboard('space')
+                poe2_api.dbgp(game_str.Guild_Warehouse_text)
+                if poe2_api.find_text({UI_info=env.UI_info,text=game_str.Emphasize_the_item,min_y=700,min_x=250}) and poe2_api.find_text({UI_info=env.UI_info,text=game_str.Warehouse,min_x=0,min_y=32,max_x=381,max_y=78}) then
+                    -- poe2_api.click_keyboard('space')
+                    poe2_api.find_text({UI_info = env.UI_info, text = game_str.Warehouse, min_x=0,min_y=32,max_x=381,max_y=78, click = 2, add_x = 253})
                     api_Sleep(500)
-                    poe2_api.time_p("Is_Store_Items", api_GetTickCount64() - current_map)
+                    poe2_api.time_p("是否存储物品（RUNNING5）... 耗时 --> ", api_GetTickCount64() - start_time)
                     return bret.RUNNING
                 end
             end
             if env.store_item[3] == 0 then
-                env.warehouse_type_interactive = "个仓"
+                env.warehouse_type_interactive = game_str.Warehouse_text
             else
-                env.warehouse_type_interactive = "公仓"
+                env.warehouse_type_interactive = game_str.Guild_Warehouse_text
             end
             poe2_api.dbgp("存仓-----------------------------------------------1010101")
-            poe2_api.time_p("Is_Store_Items", api_GetTickCount64() - current_map)
+            poe2_api.time_p("是否存储物品（FAIL1）... 耗时 --> ", api_GetTickCount64() - start_time)
             return bret.FAIL
+            
         end
     },
 
@@ -33049,7 +33330,7 @@ local plot_nodes = {
                     if not member_names[actor.name_utf8] or actor.name_utf8 == team_member_3 then
                         goto continue
                     end
-
+                    
                     -- 检查路径是否可达
                     local point = api_FindNearestReachableInRange(actor.grid_x, actor.grid_y, 25)
                     local path =  api_FindPath(player_info.grid_x, player_info.grid_y, point.x, point.y)
