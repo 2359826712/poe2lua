@@ -32401,8 +32401,16 @@ local plot_nodes = {
                         end
                         if point_monster.x ~= -1 and point_monster.y ~= -1 then
                             env.life_time = nil
-                            if poe2_api.point_distance(monster_info.grid_x, monster_info.grid_y, player_info) < env.min_attack_dis and monster_info.hasLineOfSight == true then
-                                env.is_arrive_end = true
+                            if poe2_api.point_distance(monster_info.grid_x, monster_info.grid_y, player_info) < env.min_attack_dis then
+                                if monster_info.hasLineOfSight == true then
+                                    env.is_arrive_end = true
+                                else
+                                    if poe2_api.point_distance(point_monster.x, point_monster.y, player_info) < 25 and api_HasObstacleBetween(point_monster.x, point_monster.y) then
+                                        poe2_api.dbgp("[Is_Move]怪物坐标非法,排除")
+                                        table.insert(relife_stuck_monsters, monster_info.id)
+                                        return bret.RUNNING
+                                    end
+                                end
                             end
                             poe2_api.dbgp("[Is_Move]怪物坐标合法")
                             return bret.FAIL
@@ -32523,7 +32531,6 @@ local plot_nodes = {
                 return bret.FAIL
             elseif monster and poe2_api.table_contains(poe2_api.get_team_info(team_info, user_config, player_info, 2), { "大号名称", "未知" }) and
                 poe2_api.get_point_distance(mate.grid_x, mate.grid_y, monster.grid_x, monster.grid_y) < 180 then
-                poe2_api.dbgp("[Is_Attack]与怪物距离小于40")
                 env.monster_info = monster
                 return bret.FAIL
             else
