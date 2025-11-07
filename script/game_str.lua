@@ -241,6 +241,7 @@ local game_str = {
     Abyss_Boss_EN = "Abyss_Boss",
     MapUberBoss_IronCitadel_EN = "MapUberBoss_IronCitadel",  -- 钢铁城寨
     MapUniqueVault_EN = "MapUniqueVault",  -- 卡玛隆秘宝库
+    MapBurialBgo_EN = "MapBurialBog",  -- 埋葬沼泽
     
 
 

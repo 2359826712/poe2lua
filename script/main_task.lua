@@ -2166,7 +2166,7 @@ local main_task= {
             index = 348
         },
         ['前往火噬農地'] = {
-            map_name= 'P1_1',
+            map_name= 'P1_2',
             interaction_object= {'倫利'},
             index = 349
         },
@@ -2175,13 +2175,13 @@ local main_task= {
             index = 350
         },
         ['探索火噬農地'] = {
-            map_name= 'P1_1',
+            map_name= 'P1_2',
             interaction_object= {'瑟雷之石'},
             interaction_object_map_name= {'P1_2'},
             index = 351
         },
         ['接近黑暗'] = {
-            map_name= 'P1_1',
+            map_name= 'P1_2',
             interaction_object= {'瑟雷之石'},
             interaction_object_map_name= {'P1_2'},
             index = 351
@@ -2252,7 +2252,7 @@ local main_task= {
             index = 363
         },
         ['探索霍爾登'] = {
-            map_name= 'P1_4',
+            map_name= 'P1_6',
             interaction_object= {'霍爾登宅第'},
             interaction_object_map_name= {'P1_6'},
             index = 364
@@ -2329,8 +2329,7 @@ local main_task= {
             index = 376
         },
         ["找到塞爾卡里庇護所"] = {
-            map_name= 'P2_Town',
-            interaction_object_map_name= {'P2_2'},
+            map_name= 'P2_3',
             index = 377
         },
         ["卡塔爾之塘"] = {
@@ -2358,8 +2357,7 @@ local main_task= {
             index = 381
         },
         ["在卡里交匯道尋找賈萊關口"] = {
-            map_name= 'P2_Town',
-            interaction_object_map_name= {'P2_5'},
+            map_name= 'P2_5',
             index = 376
         },
         ["進入賈萊關口"] = {
