@@ -1614,6 +1614,13 @@ local main_task= {
             interaction_object_map_name= {'IgnagdukBossInactive'},
             index = 262
         },
+        ['拾取尹娜杜克的長矛']= {
+            map_name= 'G3_7',
+            Boss={'沼澤女巫．尹娜杜克'},
+            interaction_object= {'尹娜杜克的幽暗長鋒','傑洛特顱骨'},
+            interaction_object_map_name= {'IgnagdukBossInactive'},
+            index = 262
+        },
         ['返回城鎮並與瑟維交談']= {
             map_name= 'G3_town',
             grid_x= 516,
@@ -1956,15 +1963,11 @@ local main_task= {
             index = 314
         },
         ["探索監獄"] = {
-            map_name= 'G4_5_1',
-            interaction_object= {'單獨禁閉',"把手"},
-            interaction_object_map_name= {'G4_5_2'},
+            map_name= 'G4_5_2',
             index = 315
         },
         ["進入單獨禁閉室"] = {
-            map_name= 'G4_5_1',
-            interaction_object= {'單獨禁閉',"把手"},
-            interaction_object_map_name= {'G4_5_2'},
+            map_name= 'G4_5_2',
             index = 315
         },
         ["單獨禁閉"] = {
@@ -2241,9 +2244,7 @@ local main_task= {
             index = 361
         },
         ['在黑木林中殺出一條血路'] = {
-            map_name= 'P1_3',
-            interaction_object= {'霍爾登'},
-            interaction_object_map_name= {'P1_4'},
+            map_name= 'P1_4',
             index = 362
         },
         ['霍爾登'] = {
@@ -2328,8 +2329,7 @@ local main_task= {
             index = 376
         },
         ["找到塞爾卡里庇護所"] = {
-            map_name= 'P2_1',
-            interaction_object= {'卡塔爾之塘'},
+            map_name= 'P2_Town',
             interaction_object_map_name= {'P2_2'},
             index = 377
         },
@@ -2358,14 +2358,12 @@ local main_task= {
             index = 381
         },
         ["在卡里交匯道尋找賈萊關口"] = {
-            map_name= 'P2_1',
-            interaction_object= {'賈萊關口'},
+            map_name= 'P2_Town',
             interaction_object_map_name= {'P2_5'},
             index = 376
         },
         ["進入賈萊關口"] = {
-            map_name= 'P2_1',
-            interaction_object= {'賈萊關口'},
+            map_name= 'P2_Town',
             interaction_object_map_name= {'P2_5'},
             index = 376
         },
@@ -2462,23 +2460,21 @@ local main_task= {
             index = 392
         },
         ["進入灰燼森林"] = {
-            map_name= 'P3_Town',
-            interaction_object= {'灰燼森林'},
-            interaction_object_map_name= {'P3_1'},
+            map_name= 'P3_2',
             index = 393
         },
         ["灰燼森林"] = {
-            map_name= 'P3_1',
+            map_name= 'P3_2',
             index = 394
         },
         ["探索灰燼森林"] = {
-            map_name= 'P3_1',
+            map_name= 'P3_2',
             interaction_object= {'庫萊亞村'},
             interaction_object_map_name= {'P3_2'},
             index = 395
         },
         ["進入庫萊亞村"] = {
-            map_name= 'P3_1',
+            map_name= 'P3_2',
             interaction_object= {'庫萊亞村'},
             interaction_object_map_name= {'P3_2'},
             index = 396
@@ -2522,25 +2518,19 @@ local main_task= {
             index = 404
         },
         ["進入庫萊亞山巔"] = {
-            map_name= 'P3_3',
-            interaction_object= {'庫萊亞山巔'},
-            interaction_object_map_name= {'P3_5'},
+            map_name= 'P3_6',
             index = 405
         },
         ["庫萊亞山巔"] = {
-            map_name= 'P3_5',
+            map_name= 'P3_6',
             index = 406
         },
         ["探索庫萊亞山巔"] = {
-            map_name= 'P3_5',
-            interaction_object= {'蝕刻溪谷'},
-            interaction_object_map_name= {'P3_6'},
+            map_name= 'P3_6',
             index = 407
         },
         ["進入蝕刻溪谷"] = {
-            map_name= 'P3_5',
-            interaction_object= {'蝕刻溪谷'},
-            interaction_object_map_name= {'P3_6'},
+            map_name= 'P3_6',
             index = 408
         },
         ["蝕刻溪谷"] = {

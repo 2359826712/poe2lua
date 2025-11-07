@@ -1175,17 +1175,17 @@ _M.time_p = function(...)
     local args = {...}
     
     -- 检查是否是耗时日志格式：倒数第二个参数包含"耗时 -->"且最后一个参数是数字
-    -- if #args >= 2 and 
-    --    type(args[#args]) == "number" and 
-    --    tostring(args[#args-1]):find("耗时 %-%->") then
+    if #args >= 2 and 
+       type(args[#args]) == "number" and 
+       tostring(args[#args-1]):find("耗时 %-%->") then
         
-    --     local elapsed = args[#args]  -- 获取耗时值
+        local elapsed = args[#args]  -- 获取耗时值
         
-    --     -- 只有耗时超过阈值时才处理
-    --     if elapsed < threshold then
-    --         return  -- 不满足阈值条件，直接返回
-    --     end
-    -- end
+        -- 只有耗时超过阈值时才处理
+        if elapsed < threshold then
+            return  -- 不满足阈值条件，直接返回
+        end
+    end
     
     -- 以下是原有的日志处理逻辑
     local parts = {}

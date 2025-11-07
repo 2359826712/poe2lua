@@ -27490,7 +27490,6 @@ local plot_nodes = {
             local start_time = api_GetTickCount64()
             local config = env.user_config
             local map_config = config['刷圖設置'][game_str.Map_Key_CH]
-            local altar_shop_config = config['刷圖設置']["祭祀購買"]
             -- local dist_ls = config['刷圖設置']['異界地圖']['涂油设置']
             local not_use_map = env.not_use_map
             local user_map = env.user_map
@@ -28298,7 +28297,10 @@ local plot_nodes = {
                     poe2_api.time_p("是否存储物品（RUNNING333）... 耗时 --> ", api_GetTickCount64() - start_time)
                     return bret.RUNNING
                 end
-                
+                if poe2_api.find_text({ UI_info = env.UI_info, text = "強調物品", min_y = 700, min_x = 250 }) then
+                    poe2_api.click_keyboard('space')
+                    api_Sleep(500)
+                end
                 env.exchange_status = false
                 env.storage_complete = true
                 poe2_api.time_p("是否存储物品（SUCCESS8）... 耗时 --> ", api_GetTickCount64() - start_time)
@@ -28718,8 +28720,7 @@ local plot_nodes = {
                 self.bool = true
             end
             local config = env.user_config
-            local is_decompose = config['全局設置']["刷图通用設置"]["是否分解暗金"] or false
-            local altar_shop_config = config['刷圖設置']["祭祀購買"]
+            local is_decompose = false
             -- local range_info = env.range_info
             local player_info = env.player_info
             local bag_info = env.bag_info
@@ -28755,9 +28756,6 @@ local plot_nodes = {
                     for _, cfg in ipairs(processed_configs) do
                         if poe2_api.match_item(item,cfg,1) then
                             if cfg["不撿"] then
-                                if poe2_api.table_contains(item.baseType_utf8,altar_shop_config) then
-                                    return false
-                                end
                                 if is_decompose and type(is_decompose)~="table" then
                                     if item.color == 3 and poe2_api.table_contains(item.category_utf8,my_game_info.equip_type) then
                                         return false
@@ -28798,9 +28796,6 @@ local plot_nodes = {
                                 return false
                             end
                         end
-                    end
-                    if poe2_api.table_contains(item.baseType_utf8,altar_shop_config) then
-                        return false
                     end
                     return true
                 end
@@ -29544,7 +29539,7 @@ local plot_nodes = {
             end
             local config = env.user_config
             local need_item = env.need_item
-            local is_decompose = config["全局設置"]["刷图通用設置"]["是否分解暗金"] or false
+            local is_decompose =  false
             local stuck_monsters = env.stuck_monsters
             -- local item_list = env.range_items
             local player_info = env.player_info
@@ -32320,7 +32315,7 @@ local plot_nodes = {
             end
 
             local function is_point(grid_x, grid_y)
-                local point = api_FindNearestReachableInRange(grid_x, grid_y, 50)
+                local point = api_FindNearestReachableInRange(grid_x, grid_y, 25)
                 local ralet = api_FindPath(player_info.grid_x, player_info.grid_y, point.x, point.y)
                 return ralet
             end
@@ -32365,7 +32360,7 @@ local plot_nodes = {
                                 local point = is_point(monster.grid_x, monster.grid_y)
                                 if not point or #point == 0 then
                                     poe2_api.dbgp("[Is_Move]怪物坐标非法")
-                                    table.insert(relife_stuck_monsters, monster.id)
+                                    table.insert(env.relife_stuck_monsters, monster.id)
                                     return bret.RUNNING
                                 end
                             end
@@ -32389,7 +32384,7 @@ local plot_nodes = {
                                     local point = is_point(away_monster_info.grid_x, away_monster_info.grid_y)
                                     if not point or #point == 0 then
                                         poe2_api.dbgp("[Is_Move]怪物坐标非法")
-                                        table.insert(relife_stuck_monsters, monster.id)
+                                        table.insert(env.relife_stuck_monsters, monster.id)
                                         return bret.RUNNING
                                     end
                                 end
@@ -32405,9 +32400,9 @@ local plot_nodes = {
                                 if monster_info.hasLineOfSight == true then
                                     env.is_arrive_end = true
                                 else
-                                    if poe2_api.point_distance(point_monster.x, point_monster.y, player_info) < 25 and api_HasObstacleBetween(point_monster.x, point_monster.y) then
+                                    if poe2_api.point_distance(point_monster.x, point_monster.y, player_info) < 5  then
                                         poe2_api.dbgp("[Is_Move]怪物坐标非法,排除")
-                                        table.insert(relife_stuck_monsters, monster_info.id)
+                                        table.insert(env.relife_stuck_monsters, monster_info.id)
                                         return bret.RUNNING
                                     end
                                 end
