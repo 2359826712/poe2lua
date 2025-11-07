@@ -34845,11 +34845,11 @@ local plot_nodes = {
                     poe2_api.dbgp("[is_weapon_skill] 检查武器技能")
                     for _, skill_info in pairs(env.allskill_info) do
                         if skill_info.name_utf8 ~= "" and not skill_info.name_utf8:find("WeaponGrantedSummon") then
-                            if user_config["全局設置"]["大带小设置"]['小号职业'] == "女獵人" then
+                            if user_config["全局設置"]["大带小设置"]['小号职业'] == "女獵人" and skill_info.name_utf8 == "SpearThrowPlayer" then
                                 poe2_api.dbgp("[is_weapon_skill] 找到武器技能: " .. tostring("SpearThrowPlayer"))
                                 return "SpearThrowPlayer"
                             end
-                            if skill_info.name_utf8:find("WeaponGranted") or poe2_api.table_contains(skill_info.name_utf8, {"FireboltPlayer","SpearThrowPlayer","MeleeBowPlayer","MeleeCrossbowPlayer","MeleeSpearOffHandPlayer","Melee1HMacePlayer","MeleeQuarterstaffPlayer"}) then
+                            if user_config["全局設置"]["大带小设置"]['小号职业'] ~= "女獵人" and (skill_info.name_utf8:find("WeaponGranted") or poe2_api.table_contains(skill_info.name_utf8, {"FireboltPlayer","SpearThrowPlayer","MeleeBowPlayer","MeleeCrossbowPlayer","MeleeSpearOffHandPlayer","Melee1HMacePlayer","MeleeQuarterstaffPlayer"})) then
                                 poe2_api.dbgp("[is_weapon_skill] 找到武器技能: " .. tostring(skill_info.name_utf8))
                                 return skill_info.name_utf8
                             end
