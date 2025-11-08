@@ -12586,7 +12586,8 @@ local custom_nodes = {
                     -- 只处理启用技能
                     if skill_data["启用"] then
                         -- 处理攻击技能
-                        if skill_data["技能屬性"] == "攻击技能" then
+                        if poe2_api.table_contains(skill_data["技能屬性"],{"攻击技能","辅助技能"}) then
+                        -- if skill_data["技能屬性"] == "攻击技能" then
                             local skill = {
                                 name = key,
                                 key = key,
@@ -12615,22 +12616,22 @@ local custom_nodes = {
                             table.insert(new_skills, skill)
                             
                         -- 处理辅助技能
-                        elseif skill_data["技能屬性"] == "辅助技能" then
-                            local sup_skill = {
-                                name = key,
-                                key = key,
-                                id = key_to_skill_id[key] or 0,
-                                interval = (tonumber(skill_data["釋放間隔"]) or 0) / 1000
-                            }
+                        -- elseif skill_data["技能屬性"] == "辅助技能" then
+                        --     local sup_skill = {
+                        --         name = key,
+                        --         key = key,
+                        --         id = key_to_skill_id[key] or 0,
+                        --         interval = (tonumber(skill_data["釋放間隔"]) or 0) / 1000
+                        --     }
                             
-                            -- 保留原有冷却时间
-                            if env.sup_skill_cooldowns_inside[sup_skill.name] then
-                                sup_preserved_cooldowns[sup_skill.name] = env.sup_skill_cooldowns_inside[sup_skill.name]
-                            else
-                                sup_preserved_cooldowns[sup_skill.name] = 0
-                            end
+                        --     -- 保留原有冷却时间
+                        --     if env.sup_skill_cooldowns_inside[sup_skill.name] then
+                        --         sup_preserved_cooldowns[sup_skill.name] = env.sup_skill_cooldowns_inside[sup_skill.name]
+                        --     else
+                        --         sup_preserved_cooldowns[sup_skill.name] = 0
+                        --     end
                             
-                            table.insert(new_sup_skills, sup_skill)
+                        --     table.insert(new_sup_skills, sup_skill)
                         end
                     end
                 end
@@ -35542,8 +35543,8 @@ local plot_nodes = {
                     -- 只处理启用技能
                     if skill_data["启用"] then
                         -- 处理攻击技能
-                        if poe2_api.table_contains(skill_data["技能屬性"],{"攻击技能","辅助技能"}) then
-                        -- if skill_data["技能屬性"] == "攻击技能" then
+                        -- if poe2_api.table_contains(skill_data["技能屬性"],{"攻击技能","辅助技能"}) then
+                        if skill_data["技能屬性"] == "攻击技能" then
                             local skill = {
                                 name = key,
                                 key = key,
@@ -35571,23 +35572,23 @@ local plot_nodes = {
                             
                             table.insert(new_skills, skill)
                             
-                        -- -- 处理辅助技能
-                        -- elseif skill_data["技能屬性"] == "辅助技能" then
-                        --     local sup_skill = {
-                        --         name = key,
-                        --         key = key,
-                        --         id = key_to_skill_id[key] or 0,
-                        --         interval = (tonumber(skill_data["釋放間隔"]) or 0) / 1000
-                        --     }
+                        -- 处理辅助技能
+                        elseif skill_data["技能屬性"] == "辅助技能" then
+                            local sup_skill = {
+                                name = key,
+                                key = key,
+                                id = key_to_skill_id[key] or 0,
+                                interval = (tonumber(skill_data["釋放間隔"]) or 0) / 1000
+                            }
                             
-                        --     -- 保留原有冷却时间
-                        --     if env.sup_skill_cooldowns_outside[sup_skill.name] then
-                        --         sup_preserved_cooldowns[sup_skill.name] = env.sup_skill_cooldowns_outside[sup_skill.name]
-                        --     else
-                        --         sup_preserved_cooldowns[sup_skill.name] = 0
-                        --     end
+                            -- 保留原有冷却时间
+                            if env.sup_skill_cooldowns_outside[sup_skill.name] then
+                                sup_preserved_cooldowns[sup_skill.name] = env.sup_skill_cooldowns_outside[sup_skill.name]
+                            else
+                                sup_preserved_cooldowns[sup_skill.name] = 0
+                            end
                             
-                        --     table.insert(new_sup_skills, sup_skill)
+                            table.insert(new_sup_skills, sup_skill)
                         end
                     end
                 end

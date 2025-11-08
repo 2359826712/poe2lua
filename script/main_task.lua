@@ -1552,7 +1552,7 @@ local main_task= {
             index = 250
         },
         ['從阿戈拉殺出血路，並找到漆黑密室']= {
-            map_name= 'G3_16',
+            map_name= 'G3_17',
             interaction_object= {'漆黑密室'},
             interaction_object_map_name= {'G3_17'},
             index = 251
