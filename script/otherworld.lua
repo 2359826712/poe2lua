@@ -33298,7 +33298,7 @@ local plot_nodes = {
                     return bret.SUCCESS
                 end
             end
-            if string.find(current_map, "G3_12") and check_pos_dis(team_member_3) and ((interaction_object and poe2_api.table_contains(interaction_object, "召瓦尔") and check_pos_dis(team_member_3)) or (check_pos_dis("艾瓦") and check_pos_dis("艾瓦") < 25) or not check_pos_dis("競技場")) then
+            if string.find(current_map, "G3_12") and check_pos_dis(team_member_3) and ((interaction_object and poe2_api.table_contains(interaction_object, "召瓦尔") and check_pos_dis(team_member_3) and not mini_map_obj("KaazuliBossInactive") ) or (check_pos_dis("艾瓦") and check_pos_dis("艾瓦") < 25) or not check_pos_dis("競技場")) then
                 poe2_api.dbgp("在G3_12")
                 return bret.RUNNING
             end
@@ -33849,13 +33849,13 @@ local plot_nodes = {
                     env.not_move = true
                     return bret.SUCCESS
                 end
-                if not check_pos_dis(boss_name) and party_dis_memember(range_info) and not party_path_memember() then
+                if next_level() and (not check_pos_dis(boss_name) or (check_pos_dis(boss_name) and check_pos_dis(boss_name) > 180)) and party_dis_memember(range_info) and not party_path_memember() then
                     poe2_api.dbgp("G1_15-小号没下楼梯")
                     env.louti_space = false
                     self.follow = true
                     if not poe2_api.click_text_UI({ text = "respawn_at_checkpoint_button", UI_info = UI_info }) and not self.bool1 then
                         poe2_api.dbgp("向記錄點翻滚")
-                        local walkpoint = poe2_api.find_text({ UI_info = UI_info, text = "記錄點", position = 3 })
+                        local walkpoint = poe2_api.find_text({ UI_info = UI_info, text = "記錄點", min_x = 0 , position = 3 })
                         if walkpoint then
                             api_ClickScreen(poe2_api.toInt(walkpoint[1]), poe2_api.toInt(walkpoint[2]),0)
                             api_Sleep(500)
@@ -33891,11 +33891,11 @@ local plot_nodes = {
                     env.not_move = true
                     return bret.SUCCESS
                 end
-                if not party_path_memember() then
+                if poe2_api.find_text({UI_info = UI_info, text = "掩埋神殿", min_x = 0,max_x = 1350, position = 3 }) and not party_path_memember() then
                     env.louti_space = false
                     if not poe2_api.click_text_UI({ text = "respawn_at_checkpoint_button", UI_info = UI_info }) and not self.bool1 then
                         poe2_api.dbgp("向記錄點翻滚")
-                        local walkpoint = poe2_api.find_text({ UI_info = UI_info, text = "記錄點", position = 3 })
+                        local walkpoint = poe2_api.find_text({ UI_info = UI_info, text = "記錄點", min_x = 0 ,position = 3 })
                         if walkpoint then
                             api_ClickScreen(poe2_api.toInt(walkpoint[1]), poe2_api.toInt(walkpoint[2]),0)
                             api_Sleep(500)
@@ -33938,7 +33938,7 @@ local plot_nodes = {
                     poe2_api.find_text({ UI_info = UI_info, text = "競技場", click = 2 })
                     if not poe2_api.click_text_UI({ text = "respawn_at_checkpoint_button", UI_info = UI_info }) and not self.bool1 then
                         poe2_api.dbgp("向記錄點翻滚")
-                        local walkpoint = poe2_api.find_text({ UI_info = UI_info, text = "記錄點", position = 3 })
+                        local walkpoint = poe2_api.find_text({ UI_info = UI_info, text = "記錄點", min_x = 0, position = 3 })
                         if walkpoint then
                             api_ClickScreen(poe2_api.toInt(walkpoint[1]), poe2_api.toInt(walkpoint[2]),0)
                             api_Sleep(500)
@@ -33982,13 +33982,38 @@ local plot_nodes = {
                         and (not interaction_object or not poe2_api.table_contains(interaction_object, "科佩克")) and task_name ~= "找出控制機關並啟用水道，抽乾該區的水。" then
                         poe2_api.find_text({ UI_info = UI_info, text = "淹沒之城", click = 2 })
                         return bret.RUNNING
-                    elseif interaction_object and poe2_api.table_contains(interaction_object, "科佩克") and poe2_api.find_text({ UI_info = UI_info, text = "淹沒之城", min_x = 0 }) and poe2_api.find_text({ UI_info = UI_info, text = "科佩克神殿", min_x = 0 }) then
-                        poe2_api.find_text({ UI_info = UI_info, text = "科佩克神殿", min_x = 0, click = 2 })
+                    elseif interaction_object and poe2_api.table_contains(interaction_object, "科佩克") and poe2_api.point_distance(419, 396,player_info) < 25  and poe2_api.find_text({ UI_info = UI_info, text = "科佩克神殿", min_x = 0 }) then
+                        poe2_api.dbgp("科佩克神殿1")
+                        if not poe2_api.find_text({ UI_info = UI_info, text = "副本管理員", min_x = 0, click = 0, refresh = true }) then
+                            api_Sleep(500)
+                            poe2_api.find_text({UI_info = env.UI_info, text ="科佩克神殿", min_x = 0, click = 4})
+                            api_Sleep(500)
+                        else
+                            api_Sleep(500)
+                            poe2_api.find_text({ UI_info = UI_info, text = "新副本", click = 2, min_x = 0, refresh = true })
+                            api_Sleep(500)
+                            if poe2_api.click_text_UI({ text = "loading_screen_tip_label", UI_info = UI_info }) then
+                                return bret.RUNNING
+                            end
+                        end
                         self.click_ke = true
                         return bret.RUNNING
                     end
-                    if self.click_ke and string.find(task_area, "G3_12") and not string.find(me_area, "G3_12") and api_HasObstacleBetween(458, 324 ) then
-                        poe2_api.find_text({ UI_info = UI_info, text = "科佩克神殿", min_x = 0, click = 2 })
+                    if self.click_ke and string.find(task_area, "G3_12") and not string.find(me_area, "G3_12") and api_HasObstacleBetween(419, 396 ) then
+                        poe2_api.dbgp("科佩克神殿2")
+                        if not poe2_api.find_text({ UI_info = UI_info, text = "副本管理員", min_x = 0, click = 0, refresh = true }) then
+                            api_Sleep(500)
+                            poe2_api.find_text({UI_info = env.UI_info, text ="科佩克神殿", min_x = 0, click = 4})
+                            api_Sleep(500)
+                        else
+                            api_Sleep(500)
+                            poe2_api.find_text({ UI_info = UI_info, text = "新副本", click = 2, min_x = 0, refresh = true })
+                            api_Sleep(500)
+                            if poe2_api.click_text_UI({ text = "loading_screen_tip_label", UI_info = UI_info }) then
+                                return bret.RUNNING
+                            end
+                        end
+                        return bret.RUNNING
                     else
                         self.click_ke = false
                     end
@@ -34330,8 +34355,8 @@ local plot_nodes = {
                 poe2_api.dbgp("[task_area]G3_12")
                 if string.find(current_map, "G3_town") then
                     poe2_api.dbgp("[task_area]G3_12,在城镇")
-                    local target_pos = { 458, 324 }
-
+                    local target_pos = { 419, 396 }
+                    
                     local foundPath = api_FindPath(player_info.grid_x, player_info.grid_y, target_pos[1], target_pos[2])
                     if foundPath then
                         env.end_point = { target_pos[1], target_pos[2] }
@@ -36593,11 +36618,13 @@ local plot_nodes = {
                 if env.is_not_ui then
                     env.is_not_ui = false
                     poe2_api.time_p("[Is_Have_Interaction_Object]",(api_GetTickCount64() - current_time))
+                    env.last_click_interaction  = 0
                     return bret.SUCCESS
                 end
                 if env.not_need_active then
                     env.not_need_active = false
                     poe2_api.time_p("[Is_Have_Interaction_Object]",(api_GetTickCount64() - current_time))
+                    env.last_click_interaction  = 0
                     return bret.SUCCESS
                 end
                 poe2_api.dbgp("进入周围是否有交互对象")
@@ -36605,6 +36632,7 @@ local plot_nodes = {
                 return bret.FAIL
             end
             poe2_api.time_p("[Is_Have_Interaction_Object]",(api_GetTickCount64() - current_time))
+            env.last_click_interaction  = 0
             return bret.SUCCESS
         end
     }, 
@@ -37767,18 +37795,18 @@ local plot_nodes = {
             
                 return true
             end
-            if self.last_click_time == nil or self.last_click_interaction ==  nil then
+            if self.last_click_time == nil or env.last_click_interaction ==  nil then
                 self.last_click_time = 0
-                self.last_click_interaction = 0 
+                env.last_click_interaction = 0 
             end 
-            if self.last_click_interaction == 0 then
-                self.last_click_interaction = api_GetTickCount64()
+            if env.last_click_interaction == 0 then
+                env.last_click_interaction = api_GetTickCount64()
             end
-            if api_GetTickCount64() - self.last_click_interaction > 15*1000 then
+            if api_GetTickCount64() - env.last_click_interaction > 15*1000 then
                 local obj_walk_point = api_FindRandomWalkablePosition(player_info.grid_x, player_info.grid_y,30)
                 api_ClickMove(obj_walk_point.x,obj_walk_point.y,0)
                 poe2_api.click_keyboard("space")
-                self.last_click_interaction  = 0
+                env.last_click_interaction  = 0
                 return bret.RUNNING
             end
             if not interaction_object or #interaction_object == 0 then

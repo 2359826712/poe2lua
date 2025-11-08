@@ -1471,8 +1471,8 @@ local main_task= {
         ['擊敗豔陽神聖主教．凱亞祖利']= {
             map_name= 'G3_12',
             Boss= {'豔陽神聖主教．凱亞祖利'},
-            interaction_object= {'召瓦尔','科佩克','召喚艾瓦'},
-            interaction_object_map_name= {'KaazuliBossActive'},
+            interaction_object= {'艾瓦','召瓦尔','科佩克','召喚艾瓦', '調查平台'},
+            interaction_object_map_name= {'KaazuliBossActive','艾瓦'},
             index = 238
         },
         ['搭乘電梯']= {
