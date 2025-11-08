@@ -32704,6 +32704,7 @@ local plot_nodes = {
                 poe2_api.time_p("[Is_Pick_Up_Task_Props]FAIL",api_GetTickCount64() - current_time)
                 return bret.FAIL
             else
+                env.pick_up_time = 0
                 env.item_name = nil
                 poe2_api.dbgp("[Is_Pick_Up_Task_Props]SUCCESS")
                 poe2_api.time_p("[Is_Pick_Up_Task_Props]SUCCESS",api_GetTickCount64() - current_time)
@@ -32754,7 +32755,17 @@ local plot_nodes = {
             local item_name = env.item_name
             local bag_info = env.bag_info
             local range_items = env.range_items
-
+            if not env.pick_up_time or env.pick_up_time == 0 then
+                env.pick_up_time = api_GetTickCount64()
+            end
+            local pick_time = api_GetTickCount64() - env.pick_up_time
+            if pick_time > 1000 * 15 then
+                local handle_point = api_FindRandomWalkablePosition(player_info.grid_x, player_info.grid_y,40)
+                api_ClickMove(poe2_api.toInt(handle_point.x),poe2_api.toInt(handle_point.y),0)
+                api_Sleep(300)
+                poe2_api.click_keyboard("space")
+                env.pick_up_time = 0
+            end
             local function check_item_in_round(item_name, inventory)
                 if inventory then
                     for _, item in ipairs(inventory) do
