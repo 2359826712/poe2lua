@@ -2812,7 +2812,7 @@ local custom_nodes = {
                     local point = poe2_api.get_space_point({width = width, height = height, info = env.bag_info})
                     
                     poe2_api.dbgp(string.format("物品尺寸: 宽%d, 高%d", width, height))
-                    poe2_api.dbgp(point[1],point[2])
+                    -- poe2_api.dbgp(point[1],point[2])
                     if point then
                         poe2_api.dbgp(string.format("获取到空间点: (%d, %d)", poe2_api.toInt(point[1]), poe2_api.toInt(point[2])))
                         
@@ -12090,7 +12090,7 @@ local custom_nodes = {
                     local point = poe2_api.get_space_point({width = width, height = height, info = env.bag_info})
                     
                     poe2_api.dbgp(string.format("物品尺寸: 宽%d, 高%d", width, height))
-                    poe2_api.dbgp(point[1],point[2])
+                    -- poe2_api.dbgp(point[1],point[2])
                     if point then
                         poe2_api.dbgp(string.format("获取到空间点: (%d, %d)", poe2_api.toInt(point[1]), poe2_api.toInt(point[2])))
                         
@@ -23793,8 +23793,8 @@ local custom_nodes = {
                     if env.path_list and #env.path_list > 0 then
                         env.target_point = {env.path_list[1].x, env.path_list[1].y}
                         -- poe2_api.dbgp("len 5604 移除已使用的点")
-                        self.player_point = nil
-                        self.player_move_timeout = 0
+                        -- self.player_point = nil
+                        -- self.player_move_timeout = 0
                         table.remove(env.path_list, 1)
                     end
 
@@ -35542,7 +35542,8 @@ local plot_nodes = {
                     -- 只处理启用技能
                     if skill_data["启用"] then
                         -- 处理攻击技能
-                        if skill_data["技能屬性"] == "攻击技能" then
+                        if poe2_api.table_contains(skill_data["技能屬性"],{"攻击技能","辅助技能"}) then
+                        -- if skill_data["技能屬性"] == "攻击技能" then
                             local skill = {
                                 name = key,
                                 key = key,
@@ -35570,23 +35571,23 @@ local plot_nodes = {
                             
                             table.insert(new_skills, skill)
                             
-                        -- 处理辅助技能
-                        elseif skill_data["技能屬性"] == "辅助技能" then
-                            local sup_skill = {
-                                name = key,
-                                key = key,
-                                id = key_to_skill_id[key] or 0,
-                                interval = (tonumber(skill_data["釋放間隔"]) or 0) / 1000
-                            }
+                        -- -- 处理辅助技能
+                        -- elseif skill_data["技能屬性"] == "辅助技能" then
+                        --     local sup_skill = {
+                        --         name = key,
+                        --         key = key,
+                        --         id = key_to_skill_id[key] or 0,
+                        --         interval = (tonumber(skill_data["釋放間隔"]) or 0) / 1000
+                        --     }
                             
-                            -- 保留原有冷却时间
-                            if env.sup_skill_cooldowns_outside[sup_skill.name] then
-                                sup_preserved_cooldowns[sup_skill.name] = env.sup_skill_cooldowns_outside[sup_skill.name]
-                            else
-                                sup_preserved_cooldowns[sup_skill.name] = 0
-                            end
+                        --     -- 保留原有冷却时间
+                        --     if env.sup_skill_cooldowns_outside[sup_skill.name] then
+                        --         sup_preserved_cooldowns[sup_skill.name] = env.sup_skill_cooldowns_outside[sup_skill.name]
+                        --     else
+                        --         sup_preserved_cooldowns[sup_skill.name] = 0
+                        --     end
                             
-                            table.insert(new_sup_skills, sup_skill)
+                        --     table.insert(new_sup_skills, sup_skill)
                         end
                     end
                 end
