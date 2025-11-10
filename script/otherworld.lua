@@ -34859,7 +34859,7 @@ local plot_nodes = {
                         if not poe2_api.find_text({ UI_info = UI_info, text = task_area_name, click = 0, refresh = true }) then
                             if #(poe2_api.task_area_list_data(teleport_area)) < 3 then
                                 waypoint_screen = poe2_api.waypoint_pos(teleport_area,env.waypoint)
-                                if waypoint_screen[1] <= 0 or waypoint_screen[2] <= 0  then
+                                if not waypoint_screen or waypoint_screen[1] <= 0 or waypoint_screen[2] <= 0  then
                                     poe2_api.dbgp("获取传送点失败，重新获取传送点")
                                     api_Sleep(1000)
                                     env.waypoint = api_GetTeleportationPoint()
