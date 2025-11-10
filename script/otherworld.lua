@@ -38,6 +38,7 @@ local config = json.decode(content)
 
 -- 自定义节点实现
 local custom_nodes = {
+    -- 获取用户配置信息
     Get_User_Config_Info = {
         run = function(self, env)
             poe2_api.print_log("获取用户配置信息...")
@@ -423,15 +424,17 @@ local custom_nodes = {
                 self.open_map_count = env.open_map_count or 0
             end
             local open_map_count = (self.open_map_count or 0) + (env.open_map_count or 0)
-
+            poe2_api.runtime.open_map_count = open_map_count
             if not self.death_times then
                 self.death_times = env.death_times or 0
             end
             local death_times = (self.death_times or 0) + (env.death_times or 0)
-            api_SetStatusText("开图次数:"..(open_map_count or 0).."\n异常提示:"..(env.error_text or ""))
-            if env.is_error then
-                error("发生异常")
-            end
+            -- api_SetStatusText("开图次数:"..(open_map_count or 0).."\n异常提示:"..(env.error_text or ""))
+            -- if env.is_error then
+            --     error("发生异常")
+            -- end
+            -- api_SetStatusText("开图次数:"..(env.open_map_count or 0))
+            api_SetStatusText("开图次数:"..(open_map_count or 0))
             -- api_SetStatusText("开图次数:"..(env.open_map_count or 0))
 
             -- api_UpdateMapObstacles(1000)
@@ -5159,10 +5162,10 @@ local custom_nodes = {
                     local warehouse_obj1 = get_object(game_str.Guild_Warehouse,env.range_info)
                     if not warehouse_obj and not warehouse_obj1 then
                         poe2_api.dbgp("错误: 找不到仓库对象")
-                        env.error_text = "滴注找不到公会仓库"
-                        env.is_error = true
-                        return bret.RUNNING
-                        -- error("滴注找不到公会仓库")
+                        -- env.error_text = "滴注找不到公会仓库"
+                        -- env.is_error = true
+                        -- return bret.RUNNING
+                        error("滴注找不到公会仓库")
                     end
 
                     env.warehouse_type_interactive = game_str.Guild_Warehouse_text
@@ -6482,7 +6485,8 @@ local custom_nodes = {
                                     if b.baseType_utf8 == game_str.The_Knowledge_Scroll then
                                         break
                                     end
-                                    if b.category_utf8 ~= game_str.StackableCurrency and poe2_api.is_do_without_pick_up(b,items_info) then
+                                    -- b.category_utf8 ~= game_str.StackableCurrency and 
+                                    if poe2_api.is_do_without_pick_up(b,items_info) then
                                         poe2_api.dbgp("2")
                                         break
                                     end
@@ -6657,7 +6661,8 @@ local custom_nodes = {
                                     if b.baseType_utf8 == game_str.The_Knowledge_Scroll then
                                         break
                                     end
-                                    if b.category_utf8 ~= game_str.StackableCurrency and poe2_api.is_do_without_pick_up(b,items_info) then
+                                    -- b.category_utf8 ~= game_str.StackableCurrency and 
+                                    if poe2_api.is_do_without_pick_up(b,items_info) then
                                         break
                                     end
                                     if b.category_utf8 == game_str.QuestItem then
@@ -9209,6 +9214,32 @@ local custom_nodes = {
                     -- end
                     return false
                 end
+                local function is_pick_up_mandatory_retention(item)
+                    local bool = false
+                    local item_maxnumber = 0
+                    -- local item_name_utf8 = nil
+                    for k, v in pairs(my_game_info.Mandatory_Retention) do
+                        if item.baseType_utf8 == k then
+                            bool = true
+                            item_maxnumber = v
+                            break
+                        end
+                    end
+                    if not bool then
+                        return false
+                    end
+                    local item_bag_number = 0
+                    for _, v in ipairs(env.bag_info) do
+                        if v.baseType_utf8 == item.baseType_utf8 then
+                            item_bag_number = item_bag_number + v.stackCount
+                        end
+                    end
+                    if item_maxnumber < item_bag_number then
+                        return true
+                    else
+                        return false
+                    end
+                end
                 local function get_not(item,index)
                     local props = is_props(item)
                     if props then
@@ -9218,10 +9249,12 @@ local custom_nodes = {
                         return false
                     end
                     if poe2_api.is_do_without_pick_up(item,processed_configs) then
+                        if not is_pick_up_mandatory_retention(item) then
+                            return false
+                        end
                         if is_decompose and type(is_decompose)~="table" then
                             if item.color == 3 and poe2_api.table_contains(item.category_utf8,my_game_info.equip_type) then
                                 return false
-                                
                             end
                         end
                         return true
@@ -9230,6 +9263,9 @@ local custom_nodes = {
                         if poe2_api.match_item(item,cfg) then
                             if cfg["不撿"] then
                                 if poe2_api.table_contains(item.baseType_utf8,altar_shop_config) then
+                                    return false
+                                end
+                                if not is_pick_up_mandatory_retention(item) then
                                     return false
                                 end
                                 if is_decompose and type(is_decompose)~="table" then
@@ -9323,11 +9359,16 @@ local custom_nodes = {
                         if type(is_dis) == "table" then
                             return is_dis
                         end
-                        if item.baseType_utf8 == game_str.The_Knowledge_Scroll then
+                        local currency_retain = {}
+                        for k, v in pairs(my_game_info.Mandatory_Retention) do
+                            table.insert(currency_retain,k)
+                        end
+                        if item.baseType_utf8 == game_str.The_Knowledge_Scroll or poe2_api.table_contains(item.baseType_utf8,currency_retain) then
+                            -- poe2_api.log_info("item.baseType_utf8: " .. item.baseType_utf8)
                             local mininumber = nil
                             local miniobj = nil
                             for _, v in ipairs(items) do
-                                if v.baseType_utf8 == game_str.The_Knowledge_Scroll then
+                                if v.baseType_utf8 == item.baseType_utf8 then
                                     if not mininumber or mininumber > v.stackCount then
                                         miniobj = v
                                         mininumber = v.stackCount
@@ -9464,6 +9505,10 @@ local custom_nodes = {
                     poe2_api.time_p("物品丢弃（RUNNING6）... 耗时 --> ", api_GetTickCount64() - start_time)
                     return bret.RUNNING
                 end
+                -- poe2_api.printTable(env.discard_item)
+                -- while true do
+                --     api_Sleep(1000)
+                -- end
                 local point = poe2_api.get_center_position({env.discard_item.start_x,env.discard_item.start_y},{env.discard_item.end_x,env.discard_item.end_y})
                 api_ClickScreen(poe2_api.toInt(point[1]),poe2_api.toInt(point[2]),1)
                 api_Sleep(500)
@@ -10105,6 +10150,32 @@ local custom_nodes = {
                 end
                 return false
             end
+            local function is_pick_up_mandatory_retention(item)
+                local bool = false
+                local item_maxnumber = 0
+                -- local item_name_utf8 = nil
+                for k, v in pairs(my_game_info.Mandatory_Retention) do
+                    if item.baseType_utf8 == k then
+                        bool = true
+                        item_maxnumber = v
+                        break
+                    end
+                end
+                if not bool then
+                    return false
+                end
+                local item_bag_number = 0
+                for _, v in ipairs(env.bag_info) do
+                    if v.baseType_utf8 == item.baseType_utf8 then
+                        item_bag_number = item_bag_number + v.stackCount
+                    end
+                end
+                if item_maxnumber <= item_bag_number then
+                    return false
+                else
+                    return true
+                end
+            end
             local function get_item(items,processed_configs)
                 
                 local sorted_items = poe2_api.get_sorted_list(items,player_info)
@@ -10152,6 +10223,11 @@ local custom_nodes = {
                                 end
                                 if not cfg['不撿'] then
                                     if poe2_api.is_do_without_pick_up(item,processed_configs) then
+                                        if is_pick_up_mandatory_retention(item) then
+                                            env.interactive = item
+                                            env.need_item = item
+                                            return true
+                                        end
                                         break
                                     end
                                     local item_entry = cfg["物品詞綴"] or {}
@@ -10239,7 +10315,11 @@ local custom_nodes = {
                                 end
                                 break
                             end
-
+                            if is_pick_up_mandatory_retention(item) then
+                                env.interactive = item
+                                env.need_item = item
+                                return true
+                            end
                         end
                         if poe2_api.table_contains(item.baseType_utf8,altar_shop_config) then
                             -- poe2_api.dbgp("kkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkk")
@@ -10256,6 +10336,7 @@ local custom_nodes = {
                                         end
                                         if not cfg['不撿'] then
                                             if poe2_api.is_do_without_pick_up(item,processed_configs) then
+
                                                 break
                                             end
                                             local item_entry = cfg["物品詞綴"] or {}

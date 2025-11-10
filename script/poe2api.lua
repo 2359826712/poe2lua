@@ -17,6 +17,12 @@ local CELL_HEIGHT_max = 22  -- 超大仓库 每个格子高度
 local last_record_time = nil  -- 上次记录的时间戳
 local INTERVAL = 10          -- 间隔时间（秒）
 
+_M.runtime = _M.runtime or {
+    open_map_count = 0,
+    death_times    = 0,
+    error_text     = "",
+  }
+
 _M.point_distance = function(x, y, ac)
     -- 检查参数有效性
     if type(x) ~= "number" or type(y) ~= "number" then
@@ -612,6 +618,7 @@ _M.is_have_mos = function(params)
     stuck_monsters = params.stuck_monsters or nil
     not_attack_mos = params.not_attack_mos or nil
     is_active = params.is_active
+    local target_color_list = params.target_color_list
 
     if is_active == nil then
         is_active = true
@@ -654,6 +661,12 @@ _M.is_have_mos = function(params)
         -- _M.print_log("检查不攻击的怪物")
         if params.not_attack_mos then
             if _M.table_contains(params.not_attack_mos,monster.rarity) then
+                goto continue
+            end
+        end
+        
+        if target_color_list then
+            if not _M.table_contains(target_color_list,monster.rarity) then
                 goto continue
             end
         end

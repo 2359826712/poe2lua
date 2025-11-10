@@ -93,9 +93,11 @@ while true do
     end)
     if not success then
         -- 打印错误信息
-        api_Log(string.format("注意Tick %d:", i))
-        api_Log(string.format("注意信息: %s", tostring(err)))
-        error(err)
+        -- api_Log(string.format("注意Tick %d:", i))
+        -- api_Log(string.format("注意信息: %s", tostring(err)))
+        -- error(err)
+        api_SetStatusText("开图次数:"..(poe2api.runtime.open_map_count).."\n异常提示:"..(err or ""))
+        error(tostring(err))
         -- while true do
         --     api_Sleep(1000)
         -- end
