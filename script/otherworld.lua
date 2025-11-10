@@ -25700,7 +25700,16 @@ local plot_nodes = {
 
                 -- 检查是否需要售卖地图
                 env.need_sale_map = config["全局設置"]["刷图通用設置"]["自动清理地图(个人仓库)"]
-                
+                env.settings_cfg_plaque = config["刷圖設置"]["插碑牌設置"] or {}
+                local result = {}
+                if next(env.settings_cfg_plaque) then
+                    for _, v in ipairs(env.settings_cfg_plaque) do
+                        table.insert(result, v["基礎類型名"])
+                    end
+                else
+                    result = {"祭祀碑牌","先行者碑牌","總督的先行者碑牌","裂痕碑牌","譫妄碑牌"}
+                end
+                env.stone_order = result
                 local item_filters = config["物品過濾"] or {}  -- 获取物品过滤配置数组
                 -- 两种独立的分类表
                 local item_config_by_type = {}      -- 按【類型】分类
@@ -25738,7 +25747,6 @@ local plot_nodes = {
                 env.not_use_map = (config['刷圖設置'] or {})["不打地圖詞綴"] or {}
                 env.priority_map = (config["刷圖設置"] or {})["優先打地圖詞綴"] or {}
                 env.not_enter_map = (config["刷圖設置"] or {})["不打地圖名"] or {}
-
                 -- 处理怪物躲避设置（添加空值保护）
                 local global_settings = config["全局設置"] or {}
                 local common_settings = global_settings["刷图通用設置"] or {}
@@ -37565,7 +37573,7 @@ local plot_nodes = {
                                     env.end_point = {rune_point.x,rune_point.y}
                                     return bret.SUCCESS 
                                 else
-                                    poe2_api.find_text({ UI_info = UI_info, text = "塔巴納的恩惠", min_x=200,click = 2})
+                                    poe2_api.find_text({ UI_info = UI_info, text = "塔巴納的恩惠", min_x=200,click = 2,refresh = true})
                                     api_Sleep(5000)
                                     return bret.RUNNING
                                 end
@@ -38870,7 +38878,15 @@ local plot_nodes = {
                 api_Sleep(500)
                 return bret.RUNNING
             end
-
+            if poe2_api.find_text({text = "抗性",UI_info = env.UI_info, min_x = 0}) then
+                local x = math.random(100, 1500)
+                local y = math.random(50, 100)
+                api_ClickScreen(poe2_api.toInt(x), poe2_api.toInt(y), 0)
+                api_Sleep(300)
+                poe2_api.click_keyboard('alt')
+                api_Sleep(300)
+                return bret.RUNNING
+            end
             if poe2_api.find_text({ UI_info = env.UI_info, text = "私訊", add_x = 265, min_x = 0, max_x = 400, click = 2 }) then
                 return bret.RUNNING
             end
