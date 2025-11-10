@@ -30796,148 +30796,7 @@ local plot_nodes = {
                 poe2_api.dbgp("Check_Role(FAIL1)")
                 return bret.FAIL
             end
-             
-            -- 将字符串转换为Lua表格式
-            local function parse_data_string(data_str)
-                -- 输入: 'user_name': player_info.name_utf8, 'map_name': task.map_name, 'task_name': task.task_name, 'task_index': task.index
-                -- 输出: {user_name = "player_info.name_utf8", map_name = "task.map_name", task_name = "task.task_name", task_index = "task.index"}
-                local result = {}
-                
-                -- 使用正则表达式匹配键值对
-                for key, value in data_str:gmatch("([^=,]+)=([^,]+)") do
-                    -- 去除键和值的前后空格
-                    key = key:gsub("^%s*(.-)%s*$", "%1")
-                    value = value:gsub("^%s*(.-)%s*$", "%1")
-                    result[key] = value
-                end
-                
-                return result
-            end
-
-            -- 直接按位置提取（移除时间检查）
-            local function direct_parse_log_line(line)
-                -- 提取时间部分（前19个字符）
-                local date_time = line:sub(1, 19)
-                
-                -- 将日期时间转换为毫秒
-                local year, month, day, hour, minute, second = date_time:match("^(%d+)/(%d+)/(%d+)%s+(%d+):(%d+):(%d+)$")
-                
-                if not (year and month and day and hour and minute and second) then
-                    return nil
-                end
-                
-                -- 创建时间对象
-                local time_table = {
-                    year = tonumber(year),
-                    month = tonumber(month),
-                    day = tonumber(day),
-                    hour = tonumber(hour),
-                    min = tonumber(minute),
-                    sec = tonumber(second)
-                }
-                
-                local log_timestamp = os.time(time_table) * 1000  -- 转换为毫秒
-                
-                -- 找到%的位置
-                local percent_pos = line:find("%%")
-                if percent_pos then
-                    -- 找到冒号的位置
-                    local colon_pos = line:find(":", percent_pos)
-                    if colon_pos then
-                        -- 提取名称（%和:之间）
-                        local name = line:sub(percent_pos + 1, colon_pos - 1)
-                        -- 提取数据（:之后）
-                        local data = line:sub(colon_pos + 2)  -- +2 跳过冒号和空格
-                        
-                        -- 解析数据字符串为Lua表
-                        local parsed_data = parse_data_string(data)
-                        
-                        return {
-                            timestamp = log_timestamp,
-                            name = name,
-                            data = parsed_data,
-                        }
-                    end
-                end
-                
-                return nil
-            end
-
-            -- 从文件末尾向前读取并解析，只读取指定毫秒时间范围内的内容
-            local function process_recent_logs_unique(file_path, max_age_ms)
-                local file = io.open(file_path, "r")
-                if not file then
-                    print("无法打开文件: " .. file_path)
-                    return {}
-                end
-                
-                -- 读取整个文件内容
-                local content = file:read("*a")
-                file:close()
-                
-                -- 按行分割
-                local lines = {}
-                for line in content:gmatch("[^\r\n]+") do
-                    table.insert(lines, line)
-                end
-                
-                -- 反转行顺序（从后往前，最新的在前面）
-                local reversed_lines = {}
-                for i = #lines, 1, -1 do
-                    table.insert(reversed_lines, lines[i])
-                end
-                
-                local latest_data = {}  -- 最终结果：{name = parsed_data}
-                local seen_names = {}   -- 跟踪每个名称的最新时间戳
-                local current_timestamp = os.time() * 1000
-                
-                for _, line in ipairs(reversed_lines) do
-                    -- 先快速检查时间格式
-                    local date_time = line:sub(1, 19)
-                    local year, month, day, hour, minute, second = date_time:match("^(%d+)/(%d+)/(%d+)%s+(%d+):(%d+):(%d+)$")
-                    
-                    if not (year and month and day and hour and minute and second) then
-                        -- 不是有效的时间格式，跳过这行
-                        goto continue
-                    end
-                    
-                    -- 创建时间对象
-                    local time_table = {
-                        year = tonumber(year),
-                        month = tonumber(month),
-                        day = tonumber(day),
-                        hour = tonumber(hour),
-                        min = tonumber(minute),
-                        sec = tonumber(second)
-                    }
-                    
-                    local log_timestamp = os.time(time_table) * 1000
-                    
-                    -- 检查时间是否在指定毫秒范围内
-                    if current_timestamp - log_timestamp > max_age_ms then
-                        -- 日志时间太旧，提前返回
-                        return latest_data
-                    end
-                    
-                    -- 解析日志行（不再传递max_age_ms参数）
-                    local parsed_line = direct_parse_log_line(line)
-                    if parsed_line then
-                        local name = parsed_line.name
-                        local data = parsed_line.data
-                        local timestamp = parsed_line.timestamp
-                        
-                        -- 如果这个名称还没有处理过，或者当前记录的时间戳更新，则更新数据
-                        if not seen_names[name] or timestamp > seen_names[name] then
-                            seen_names[name] = timestamp
-                            latest_data[name] = data
-                        end
-                    end
-                    
-                    ::continue::
-                end
-                
-                return latest_data
-            end
+            
             -- 获取队伍成员列表（排除自己）
             local function get_team_members()
                 local members = {}
@@ -30970,7 +30829,7 @@ local plot_nodes = {
 
             poe2_api.dbgp(max_time)
             -- 解析日志获取成员任务信息
-            local member_task_info = process_recent_logs_unique(log_path, max_time)
+            local member_task_info = poe2_api.process_recent_logs_unique(log_path, max_time,200)
             poe2_api.printTable(member_task_info)
             if not member_task_info or next(member_task_info) == nil then
                 poe2_api.dbgp("没有找到队友发送的任务信息")
@@ -31279,6 +31138,7 @@ local plot_nodes = {
             local team_info = env.team_info
             local config = env.user_config
             local max_time = 1000 * 60 * 5  -- 5分钟
+            local log_path = config["全局設置"]["大带小设置"]["日志路径"]
             local function bag_object_sum(name)
                 poe2_api.dbgp("[Query_Current_Task_Information]检测背包中的物品数量：")
                 if not bag_info then
@@ -31325,6 +31185,37 @@ local plot_nodes = {
                 return true
             end
 
+            -- 检查日志中最新任务信息是否与当前一致
+            local function check_latest_task_info(current_name, current_task_name, current_task_index, current_map_name)
+                -- 读取最近的任务信息（例如最近1小时内的）
+                local recent_logs = poe2_api.process_recent_logs_unique(log_path, max_time, 200) -- 1小时内，最多1000行
+                
+                if recent_logs[current_name] then
+                    local latest_task = recent_logs[current_name]
+                    
+                    -- 比较任务信息是否一致
+                    if latest_task.task_name == tostring(current_task_name) and 
+                    latest_task.task_index == tostring(current_task_index) and
+                    latest_task.map_name == tostring(current_map_name) then
+                        return true  -- 一致
+                    else
+                        poe2_api.dbgp("[Query_Current_Task_Information]检测到任务信息不一致，需要重新发送")
+                        poe2_api.dbgp("[Query_Current_Task_Information]日志中的任务: " .. 
+                                    tostring(latest_task.task_name) .. ", " .. 
+                                    tostring(latest_task.task_index) .. ", " .. 
+                                    tostring(latest_task.map_name))
+                        poe2_api.dbgp("[Query_Current_Task_Information]当前任务: " .. 
+                                    tostring(current_task_name) .. ", " .. 
+                                    tostring(current_task_index) .. ", " .. 
+                                    tostring(current_map_name))
+                        return false  -- 不一致
+                    end
+                end
+                
+                -- 如果没有找到对应名称的日志记录，也需要发送
+                poe2_api.dbgp("[Query_Current_Task_Information]未找到历史任务记录，需要发送")
+                return false
+            end
             local function paste_text(text)
                 poe2_api.click_keyboard("ctrl", 1)
                 api_Sleep(200)
@@ -39355,9 +39246,13 @@ local plot_nodes = {
                 env.map_result = nil
                 local ctime = start_time - self.time1
                 poe2_api.dbgp("ctime:", ctime)
-                if ctime > 30 * 1000 then
+                if player_info.isInBossBattle then
+                    ctime = 0
+                end
+                if ctime > 30 * 1000 and not player_info.isInBossBattle then
                     poe2_api.dbgp("[GET_Path] 未找到路径 45 秒，恢复初始地图")
                     api_RestoreOriginalMap()
+
                     if ctime > 60 * 1000 then
                         poe2_api.dbgp("[GET_Path] 未找到路径 60 秒，回城")
                         if string.find(player_info.current_map_name_utf8, "own") then
@@ -39409,7 +39304,12 @@ local plot_nodes = {
                     local result = api_FindNearestReachableInRange(point.x, point.y, 50)
                     api_ClickMove(poe2_api.toInt(result.x), poe2_api.toInt(result.y),0)
                     poe2_api.click_keyboard("space")
+                else
+                    local point = api_FindRandomWalkablePosition(math.floor(player_info.grid_x),math.floor(player_info.grid_y),70)
+                    api_ClickMove(poe2_api.toInt(point.x),poe2_api.toInt(point.y),0)
+                    poe2_api.click_keyboard("space")
                 end
+
                 return bret.RUNNING
             end
         end

@@ -8425,7 +8425,198 @@ _M.get_name_text = function()
     end
     return name_text
 end
+-- 将字符串转换为Lua表格式
+_M.parse_data_string = function(data_str)
+    -- 输入: 'user_name': player_info.name_utf8, 'map_name': task.map_name, 'task_name': task.task_name, 'task_index': task.index
+    -- 输出: {user_name = "player_info.name_utf8", map_name = "task.map_name", task_name = "task.task_name", task_index = "task.index"}
+    local result = {}
+    
+    -- 使用正则表达式匹配键值对
+    for key, value in data_str:gmatch("([^=,]+)=([^,]+)") do
+        -- 去除键和值的前后空格
+        key = key:gsub("^%s*(.-)%s*$", "%1")
+        value = value:gsub("^%s*(.-)%s*$", "%1")
+        result[key] = value
+    end
+    
+    return result
+end
 
+-- 直接按位置提取（移除时间检查）
+_M.direct_parse_log_line = function(line)
+    -- 提取时间部分（前19个字符）
+    local date_time = line:sub(1, 19)
+    
+    -- 将日期时间转换为毫秒
+    local year, month, day, hour, minute, second = date_time:match("^(%d+)/(%d+)/(%d+)%s+(%d+):(%d+):(%d+)$")
+    
+    if not (year and month and day and hour and minute and second) then
+        return nil
+    end
+    
+    -- 创建时间对象
+    local time_table = {
+        year = tonumber(year),
+        month = tonumber(month),
+        day = tonumber(day),
+        hour = tonumber(hour),
+        min = tonumber(minute),
+        sec = tonumber(second)
+    }
+    
+    local log_timestamp = os.time(time_table) * 1000  -- 转换为毫秒
+    
+    -- 找到%的位置
+    local percent_pos = line:find("%%")
+    if percent_pos then
+        -- 找到冒号的位置
+        local colon_pos = line:find(":", percent_pos)
+        if colon_pos then
+            -- 提取名称（%和:之间）
+            local name = line:sub(percent_pos + 1, colon_pos - 1)
+            -- 提取数据（:之后）
+            local data = line:sub(colon_pos + 2)  -- +2 跳过冒号和空格
+            
+            -- 解析数据字符串为Lua表
+            local parsed_data = _M.parse_data_string(data)
+            
+            return {
+                timestamp = log_timestamp,
+                name = name,
+                data = parsed_data,
+            }
+        end
+    end
+    
+    return nil
+end
+
+-- 读取文件的倒数 n 行（返回按从旧到新的顺序，即靠前的是较早的行）
+_M.read_tail_lines= function(file_path, n, chunk_size)
+    chunk_size = chunk_size or 8192
+    local f = io.open(file_path, "rb")
+    if not f then return nil, "无法打开文件: " .. tostring(file_path) end
+
+    local size = f:seek("end")
+    local pos = size
+    local chunks = {}
+    local nl_cnt = 0
+
+    -- 从文件末尾向前读，直到累计到 n 个换行或读到文件开头
+    while pos > 0 and nl_cnt <= n do
+        local r = math.min(chunk_size, pos)
+        f:seek("set", pos - r)
+        local chunk = f:read(r)
+        pos = pos - r
+        table.insert(chunks, 1, chunk) -- 插入到前面，保持正确顺序
+        
+        -- 计算换行符数量
+        local _, c = chunk:gsub("\n", "")
+        nl_cnt = nl_cnt + c
+    end
+    f:close()
+
+    -- 拼接所有块
+    local buf = table.concat(chunks)
+    
+    -- 处理可能被截断的第一行（不完整的行）
+    local start_idx = 1
+    if pos > 0 then -- 如果没读到文件开头，说明第一行可能不完整
+        local first_newline = buf:find("\n")
+        if first_newline then
+            start_idx = first_newline + 1
+        end
+    end
+
+    -- 解析所有行
+    local all_lines = {}
+    local remaining = buf:sub(start_idx)
+    
+    for line in remaining:gmatch("([^\r\n]*)\r?\n?") do
+        if line ~= "" then
+            all_lines[#all_lines + 1] = line
+        end
+    end
+
+    -- 如果最后一行没有换行符，需要单独处理
+    if buf:sub(-1) ~= "\n" and buf:sub(-1) ~= "\r" and #all_lines > 0 then
+        -- 最后一行是有效的，但可能已经被上面的模式匹配到了
+    end
+
+    -- 只保留最后 n 行
+    local start_idx = math.max(#all_lines - n + 1, 1)
+    local tail = {}
+    for i = start_idx, #all_lines do
+        tail[#tail + 1] = all_lines[i]
+    end
+    
+    return tail
+end
+
+-- 只处理"倒数 last_n_lines 到文件末行"的内容
+-- file_path: 日志文件
+-- max_age_ms: 允许的最大时间窗（毫秒）
+-- last_n_lines: 仅扫描的尾部行数（默认 3000，可按需调整）
+_M.process_recent_logs_unique= function(file_path, max_age_ms, last_n_lines)
+    last_n_lines = last_n_lines or 3000
+
+    local lines, err = _M.read_tail_lines(file_path, last_n_lines)
+    if not lines then
+        print(err)
+        return {}
+    end
+
+    -- 反转：让最新的行在前面，便于遇到过期时间就提前返回
+    local reversed_lines = {}
+    for i = 1, #lines do
+        reversed_lines[i] = lines[#lines - i + 1]
+    end
+    local latest_data = {}  -- { name = parsed_data }
+    local seen_names  = {}  -- { name = latest_timestamp }
+    local current_ts  = os.time() * 1000
+    for _, line in ipairs(reversed_lines) do
+        
+        -- 快速校验时间戳格式：YYYY/MM/DD HH:MM:SS
+        local date_time = line:sub(1, 19)
+        local y, m, d, H, M, S = date_time:match("^(%d+)/(%d+)/(%d+)%s+(%d+):(%d+):(%d+)$")
+        if not (y and m and d and H and M and S) then
+            
+            goto continue
+        end
+
+        local tt = {
+            year  = tonumber(y),
+            month = tonumber(m),
+            day   = tonumber(d),
+            hour  = tonumber(H),
+            min   = tonumber(M),
+            sec   = tonumber(S),
+        }
+        local log_ts = os.time(tt) * 1000
+
+        -- 超过时间窗口就可以提前结束（因为已是从新到旧在扫）
+        if current_ts - log_ts > max_age_ms then
+            return latest_data
+        end
+        
+        -- 业务解析（保持与你原来的 direct_parse_log_line 一致）
+        local parsed = _M.direct_parse_log_line(line)
+        if parsed then
+            local name      = parsed.name
+            local data      = parsed.data
+            local timestamp = parsed.timestamp
+
+            if not seen_names[name] or timestamp > seen_names[name] then
+                seen_names[name] = timestamp
+                latest_data[name] = data
+            end
+        end
+
+        ::continue::
+    end
+
+    return latest_data
+end
 -- -- 记录调用时间的函数
 -- _M.record_call_time = function(index,)
 --     -- local current_time = os.time()
