@@ -34067,6 +34067,10 @@ local plot_nodes = {
                             api_ClickScreen(poe2_api.toInt(walkpoint[1]), poe2_api.toInt(walkpoint[2]),0)
                             api_Sleep(500)
                             poe2_api.click_keyboard("space")
+                        else
+                            local point = api_FindRandomWalkablePosition(math.floor(player_info.grid_x),math.floor(player_info.grid_y),70)
+                            api_ClickMove(poe2_api.toInt(point.x),poe2_api.toInt(point.y),0)
+                            poe2_api.click_keyboard("space")
                         end
                         self.bool1 = true
                     end
@@ -34106,6 +34110,10 @@ local plot_nodes = {
                         if walkpoint then
                             api_ClickScreen(poe2_api.toInt(walkpoint[1]), poe2_api.toInt(walkpoint[2]),0)
                             api_Sleep(500)
+                            poe2_api.click_keyboard("space")
+                        else
+                            local point = api_FindRandomWalkablePosition(math.floor(player_info.grid_x),math.floor(player_info.grid_y),70)
+                            api_ClickMove(poe2_api.toInt(point.x),poe2_api.toInt(point.y),0)
                             poe2_api.click_keyboard("space")
                         end
                         self.bool1 = true
@@ -34149,6 +34157,10 @@ local plot_nodes = {
                         if walkpoint then
                             api_ClickScreen(poe2_api.toInt(walkpoint[1]), poe2_api.toInt(walkpoint[2]),0)
                             api_Sleep(500)
+                            poe2_api.click_keyboard("space")
+                        else
+                            local point = api_FindRandomWalkablePosition(math.floor(player_info.grid_x),math.floor(player_info.grid_y),70)
+                            api_ClickMove(poe2_api.toInt(point.x),poe2_api.toInt(point.y),0)
                             poe2_api.click_keyboard("space")
                         end
                        
