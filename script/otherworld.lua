@@ -34075,7 +34075,7 @@ local plot_nodes = {
                     end
                     if api_GetTickCount64() - self.time1 >= 30 * 1000 then
                         for _, name in ipairs(my_game_info.city_map) do
-                            if poe2_api.find_text({ UI_info = env.UI_info, text = name, click = 0 }) then
+                            if poe2_api.find_text({ UI_info = env.UI_info, text = name, click = 0,min_x = 0 }) then
                                 self.time1 = 0
                                 self.bool1 = false
                                 return bret.RUNNING
@@ -34115,7 +34115,7 @@ local plot_nodes = {
                     end
                     if api_GetTickCount64() - self.time1 >= 30 * 1000 then
                         for _, name in ipairs(my_game_info.city_map) do
-                            if poe2_api.find_text({ UI_info = env.UI_info, text = name, click = 0 }) then
+                            if poe2_api.find_text({ UI_info = env.UI_info, text = name, click = 0,min_x = 0 }) then
                                 self.time1 = 0
                                 self.bool1 = false
                                 return bret.RUNNING
@@ -34159,7 +34159,7 @@ local plot_nodes = {
                     end
                     if api_GetTickCount64() - self.time1 >= 30 * 1000 then
                         for _, name in ipairs(my_game_info.city_map) do
-                            if poe2_api.find_text({ UI_info = env.UI_info, text = name, click = 0 }) then
+                            if poe2_api.find_text({ UI_info = env.UI_info, text = name, click = 0,min_x = 0 }) then
                                 self.time1 = 0
                                 self.bool1 = false
                                 return bret.RUNNING
@@ -35239,7 +35239,7 @@ local plot_nodes = {
         run = function(self, env)
             local function check_skill_in_pos()
                 local skill_name = env.skill_name
-                
+                env.mouse_check = true
                 -- 检查是否是武器技能
                 if string.find(skill_name, "WeaponGranted") or poe2_api.table_contains(skill_name, {"FireboltPlayer", "MeleeBowPlayer", "MeleeCrossbowPlayer", "MeleeSpearOffHandPlayer", "Melee1HMacePlayer", "MeleeQuarterstaffPlayer"}) then
                     return true
