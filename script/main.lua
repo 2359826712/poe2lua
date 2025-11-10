@@ -95,9 +95,10 @@ while true do
         -- 打印错误信息
         api_Log(string.format("注意Tick %d:", i))
         api_Log(string.format("注意信息: %s", tostring(err)))
-        while true do
-            api_Sleep(1000)
-        end
+        error(err)
+        -- while true do
+        --     api_Sleep(1000)
+        -- end
     end
 
     local elapsed_ms = (api_GetTickCount64()) - start_time

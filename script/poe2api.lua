@@ -369,7 +369,7 @@ end
 -- 读取json文件
 _M.load_config = function(path)
     local file = io.open(path, "r") -- 打开文件
-    if not file then error("Failed to open config file: " .. path) end
+    if not file then return false end
     local content = file:read("*a") -- 读取全部内容 
     file:close()
     return json.decode(content) -- 解析 JSON
@@ -5859,6 +5859,21 @@ _M.paste_text = function(text)
     _M.click_keyboard("ctrl", 1)
     api_Sleep(200)
     _M.click_keyboard("a", 0)
+    api_Sleep(200)
+    _M.click_keyboard("v", 0)
+    api_Sleep(200)
+    _M.click_keyboard("ctrl", 2)
+end
+
+-- 粘贴输入文本
+_M.paste_text1 = function(text)
+    api_SetClipboard(text)
+    api_Sleep(200)
+    _M.click_keyboard("ctrl", 1)
+    api_Sleep(200)
+    _M.click_keyboard("a", 0)
+    api_Sleep(200)
+    _M.click_keyboard("backspace")
     api_Sleep(200)
     _M.click_keyboard("v", 0)
     api_Sleep(200)

@@ -71,49 +71,54 @@
       },
       {
         "id": 16,
-        "name": "Not_Main_Page_Otherworld"
+        "name": "OtherWorld_teammate_Team_Up",
+        "desc": "异界队员组队"
       },
       {
         "id": 17,
+        "name": "Not_Main_Page_Otherworld"
+      },
+      {
+        "id": 18,
         "name": "Sequence",
         "desc": "exception_main",
         "children": [
           {
-            "id": 18,
+            "id": 19,
             "name": "CheckLowHpMp_Otherworld",
             "desc": "血蓝检查"
           },
           {
-            "id": 19,
+            "id": 20,
             "name": "Selector",
             "desc": "lowhpmp_move",
             "children": [
               {
-                "id": 20,
+                "id": 21,
                 "name": "Escape"
               },
               {
-                "id": 21,
+                "id": 22,
                 "name": "Sequence",
                 "desc": "Path_Move",
                 "children": [
                   {
-                    "id": 22,
+                    "id": 23,
                     "name": "Game_Block",
                     "desc": "清除遮挡"
                   },
                   {
-                    "id": 23,
+                    "id": 24,
                     "name": "Is_Arrive",
                     "desc": "是否到点"
                   },
                   {
-                    "id": 24,
+                    "id": 25,
                     "name": "GET_Path",
                     "desc": "获取路径"
                   },
                   {
-                    "id": 25,
+                    "id": 26,
                     "name": "Move_To_Target_Point",
                     "desc": "移动至目标点"
                   }
@@ -124,41 +129,41 @@
         ]
       },
       {
-        "id": 26,
+        "id": 27,
         "name": "Selector",
         "desc": "攻击或者移动",
         "children": [
           {
-            "id": 27,
+            "id": 28,
             "name": "Sequence",
             "children": [
               {
-                "id": 28,
+                "id": 29,
                 "name": "Click_Leader_To_Teleport",
                 "desc": "点击传送"
               },
               {
-                "id": 29,
+                "id": 30,
                 "name": "Sequence",
                 "desc": "Path_Move",
                 "children": [
                   {
-                    "id": 30,
+                    "id": 31,
                     "name": "Game_Block",
                     "desc": "清除遮挡"
                   },
                   {
-                    "id": 31,
+                    "id": 32,
                     "name": "Is_Arrive",
                     "desc": "是否到点"
                   },
                   {
-                    "id": 32,
+                    "id": 33,
                     "name": "GET_Path",
                     "desc": "获取路径"
                   },
                   {
-                    "id": 33,
+                    "id": 34,
                     "name": "Move_To_Target_Point",
                     "desc": "移动至目标点"
                   }
@@ -167,37 +172,37 @@
             ]
           },
           {
-            "id": 34,
+            "id": 35,
             "name": "Sequence",
             "desc": "follow_Interactive",
             "children": [
               {
-                "id": 35,
+                "id": 36,
                 "name": "Follow_Interactive",
                 "desc": "点击进入"
               },
               {
-                "id": 36,
+                "id": 37,
                 "name": "Sequence",
                 "desc": "Path_Move",
                 "children": [
                   {
-                    "id": 37,
+                    "id": 38,
                     "name": "Game_Block",
                     "desc": "清除遮挡"
                   },
                   {
-                    "id": 38,
+                    "id": 39,
                     "name": "Is_Arrive",
                     "desc": "是否到点"
                   },
                   {
-                    "id": 39,
+                    "id": 40,
                     "name": "GET_Path",
                     "desc": "获取路径"
                   },
                   {
-                    "id": 40,
+                    "id": 41,
                     "name": "Move_To_Target_Point",
                     "desc": "移动至目标点"
                   }
@@ -206,37 +211,37 @@
             ]
           },
           {
-            "id": 41,
+            "id": 42,
             "name": "Sequence",
             "desc": "Area_Move",
             "children": [
               {
-                "id": 42,
+                "id": 43,
                 "name": "Game_Block",
                 "desc": "清除遮挡"
               },
               {
-                "id": 43,
+                "id": 44,
                 "name": "Check_Leader_Position",
                 "desc": "检查大号位置"
               },
               {
-                "id": 44,
+                "id": 45,
                 "name": "Sequence",
                 "desc": "Path_Move",
                 "children": [
                   {
-                    "id": 45,
+                    "id": 46,
                     "name": "Is_Arrive",
                     "desc": "是否到点"
                   },
                   {
-                    "id": 46,
+                    "id": 47,
                     "name": "GET_Path",
                     "desc": "获取路径"
                   },
                   {
-                    "id": 47,
+                    "id": 48,
                     "name": "Move_To_Target_Point",
                     "desc": "移动至目标点"
                   }
