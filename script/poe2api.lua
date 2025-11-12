@@ -15,8 +15,11 @@ local START_Y_max = 100  -- 超大仓库 起始X坐标
 local CELL_WIDTH_max = 22  -- 超大仓库 每个格子宽度
 local CELL_HEIGHT_max = 22  -- 超大仓库 每个格子高度
 local last_record_time = nil  -- 上次记录的时间戳
-local INTERVAL = 10          -- 间隔时间（秒）
-
+local INTERVAL = 10          -- 间隔时间（秒
+-- ===================== 内部缓存：最后一次成功版本 ======================
+-- key = 规范化后的最终读路径（含盘符/UNC）
+-- val = { data=table, size=number, hash=number }
+local _good_cache = {}
 _M.runtime = _M.runtime or {
     open_map_count = 0,
     death_times    = 0,
@@ -379,6 +382,197 @@ _M.load_config = function(path)
     local content = file:read("*a") -- 读取全部内容 
     file:close()
     return json.decode(content) -- 解析 JSON
+end
+
+-- ============================ 小工具函数 =============================
+_M.trim = function(s)
+    return (s:gsub("^%s+",""):gsub("%s+$","")) 
+end
+
+-- 去掉 [[...]] / "..." / '...'
+_M.unwrap = function(p)
+-- local function unwrap(p)
+    p = _M.trim(p)
+    local a = p:match("^%[%[(.*)%]%]$"); if a then p = a end
+    local b = p:match('^"(.*)"$');        if b then p = b end
+    local c = p:match("^'(.*)'$");        if c then p = c end
+    return p
+end
+
+-- 一次性映射共享（启动时做一次即可）
+local _mapped = {}
+_M.map_share_once = function(unc_root, drive, user, password, persistent)
+-- local function map_share_once(unc_root, drive, user, password, persistent)
+    if package.config:sub(1,1) ~= "\\" then return true end -- 非 Windows 忽略
+    if _mapped[drive] then return true end
+    os.execute(('cmd /c net use %s /delete /y >nul 2>nul'):format(drive))
+    local cmd
+    if user and password then
+        local pers = (persistent==true) and "yes" or "no"
+        cmd = ('cmd /c net use %s %q /user:%q %q /persistent:%s'):format(drive, unc_root, user, password, pers)
+    else
+        cmd = ('cmd /c net use %s %q /persistent:no'):format(drive, unc_root)
+    end
+    os.execute(cmd)  -- 不严校验；后续用实际读结果判断
+    _mapped[drive] = true
+    return true
+end
+
+
+-- ======================= 对外：初始化映射（可选） =======================
+-- 在程序启动时调用一次：更稳更快
+-- _M.map_share_once([[\\HOST\share]], "Z:", "User或DOMAIN\\User", "Password", false)
+-- _M = _M or {}
+-- _M.map_share_once = map_share_once
+
+-- ==================== 对外：高性能 + 稳定读取入口 =====================
+-- opts:
+--   .mapped_drive  : "Z:"  （建议先 _M.map_share_once 映射一次）
+--   .unc_root/user/password/persistent :（若你想在外部手动 map，可不用这里）
+--   .retries/.retry_ms    : 稳定读取重试参数（默认 2 次 / 60ms）
+--   .no_cache             : true 时忽略缓存强制重读
+--   .sample_bytes         : 采样哈希长度，默认 4096
+_M.load_config1 = function(path, opts)
+    
+    -- 解析 \\host\share\dir\file.json ->  share_root="\\host\share", rel="dir\file.json"
+    local function parse_unc(path)
+        if type(path)~="string" or path:sub(1,2)~="\\\\" then return nil end
+        local p  = path:sub(3)
+        local s1 = p:find("\\", 1, true); if not s1 then return nil end
+        local host = p:sub(1, s1-1)
+        local rest = p:sub(s1+1)
+        local s2   = rest:find("\\", 1, true) or (#rest+1)
+        local share= rest:sub(1, s2-1)
+        local rel  = rest:sub(s2+1)
+        return "\\\\"..host.."\\"..share, rel
+    end
+
+    -- 可选长路径前缀（极少数老环境/超长路径用）
+    local function long_unc(path)
+        if type(path)=="string" and path:sub(1,2)=="\\\\" then
+            return "\\\\?\\UNC\\"..path:sub(3)
+        end
+    end
+
+    -- 将 UNC 替换为映射盘符：\\host\share\dir\file -> Z:\dir\file
+    local function replace_with_drive(path, drive)
+        local _, rel = parse_unc(path); if not rel then return path end
+        return drive .. "\\" .. (rel or "")
+    end
+
+    -- 快速拿文件大小（毫秒级，不读内容）
+    local function fast_size(path)
+        local f = io.open(path, "rb"); if not f then return nil end
+        local sz = f:seek("end"); f:close()
+        return sz
+    end
+
+    -- 读全文件 + 基本编码检查
+    local function read_all(path)
+        local f, err = io.open(path, "rb"); if not f then return nil, err end
+        local s = f:read("*a"); f:close()
+        if not s or #s==0 then return nil, "文件为空" end
+        if s:sub(1,3) == "\239\187\191" then s = s:sub(4) end -- 去 BOM
+        local b1,b2 = s:byte(1,2)
+        if (b1==0xFF and b2==0xFE) or (b1==0xFE and b2==0xFF) then
+            return nil, "检测到 UTF-16，请改存为 UTF-8（无 BOM）"
+        end
+        return s
+    end
+
+    -- 很短的忙等（不依赖外部库）
+    local function sleep_ms(ms)
+        local t0 = os.clock()
+        while (os.clock() - t0) * 1000 < ms do end
+    end
+
+    -- 采样哈希：仅用头尾少量字节（成本低，用于缓存一致性）
+    local function sample_hash(s, bytes)
+        bytes = bytes or 4096
+        local n = #s
+        local head = s:sub(1, math.min(bytes, n))
+        local tail = s:sub(math.max(1, n - bytes + 1), n)
+        local h = 2166136261 -- FNV-1a 32-bit
+        local function mix(chunk)
+            for i = 1, #chunk do
+                h = h ~ chunk:byte(i)
+                h = (h * 16777619) & 0xFFFFFFFF
+            end
+        end
+        mix(head); mix(tail)
+        return h
+    end
+
+    -- 稳定读取：读前后两次 size 一致，再极短等待确认
+    local function stable_read(path, opts)
+        local retries  = opts.retries   or 2
+        local retry_ms = opts.retry_ms or 60
+        for attempt = 1, retries + 1 do
+            local s1 = fast_size(path); if not s1 or s1==0 then sleep_ms(retry_ms); goto continue end
+            local content, err = read_all(path)
+            if not content then sleep_ms(retry_ms); goto continue end
+            local s2 = fast_size(path)
+            if s1 == s2 and s1 == #content then
+                -- 再极短等待，避免同毫秒内写入
+                sleep_ms(10)
+                local s3 = fast_size(path)
+                if s3 == #content then
+                    return content
+                end
+            end
+            sleep_ms(retry_ms)
+            ::continue::
+        end
+        return nil, "稳定读取失败"
+    end
+
+    -- 规范化路径：可选将 UNC 切换为盘符；或加长路径前缀
+    local function canonical_path(path, opts)
+        path = _M.unwrap(path)
+        if opts and opts.mapped_drive and path:sub(1,2)=="\\\\" then
+            return replace_with_drive(path, opts.mapped_drive)
+        end
+        -- 少数环境需要长前缀
+        local lp = long_unc(path)
+        return lp or path
+    end
+    opts = opts or {}
+    path = _M.unwrap(path)
+
+    -- 若传了 unc_root + mapped_drive，则在第一次调用时尝试映射（Windows）
+    if opts.unc_root and opts.mapped_drive and not _mapped[opts.mapped_drive] then
+        _M.map_share_once(opts.unc_root, opts.mapped_drive, opts.user, opts.password, opts.persistent)
+    end
+
+    local final_path = canonical_path(path, opts)
+
+    -- 先走极速通道：文件大小与上次一致 → 直接返回缓存（毫秒级）
+    local cache = _good_cache[final_path]
+    if cache and not opts.no_cache then
+        local sz = fast_size(final_path)
+        if sz and sz == cache.size then
+            return cache.data
+        end
+    end
+
+    -- 尝试稳定读取；成功则解析并更新缓存；失败则回退旧缓存
+    local content = select(1, stable_read(final_path, opts))
+    if content then
+        local ok, data = pcall(json.decode, content)
+        if ok then
+            local sz = #content
+            _good_cache[final_path] = { data = data, size = sz, hash = sample_hash(content, opts.sample_bytes) }
+            return data
+        else
+            -- 解析失败（大概率写到一半）：回退
+            if cache then return cache.data end
+            return false
+        end
+    else
+        -- 打不开或不稳定：回退
+        if cache then return cache.data end
+        return false
+    end
 end
 
 -- 读取ini文件
@@ -7467,7 +7661,7 @@ _M.get_item_type = function(item)
     if item.category_utf8 == "SoulCore" then
         if item.baseType_utf8 and string.find(item.baseType_utf8,"符文") then
             text = "符文"
-        elseif item.baseType_utf8 and string.find(item.baseType_utf8,"魔符") then
+        elseif item.baseType_utf8 and (string.find(item.baseType_utf8,"魔符") or string.find(item.baseType_utf8,"護符")) then
             text = "魔符"
         else
             text = "靈魂核心"
@@ -8559,11 +8753,13 @@ _M.read_tail_lines= function(file_path, n, chunk_size)
     -- 解析所有行
     local all_lines = {}
     local remaining = buf:sub(start_idx)
+    
     for line in remaining:gmatch("([^\r\n]*)\r?\n?") do
         if line ~= "" then
             all_lines[#all_lines + 1] = line
         end
     end
+
     -- 如果最后一行没有换行符，需要单独处理
     if buf:sub(-1) ~= "\n" and buf:sub(-1) ~= "\r" and #all_lines > 0 then
         -- 最后一行是有效的，但可能已经被上面的模式匹配到了
@@ -8585,6 +8781,7 @@ end
 -- last_n_lines: 仅扫描的尾部行数（默认 3000，可按需调整）
 _M.process_recent_logs_unique= function(file_path, max_age_ms, last_n_lines)
     last_n_lines = last_n_lines or 3000
+
     local lines, err = _M.read_tail_lines(file_path, last_n_lines)
     if not lines then
         print(err)
@@ -8642,6 +8839,17 @@ _M.process_recent_logs_unique= function(file_path, max_age_ms, last_n_lines)
 
     return latest_data
 end
+
+_M.format_time_diff = function(ms_diff)
+    -- 计算时分秒
+    local seconds = ms_diff / 1000  -- 总秒数
+    local hours = math.floor(seconds / 3600)
+    local minutes = math.floor((seconds % 3600) / 60)
+    local remaining_seconds = math.floor(seconds % 60)
+    
+    -- 格式化为 HH:MM:SS
+    return string.format("%02d:%02d:%02d", hours, minutes, remaining_seconds) 
+end
 -- -- 记录调用时间的函数
 -- _M.record_call_time = function(index,)
 --     -- local current_time = os.time()
@@ -8661,6 +8869,7 @@ end
     
 --     return recorded
 -- end
+
 
 
 

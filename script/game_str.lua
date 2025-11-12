@@ -42,6 +42,7 @@ local game_str = {
     temple = "神殿",
     backpack = "背包",
     Continue_Game = "繼續遊戲",
+    Leave_the_game = "離開遊戲",
     Task_prop_text = {"知識之書","知識之結晶核心"},
     Demon_dispelling_items = "祛魔物品",
     Goodbye = "再會",
@@ -183,6 +184,7 @@ local game_str = {
     Not_Identified_TWCH = "未鑑定",
     Contaminated_TWCH = "已汙染",
     Steam_Copy_Login_Request_TWCH = "Steam：複製的登入請求",
+    Violate_The_Rules = "此帳號因違反下述狀況，已經被遊戲管理者停權了。",
     mini_target_ = {"AbyssCrackActive","AbyssPitActive","RuneMarkersActive"},
 
     -- 暗金碑牌

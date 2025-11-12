@@ -43,7 +43,6 @@ local custom_nodes = {
         run = function(self, env)
             poe2_api.print_log("获取用户配置信息...")
             local start_time = api_GetTickCount64() -- 开始时间
-
             -- 解析单个词缀字符串的函数（最少一个参数，空参数填0）
             local function parse_map_modifier(modifier_str)
                 local parts = {}
@@ -99,9 +98,32 @@ local custom_nodes = {
             end
 
             if not env.user_config then
-                local config = poe2_api.load_config(json_path)
+                local config = nil
+                -- local 
                 local skills_config = poe2_api.load_config(skills_path)
                 local user_info = poe2_api.load_ini(user_info_path)["UserInfo"]
+                -- poe2_api.dbgp(type(user_info["share_config_enable"]))
+                -- poe2_api.dbgp(user_info["share_config_path"])
+                if user_info["share_config_enable"] and tonumber(user_info["share_config_enable"]) == 1 and user_info["share_config_path"] and user_info["share_config_path"] ~= "" then
+                    -- error("共享config")
+                    local share_config_path = "[["..user_info["share_config_path"].."\\config.json".."]]"
+                    -- local share_config_path = poe2_api.unwrap(share_config_path)
+                    -- poe2_api.map_share_once(poe2_api.unwrap(share_config_path), "Z:")
+                    -- poe2_api.dbgp(share_config_path)
+                    -- local a = poe2_api.load_config1(share_config_path)
+                    -- poe2_api.dbgp(a)
+                    -- poe2_api.map_share_once([[\\DESKTOP-P2RBUQP\behavior3lua-master]], "Z:", "DESKTOP-P2RBUQP\\你的用户名", "你的密码", false)
+                    -- local shared_cfg = [[Z:\config.json]]
+                    -- local shared_cfg = [[Z:\config.json]]
+                    poe2_api.dbgp("共享配置")
+                    config = poe2_api.load_config1(share_config_path)
+                    if not config or not next(config) then
+                        error("共享路径下没有config.json文件")
+                    end
+                else
+                    poe2_api.dbgp("本地配置")
+                    config = poe2_api.load_config(json_path)
+                end
                 -- 玩法優先級
                 local map_priority = config["刷圖設置"]["玩法優先級"]
                 -- local map_sorted_items_sort = poe2_api.sort_map_by_key(map_priority)
@@ -228,6 +250,9 @@ local custom_nodes = {
                     env.team_member_list = env.otherworld_team_up_config["隊友名列表"]
                 end
 
+                env.brushing_pictures_rest = config["全局設置"]["刷图通用設置"]["刷图次数休息"] or {}
+                env.take_regular_breaks = config["全局設置"]["刷图通用設置"]["定時休息"] or {}
+
                 local space_monster = {}
 
                 -- 检查每种怪物类型是否存在，不存在则默认为false
@@ -353,7 +378,7 @@ local custom_nodes = {
                 env.keep_distance = env.user_config["全局設置"]["刷图通用設置"]["是否保持距离"] or false
                 env.skills_config = skill_config
 
-                -- env.skills_config_list = skills_config_list
+                env.skills_config_list = skills_config_list
                 -- 如果没有找到符合条件的技能，设置默认值
                 if min_distance == 1000 or min_distance == 0 then
                     min_distance = 70  -- 默认攻击距离
@@ -435,7 +460,6 @@ local custom_nodes = {
             -- end
             -- api_SetStatusText("开图次数:"..(env.open_map_count or 0))
             api_SetStatusText("开图次数:"..(open_map_count or 0))
-            -- api_SetStatusText("开图次数:"..(env.open_map_count or 0))
 
             -- api_UpdateMapObstacles(1000)
 
@@ -608,6 +632,9 @@ local custom_nodes = {
                 if env.player_info and env.player_info.grid_x ~=0 then
                     env.last_exp_value = env.player_info.currentExperience
                     env.last_exp_value_move = env.player_info.currentExperience
+                end
+                if env.user_info["share_config_enable"] and tonumber(env.user_info["share_config_enable"]) == 1 and env.user_info["share_config_path"] and env.user_info["share_config_path"] ~= "" then
+                    env.user_config = nil
                 end
                 poe2_api.dbgp("已重置所有经验监控状态") 
                 api_Sleep(2000)
@@ -3217,17 +3244,28 @@ local custom_nodes = {
             
             -- 匹配物品
             local function match_item(item, cfg)
+                poe2_api.dbgp(cfg["類型"][1])
                 poe2_api.dbgp(string.format("开始匹配物品: %s (类型: %s)", item.baseType_utf8 or "无名", item.category_utf8 or "无类型"))
                 
                 if not cfg["類型"][1] or item.category_utf8 ~= my_game_info.type_conversion[cfg["類型"][1]] then
-                    -- poe2_api.dbgp("类型不匹配，跳过")
+                    poe2_api.dbgp("类型不匹配，跳过")
                     return false
                 end
                 
                 -- 名称匹配
                 if cfg["名稱模式"] == "specific" then
-                    if not cfg["匹配名稱"][1] or not poe2_api.table_contains(cfg["匹配名稱"], item.baseType_utf8) then
-                        -- poe2_api.dbgp("名称不匹配，跳过")
+                    local function split_str(input, sep)
+                        sep = sep or "|"  -- 默认分隔符是 |
+                        local result = {}
+                        for item in string.gmatch(input, "([^"..sep.."]+)") do
+                            table.insert(result, string.match(item, "^%s*(.-)%s*$"))
+                        end
+                        return result
+                    end
+                    local item_name_list = split_str(cfg["匹配名稱"][1])
+                    -- poe2_api.printTable(cfg["匹配名稱"])
+                    if not cfg["匹配名稱"][1] or not poe2_api.table_contains(item_name_list, item.baseType_utf8) then
+                        poe2_api.dbgp("名称不匹配，跳过")
                         return false
                     end
                 end
@@ -3398,14 +3436,28 @@ local custom_nodes = {
                                     poe2_api.dbgp("无词缀物品，标记为分解")
                                     return {item}
                                 end
-                                if not poe2_api.filter_item(item, suffixes, config["物品過濾"] or {}) then
-                                    poe2_api.dbgp("词缀不符合要求，标记为分解")
-                                    return true
+                                local function get_cfg_entry(entry_list)
+                                    for k, v in pairs(entry_list) do
+                                        if v and type(v) ~= "boolean" then  -- 确保 v 不是 nil 且不是 boolean
+                                            if v["詞綴"] and next(v["詞綴"]) then  -- 检查 "詞綴" 是否存在
+                                                return true
+                                            end
+                                        end
+                                    end
+                                    return false
+                                end
+                                if cfg["物品詞綴"] and next(cfg["物品詞綴"]) then
+                                    if get_cfg_entry(cfg["物品詞綴"]) then
+                                        if not poe2_api.filter_item(item, suffixes, config["物品過濾"] or {}) then
+                                            poe2_api.dbgp("词缀不符合要求，标记为分解")
+                                            return true
+                                        end
+                                    end
                                 end
                             end
                             
                             poe2_api.dbgp(item.name_utf8)
-                            if cfg["名稱"] ~= "" and cfg["名稱"] ~= nil and item.name_utf8 ~= cfg["名稱"] then
+                            if cfg["名稱"] ~= "" and cfg["名稱"] ~= nil and not string.find(cfg["名稱"],item.name_utf8) then
                                 poe2_api.dbgp("名稱不一樣，分解")
                                 return true
                             end
@@ -4923,6 +4975,7 @@ local custom_nodes = {
 
             if env.one_other_map then
                 env.dizhu_not_storage = false
+                poe2_api.dbgp("已开图，不滴注")
                 return bret.SUCCESS
             end
 
@@ -4967,6 +5020,7 @@ local custom_nodes = {
                     return bret.RUNNING
                 end
                 env.dizhu_not_storage = false
+                poe2_api.dbgp("1111")
                 return bret.SUCCESS
             end
 
@@ -5079,9 +5133,17 @@ local custom_nodes = {
                 end
                 return false
             end
-
+            local function get_bag_cfg_refining()
+                poe2_api.printTable(env.refining_list_copy)
+                for _, v in ipairs(env.bag_info) do
+                    if poe2_api.table_contains(env.refining_list_copy,v.baseType_utf8) then
+                        return v
+                    end
+                end
+            end
             -- # 无精炼
-            if env.dizhu_end or is_dizhu then
+            if (env.dizhu_end and not get_bag_cfg_refining()) or is_dizhu then
+                poe2_api.dbgp("5555")
                 return shut_down_pages()
             end
 
@@ -5090,6 +5152,7 @@ local custom_nodes = {
             for k, dist in pairs(dist_ls) do
                 -- 是否滴注
                 if not dist["是否塗油"] or dist["是否塗油"] == false then
+                    poe2_api.dbgp("6666")
                     return shut_down_pages()
                 end
                 
@@ -5112,6 +5175,7 @@ local custom_nodes = {
                 if map_level then
                     if get_map_not_entry(map_level) then
                         env.dizhu_not_storage = false
+                        poe2_api.dbgp("2222")
                         return bret.SUCCESS
                     end
                     if check_item_in_bag(bag_info, 1, map_level) then
@@ -5122,6 +5186,9 @@ local custom_nodes = {
                     env.is_dizhu = true
                     env.dizhu_not_storage = false
                     poe2_api.dbgp("-- 无精炼")
+                    -- while true do
+                    --     api_Sleep(1000)
+                    -- end
                     return bret.SUCCESS
                 end
                 -- 钥匙存在，没滴注过
@@ -5182,6 +5249,9 @@ local custom_nodes = {
                     if not warehouse_page then
                         poe2_api.print_log("公会仓库无仓库页")
                         env.is_dizhu = true
+                        -- while true do
+                        --     api_Sleep(1000)
+                        -- end
                         env.dizhu_not_storage = false
                         return bret.SUCCESS
                     end
@@ -5207,9 +5277,11 @@ local custom_nodes = {
                     return bret.FAIL
                 else
                     env.dizhu_not_storage = false
+                    poe2_api.dbgp("3333")
                     return bret.SUCCESS
                 end
             else
+                poe2_api.dbgp("4444")
                 return shut_down_pages()
             end
         end
@@ -5223,7 +5295,7 @@ local custom_nodes = {
             -- 所需的精炼
             local need_refining = env.refining_list
             local refining_list_copy = poe2_api.deepCopy(env.refining_list)
-            
+            env.refining_list_copy = refining_list_copy
             -- 自定义补充精炼 优先级列表
             local Custom_refining_list = {
                 "濃縮液態孤立",
@@ -5242,12 +5314,20 @@ local custom_nodes = {
             local function check_all_refinements(bag_info, required_list)
                 local found_refinements = {}
                 local missing_refinements = {}
-                
+                local function get_missing_refinements_number(item_name)
+                    local number = 0
+                    for _, item in ipairs(required_list) do
+                        if item == item_name then
+                            number = number + 1
+                        end
+                    end
+                    return number
+                end
                 -- 检查每个需要的精炼是否在背包中
                 for _, refining in ipairs(required_list) do
                     local found = false
                     for _, item in ipairs(bag_info) do
-                        if refining == item.baseType_utf8 then
+                        if refining == item.baseType_utf8 and (item.stackCount >= get_missing_refinements_number(refining) or env.dizhu_end) then
                             table.insert(found_refinements, refining)
                             found = true
                             break
@@ -13792,15 +13872,15 @@ local custom_nodes = {
                 env.sup_skill_cooldowns_outside[skill.name] = skill_start + actual_cd
                 
                 -- 释放辅助技能
-                if skill.id and skill.id ~= 0 then
-                    -- 辅助技能通常不需要目标位置，使用玩家当前位置
-                    api_CastSkill(skill.id, 0, env.player_info.grid_x, env.player_info.grid_y, env.player_info.grid_x, env.player_info.grid_y)
-                    poe2_api.dbgp("通过技能ID释放辅助技能:", skill.key, "技能ID:", skill.id)
-                else
+                -- if skill.id and skill.id ~= 0 then
+                --     -- 辅助技能通常不需要目标位置，使用玩家当前位置
+                --     api_CastSkill(skill.id, 0, env.player_info.grid_x, env.player_info.grid_y, env.player_info.grid_x, env.player_info.grid_y)
+                --     poe2_api.dbgp("通过技能ID释放辅助技能:", skill.key, "技能ID:", skill.id)
+                -- else
                     -- 备用方案：使用按键释放
-                    poe2_api.click_keyboard(skill.key)
-                    poe2_api.dbgp("通过按键释放辅助技能:", skill.key)
-                end
+                poe2_api.click_keyboard(skill.key)
+                poe2_api.dbgp("通过按键释放辅助技能:", skill.key)
+                -- end
             end
 
             -- 检查并释放辅助技能
@@ -19485,6 +19565,10 @@ local custom_nodes = {
                     poe2_api.dbgp1("点击水闸门控制杆,等待目标")
                     poe2_api.dbgp1("wait_target: ",wait_target)
                     env.wait_target = true
+                    if text == game_str.The_Stone_Array_Altar_TWCH then
+                        env.wait_target_time = 1000
+                    end
+                    env.wait_target_time = 5000
                 end
                 local ok, value = pcall(function() 
                     return interactive_object.path_name_utf8 
@@ -21763,7 +21847,7 @@ local custom_nodes = {
                     if self.timeout == 0 then
                         self.timeout = api_GetTickCount64()
                     end
-                    if api_GetTickCount64() - self.timeout < 5000 then
+                    if api_GetTickCount64() - self.timeout < env.wait_target_time then
                         poe2_api.dbgp("等待交互把手或者水閘門控制桿时间到达")
                         poe2_api.time_p("判断是否需要交互（RUNNING1）... 耗时 --> ", api_GetTickCount64() - start_time)
                         return bret.RUNNING
@@ -26185,6 +26269,9 @@ local plot_nodes = {
                 env.last_exp_check_move = current_time
                 if env.player_info and env.player_info.grid_x ~= 0 then
                     env.last_exp_value = env.player_info.currentExperience
+                end
+                if env.user_info["share_config_enable"] and tonumber(env.user_info["share_config_enable"]) == 1 and env.user_info["share_config_path"] and env.user_info["share_config_path"] ~= "" then
+                    env.user_config = nil
                 end
                 poe2_api.dbgp("已重置所有经验监控状态")
                 api_Sleep(2000)
