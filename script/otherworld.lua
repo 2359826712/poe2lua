@@ -4008,28 +4008,41 @@ local custom_nodes = {
                                             else
                                                 if not poe2_api.table_contains(env.not_exist_stone,type_plaque_name) then
                                                     for _, v2 in ipairs(items_list) do
-                                                        if v2["類型"] == "碑牌" and v2["存倉頁名"] and v2["存倉頁名"] ~= "" and (v2["白裝"] or v2["藍裝"] or v2["黃裝"]) and not v2["不撿"] then
-                                                            if v1["基礎類型名"] == v2["基礎類型名"] then
-                                                                if not v2["工會倉庫"] then
-                                                                    warehouse_type = {game_str.Warehouse_text,v2["存倉頁名"],type_plaque_name,1,split_vertical_line_plaque_name_list,v1["物品詞綴"]}
-                                                                    -- env.plaque_page = 
-                                                                else
-                                                                    warehouse_type = {game_str.Guild_Warehouse_text,v2["存倉頁名"],type_plaque_name,1,split_vertical_line_plaque_name_list,v1["物品詞綴"]}
-                                                                    -- warehouse_type = game_str.Guild_Warehouse_text
-                                                                    -- env.plaque_page = v1["存倉頁名"]
-                                                                end
-                                                                return warehouse_type
+                                                        if v1["基礎類型名"] == v2["基礎類型名"] and v2["類型"] == "碑牌" and v2["存倉頁名"] and v2["存倉頁名"] ~= "" and (v2["白裝"] or v2["藍裝"] or v2["黃裝"]) and not v2["不撿"]  then
+                                                            if not v2["工會倉庫"] then
+                                                                warehouse_type = {game_str.Warehouse_text,v2["存倉頁名"],type_plaque_name,1,split_vertical_line_plaque_name_list,v1["物品詞綴"]}
+                                                                -- env.plaque_page = 
                                                             else
-                                                                if not v2["工會倉庫"] then
-                                                                    warehouse_type = {game_str.Warehouse_text,v2["存倉頁名"],type_plaque_name,1,split_vertical_line_plaque_name_list,v1["物品詞綴"]}
-                                                                    -- env.plaque_page = 
-                                                                else
-                                                                    warehouse_type = {game_str.Guild_Warehouse_text,v2["存倉頁名"],type_plaque_name,1,split_vertical_line_plaque_name_list,v1["物品詞綴"]}
-                                                                    -- warehouse_type = game_str.Guild_Warehouse_text
-                                                                    -- env.plaque_page = v1["存倉頁名"]
-                                                                end
-                                                                return warehouse_type
+                                                                warehouse_type = {game_str.Guild_Warehouse_text,v2["存倉頁名"],type_plaque_name,1,split_vertical_line_plaque_name_list,v1["物品詞綴"]}
+                                                                -- warehouse_type = game_str.Guild_Warehouse_text
+                                                                -- env.plaque_page = v1["存倉頁名"]
                                                             end
+                                                            return warehouse_type
+                                                        end
+                                                    end
+                                                    for _, v2 in ipairs(items_list) do
+                                                        if v2["類型"] == "碑牌" and v2["存倉頁名"] and v2["存倉頁名"] ~= "" and (v2["白裝"] or v2["藍裝"] or v2["黃裝"]) and not v2["不撿"] then
+                                                            -- if v1["基礎類型名"] == v2["基礎類型名"] then
+                                                            --     if not v2["工會倉庫"] then
+                                                            --         warehouse_type = {game_str.Warehouse_text,v2["存倉頁名"],type_plaque_name,1,split_vertical_line_plaque_name_list,v1["物品詞綴"]}
+                                                            --         -- env.plaque_page = 
+                                                            --     else
+                                                            --         warehouse_type = {game_str.Guild_Warehouse_text,v2["存倉頁名"],type_plaque_name,1,split_vertical_line_plaque_name_list,v1["物品詞綴"]}
+                                                            --         -- warehouse_type = game_str.Guild_Warehouse_text
+                                                            --         -- env.plaque_page = v1["存倉頁名"]
+                                                            --     end
+                                                            --     return warehouse_type
+                                                            -- else
+                                                            if not v2["工會倉庫"] then
+                                                                warehouse_type = {game_str.Warehouse_text,v2["存倉頁名"],type_plaque_name,1,split_vertical_line_plaque_name_list,v1["物品詞綴"]}
+                                                                -- env.plaque_page = 
+                                                            else
+                                                                warehouse_type = {game_str.Guild_Warehouse_text,v2["存倉頁名"],type_plaque_name,1,split_vertical_line_plaque_name_list,v1["物品詞綴"]}
+                                                                -- warehouse_type = game_str.Guild_Warehouse_text
+                                                                -- env.plaque_page = v1["存倉頁名"]
+                                                            end
+                                                            return warehouse_type
+                                                            -- end
                                                         end
                                                     end
                                                 end
@@ -26783,7 +26796,7 @@ local plot_nodes = {
                 poe2_api.dbgp("空小地图周围对象信息")
                 return bret.RUNNING
             end
-            --    for _,k in ipairs(env.current_map_info) do
+        --    for _,k in ipairs(env.current_map_info) do
         --         poe2_api.dbgp(k.name_utf8)
         --         poe2_api.dbgp(k.grid_x)
         --         poe2_api.dbgp(k.grid_y)
