@@ -6479,7 +6479,8 @@ local custom_nodes = {
                 local function item_save_as(goods,cfg_object)
                     local satisfy = {}
                     for _, v in ipairs(items_info) do
-                        if not v["不撿"] and v["存倉頁名"] and v["存倉頁名"] ~= "" and string.find(v["基礎類型名"],goods.baseType_utf8) then
+                        local item_name_list = poe2_api.split_string(v["基礎類型名"],"|")
+                        if not v["不撿"] and v["存倉頁名"] and v["存倉頁名"] ~= "" and poe2_api.table_contains(item_name_list,goods.baseType_utf8) then
                             local color = goods.color or -1
                             if  v['颜色'] and next(v['颜色']) and poe2_api.table_contains(color,v['颜色']) then
                                 table.insert(satisfy,v)
@@ -37176,6 +37177,7 @@ local plot_nodes = {
                         if get_distance(target[1].grid_x, target[1].grid_y) < 30 then
                             poe2_api.dbgp("距离压杆小于30，点击压杆")
                             poe2_api.find_text({ UI_info = UI_info, text = "壓桿", min_x = 200, click = 2})
+                            api_Sleep(400)
                             if not poe2_api.find_text({ UI_info = UI_info, text = "壓桿", min_x = 200, click = 2,refresh = true}) then
                                 api_Sleep(5000)
                                 api_UpdateMapObstacles(100)
@@ -37212,6 +37214,7 @@ local plot_nodes = {
                                     if get_distance(target.grid_x,target.grid_y) < 25 then
                                         poe2_api.dbgp("距离压杆小于25，点击压杆")
                                         poe2_api.find_text({ UI_info = UI_info, text = "壓桿", min_x = 200, click = 2})
+                                        api_Sleep(400)
                                         if not poe2_api.find_text({ UI_info = UI_info, text = "壓桿", min_x = 200, click = 2,refresh = true}) then
                                             api_Sleep(5000)
                                             api_UpdateMapObstacles(100)
