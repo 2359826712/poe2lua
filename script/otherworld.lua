@@ -37176,9 +37176,11 @@ local plot_nodes = {
                         if get_distance(target[1].grid_x, target[1].grid_y) < 30 then
                             poe2_api.dbgp("距离压杆小于30，点击压杆")
                             poe2_api.find_text({ UI_info = UI_info, text = "壓桿", min_x = 200, click = 2})
-                            api_Sleep(5000)
-                            api_UpdateMapObstacles(100)
-                            api_UpdateMapInfo()
+                            if not poe2_api.find_text({ UI_info = UI_info, text = "壓桿", min_x = 200, click = 2,refresh = true}) then
+                                api_Sleep(5000)
+                                api_UpdateMapObstacles(100)
+                                api_UpdateMapInfo()
+                            end
                             return bret.RUNNING
                         else
                             local target_point_path = api_FindPath(local_x,local_y,target_point.x,target_point.y)
@@ -37210,9 +37212,11 @@ local plot_nodes = {
                                     if get_distance(target.grid_x,target.grid_y) < 25 then
                                         poe2_api.dbgp("距离压杆小于25，点击压杆")
                                         poe2_api.find_text({ UI_info = UI_info, text = "壓桿", min_x = 200, click = 2})
-                                        api_Sleep(5000)
-                                        api_UpdateMapObstacles(100)
-                                        api_UpdateMapInfo()
+                                        if not poe2_api.find_text({ UI_info = UI_info, text = "壓桿", min_x = 200, click = 2,refresh = true}) then
+                                            api_Sleep(5000)
+                                            api_UpdateMapObstacles(100)
+                                            api_UpdateMapInfo()
+                                        end
                                         return bret.RUNNING
                                     end
                                     local target_point = api_FindNearestReachableInRange(target.grid_x, target.grid_y,20)
