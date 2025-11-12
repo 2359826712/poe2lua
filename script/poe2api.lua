@@ -8559,13 +8559,11 @@ _M.read_tail_lines= function(file_path, n, chunk_size)
     -- 解析所有行
     local all_lines = {}
     local remaining = buf:sub(start_idx)
-    
     for line in remaining:gmatch("([^\r\n]*)\r?\n?") do
         if line ~= "" then
             all_lines[#all_lines + 1] = line
         end
     end
-
     -- 如果最后一行没有换行符，需要单独处理
     if buf:sub(-1) ~= "\n" and buf:sub(-1) ~= "\r" and #all_lines > 0 then
         -- 最后一行是有效的，但可能已经被上面的模式匹配到了
@@ -8587,7 +8585,6 @@ end
 -- last_n_lines: 仅扫描的尾部行数（默认 3000，可按需调整）
 _M.process_recent_logs_unique= function(file_path, max_age_ms, last_n_lines)
     last_n_lines = last_n_lines or 3000
-
     local lines, err = _M.read_tail_lines(file_path, last_n_lines)
     if not lines then
         print(err)

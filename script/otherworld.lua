@@ -38496,7 +38496,7 @@ local plot_nodes = {
                 self.last_move_time = api_GetTickCount64()
                 self.timeout = 6 * 1000
                 self.current_time = 0
-                self.last_point_time = 0
+                self.exit_current_time = 0
                 self.movement_threshold = 15
                 self.special_maps = {"G1_6", "G3_2_2", "G3_12"}
                 poe2_api.dbgp(string.format("超时设置: timeout=%dms, threshold=%d", self.timeout, self.movement_threshold))
@@ -38507,9 +38507,9 @@ local plot_nodes = {
                 self.current_time = api_GetTickCount64()
             end
 
-            if env.exit_time == nil or self.last_point_time == 0 then
+            if env.exit_time == nil or self.exit_current_time == 0 then
                 poe2_api.dbgp("设置退出时间基准")
-                self.last_point_time = api_GetTickCount64()
+                self.exit_current_time = api_GetTickCount64()
             end
 
             local function check_pos(names)
@@ -38525,7 +38525,7 @@ local plot_nodes = {
             end
 
             env.roll_time = math.abs(current_time - self.current_time)
-            env.exit_time = math.abs(current_time - self.last_point_time)
+            env.exit_time = math.abs(current_time - self.exit_current_time)
 
             if env.roll_time > self.timeout and not player_info.isMoving and player_info.life > 0 then
                 poe2_api.dbgp("移动到远点大号位置模块超时翻滚")
@@ -38590,13 +38590,18 @@ local plot_nodes = {
                 end
                 
                 local leader = check_pos(team_member_3)
-                if leader then
+                if leader and env.roll_time < 30*1000 then
                     local leader_point = poe2_api.move_towards({player_info.grid_x, player_info.grid_y}, {leader.grid_x, leader.grid_y}, 20)
                     api_ClickMove(poe2_api.toInt(leader_point[1]), poe2_api.toInt(leader_point[2]),  0)
                     api_Sleep(500)
                     poe2_api.click_keyboard("space")
                 end
-                
+                if env.roll_time > 30*1000 then
+                    local point = api_FindRandomWalkablePosition(math.floor(player_info.grid_x),math.floor(player_info.grid_y),70)
+                    api_ClickMove(poe2_api.toInt(point.x),poe2_api.toInt(point.y),0)
+                    api_Sleep(500)
+                    poe2_api.click_keyboard("space")
+                end
                 env.path_list_follow = {}
                 env.target_point_follow = nil
                 return bret.RUNNING
@@ -38613,11 +38618,11 @@ local plot_nodes = {
                     player_info.life > 0 and 
                     not poe2_api.is_have_mos({range_info = range_info, player_info = player_info}) and 
                     not player_info.isInBossBattle then
-                    poe2_api.dbgp("满足小退条件，执行小退")
-                    env.is_timeout_exit = true
+                    poe2_api.dbgp("满足回城条件，执行回城")
+                    env.back_city = true
                     return bret.RUNNING
                 else
-                    poe2_api.dbgp("不满足小退条件")
+                    poe2_api.dbgp("不满足回城条件")
                 end
             elseif player_info.isMoving or player_info.life == 0 then
                 poe2_api.dbgp("重置退出时间: 移动距离超过阈值或玩家死亡")
