@@ -9234,7 +9234,7 @@ local custom_nodes = {
                             item_bag_number = item_bag_number + v.stackCount
                         end
                     end
-                    if item_maxnumber < item_bag_number then
+                    if item_maxnumber >= item_bag_number then
                         return true
                     else
                         return false
@@ -9249,7 +9249,7 @@ local custom_nodes = {
                         return false
                     end
                     if poe2_api.is_do_without_pick_up(item,processed_configs) then
-                        if not is_pick_up_mandatory_retention(item) then
+                        if is_pick_up_mandatory_retention(item) then
                             return false
                         end
                         if is_decompose and type(is_decompose)~="table" then
@@ -9265,7 +9265,7 @@ local custom_nodes = {
                                 if poe2_api.table_contains(item.baseType_utf8,altar_shop_config) then
                                     return false
                                 end
-                                if not is_pick_up_mandatory_retention(item) then
+                                if is_pick_up_mandatory_retention(item) then
                                     return false
                                 end
                                 if is_decompose and type(is_decompose)~="table" then
@@ -26268,7 +26268,8 @@ local plot_nodes = {
                 return bret.RUNNING
             end
             if poe2_api.find_text({ text = "同意", UI_info = env.UI_info }) then
-                poe2_api.find_text({ text = "同意", UI_info = env.UI_info, min_x = 0, add_x = 150, click = 2 })
+                poe2_api.find_text({ text = "同意", UI_info = env.UI_info, min_x = 0, add_x = -40, click = 2 })
+                api_Sleep(1000)
                 poe2_api.find_text({ text = "繼續", UI_info = env.UI_info, min_x = 800, min_y = 450, click = 2 })
                 api_Sleep(1000)
                 return bret.RUNNING
