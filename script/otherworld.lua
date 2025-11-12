@@ -39668,9 +39668,11 @@ local plot_nodes = {
                 if ctime > 30 * 1000 then
                     poe2_api.dbgp("[GET_Path] 未找到路径 45 秒，恢复初始地图")
                     api_RestoreOriginalMap()
-                    local point = api_FindRandomWalkablePosition(math.floor(player_info.grid_x),math.floor(player_info.grid_y),70)
-                    api_ClickMove(poe2_api.toInt(point.x),poe2_api.toInt(point.y),0)
-                    poe2_api.click_keyboard("space")
+                    if ctime <= 60 * 1000 then
+                        local point = api_FindRandomWalkablePosition(math.floor(player_info.grid_x),math.floor(player_info.grid_y),70)
+                        api_ClickMove(poe2_api.toInt(point.x),poe2_api.toInt(point.y),0)
+                        poe2_api.click_keyboard("space")
+                    end
                     if ctime > 60 * 1000 and not player_info.isInBossBattle then
                         poe2_api.dbgp("[GET_Path] 未找到路径 60 秒，回城")
                         if string.find(player_info.current_map_name_utf8, "own") then
@@ -39678,7 +39680,7 @@ local plot_nodes = {
                             return bret.RUNNING
                         end
                         for _, name in ipairs(my_game_info.city_map) do
-                            if poe2_api.find_text({ UI_info = env.UI_info, text = name, click = 2 }) then
+                            if poe2_api.find_text({ UI_info = env.UI_info, text = name, click = 2,refresh = true }) then
                                 return bret.RUNNING
                             end
                         end
