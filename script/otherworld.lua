@@ -26783,7 +26783,7 @@ local plot_nodes = {
                 poe2_api.dbgp("空小地图周围对象信息")
                 return bret.RUNNING
             end
-        --    for _,k in ipairs(env.current_map_info) do
+            --    for _,k in ipairs(env.current_map_info) do
         --         poe2_api.dbgp(k.name_utf8)
         --         poe2_api.dbgp(k.grid_x)
         --         poe2_api.dbgp(k.grid_y)
@@ -31347,7 +31347,7 @@ local plot_nodes = {
 
             poe2_api.dbgp(max_time)
             -- 解析日志获取成员任务信息
-            local member_task_info = poe2_api.process_recent_logs_unique(log_path, max_time,200)
+            local member_task_info = poe2_api.process_recent_logs_unique(log_path, max_time,1000)
             poe2_api.printTable(member_task_info)
             if not member_task_info or next(member_task_info) == nil then
                 poe2_api.dbgp("没有找到队友发送的任务信息")
@@ -38165,7 +38165,7 @@ local plot_nodes = {
                 end
             
                 local target = nil
-                for _, o in ipairs(current_map_info) do
+                for _, o in ipairs(actors) do
                     if o.name_utf8 == mini_map_name then
                         target = o
                         break
