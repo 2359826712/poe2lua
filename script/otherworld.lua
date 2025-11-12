@@ -37165,6 +37165,7 @@ local plot_nodes = {
                             poe2_api.find_text({ UI_info = UI_info, text = "壓桿", min_x = 200, click = 2})
                             api_Sleep(5000)
                             api_UpdateMapObstacles(100)
+                            api_UpdateMapInfo()
                             return bret.RUNNING
                         else
                             local target_point_path = api_FindPath(local_x,local_y,target_point.x,target_point.y)
@@ -37192,11 +37193,13 @@ local plot_nodes = {
                                 end
                                 if target.stateMachineList and target.stateMachineList.water_level ~= 2 then
                                     api_UpdateMapObstacles(100)
+                                    api_UpdateMapInfo()
                                     if get_distance(target.grid_x,target.grid_y) < 25 then
                                         poe2_api.dbgp("距离压杆小于25，点击压杆")
                                         poe2_api.find_text({ UI_info = UI_info, text = "壓桿", min_x = 200, click = 2})
                                         api_Sleep(5000)
                                         api_UpdateMapObstacles(100)
+                                        api_UpdateMapInfo()
                                         return bret.RUNNING
                                     end
                                     local target_point = api_FindNearestReachableInRange(target.grid_x, target.grid_y,20)
@@ -38791,7 +38794,7 @@ local plot_nodes = {
             local path_list = env.path_list
             local current_time = api_GetTickCount64()
             local team_member_2 = poe2_api.get_team_info(env.team_info,env.user_config,player_info,2)
-            local special_maps_1 = {"3_17" }
+            local special_maps_1 = {"G3_17" }
             local special_maps_2 = current_map
             local special_maps_3 = {"G3_2_2"}
             local exclude_items = {"門", "中型靈魂核心", "壓桿","瘋狂讚美詩"}
@@ -38872,7 +38875,9 @@ local plot_nodes = {
             if point.x == -1 and point.y == -1 then
                 poe2_api.dbgp("探索区域已探索完毕")
                 if poe2_api.table_contains(current_map, special_maps_3) then
+                    poe2_api.dbgp("G3_2_2-探索区域已探索完毕")
                     api_RestoreOriginalMap()
+                    api_UpdateMapInfo()
                     local walk_point = api_FindRandomWalkablePosition(player_info.grid_x, player_info.grid_y, 200)
                     if walk_point and walk_point.x ~= -1 then
                         api_ClickMove(poe2_api.toInt(walk_point.x), poe2_api.toInt(walk_point.y),7)
