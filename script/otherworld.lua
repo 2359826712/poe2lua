@@ -26984,44 +26984,40 @@ local plot_nodes = {
         run = function(self, env)
             poe2_api.print_log("执行休息控制...")
             poe2_api.dbgp("执行休息控制...")
-            local player_info = env.player_info
             local start_time = api_GetTickCount64() -- 开始时间
-            -- 特殊情况跳出
-            if poe2_api.get_team_info(env.team_info, env.user_config, player_info, 2) ~= "大号名称" or player_info.isInBossBattle or poe2_api.is_have_mos({ range_info = env.range_info, player_info = player_info, dis = 80, stuck_monsters = env.stuck_monsters, not_attack_mos = env.not_attack_mos }) then
-                return bret.SUCCESS
-            end
+            
             -- 初始化检查
-            if not self._is_initialized then
+            if not env._is_initialized_rest then
                 poe2_api.dbgp("初始化休息控制器...")
                 local config = env.user_config["全局設置"]["刷图通用設置"]["定時休息"] or {}
                 
                 -- 工作时间配置（单位：分钟→毫秒）
                 local base_work = tonumber(config["運行時間"]) or 60  -- 默认60分钟
                 local work_random_range = math.min(tonumber(config["工作時間隨機範圍"]) or 0.1, 0.3) -- 限制最大30%波动
-                self.work_duration_ms = math.floor(base_work * 60 * 1000 * (1 + (math.random() * work_random_range * 2 - work_random_range)))
+                env.work_duration_ms_rest = math.floor(base_work * 60 * 1000 * (1 + (math.random() * work_random_range * 2 - work_random_range)))
                 
                 -- 休息时间配置（单位：分钟→毫秒）
                 local base_rest = tonumber(config["休息時間"]) or 10  -- 默认10分钟
                 local rest_random_range = math.min(tonumber(config["休息時間隨機範圍"]) or 0.1, 0.3) -- 限制最大30%波动
-                self.rest_duration_ms = math.floor(base_rest * 60 * 1000 * (1 + (math.random() * rest_random_range * 2 - rest_random_range)))
+                env.rest_duration_ms_rest = math.floor(base_rest * 60 * 1000 * (1 + (math.random() * rest_random_range * 2 - rest_random_range)))
 
                 -- 功能开关
-                self.is_open = config["是否開啟"] or false
-                self.is_kill_game = config["休息时是否关闭游戏"] or false
+                env.is_open_rest = config["是否開啟"] or false
+                env.is_kill_game_rest = config["休息时是否关闭游戏"] or false
                 
                 -- 初始化状态（使用毫秒时间戳）
                 local current_time_ms = api_GetTickCount64()
-                self._is_resting = false
-                self._next_state_change_time_ms = current_time_ms + self.work_duration_ms
-                self._last_update_time_ms = current_time_ms
-                self._is_initialized = true
+                env._is_resting_rest = false
+                env._next_state_change_time_ms_rest = current_time_ms + env.work_duration_ms_rest
+                env._last_update_time_ms_rest = current_time_ms
+                env._is_initialized_rest = true
                 
-                poe2_api.dbgp("初始化完成 - 工作时间:%d分钟 休息时间:%d分钟", self.work_duration_ms/(60*1000), self.rest_duration_ms/(60*1000))
+                poe2_api.dbgp("初始化完成 - 工作时间:%d分钟 休息时间:%d分钟", env.work_duration_ms_rest/(60*1000), env.rest_duration_ms_rest/(60*1000))
                 return bret.RUNNING
             end
 
             -- 功能关闭直接返回成功
-            if not self.is_open then
+            if not env.is_open_rest then
                 poe2_api.dbgp("休息功能未开启，直接返回SUCCESS")
                 poe2_api.time_p("休息功能未开启... 耗时 --> ", api_GetTickCount64() - start_time)
                 return bret.SUCCESS
@@ -27031,8 +27027,8 @@ local plot_nodes = {
 
             local function _perform_rest_actions()
                 poe2_api.dbgp("执行休息操作...")
-                if not (poe2_api.find_text({UI_info = env.UI_info, text = "回到角色選擇畫面"}) or poe2_api.click_text_UI({UI_info = env.UI_info, text = "exit_to_character_selection"})) then
-                    if poe2_api.click_text_UI({UI_info = env.UI_info, text = "life_orb"}) and poe2_api.click_text_UI({UI_info = env.UI_info, text = "mana_orb"}) then
+                if not (poe2_api.find_text({UI_info = env.UI_info, text = game_str.back_to_select}) or poe2_api.click_text_UI({UI_info = env.UI_info, text = game_str.exit_to_character_selection})) then
+                    if poe2_api.click_text_UI({UI_info = env.UI_info, text = game_str.life_orb}) and poe2_api.click_text_UI({UI_info = env.UI_info, text = game_str.mana_orb}) then
                         poe2_api.click_keyboard("esc")
                     end
                 end
@@ -27040,71 +27036,68 @@ local plot_nodes = {
             end
 
             local function _handle_state_transition()
-                self._is_resting = not self._is_resting
-                local duration_ms = self._is_resting and self.rest_duration_ms or self.work_duration_ms
-                self._next_state_change_time_ms = current_time_ms + duration_ms
-                self._last_update_time_ms = current_time_ms
+                env._is_resting_rest = not env._is_resting_rest
+                local duration_ms = env._is_resting_rest and env.rest_duration_ms_rest or env.work_duration_ms_rest
+                env._next_state_change_time_ms_rest = current_time_ms + duration_ms
+                env._last_update_time_ms_rest = current_time_ms
                 
                 -- 更新环境变量
-                env.take_rest = self._is_resting
+                env.take_rest = env._is_resting_rest
                 
-                if self._is_resting then
+                if env._is_resting_rest then
                     poe2_api.dbgp("切换到休息状态")
                     
-                    if not string.find(player_info.current_map_name_utf8, "own") then
-                        poe2_api.dbgp("休息回城")
-                        for _, name in ipairs(my_game_info.city_map) do
-                            poe2_api.find_text({ UI_info = env.UI_info, text = name, click = 2 })
-                        end
-                        api_ClickScreen(1230, 815, 0)
-                        api_Sleep(500)
-                        api_ClickScreen(1230, 815, 1)
-                        api_Sleep(2000)
-                        return bret.RUNNING
+                    local player_info = env.player_info
+                    if not poe2_api.table_contains(my_game_info.hideout, player_info.current_map_name_utf8) then
+                        env.need_ReturnToTown = true
+                        poe2_api.dbgp("不在藏身处，设置需要回城")
+                        return bret.SUCCESS
                     end
                     
                     -- 进入休息状态
-                    if self.is_kill_game then
+                    if env.is_kill_game_rest then
                         env.error_kill = true
                         poe2_api.dbgp("设置需要关闭游戏")
                     end
-                    poe2_api.dbgp(string.format("工作时间到，开始休息 (%d分钟)", math.floor(self.rest_duration_ms/(60*1000))))
+                    poe2_api.dbgp(string.format("工作时间到，开始休息 (%d分钟)", math.floor(env.rest_duration_ms_rest/(60*1000))))
                     -- _perform_rest_actions()
-                    -- poe2_api.dbgp(string.format("工作时间到，开始休息 (%d分钟)", math.floor(self.rest_duration_ms/(60*1000))))
+                    -- poe2_api.dbgp(string.format("工作时间到，开始休息 (%d分钟)", math.floor(env.rest_duration_ms_rest/(60*1000))))
                     -- api_Sleep(11000000)
                     return bret.RUNNING
                 else
                     -- 返回工作状态
                     env.error_kill = false
-                    poe2_api.dbgp(string.format("休息结束，开始工作 (%d分钟)",  math.floor(self.work_duration_ms/(60*1000))))
-                    self._is_initialized = false
+                    poe2_api.dbgp(string.format("休息结束，开始工作 (%d分钟)",  math.floor(env.work_duration_ms_rest/(60*1000))))
+                    env._is_initialized_rest = false
                     return bret.SUCCESS
                 end
             end
 
             local function _update_status()
-                local time_remaining_ms = math.max(0, self._next_state_change_time_ms - current_time_ms)
+                local time_remaining_ms = math.max(0, env._next_state_change_time_ms_rest - current_time_ms)
                 
-                if self._is_resting then
+                if env._is_resting_rest then
                     poe2_api.dbgp("当前处于休息状态")
-
+                    local player_info = env.player_info
+                    if not poe2_api.table_contains(my_game_info.hideout, player_info.current_map_name_utf8) then
+                        env.need_ReturnToTown = true
+                        poe2_api.dbgp("不在藏身处，设置需要回城")
+                        return bret.SUCCESS
+                    end
                     
                     -- 休息状态更新（每分钟60000毫秒）
-                    if current_time_ms - self._last_update_time_ms >= 60000 then
-                        self._last_update_time_ms = current_time_ms
+                    if current_time_ms - env._last_update_time_ms_rest >= 60000 then
+                        env._last_update_time_ms_rest = current_time_ms
                         local mins = math.floor(time_remaining_ms/(60*1000))
                         local secs = math.floor((time_remaining_ms%(60*1000))/1000)
                         poe2_api.print_log(string.format("休息中... 剩余时间: %02d分%02d秒", mins, secs))
                         env.take_rest = true
                         
-                        if not string.find(player_info.current_map_name_utf8, "own") then
-                            poe2_api.dbgp("休息回城(状态更新)")
-                            for _, k in ipairs(my_game_info.city_map) do
-                                poe2_api.find_text({ UI_info = env.UI_info, text = k.name_utf8, click = 2 })
-                            end
-                            api_ClickScreen(1230, 815, 0)
-                            api_Sleep(500)
-                            api_ClickScreen(1230, 815, 1)
+                        if not (poe2_api.find_text({UI_info = env.UI_info, text = game_str.back_to_select}) or 
+                            poe2_api.click_text_UI({UI_info = env.UI_info, text = game_str.exit_to_character_selection})) and 
+                            poe2_api.click_text_UI({UI_info = env.UI_info, text = game_str.life_orb}) and 
+                            poe2_api.click_text_UI({UI_info = env.UI_info, text = game_str.mana_orb}) then
+                            poe2_api.click_keyboard("esc")
                         end
                         api_Sleep(1000)
                     end
@@ -27112,8 +27105,8 @@ local plot_nodes = {
                     return bret.RUNNING
                 else
                     -- 工作状态更新（每5分钟300000毫秒）
-                    if current_time_ms - self._last_update_time_ms >= 300000 then
-                        self._last_update_time_ms = current_time_ms
+                    if current_time_ms - env._last_update_time_ms_rest >= 300000 then
+                        env._last_update_time_ms_rest = current_time_ms
                         local hours = math.floor(time_remaining_ms/(3600*1000))
                         local mins = math.floor((time_remaining_ms%(3600*1000))/(60*1000))
                         local secs = math.floor((time_remaining_ms%(60*1000))/1000)
@@ -27125,7 +27118,7 @@ local plot_nodes = {
             end
 
             -- 状态切换检查（毫秒级比较）
-            if current_time_ms >= self._next_state_change_time_ms then
+            if current_time_ms >= env._next_state_change_time_ms_rest then
                 poe2_api.dbgp("检测到状态切换时间到达")
                 poe2_api.time_p("检测到状态切换时间到达... 耗时 --> ", api_GetTickCount64() - start_time)
                 return _handle_state_transition()
@@ -31835,6 +31828,7 @@ local plot_nodes = {
                     task = poe2_api.get_task_info(main_task.tasks_data,main_task_info[1])
                 end
                 poe2_api.printTable(task)
+                
                 if task and next(task) and task.task_name == "金司馬區" then
                     local rel_task = nil
                     for _, task in ipairs(api_GetQuestList(0)) do
@@ -31873,7 +31867,13 @@ local plot_nodes = {
                 else
                     env.task_name = task.task_name
                 end 
-                
+                if player_info.level < 33 and task.task_name == "在法里登人中殺出一條血路" then
+                    task = poe2_api.get_task_info(main_task.tasks_data,"toLevel_33")
+                    env.task_name = "toLevel_33"
+                elseif player_info.level < 52 and task.task_name == "找到部族之心" then
+                    task = poe2_api.get_task_info(main_task.tasks_data,"toLevel_52")
+                    env.task_name = "toLevel_52"
+                end
                 if poe2_api.click_text_UI({ UI_info = env.UI_info, text = "respawn_at_checkpoint_button" }) then
                     poe2_api.click_keyboard("space")
                     poe2_api.dbgp("[Query_Current_Task_Information]RUNNING1")
@@ -38821,6 +38821,7 @@ local plot_nodes = {
             local exclude_items_map = {"RitualRune",'娜瓦莉'}
             local point = nil
             local UI_info = env.UI_info
+            local task_name = env.task_name
 
             -- 检查两个表 t1 和 t2 是否有共同的元素
             local function has_common_element(t1, t2)
@@ -38894,6 +38895,10 @@ local plot_nodes = {
             end
             if point.x == -1 and point.y == -1 then
                 poe2_api.dbgp("探索区域已探索完毕")
+                if poe2_api.table_contains(task_name ,{"toLevel_33","toLevel_52"}) then
+                    env.back_city = true
+                    return bret.RUNNING
+                end
                 if poe2_api.table_contains(current_map, special_maps_3) then
                     poe2_api.dbgp("G3_2_2-探索区域已探索完毕")
                     api_RestoreOriginalMap()
