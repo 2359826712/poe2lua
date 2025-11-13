@@ -11419,19 +11419,21 @@ local custom_nodes = {
 
                     end
                 end
-                if SacrificeItems.MaxRefreshCount > SacrificeItems.CurrentRefreshCount and SacrificeItems.leftGifts > SacrificeItems.refreshCost then
-                    env.buy_items = true
-                    if not poe2_api.find_text({UI_info = env.UI_info, text = game_str.the_gift_CN , min_x = 0}) then
-                        -- env.buy_items = true
-                        poe2_api.click_text_UI({UI_info = env.UI_info, text =game_str.ritual_open_shop_button_CT, click = 1})
+                if not next(not_appeared_items) then
+                    if SacrificeItems.MaxRefreshCount > SacrificeItems.CurrentRefreshCount and SacrificeItems.leftGifts > SacrificeItems.refreshCost then
+                        env.buy_items = true
+                        if not poe2_api.find_text({UI_info = env.UI_info, text = game_str.the_gift_CN , min_x = 0}) then
+                            -- env.buy_items = true
+                            poe2_api.click_text_UI({UI_info = env.UI_info, text =game_str.ritual_open_shop_button_CT, click = 1})
+                            api_Sleep(2000)
+                            return bret.RUNNING
+                        end
+                        poe2_api.dbgp("第",SacrificeItems.CurrentRefreshCount,"次刷新贡礼")
+                        poe2_api.find_text({UI_info = env.UI_info, text = game_str.the_gift_CN , click = 2 ,min_x = 0 , add_x = 203, add_y = 53})
                         api_Sleep(2000)
                         return bret.RUNNING
                     end
-                    poe2_api.dbgp("第",SacrificeItems.CurrentRefreshCount,"次刷新贡礼")
-                    poe2_api.find_text({UI_info = env.UI_info, text = game_str.the_gift_CN , click = 2 ,min_x = 0 , add_x = 203, add_y = 53})
-                    api_Sleep(2000)
-                    return bret.RUNNING
-                end
+                 end
             end
             if poe2_api.find_text({UI_info = env.UI_info, text = game_str.the_gift_CN}) then
                 -- local Attachments = api_Getinventorys(0xd,0)
