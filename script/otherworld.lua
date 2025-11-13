@@ -26805,12 +26805,12 @@ local plot_nodes = {
         --         poe2_api.dbgp(k.flagStatus1)
         --         poe2_api.dbgp("==============================")
         --     end
-            -- poe2_api.printTable(api_GetTeleportationPoint())
-            -- poe2_api.printTable(api_GetQuestList())
-            -- poe2_api.printTable(api_GetTeamInfo())
-            -- while true do
-            --     api_Sleep(1000)
-            -- end
+        --     -- poe2_api.printTable(api_GetTeleportationPoint())
+        --     -- poe2_api.printTable(api_GetQuestList())
+        --     -- poe2_api.printTable(api_GetTeamInfo())
+        --     while true do
+        --         api_Sleep(1000)
+        --     end
             poe2_api.time_p("    获取小地图周围对象信息... 耗时 --> ", api_GetTickCount64() - current_map_info_start_time)
 
             -- 队伍数据信息
@@ -27320,7 +27320,6 @@ local plot_nodes = {
                 end
                 poe2_api.dbgp("点击确认")
                 poe2_api.find_text({ UI_info = env.UI_info, text = "確定", click = 2, min_x = 0 })
-                api_ClickScreen(915, 490, 1)
                 local relife_text = { "在記錄點重生", "在城鎮重生" }
                 local point = poe2_api.find_text({ UI_info = env.UI_info, text = relife_text, min_x = 0, position = 3 })
                 if not point then
@@ -27328,10 +27327,7 @@ local plot_nodes = {
                     poe2_api.dbgp("Is_Deth(RUNNING1)")
                     return bret.RUNNING
                 end
-
-                api_ClickScreen(point[1], point[2], 0)
-                api_Sleep(1000)
-                api_ClickScreen(point[1], point[2], 1)
+                api_ClickScreen(915, 490, 0)
                 if self.death_time == 0 then
                     self.death_time = api_GetTickCount64()
                 end
@@ -27342,7 +27338,9 @@ local plot_nodes = {
                     env.is_timeout_exit = true
                 end
                 if start_time - self.click_time >= 5 * 1000 then
+                    api_Sleep(500)
                     poe2_api.find_text({ UI_info = env.UI_info, text = "在記錄點重生", click = 2 })
+                    api_Sleep(500)
                     self.click_time = 0
                 end
                 env.area_list = {}
@@ -27974,7 +27972,7 @@ local plot_nodes = {
                 local QUEST_PROPS = {
                     "知識之書", "火焰核心", "寶石花顱骨", "寶石殼顱骨",
                     "專精之書", "凜冬狼的頭顱", "燭光精髓", "傑洛特顱骨",
-                    "染怒之書"
+                    "染怒之書","典獄長的帳冊","熔岩者的禮物"
                 }
                 for _, item in ipairs(bag) do
                     if item.baseType_utf8 and item.category_utf8 then
@@ -30882,146 +30880,89 @@ local plot_nodes = {
                 end
             end
             if player_info.name_utf8 == captain_name then
-                
-                local function direct_parse_log_line(line, max_age_ms)
-                    -- 直接按位置提取
-                    -- 格式: 2025/09/13 14:37:31 447941390 3ef232c2 [INFO Client 10252] @來自 king_qq: king_qq
-                    
-                    -- 提取时间部分（前19个字符）
-                    local date_time = line:sub(1, 19)
-                    
-                    -- 将日期时间转换为毫秒
-                    local year, month, day, hour, minute, second = date_time:match("^(%d+)/(%d+)/(%d+)%s+(%d+):(%d+):(%d+)$")
-                    
-                    if not (year and month and day and hour and minute and second) then
-                        return nil
+                -- 队长逻辑：订阅频道并接收小号信息
+                if not env.redis_initialized then
+                    -- 订阅以大号名称为名的频道
+                    local channel_name = captain_name
+                    if api_RedisSubscribe(channel_name) then
+                        poe2_api.dbgp("队长成功订阅频道: " .. channel_name)
+                        env.redis_initialized = true
+                        env.redis_channel = channel_name
+                    else
+                        poe2_api.dbgp("队长订阅频道失败: " .. channel_name)
                     end
-                    
-                    -- 创建时间对象
-                    local time_table = {
-                        year = tonumber(year),
-                        month = tonumber(month),
-                        day = tonumber(day),
-                        hour = tonumber(hour),
-                        min = tonumber(minute),
-                        sec = tonumber(second)
-                    }
-                    
-                    local log_timestamp = os.time(time_table) * 1000  -- 转换为毫秒
-                    local current_timestamp = api_GetTickCount64()  -- 当前时间（毫秒）
-                    
-                    -- 检查时间是否在指定毫秒范围内
-                    if current_timestamp - log_timestamp > max_age_ms then
-                        -- 日志时间太旧，跳过
-                        return nil
-                    end
-                    
-                    -- 找到@來自的位置
-                    local at_pos = line:find("@來自")
-                    if at_pos then
-                        poe2_api.dbgp("我是队长")
-                        -- 找到冒号的位置
-                        local colon_pos = line:find(":", at_pos)
-                        if colon_pos then
-                            -- 只提取接收者名称（: 之后）
-                            local receiver_name = line:sub(colon_pos + 1):gsub("^%s*(.-)%s*$", "%1")
+                end
+
+                -- 从Redis获取消息
+                local messages = api_RedisGetData()
+                if messages and #messages > 0 then
+                    for _, msg in ipairs(messages) do
+                        if msg.channel == env.redis_channel then
+                            -- 手动解析JSON字符串
+                            local message = msg.message
+                            -- 提取小号名
+                            local small_account_name = string.match(message, '"小號名":"([^"]*)"')
                             
-                            return {
-                                timestamp = log_timestamp,
-                                receiver_name = receiver_name
-                            }
-                        end
-                    end
-                    
-                    return nil
-                end
-                -- 从文件末尾向前读取并解析，只读取指定毫秒时间范围内的内容
-                local function process_recent_logs_unique(file_path, max_age_ms)
-                    local file = io.open(file_path, "r")
-                    if not file then
-                        print("无法打开文件: " .. file_path)
-                        return {}
-                    end
-                    
-                    -- 读取整个文件内容
-                    local content = file:read("*a")
-                    file:close()
-                    
-                    -- 按行分割
-                    local lines = {}
-                    for line in content:gmatch("[^\r\n]+") do
-                        table.insert(lines, line)
-                    end
-                    
-                    -- 反转行顺序（从后往前，最新的在前面）
-                    local reversed_lines = {}
-                    for i = #lines, 1, -1 do
-                        table.insert(reversed_lines, lines[i])
-                    end
-                    
-                    local unique_receivers = {}  -- 使用表来去重
-                    local receiver_names = {}    -- 最终结果：存储唯一的接收者名称
-                    
-                    for _, line in ipairs(reversed_lines) do
-                        local parsed_line = direct_parse_log_line(line, max_age_ms)
-                        if parsed_line then
-                            local receiver_name = parsed_line.receiver_name
-                            -- 检查是否已经存在，如果不存在则添加
-                            if not unique_receivers[receiver_name] then
-                                unique_receivers[receiver_name] = true
-                                table.insert(receiver_names, receiver_name)
+                            if small_account_name and small_account_name ~= leader_name then
+                                poe2_api.dbgp("队长接收到小号信息: " .. small_account_name)
+                                
+                                -- 使用临时表进行去重检查
+                                local temp_table = {}
+                                for _, name in ipairs(env.team_info["小號名"] or {}) do
+                                    temp_table[name] = true
+                                end
+                                
+                                -- 如果不存在才添加
+                                if not temp_table[small_account_name] then
+                                    if not env.team_info["小號名"] then
+                                        env.team_info["小號名"] = {}
+                                    end
+                                    table.insert(env.team_info["小號名"], small_account_name)
+                                    poe2_api.dbgp("队长添加小号名: " .. small_account_name)
+                                else
+                                    poe2_api.dbgp("队长: 小号名已存在: " .. small_account_name)
+                                end
                             end
-                        else
-                            -- 如果遇到超时的记录，提前停止
-                            break
                         end
                     end
-                    
-                    return receiver_names  -- 返回格式：{"king_qq", "other_name", ...}（唯一）
                 end
-                -- 处理日志文件，获取最近的接收者名称（5分钟内）
-                local recent_receivers = process_recent_logs_unique(log_path, 5 * 60 * 1000)
-                
-                -- 过滤掉大号名，只保留小号名
-                local small_account_names = {}
-                for _, name in ipairs(recent_receivers) do
-                    if name ~= leader_name then
-                        table.insert(small_account_names, name)
-                    end
-                end
-                
-                -- 将小号名加入到 env.team_info["小號名"]
-                if not env.team_info then
-                    env.team_info = {}
-                end
-                env.team_info["小號名"] = small_account_names
-                
-                poe2_api.dbgp("找到的小号名: " .. table.concat(small_account_names, ", "))
+                poe2_api.dbgp("当前小号列表: " .. table.concat(env.team_info["小號名"] or {}, ", "))
             elseif player_info.name_utf8 ~= leader_name then
-                if self.current_time == 0  then
+                -- 小号逻辑：发送自己的名字给队长
+                if self.current_time == 0 then
                     self.current_time = api_GetTickCount64()
                 end
-                if (not env.bool1) or (api_GetTickCount64() - self.current_time > 1000*2) then
-                    poe2_api.dbgp("发送名字给队长")
+                
+                if (not env.bool1) or (api_GetTickCount64() - self.current_time > 1000 * 2) then
+                    poe2_api.dbgp("小号发送名字给队长")
                     env.bool1 = true
                     self.current_time = 0
-                    poe2_api.click_keyboard("enter")
-                    api_Sleep(200)
-                    poe2_api.paste_text("@"..captain_name.." "..player_info.name_utf8)
-                    api_Sleep(200)
-                    poe2_api.click_keyboard("enter")
-                    -- 使用临时表进行去重检查
+                    
+                    -- 使用Redis发送小号信息
+                    local send_data = string.format('{"小號名":"%s"}', player_info.name_utf8)
+                    local success = api_RedisSendText(captain_name, send_data)
+                    
+                    if success then
+                        poe2_api.dbgp("小号成功发送Redis消息: " .. player_info.name_utf8)
+                    else
+                        poe2_api.dbgp("小号发送Redis消息失败")
+                    end
+                    
+                    -- 同时更新本地的小号列表
                     local temp_table = {}
-                    for _, name in ipairs(env.team_info["小號名"]) do
+                    for _, name in ipairs(env.team_info["小號名"] or {}) do
                         temp_table[name] = true
                     end
                     
                     -- 如果不存在才添加
                     if not temp_table[player_info.name_utf8] then
+                        if not env.team_info["小號名"] then
+                            env.team_info["小號名"] = {}
+                        end
                         table.insert(env.team_info["小號名"], player_info.name_utf8)
-                        poe2_api.dbgp("添加小号名: " .. player_info.name_utf8)
+                        poe2_api.dbgp("小号添加自身到列表: " .. player_info.name_utf8)
                     else
-                        poe2_api.dbgp("小号名已存在: " .. player_info.name_utf8)
+                        poe2_api.dbgp("小号: 自身已在列表中: " .. player_info.name_utf8)
                     end
                 end
             end
@@ -31315,13 +31256,14 @@ local plot_nodes = {
             local team_info = env.team_info
             local current_time = api_GetTickCount64()
             local user_config = env.user_config
-            local log_path = user_config["全局設置"]["大带小设置"]["日志路径"]
             local leader_name = env.user_config["全局設置"]["大带小设置"]["大号名称"] or ""
+            
+            -- 检查是否为大号
             if player_info.name_utf8 ~= leader_name then
                 poe2_api.dbgp("Check_Role(FAIL1)")
                 return bret.FAIL
             end
-             
+            
             -- 获取队伍成员列表（排除自己）
             local function get_team_members()
                 local members = {}
@@ -31348,50 +31290,123 @@ local plot_nodes = {
             local team_members = get_team_members()
             local num = env.user_config["全局設置"]["大带小设置"]["队伍人数"] or 1
             local expected_mission_count = num - 1
-
-            -- 设置超时时间（如果在藏身处则30秒，否则5分钟）
-            local max_time = 1000 * 60 * 10  -- 10分钟
-
-            poe2_api.dbgp(max_time)
-            -- 解析日志获取成员任务信息
-            local member_task_info = poe2_api.process_recent_logs_unique(log_path, max_time,1000)
-            poe2_api.printTable(member_task_info)
-            if not member_task_info or next(member_task_info) == nil then
-                poe2_api.dbgp("没有找到队友发送的任务信息")
-                poe2_api.time_p("Check_Role",api_GetTickCount64()- current_time)
-                return bret.RUNNING
-            end
-
-            -- 检查接收到的任务数量
-            local received_count = 0
-            local stored_missions = {}
-            local received_missions = {}
-
-            -- 统计有效任务数量
-            for name, mission_data in pairs(member_task_info) do
-                if poe2_api.table_contains(name,team_members ) then
-                    received_count = received_count + 1
-                    stored_missions[name] = mission_data
-                    table.insert(received_missions, mission_data)
+            
+            -- 初始化Redis相关变量（如果尚未初始化）
+            if not env.redis_initialized then
+                -- 订阅以大号名称为名的频道
+                local channel_name = leader_name
+                if api_RedisSubscribe(channel_name) then
+                    poe2_api.dbgp("成功订阅频道: " .. channel_name)
+                    env.redis_initialized = true
+                    env.redis_channel = channel_name
+                    env.redis_start_time = current_time
+                    env.stored_missions = env.stored_missions or {}
+                    env.received_mission_count = env.received_mission_count or 0
+                    env.redis_last_message_time = env.redis_last_message_time or current_time
+                else
+                    poe2_api.dbgp("订阅频道失败: " .. channel_name)
+                    poe2_api.time_p("Check_Role", api_GetTickCount64() - current_time)
+                    return bret.RUNNING
                 end
             end
 
-            poe2_api.dbgp("接收到 " .. received_count .. " 个队友的任务信息，期望数量: " .. expected_mission_count)
+            -- 从Redis获取新消息并更新存储
+            local messages = api_RedisGetData()
+            local has_new_message = false
+            
+            if messages and #messages > 0 then
+                for _, msg in ipairs(messages) do
+                    if msg.channel == env.redis_channel then
+                        
+                        -- 手动解析JSON字符串
+                        local message = msg.message
+                        -- 提取各个字段
+                        local user_name = string.match(message, '"user_name":"([^"]*)"')
+                        local task_name = string.match(message, '"task_name":"([^"]*)"')
+                        local task_index = string.match(message, '"task_index":"([^"]*)"')
+                        local map_name = string.match(message, '"map_name":"([^"]*)"')
+                        -- 检查是否来自队友
+                        if user_name and poe2_api.table_contains(user_name, team_members) then
+                            -- 检查是否是新的任务信息或信息有更新
+                            local existing_mission = env.stored_missions[user_name]
+                            local is_new_or_updated = true
+                            
+                            if existing_mission then
+                                -- 检查任务信息是否有变化
+                                if existing_mission.task_name == task_name and 
+                                existing_mission.task_index == task_index and
+                                existing_mission.map_name == map_name then
+                                    is_new_or_updated = false
+                                end
+                            else
+                                -- 新的用户，增加计数
+                                env.received_mission_count = env.received_mission_count + 1
+                            end
+                            
+                            -- 更新存储的任务信息
+                            env.stored_missions[user_name] = {
+                                user_name = user_name,
+                                task_index = task_index,
+                                task_name = task_name,
+                                map_name = map_name,
+                            }
+                            
+                            if is_new_or_updated then
+                                has_new_message = true
+                                poe2_api.dbgp("更新任务信息 - 用户: " .. user_name .. ", 任务: " .. task_name .. ", 索引: " .. task_index)
+                            end
+                        end
+                    end
+                end
+                env.redis_last_message_time = current_time
+            end
+
+            -- 检查是否超时（5分钟无消息则重新连接）
+            if not messages or #messages == 0 then
+                poe2_api.dbgp("无信息")
+                if env.redis_last_message_time and (current_time - env.redis_last_message_time > 1000 * 60 * 5) then
+                    poe2_api.dbgp("Redis连接超时，尝试重新连接")
+                    env.redis_initialized = false
+                    -- 不清除存储的任务信息，只重置计数（因为可能只是临时网络问题）
+                    env.received_mission_count = 0
+                    -- 重新计算有效的存储任务数量
+                    env.stored_missions = {}
+                    poe2_api.time_p("Check_Role", api_GetTickCount64() - current_time)
+                    return bret.RUNNING
+                end
+            end
+
+            poe2_api.dbgp("已存储 " .. env.received_mission_count .. " 个队友的任务信息，期望数量: " .. expected_mission_count)
+            
+            -- 如果有新消息，打印存储的所有任务信息
+            if has_new_message then
+                poe2_api.dbgp("当前存储的所有任务信息:")
+                for user_name, mission_data in pairs(env.stored_missions) do
+                    if poe2_api.table_contains(user_name, team_members) then
+                        poe2_api.dbgp("  " .. user_name .. ": " .. (mission_data.task_name or "无") .. " (索引: " .. (mission_data.task_index or "无") .. ")")
+                    end
+                end
+            end
 
             -- 检查是否所有小号信息都已接收完成
-            if received_count >= expected_mission_count then
+            if env.received_mission_count >= expected_mission_count then
                 poe2_api.dbgp("所有队友信息已接收完成")
                 
                 -- 查找最小任务索引
                 local min_index = math.huge
                 local task_name = "无"
+                local not_open_waypoint = ""
                 
-                for _, mission_data in pairs(stored_missions) do
-                    local current_index = tonumber(mission_data.task_index or math.huge)
-                    
-                    if current_index < min_index then
-                        min_index = current_index
-                        task_name = mission_data.task_name or "无"
+                for user_name, mission_data in pairs(env.stored_missions) do
+                    -- 只处理有效的队友信息
+                    if poe2_api.table_contains(user_name, team_members) then
+                        local current_index = tonumber(mission_data.task_index or math.huge)
+                        
+                        if current_index < min_index then
+                            min_index = current_index
+                            task_name = mission_data.task_name or "无"
+                            not_open_waypoint = mission_data.not_open_waypoint or ""
+                        end
                     end
                 end
                                 
@@ -31399,35 +31414,25 @@ local plot_nodes = {
                     env.map_name = player_info.current_map_name_utf8 
                     env.task_name = nil
                     env.task_index = nil
+                    env.not_open_waypoint = nil
                     poe2_api.dbgp("Check_Role(SUCCESS1)")
-                    poe2_api.time_p("Check_Role",api_GetTickCount64() - current_time)
+                    poe2_api.time_p("Check_Role", api_GetTickCount64() - current_time)
                     return bret.SUCCESS
                 end
                 
                 -- 设置任务信息
-                env.task_name = task_name
+                env.task_name = task_name 
                 env.task_index = tostring(min_index)
-                if api_GetTickCount64() - current_time > 65 then 
-                    poe2_api.dbgp("大号获取任务信息大于65ms，删除日志")
-                    env.delete_log = false
-                    -- local game_path = env.user_info["gamedir"]
-                    -- local process_name = string.find(game_path:lower(), "steam.exe") and "PathOfExileSteam.exe" or "PathOfExile.exe"
-                    -- local pid = api_EnumProcess(process_name)
-                    -- if pid and next(pid) and pid[1] ~= 0 then
-                    --     api_SetWindowState(env.game_window, 13)
-                    --     env.game_window = 0
-                    --     api_Sleep(10000)
-                    --     return bret.RUNNING
-                    -- end
-                end
+                env.not_open_waypoint = not_open_waypoint
+                
                 poe2_api.dbgp("选择任务: " .. task_name .. ", 索引: " .. min_index)
                 poe2_api.dbgp("Check_Role(SUCCESS2)")
-                poe2_api.time_p("Check_Role",api_GetTickCount64() - current_time)
+                poe2_api.time_p("Check_Role", api_GetTickCount64() - current_time)
                 return bret.SUCCESS
             else
-                poe2_api.dbgp("等待更多队友信息，当前: " .. received_count .. "/" .. expected_mission_count)
+                poe2_api.dbgp("等待更多队友信息，当前: " .. env.received_mission_count .. "/" .. expected_mission_count)
                 poe2_api.dbgp("Check_Role(RUNNING1)")
-                poe2_api.time_p("Check_Role",api_GetTickCount64() - current_time)
+                poe2_api.time_p("Check_Role", api_GetTickCount64() - current_time)
                 return bret.RUNNING
             end
         end
@@ -31663,6 +31668,8 @@ local plot_nodes = {
             local team_info = env.team_info
             local config = env.user_config
             local max_time = 1000 * 60 * 5  -- 5分钟
+            local leader_name = env.user_config["全局設置"]["大带小设置"]["大号名称"] or ""
+            api_RedisSubscribe(leader_name)
             local function bag_object_sum(name)
                 poe2_api.dbgp("[Query_Current_Task_Information]检测背包中的物品数量：")
                 if not bag_info then
@@ -31707,33 +31714,6 @@ local plot_nodes = {
                 end
 
                 return true
-            end
-
-            local function paste_text(text)
-                poe2_api.click_keyboard("ctrl", 1)
-                api_Sleep(200)
-                poe2_api.click_keyboard("a", 0)
-                api_Sleep(200)
-                poe2_api.click_keyboard("backspace")
-                api_Sleep(200)
-                poe2_api.click_keyboard("ctrl", 2)
-                api_Sleep(200)
-                -- 然后输入百分号（Shift+5）
-                poe2_api.click_keyboard("shift", 1)  -- 按下shift
-                api_Sleep(200)
-                poe2_api.click_keyboard("5", 0)      -- 按下5（配合shift产生%）
-                api_Sleep(200)
-                poe2_api.click_keyboard("shift", 2)  -- 释放shift
-                api_Sleep(200)
-                -- 先输入原有文本
-                api_SetClipboard(text)
-                api_Sleep(200)
-                poe2_api.click_keyboard("ctrl", 1)
-                api_Sleep(200)
-                poe2_api.click_keyboard("v", 0)
-                api_Sleep(200)
-                poe2_api.click_keyboard("ctrl", 2)
-                api_Sleep(200)
             end
 
             --- 根据主任务顺序获取任务状态
@@ -32078,26 +32058,29 @@ local plot_nodes = {
                 if poe2_api.get_team_info(team_info, config, player_info, 1) ~= "大号名称" then
                     poe2_api.dbgp("[Query_Current_Task_Information]有task发送任务信息")
                     if not poe2_api.table_contains(player_info.current_map_name_utf8, { "G1_1" }) and not poe2_api.find_text({ UI_info = env.UI_info, text = "抵達皆伐" }) then
-                        if not next(env.raw) or (self.raw_time ~= 0 and api_GetTickCount64() - self.raw_time > max_time) then
-                            -- 发送任务信息
-                            local task_text = "task_name=" .. task.task_name .. ",task_index=" .. task.index ..",map_name=" .. env.map_name
-                            poe2_api.click_keyboard("enter")
-                            api_Sleep(500)
-                            paste_text(task_text)
-                            api_Sleep(500)
-                            if not poe2_api.find_text({UI_info = env.UI_info, text = "私訊", min_x = 0, max_x = 400, refresh = true}) then
-                                poe2_api.dbgp("[Query_Current_Task_Information]私訊")
-                                return bret.RUNNING
+                        if not next(env.raw) or (self.raw_time ~= 0 and api_GetTickCount64() - self.raw_time > 16000) then
+                            -- 手动构建JSON字符串
+                            local json_text = string.format('{"mission":{"user_name":"%s","map_name":"%s","task_name":"%s","task_index":"%s"}}',
+                                player_info.name_utf8 or "",
+                                env.map_name or "",
+                                task.task_name or "",
+                                task.index or "") 
+                            local success = api_RedisSendText(leader_name, json_text)
+                            if success then
+                                poe2_api.dbgp("成功发送任务信息到Redis频道: " .. leader_name)
+                                poe2_api.dbgp("任务信息: " .. task.task_name .. ", 索引: " .. task.index)
+                            else
+                                poe2_api.dbgp("发送任务信息到Redis失败")
                             end
-                            poe2_api.click_keyboard("enter")
-                            api_Sleep(200)
+                            -- 更新发送时间戳
                             self.raw_time = api_GetTickCount64()
                             env.raw = { task.task_name, task.index }
                         end
+                        -- 检查任务是否有更新
                         env.update = { task.task_name, task.index }
                         if not deep_equal_unordered(env.raw, env.update) then
                             env.raw = {}
-                            poe2_api.dbgp("[Query_Current_Task_Information]RUNNING2")
+                            poe2_api.dbgp("[Query_Current_Task_Information]任务信息已更新，重新发送")
                             return bret.RUNNING
                         end
                     end
@@ -32133,30 +32116,26 @@ local plot_nodes = {
                 else
                     if self.mas == "G2_town" then
                         poe2_api.dbgp("[Query_Current_Task_Information]获取G2_town地图任务信息")
-                        
-                        if not poe2_api.find_text({UI_info = env.UI_info, text = "世界地圖",refresh = true}) then
-                            poe2_api.click_keyboard("u")
-                        end
+                        env.waypoint = api_UpdateTeleportationPoint()
                         api_Sleep(200)
-                        env.waypoint = api_GetTeleportationPoint()
-                        api_Sleep(200)
-                        poe2_api.click_keyboard("u")
                         if poe2_api.Waypoint_is_open("G3_town", waypoint) then
                             poe2_api.dbgp("[Query_Current_Task_Information]RUNNING5")
                             return bret.RUNNING
                         end
                         if poe2_api.get_team_info(team_info, config, player_info, 2) ~= "大号名称" then
-                            local task_text = "task_name=" .. "返回阿杜拉車隊，並與札卡交談" .. ",task_index=" .. 83 ..",map_name=" .. self.mas
-                            poe2_api.click_keyboard("enter")
-                            api_Sleep(500)
-                            paste_text(task_text)
-                            api_Sleep(500)
-                            if not poe2_api.find_text({UI_info = env.UI_info, text = "私訊", min_x = 0, max_x = 400, refresh = true}) then
-                                poe2_api.dbgp("[Query_Current_Task_Information]私訊")
-                                return bret.RUNNING
+                            -- 手动构建JSON字符串
+                            local json_text = string.format('{"mission":{"user_name":"%s","map_name":"%s","task_name":"%s","task_index":"%s"}}',
+                                player_info.name_utf8,
+                                self.mas,
+                                "返回阿杜拉車隊，並與札卡交談",
+                                "83") 
+                            local success = api_RedisSendText(leader_name, json_text)
+                            if success then
+                                poe2_api.dbgp("成功发送任务信息到Redis频道: " .. leader_name)
+                                    poe2_api.dbgp("任务信息: " .. "返回阿杜拉車隊，並與札卡交談" .. ", 索引: " .. "83")
+                            else
+                                poe2_api.dbgp("发送任务信息到Redis失败")
                             end
-                            poe2_api.click_keyboard("enter")
-                            api_Sleep(500)
                             env.map_name = self.mas
                             poe2_api.dbgp("[Query_Current_Task_Information]SUCCESS2")
                             poe2_api.time_p("[Query_Current_Task_Information]",(api_GetTickCount64() - current_time))
@@ -32165,18 +32144,20 @@ local plot_nodes = {
                     elseif self.mas == "G3_town" then
                         poe2_api.dbgp("[Query_Current_Task_Information]获取G3_town地图任务信息")
                         if poe2_api.get_team_info(team_info, config, player_info, 2) ~= "大号名称" then
-                            if not next(env.raw) or (self.raw_time ~= 0 and api_GetTickCount64() - self.raw_time > max_time) then
-                                -- 发送任务信息
-                                local task_text = "task_name=" .. "高地神塔營地" .. ",task_index=" .. 179 ..",map_name=" .. self.mas
-                                poe2_api.click_keyboard("enter")
-                                api_Sleep(500)
-                                paste_text(task_text)
-                                api_Sleep(500)
-                                if not poe2_api.find_text({UI_info = env.UI_info, text = "私訊", min_x = 0, max_x = 400, refresh = true}) then
-                                    poe2_api.dbgp("[Query_Current_Task_Information]私訊")
-                                    return bret.RUNNING
+                            if not next(env.raw) or (self.raw_time ~= 0 and api_GetTickCount64() - self.raw_time > 16000) then
+                                -- 手动构建JSON字符串
+                                local json_text = string.format('{"mission":{"user_name":"%s","map_name":"%s","task_name":"%s","task_index":"%s"}}',
+                                    player_info.name_utf8,
+                                    self.mas,
+                                    "高地神塔營地",
+                                    "179") 
+                                local success = api_RedisSendText(leader_name, json_text)
+                                if success then
+                                    poe2_api.dbgp("成功发送任务信息到Redis频道: " .. leader_name)
+                                    poe2_api.dbgp("任务信息: " .. "高地神塔營地" .. ", 索引: " .. "179")
+                                else
+                                    poe2_api.dbgp("发送任务信息到Redis失败")
                                 end
-                                poe2_api.click_keyboard("enter")
                                 api_Sleep(500)
                                 self.raw_time = api_GetTickCount64()
                                 env.raw = { "高地神塔營地", 179 }
@@ -32195,18 +32176,20 @@ local plot_nodes = {
                     elseif self.mas == "G1_12" then
                         poe2_api.dbgp("[Query_Current_Task_Information]获取G1_12地图任务信息")
                         if poe2_api.get_team_info(team_info, config, player_info, 2) ~= "大号名称" then
-                            if not next(env.raw) or (self.raw_time ~= 0 and api_GetTickCount64() - self.raw_time > max_time) then
-                                -- 发送任务信息
-                                local task_text = "task_name=" .. "尋找祭祀神壇並淨化它們" .. ",task_index=" .. 80 ..",map_name=" .. self.mas
-                                poe2_api.click_keyboard("enter")
-                                api_Sleep(500)
-                                paste_text(task_text)
-                                api_Sleep(500)
-                                if not poe2_api.find_text({UI_info = env.UI_info, text = "私訊", min_x = 0, max_x = 400, refresh = true}) then
-                                    poe2_api.dbgp("[Query_Current_Task_Information]私訊")
-                                    return bret.RUNNING
+                            if not next(env.raw) or (self.raw_time ~= 0 and api_GetTickCount64() - self.raw_time > 16000) then
+                                -- 手动构建JSON字符串
+                                local json_text = string.format('{"mission":{"user_name":"%s","map_name":"%s","task_name":"%s","task_index":"%s"}}',
+                                    player_info.name_utf8,
+                                    self.mas,
+                                    "尋找祭祀神壇並淨化它們",
+                                    "80") 
+                                local success = api_RedisSendText(leader_name, json_text)
+                                if success then
+                                    poe2_api.dbgp("成功发送任务信息到Redis频道: " .. leader_name)
+                                    poe2_api.dbgp("任务信息: " .. "尋找祭祀神壇並淨化它們" .. ", 索引: " .. "80")
+                                else
+                                    poe2_api.dbgp("发送任务信息到Redis失败")
                                 end
-                                poe2_api.click_keyboard("enter")
                                 api_Sleep(500)
                                 self.raw_time = api_GetTickCount64()
                                 env.raw = { "尋找祭祀神壇並淨化它們", 80 }
@@ -32229,18 +32212,20 @@ local plot_nodes = {
                             env.grid_y = nil
                             env.interaction_object = { "召喚瑟維", "瑟維" }
                             if poe2_api.get_team_info(team_info, config, player_info, 2) ~= "大号名称" then
-                                if not next(env.raw) or (self.raw_time ~= 0 and api_GetTickCount64() - self.raw_time > max_time) then
-                                    -- 发送任务信息
-                                    local task_text = "task_name=" .. "阿札克泥沼" .. ",task_index=" .. 250 ..",map_name=" .. self.mas
-                                    poe2_api.click_keyboard("enter")
-                                    api_Sleep(500)
-                                    paste_text(task_text)
-                                    api_Sleep(500)
-                                    if not poe2_api.find_text({UI_info = env.UI_info, text = "私訊", min_x = 0, max_x = 400, refresh = true}) then
-                                        poe2_api.dbgp("[Query_Current_Task_Information]私訊")
-                                        return bret.RUNNING
+                                if not next(env.raw) or (self.raw_time ~= 0 and api_GetTickCount64() - self.raw_time > 16000) then
+                                    -- 手动构建JSON字符串
+                                    local json_text = string.format('{"mission":{"user_name":"%s","map_name":"%s","task_name":"%s","task_index":"%s"}}',
+                                        player_info.name_utf8,
+                                        self.mas,
+                                        "阿札克泥沼",
+                                        "250") 
+                                    local success = api_RedisSendText(leader_name, json_text)
+                                    if success then
+                                        poe2_api.dbgp("成功发送任务信息到Redis频道: " .. leader_name)
+                                    poe2_api.dbgp("任务信息: " .. "阿札克泥沼" .. ", 索引: " .. "250")
+                                    else
+                                        poe2_api.dbgp("发送任务信息到Redis失败")
                                     end
-                                    poe2_api.click_keyboard("enter")
                                     api_Sleep(500)
                                     self.raw_time = api_GetTickCount64()
                                     env.raw = { "阿札克泥沼", 250 }
@@ -32259,18 +32244,20 @@ local plot_nodes = {
                         else
                             poe2_api.dbgp("[Query_Current_Task_Information]前往G3_7,先前往G3_town地图")
                             if poe2_api.get_team_info(team_info, config, player_info, 2) ~= "大号名称" then
-                                if not next(env.raw) or (self.raw_time ~= 0 and api_GetTickCount64() - self.raw_time > max_time) then
-                                    -- 发送任务信息
-                                    local task_text = "task_name=" .. "高地神塔營地" .. ",task_index=" .. 0 ..",map_name=" .. "G3_town"
-                                    poe2_api.click_keyboard("enter")
-                                    api_Sleep(500)
-                                    paste_text(task_text)
-                                    api_Sleep(500)
-                                    if not poe2_api.find_text({UI_info = env.UI_info, text = "私訊", min_x = 0, max_x = 400, refresh = true}) then
-                                        poe2_api.dbgp("[Query_Current_Task_Information]私訊")
-                                        return bret.RUNNING
+                                if not next(env.raw) or (self.raw_time ~= 0 and api_GetTickCount64() - self.raw_time > 16000) then
+                                    -- 手动构建JSON字符串
+                                    local json_text = string.format('{"mission":{"user_name":"%s","map_name":"%s","task_name":"%s","task_index":"%s"}}',
+                                        player_info.name_utf8,
+                                        "G3_town",
+                                        "高地神塔營地",
+                                        "0") 
+                                    local success = api_RedisSendText(leader_name, json_text)
+                                    if success then
+                                        poe2_api.dbgp("成功发送任务信息到Redis频道: " .. leader_name)
+                                    poe2_api.dbgp("任务信息: " .. "高地神塔營地" .. ", 索引: " .. "0")
+                                    else
+                                        poe2_api.dbgp("发送任务信息到Redis失败")
                                     end
-                                    poe2_api.click_keyboard("enter")
                                     api_Sleep(500)
                                     self.raw_time = api_GetTickCount64()
                                     env.raw = { "高地神塔營地", 0 }
@@ -32290,18 +32277,20 @@ local plot_nodes = {
                     elseif self.mas == "G4_1_1" then
                         poe2_api.dbgp("[Query_Current_Task_Information]获取G4_1_1地图任务信息")
                         if poe2_api.get_team_info(team_info, config, player_info, 2) ~= "大号名称" then
-                            if not next(env.raw) or (self.raw_time ~= 0 and api_GetTickCount64() - self.raw_time > max_time) then
-                                -- 发送任务信息
-                                local task_text = "task_name=" .. "金氏島" .. ",task_index=" .. 278 ..",map_name=" .. self.mas
-                                poe2_api.click_keyboard("enter")
-                                api_Sleep(500)
-                                paste_text(task_text)
-                                api_Sleep(500)
-                                if not poe2_api.find_text({UI_info = env.UI_info, text = "私訊", min_x = 0, max_x = 400, refresh = true}) then
-                                    poe2_api.dbgp("[Query_Current_Task_Information]私訊")
-                                    return bret.RUNNING
+                            if not next(env.raw) or (self.raw_time ~= 0 and api_GetTickCount64() - self.raw_time > 16000) then
+                                -- 手动构建JSON字符串
+                                local json_text = string.format('{"mission":{"user_name":"%s","map_name":"%s","task_name":"%s","task_index":"%s"}}',
+                                    player_info.name_utf8,
+                                    self.mas,
+                                    "金氏島",
+                                    "278") 
+                                local success = api_RedisSendText(leader_name, json_text)
+                                if success then
+                                    poe2_api.dbgp("成功发送任务信息到Redis频道: " .. leader_name)
+                                    poe2_api.dbgp("任务信息: " .. "金氏島" .. ", 索引: " .. "278")
+                                else
+                                    poe2_api.dbgp("发送任务信息到Redis失败")
                                 end
-                                poe2_api.click_keyboard("enter")
                                 api_Sleep(500)
                                 self.raw_time = api_GetTickCount64()
                                 env.raw = { "金氏島", 278 }
@@ -32320,18 +32309,20 @@ local plot_nodes = {
                     elseif self.mas == "G4_4_1" then
                         poe2_api.dbgp("[Query_Current_Task_Information]获取G4_4_1地图任务信息")
                         if poe2_api.get_team_info(team_info, config, player_info, 2) ~= "大号名称" then
-                            if not next(env.raw) or (self.raw_time ~= 0 and api_GetTickCount64() - self.raw_time > max_time) then
-                                -- 发送任务信息
-                                local task_text = "task_name=" .. "悉妮蔻拉之眼" .. ",task_index=" .. 278 ..",map_name=" .. self.mas
-                                poe2_api.click_keyboard("enter")
-                                api_Sleep(500)
-                                paste_text(task_text)
-                                api_Sleep(500)
-                                if not poe2_api.find_text({UI_info = env.UI_info, text = "私訊", min_x = 0, max_x = 400, refresh = true}) then
-                                    poe2_api.dbgp("[Query_Current_Task_Information]私訊")
-                                    return bret.RUNNING
+                            if not next(env.raw) or (self.raw_time ~= 0 and api_GetTickCount64() - self.raw_time > 16000) then
+                                -- 手动构建JSON字符串
+                                local json_text = string.format('{"mission":{"user_name":"%s","map_name":"%s","task_name":"%s","task_index":"%s"}}',
+                                    player_info.name_utf8,
+                                    self.mas,
+                                    "悉妮蔻拉之眼",
+                                    "278") 
+                                local success = api_RedisSendText(leader_name, json_text)
+                                if success then
+                                    poe2_api.dbgp("成功发送任务信息到Redis频道: " .. leader_name)
+                                    poe2_api.dbgp("任务信息: " .. "悉妮蔻拉之眼" .. ", 索引: " .. "278")
+                                else
+                                    poe2_api.dbgp("发送任务信息到Redis失败")
                                 end
-                                poe2_api.click_keyboard("enter")
                                 api_Sleep(500)
                                 self.raw_time = api_GetTickCount64()
                                 env.raw = { "悉妮蔻拉之眼", 278 }
@@ -32350,18 +32341,19 @@ local plot_nodes = {
                     elseif self.mas == "G4_3_1" then
                         poe2_api.dbgp("[Query_Current_Task_Information]获取-G4_3_1-地图任务信息")
                         if poe2_api.get_team_info(team_info, config, player_info, 2) ~= "大号名称" then
-                            if not next(env.raw) or (self.raw_time ~= 0 and api_GetTickCount64() - self.raw_time > max_time) then
-                                -- 发送任务信息
-                                local task_text = "task_name=" .. "瓦卡帕努島" .. ",task_index=" .. 308 ..",map_name=" .. self.mas
-                                poe2_api.click_keyboard("enter")
-                                api_Sleep(500)
-                                paste_text(task_text)
-                                api_Sleep(500)
-                                if not poe2_api.find_text({UI_info = env.UI_info, text = "私訊", min_x = 0, max_x = 400, refresh = true}) then
-                                    poe2_api.dbgp("[Query_Current_Task_Information]私訊")
-                                    return bret.RUNNING
+                            if not next(env.raw) or (self.raw_time ~= 0 and api_GetTickCount64() - self.raw_time > 16000) then
+                               local json_text = string.format('{"mission":{"user_name":"%s","map_name":"%s","task_name":"%s","task_index":"%s"}}',
+                                    player_info.name_utf8,
+                                    self.mas,
+                                    "瓦卡帕努島",
+                                    "308") 
+                                local success = api_RedisSendText(leader_name, json_text)
+                                if success then
+                                    poe2_api.dbgp("成功发送任务信息到Redis频道: " .. leader_name)
+                                    poe2_api.dbgp("任务信息: " .. "瓦卡帕努島" .. ", 索引: " .. "308")
+                                else
+                                    poe2_api.dbgp("发送任务信息到Redis失败")
                                 end
-                                poe2_api.click_keyboard("enter")
                                 api_Sleep(500)
                                 self.raw_time = api_GetTickCount64()
                                 env.raw = { "瓦卡帕努島", 308 }
@@ -32380,18 +32372,19 @@ local plot_nodes = {
                     elseif self.mas == "G4_5_1" then
                         poe2_api.dbgp("[Query_Current_Task_Information]获取-G4_5_1-地图任务信息")
                         if poe2_api.get_team_info(team_info, config, player_info, 2) ~= "大号名称" then
-                            if not next(env.raw) or (self.raw_time ~= 0 and api_GetTickCount64() - self.raw_time > max_time) then
-                                -- 发送任务信息
-                                local task_text = "task_name=" .. "廢棄監獄" .. ",task_index=" .. 314 ..",map_name=" .. self.mas
-                                poe2_api.click_keyboard("enter")
-                                api_Sleep(500)
-                                paste_text(task_text)
-                                api_Sleep(500)
-                                if not poe2_api.find_text({UI_info = env.UI_info, text = "私訊", min_x = 0, max_x = 400, refresh = true}) then
-                                    poe2_api.dbgp("[Query_Current_Task_Information]私訊")
-                                    return bret.RUNNING
+                            if not next(env.raw) or (self.raw_time ~= 0 and api_GetTickCount64() - self.raw_time > 16000) then
+                                local json_text = string.format('{"mission":{"user_name":"%s","map_name":"%s","task_name":"%s","task_index":"%s"}}',
+                                    player_info.name_utf8,
+                                    self.mas,
+                                    "廢棄監獄",
+                                    "314") 
+                                local success = api_RedisSendText(leader_name, json_text)
+                                if success then
+                                    poe2_api.dbgp("成功发送任务信息到Redis频道: " .. leader_name)
+                                    poe2_api.dbgp("任务信息: " .. "廢棄監獄" .. ", 索引: " .. "314")
+                                else
+                                    poe2_api.dbgp("发送任务信息到Redis失败")
                                 end
-                                poe2_api.click_keyboard("enter")
                                 api_Sleep(500)
                                 self.raw_time = api_GetTickCount64()
                                 env.raw = { "廢棄監獄", 314 }
@@ -32410,18 +32403,20 @@ local plot_nodes = {
                     elseif self.mas == "G4_7" then
                         poe2_api.dbgp("[Query_Current_Task_Information]获取-G4_7-地图任务信息")
                         if poe2_api.get_team_info(team_info, config, player_info, 2) ~= "大号名称" then
-                            if not next(env.raw) or (self.raw_time ~= 0 and api_GetTickCount64() - self.raw_time > max_time) then
+                            if not next(env.raw) or (self.raw_time ~= 0 and api_GetTickCount64() - self.raw_time > 16000) then
                                 -- 发送任务信息
-                                local task_text = "task_name=" .. "伯勞鳥之島" .. ",task_index=" .. 320 ..",map_name=" .. self.mas
-                                poe2_api.click_keyboard("enter")
-                                api_Sleep(500)
-                                paste_text(task_text)
-                                api_Sleep(500)
-                                if not poe2_api.find_text({UI_info = env.UI_info, text = "私訊", min_x = 0, max_x = 400, refresh = true}) then
-                                    poe2_api.dbgp("[Query_Current_Task_Information]私訊")
-                                    return bret.RUNNING
+                                local json_text = string.format('{"mission":{"user_name":"%s","map_name":"%s","task_name":"%s","task_index":"%s"}}',
+                                    player_info.name_utf8,
+                                    self.mas,
+                                    "伯勞鳥之島",
+                                    "320") 
+                                local success = api_RedisSendText(leader_name, json_text)
+                                if success then
+                                    poe2_api.dbgp("成功发送任务信息到Redis频道: " .. leader_name)
+                                    poe2_api.dbgp("任务信息: " .. "伯勞鳥之島" .. ", 索引: " .. "320")
+                                else
+                                    poe2_api.dbgp("发送任务信息到Redis失败")
                                 end
-                                poe2_api.click_keyboard("enter")
                                 api_Sleep(500)
                                 self.raw_time = api_GetTickCount64()
                                 env.raw = { "伯勞鳥之島", 320 }
@@ -32445,18 +32440,20 @@ local plot_nodes = {
                         end
                         poe2_api.dbgp("[Query_Current_Task_Information]获取-G4_town-地图任务信息")
                         if poe2_api.get_team_info(team_info, config, player_info, 2) ~= "大号名称" then
-                            if not next(env.raw) or (self.raw_time ~= 0 and api_GetTickCount64() - self.raw_time > max_time) then
+                            if not next(env.raw) or (self.raw_time ~= 0 and api_GetTickCount64() - self.raw_time > 16000) then
                                 -- 发送任务信息
-                                local task_text = "task_name=" .. area_name .. ",task_index=" .. 266 ..",map_name=" .. self.mas
-                                poe2_api.click_keyboard("enter")
-                                api_Sleep(500)
-                                paste_text(task_text)
-                                api_Sleep(500)
-                                if not poe2_api.find_text({UI_info = env.UI_info, text = "私訊", min_x = 0, max_x = 400, refresh = true}) then
-                                    poe2_api.dbgp("[Query_Current_Task_Information]私訊")
-                                    return bret.RUNNING
+                                local json_text = string.format('{"mission":{"user_name":"%s","map_name":"%s","task_name":"%s","task_index":"%s"}}',
+                                    player_info.name_utf8,
+                                    self.mas,
+                                    "金司馬區",
+                                    "266") 
+                                local success = api_RedisSendText(leader_name, json_text)
+                                if success then
+                                    poe2_api.dbgp("成功发送任务信息到Redis频道: " .. leader_name)
+                                    poe2_api.dbgp("任务信息: " .. "金司馬區" .. ", 索引: " .. "266")
+                                else
+                                    poe2_api.dbgp("发送任务信息到Redis失败")
                                 end
-                                poe2_api.click_keyboard("enter")
                                 api_Sleep(500)
                                 self.raw_time = api_GetTickCount64()
                                 env.raw = { "金司馬區", 266 }
@@ -32480,18 +32477,20 @@ local plot_nodes = {
                         end
                         poe2_api.dbgp("[Query_Current_Task_Information]获取-P2_Town-地图任务信息")
                         if poe2_api.get_team_info(team_info, config, player_info, 2) ~= "大号名称" then
-                            if not next(env.raw) or (self.raw_time ~= 0 and api_GetTickCount64() - self.raw_time > max_time) then
+                            if not next(env.raw) or (self.raw_time ~= 0 and api_GetTickCount64() - self.raw_time > 16000) then
                                 -- 发送任务信息
-                                local task_text = "task_name=" .. area_name .. ",task_index=" .. 370 ..",map_name=" .. self.mas
-                                poe2_api.click_keyboard("enter")
-                                api_Sleep(500)
-                                paste_text(task_text)
-                                api_Sleep(500)
-                                if not poe2_api.find_text({UI_info = env.UI_info, text = "私訊", min_x = 0, max_x = 400, refresh = true}) then
-                                    poe2_api.dbgp("[Query_Current_Task_Information]私訊")
-                                    return bret.RUNNING
+                                local json_text = string.format('{"mission":{"user_name":"%s","map_name":"%s","task_name":"%s","task_index":"%s"}}',
+                                    player_info.name_utf8,
+                                    self.mas,
+                                    "卡里市集",
+                                    "370") 
+                                local success = api_RedisSendText(leader_name, json_text)
+                                if success then
+                                    poe2_api.dbgp("成功发送任务信息到Redis频道: " .. leader_name)
+                                    poe2_api.dbgp("任务信息: " .. "卡里市集" .. ", 索引: " .. "370")
+                                else
+                                    poe2_api.dbgp("发送任务信息到Redis失败")
                                 end
-                                poe2_api.click_keyboard("enter")
                                 api_Sleep(500)
                                 self.raw_time = api_GetTickCount64()
                                 env.raw = { "卡里市集", 370 }
@@ -32510,18 +32509,20 @@ local plot_nodes = {
                     elseif self.mas == "P3_4" then
                         poe2_api.dbgp("[Query_Current_Task_Information]获取-P3_4-地图任务信息")
                         if poe2_api.get_team_info(team_info, config, player_info, 2) ~= "大号名称" then
-                            if not next(env.raw) or (self.raw_time ~= 0 and api_GetTickCount64() - self.raw_time > max_time) then
+                            if not next(env.raw) or (self.raw_time ~= 0 and api_GetTickCount64() - self.raw_time > 16000) then
                                 -- 发送任务信息
-                                local task_text = "task_name=" .. "找到狂嗥洞穴" .. ",task_index=" .. 417 ..",map_name=" .. self.mas
-                                poe2_api.click_keyboard("enter")
-                                api_Sleep(500)
-                                paste_text(task_text)
-                                api_Sleep(500)
-                                if not poe2_api.find_text({UI_info = env.UI_info, text = "私訊", min_x = 0, max_x = 400, refresh = true}) then
-                                    poe2_api.dbgp("[Query_Current_Task_Information]私訊")
-                                    return bret.RUNNING
+                                local json_text = string.format('{"mission":{"user_name":"%s","map_name":"%s","task_name":"%s","task_index":"%s"}}',
+                                    player_info.name_utf8,
+                                    self.mas,
+                                    "狂嗥洞穴",
+                                    "417") 
+                                local success = api_RedisSendText(leader_name, json_text)
+                                if success then
+                                    poe2_api.dbgp("成功发送任务信息到Redis频道: " .. leader_name)
+                                    poe2_api.dbgp("任务信息: " .. "狂嗥洞穴" .. ", 索引: " .. "417")
+                                else
+                                    poe2_api.dbgp("发送任务信息到Redis失败")
                                 end
-                                poe2_api.click_keyboard("enter")
                                 api_Sleep(500)
                                 self.raw_time = api_GetTickCount64()
                                 env.raw = { "狂嗥洞穴", 417 }
@@ -32540,18 +32541,20 @@ local plot_nodes = {
                     elseif self.mas == "G2_Abyss_Hub" then
                         poe2_api.dbgp("[Query_Current_Task_Information]获取-G2_Abyss_Hub-地图任务信息")
                         if poe2_api.get_team_info(team_info, config, player_info, 2) ~= "大号名称" then
-                            if not next(env.raw) or (self.raw_time ~= 0 and api_GetTickCount64() - self.raw_time > max_time) then
+                            if not next(env.raw) or (self.raw_time ~= 0 and api_GetTickCount64() - self.raw_time > 16000) then
                                 -- 发送任务信息
-                                local task_text = "task_name=" .. "靈魂深井" .. ",task_index=" .. 425 ..",map_name=" .. self.mas
-                                poe2_api.click_keyboard("enter")
-                                api_Sleep(500)
-                                paste_text(task_text)
-                                api_Sleep(500)
-                                if not poe2_api.find_text({UI_info = env.UI_info, text = "私訊", min_x = 0, max_x = 400, refresh = true}) then
-                                    poe2_api.dbgp("[Query_Current_Task_Information]私訊")
-                                    return bret.RUNNING
+                                local json_text = string.format('{"mission":{"user_name":"%s","map_name":"%s","task_name":"%s","task_index":"%s"}}',
+                                    player_info.name_utf8,
+                                    self.mas,
+                                    "靈魂深井",
+                                    "425") 
+                                local success = api_RedisSendText(leader_name, json_text)
+                                if success then
+                                    poe2_api.dbgp("成功发送任务信息到Redis频道: " .. leader_name)
+                                    poe2_api.dbgp("任务信息: " .. "靈魂深井" .. ", 索引: " .. "425")
+                                else
+                                    poe2_api.dbgp("发送任务信息到Redis失败")
                                 end
-                                poe2_api.click_keyboard("enter")
                                 api_Sleep(500)
                                 self.raw_time = api_GetTickCount64()
                                 env.raw = { "靈魂深井", 425 }
@@ -32617,7 +32620,7 @@ local plot_nodes = {
                 -- 查找符合条件的怪物
                 for _, i in ipairs(range_info) do
                     if not i.is_friendly and i.life > 1 and i.name_utf8 ~= "" and i.isActive
-                        and poe2_api.table_contains(i.name_utf8 ,{"撕裂者","白之亞瑪","擊殺死亡之謠．黛莫拉","酋長．塔瓦凱","墮落者．塔瓦凱","被吞噬者．塔瓦凱"})
+                        and poe2_api.table_contains(i.name_utf8 ,{"撕裂者","白之亞瑪","擊殺死亡之謠．黛莫拉"})
                         and poe2_api.get_point_distance(mate.grid_x, mate.grid_y, i.grid_x, i.grid_y) < 200 then
                         return i
                     end
@@ -32668,7 +32671,7 @@ local plot_nodes = {
                 env.monster_info = nil
                 return bret.RUNNING
             end
-            if (boss_name or player_info.isInBossBattle) and not poe2_api.table_contains(player_info.current_map_name_utf8,{"G4_4_1","G4_4_2","G4_11_2","P1_2"})  then
+            if (boss_name or player_info.isInBossBattle) and not poe2_api.table_contains(player_info.current_map_name_utf8,{"G4_4_1","G4_4_2","P1_2"})  then
                 local boss_info = poe2_api.is_have_boss_distance(range_info, player_info, boss_name, 180)
                 if boss_info or player_info.isInBossBattle then
                     poe2_api.dbgp("[Is_Exception_Team]当前处于BOSS战斗中")
@@ -32837,7 +32840,7 @@ local plot_nodes = {
                                 if monster_info.hasLineOfSight == true then
                                     env.is_arrive_end = true
                                 else
-                                    if poe2_api.point_distance(point_monster.x, point_monster.y, player_info) < 5  then
+                                    if poe2_api.point_distance(point_monster.x, point_monster.y, player_info) < 5 then
                                         poe2_api.dbgp("[Is_Move]怪物坐标非法,排除")
                                         table.insert(env.relife_stuck_monsters, monster_info.id)
                                         return bret.RUNNING
@@ -32881,6 +32884,7 @@ local plot_nodes = {
                             if poe2_api.find_text({ UI_info = UI_info, text = "競技場", min_x = 0 }) and arena_list[1].hasLineOfSight then
                                 poe2_api.find_text({ UI_info = UI_info, text = "競技場", min_x = 0, click = 2 })
                                 reset_navigation_state()
+                                env.relife_stuck_monsters = {}
                                 return bret.RUNNING
                             end
                             local arena_point = api_FindNearestReachableInRange(arena_list[1].grid_x, arena_list[1].grid_y, 25)
@@ -33216,18 +33220,18 @@ local plot_nodes = {
                     return bret.RUNNING
                 end
                 if special_map_point and (player_info.current_map_name_utf8 == "G2_town" and not poe2_api.find_text({ UI_info = env.UI_info, text = "哈拉妮關口", min_x = 195, refresh = true }) or player_info.current_map_name_utf8 == "G4_town") then
-                    if env.waypoint ~= nil and #env.waypoint > 0 then
+                    if env.waypoint_page ~= nil and #env.waypoint_page > 0 then
                         if task_area == "G2_town" then
                             waypoint_screen_text = "G2_town_marker_lockedgates"
                         elseif task_area == "G4_town" then
                             waypoint_screen_text = "G4_ShipMarker_TwilightEnclave_b"
                         end
-                        waypoint_screen = poe2_api.waypoint_pos(waypoint_screen_text,env.waypoint)
+                        waypoint_screen = poe2_api.waypoint_pos(waypoint_screen_text,env.waypoint_page)
                         if waypoint_screen[1] == 0 and waypoint_screen[2] == 0 then
                             if task_area == "G2_town" then
                                 waypoint_screen_text = "G2_town_marker_gates"
                             end
-                            waypoint_screen = poe2_api.waypoint_pos(waypoint_screen_text,env.waypoint)
+                            waypoint_screen = poe2_api.waypoint_pos(waypoint_screen_text,env.waypoint_page)
                         end
                     end
                     if (not waypoint_screen) or (waypoint_screen[1] == 0 and waypoint_screen[2] == 0) then
@@ -33236,7 +33240,7 @@ local plot_nodes = {
                             poe2_api.click_keyboard("u")
                         end
                         api_Sleep(200)
-                        env.waypoint = api_GetTeleportationPoint()
+                        env.waypoint_page = api_GetTeleportationPoint()
 
                         api_Sleep(1000)
                         return bret.RUNNING
@@ -34654,39 +34658,8 @@ local plot_nodes = {
                     return bret.SUCCESS
                 end
                 if not poe2_api.Waypoint_is_open(task_area, waypoint) and task_area ~= "G3_2_2"  then
-                    if not poe2_api.find_text({UI_info = env.UI_info, text = "世界地圖",refresh = true}) then
-                        api_Sleep(800)
-                        poe2_api.click_keyboard("u")
-                    end
                     api_Sleep(200)
-                    if string.find(task_area, "G1") then
-                        api_Sleep(500)
-                        poe2_api.find_text({ UI_info = env.UI_info, text = "第 1 章", click = 2, refresh = true })
-                        api_Sleep(500)
-                        env.waypoint = api_GetTeleportationPoint()
-                    elseif string.find(task_area, "G2") then
-                        api_Sleep(500)
-                        poe2_api.find_text({ UI_info = env.UI_info, text = "第 2 章", click = 2, refresh = true })
-                        api_Sleep(500)
-                        env.waypoint = api_GetTeleportationPoint()
-                    elseif string.find(task_area, "G3") then
-                        api_Sleep(500)
-                        poe2_api.find_text({ UI_info = env.UI_info, text = "第 3 章", click = 2, refresh = true })
-                        api_Sleep(500)
-                        env.waypoint = api_GetTeleportationPoint()
-                    elseif string.find(task_area, "G4") then
-                        api_Sleep(500)
-                        poe2_api.find_text({ UI_info = env.UI_info, text = "第 4 章", click = 2, refresh = true })
-                        api_Sleep(500)
-                        env.waypoint = api_GetTeleportationPoint()
-                    elseif string.find(task_area, "P") then
-                        api_Sleep(500)
-                        poe2_api.find_text({ UI_info = env.UI_info, text = "間歇", click = 2, refresh = true })
-                        api_Sleep(500)
-                        env.waypoint = api_GetTeleportationPoint()
-                    end
-                    api_Sleep(200)
-                    poe2_api.click_keyboard("u")
+                    env.waypoint = api_UpdateTeleportationPoint()
                     poe2_api.print_log("任务地区" .. task_area_name .. "传送点未打开")
                     return bret.RUNNING
                 end
@@ -34940,8 +34913,6 @@ local plot_nodes = {
             local UI_info = env.UI_info
             local player_info = env.player_info
             local current_map = player_info.current_map_name_utf8
-            local waypoint = env.waypoint
-            local waypoint_screen = poe2_api.waypoint_pos(teleport_area,waypoint)
             if self.s_time == nil then
                 self.s_time = 0
                 self.last_click_time = 0
@@ -35047,9 +35018,8 @@ local plot_nodes = {
                         poe2_api.find_text({ UI_info = UI_info, text = "間歇", click = 2, refresh = true })
                         api_Sleep(600)
                         if not string.find(current_map, "P") then
-                            env.waypoint = api_GetTeleportationPoint()
                             api_Sleep(600)
-                            if not poe2_api.Waypoint_is_open("P1_Town", env.waypoint) then
+                            if not poe2_api.waypoint_pos("P1_Town",api_GetTeleportationPoint()) then
                                 return bret.RUNNING
                             end
                         end
@@ -35062,19 +35032,19 @@ local plot_nodes = {
                         string.find(teleport_area, "P") then
                         if not poe2_api.find_text({ UI_info = UI_info, text = task_area_name, click = 0, refresh = true }) then
                             if #(poe2_api.task_area_list_data(teleport_area)) < 3 then
-                                waypoint_screen = poe2_api.waypoint_pos(teleport_area,env.waypoint)
+                                local waypoint_screen = poe2_api.waypoint_pos(teleport_area,env.waypoint_page)
                                 if not waypoint_screen or waypoint_screen[1] <= 0 or waypoint_screen[2] <= 0  then
                                     poe2_api.dbgp("获取传送点失败，重新获取传送点")
                                     api_Sleep(1000)
-                                    env.waypoint = api_GetTeleportationPoint()
+                                    env.waypoint_page = api_GetTeleportationPoint()
                                     api_Sleep(1000)
                                     return bret.RUNNING
                                 end
                                 if teleport_area == "G2_town" then
                                     api_Sleep(1000)
-                                    env.waypoint = api_GetTeleportationPoint()
+                                    waypoint_page = api_GetTeleportationPoint()
                                     api_Sleep(1000)
-                                    waypoint_screen = poe2_api.waypoint_pos(teleport_area,env.waypoint)
+                                    waypoint_screen = poe2_api.waypoint_pos(teleport_area,env.waypoint_page)
                                 end
                                 api_ClickScreen(poe2_api.toInt(waypoint_screen[1]), poe2_api.toInt(waypoint_screen[2]), 0)
                                 api_Sleep(1000)
@@ -35119,10 +35089,10 @@ local plot_nodes = {
                     end
                    
                     if #(poe2_api.task_area_list_data(teleport_area)) > 2 then
-                        env.waypoint = api_GetTeleportationPoint()
+                        env.waypoint_page = api_GetTeleportationPoint()
                         local task_two_area_name = poe2_api.task_area_list_data(teleport_area)[3]
                         teleport_area = teleport_area.."_Underground"
-                        waypoint_screen = poe2_api.waypoint_pos(teleport_area,env.waypoint)
+                        local waypoint_screen = poe2_api.waypoint_pos(teleport_area,env.waypoint_page)
                         api_Sleep(1000)
                         api_ClickScreen(poe2_api.toInt(waypoint_screen[1]), poe2_api.toInt(waypoint_screen[2]), 0)
                         api_Sleep(1000)
@@ -38009,7 +37979,6 @@ local plot_nodes = {
                         elseif task_name ~= "找出亡者之殿" then
                             self.complete_task = false
                         end
-                        
                         -- 检查是否为交互目标对象
                         local is_target = false
                         if name and poe2_api.table_contains(name, interaction_object_map_name) then
