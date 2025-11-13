@@ -1,4 +1,4 @@
--- API 函数详细文档
+ -- API 函数详细文档
 -- ================
 -- 所有函数均通过 api_ 前缀调用
 
@@ -99,10 +99,16 @@
 --   @return table 词缀数组，每个元素为字符串（如 "+5% 暴击率"）
 
 
--- 地图与导航
+-- 传送点页名坐标
 -- api_GetTeleportationPoint() - 获取传送点信息
 --   @return table 传送点数组，每个元素可能包含：
 --     { id, name, x, y, is_unlocked }
+-- 传送点是否开启
+-- api_UpdateTeleportationPoint()
+-- id 
+-- is_open
+-- name_c_utf8
+-- name_utf8 
 
 -- api_GetNextCirclePosition(bossX, bossY, playerX, playerY, radius, angleStep, direction) - 获取下一个绕圈位置
 --   @param bossX 首领X坐标（浮点型）
@@ -619,4 +625,21 @@ lua.set_function(
 --       print("安全，无需移动")
 --   end
 ----------------------------------------------------------------------
+--- api_RedisSendText(channel, text) - 发送文本到指定频道
+--   @param channel 频道名（字符串）
+--   @param text 文本内容（UTF8字符串）
+--   @return boolean true=发送成功，false=失败
+-- 说明：消息以 UTF-8 文本形式发送；建议确保文本已为 UTF-8 编码。
+
+
+-- api_RedisSubscribe(channel) - 追加订阅频道
+--   @param channel 频道名（字符串）
+--   @return boolean true=订阅成功，false=失败或已订阅
+-- 说明：订阅由后台线程处理；请结合 api_RedisGetData() 拉取消息。
+
+
+-- api_RedisGetData() - 获取订阅消息队列（拉取）
+--   @return table 消息数组；每项为 { channel = string, message = string }
+-- 说明：非阻塞拉取当前队列中的所有消息；若无新消息返回空数组。
+
 

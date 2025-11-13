@@ -1807,17 +1807,14 @@ local main_task= {
         },
         ['完成岡姆的精神試煉完成瑪塔的精神試煉完成萊基亞塔的精神試煉']= {
             map_name= 'G4_4_1',
-            interaction_object_map_name= {"G4_4_1TrialKaomInactive"},
             index = 288
         },
         ['完成瑪塔的精神試煉完成萊基亞塔的精神試煉']= {
             map_name= 'G4_4_1',
-            interaction_object_map_name= {"G4_4_1TrialMaataInactive"},
             index = 289
         },
         ['完成萊基亞塔的精神試煉']= {
             map_name= 'G4_4_1',
-            interaction_object_map_name= {"G4_4_1TrialRakiataInactive"},
             index = 290
         },
         ['找出亡者之殿']= {
@@ -2149,7 +2146,7 @@ local main_task= {
         },
         ["目睹黑衣幽魂治療塔瓦凱和瑪寇魯"] = {
             map_name= 'G4_11_2',
-            interaction_object_map_name= {'黑衣幽魂'},
+            interaction_object_map_name= {'瑪寇魯'},
             index = 345
         },
         ["回到金司馬區"] = {
