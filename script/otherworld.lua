@@ -33286,7 +33286,7 @@ local plot_nodes = {
                                 if monster_info.hasLineOfSight == true then
                                     env.is_arrive_end = true
                                 else
-                                    if poe2_api.point_distance(point_monster.x, point_monster.y, player_info) < 5 then
+                                    if poe2_api.point_distance(point_monster.x, point_monster.y, player_info) < 5 and player_info.current_map_name_utf8 == "G3_2_2" then
                                         poe2_api.dbgp("[Is_Move]怪物坐标非法,排除")
                                         table.insert(env.relife_stuck_monsters, monster_info.id)
                                         return bret.RUNNING
@@ -34056,6 +34056,10 @@ local plot_nodes = {
             end
             if poe2_api.table_contains(current_map, { "G3_1" }) and poe2_api.table_contains(task_area, { "G3_1" }) and task_name =="與黑衣幽魂對話，了解下一步該做什麼" then
                 poe2_api.dbgp("检测到任务区域:G3_1")
+                return bret.SUCCESS
+            end
+            if poe2_api.table_contains(current_map, { "G1_town" }) and poe2_api.table_contains(task_area, { "G1_town" }) and task_name =="前往東邊" then
+                poe2_api.dbgp("检测到任务区域:G1_town")
                 return bret.SUCCESS
             end
             if poe2_api.table_contains(current_map, { "G2_1" }) and poe2_api.table_contains(task_area, { "G2_1" }) and task_name == "進入阿杜拉車隊" then
