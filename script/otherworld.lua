@@ -28001,9 +28001,11 @@ local plot_nodes = {
             end
             -- 大号，小号更新障碍
             if poe2_api.get_team_info(env.team_info, env.user_config, player_info, 2) == "大号名称" then
-                if not poe2_api.table_contains(player_info.current_map_name_utf8, { "G2_3","G2_9_1","G3_17","G4_10","P1_6"}) or poe2_api.find_text({ UI_info = env.UI_info, text = "競技場", min_x = 0 }) then
+                if not poe2_api.table_contains(player_info.current_map_name_utf8, { "G2_3","G2_9_1","G4_10","P1_6"}) or poe2_api.find_text({ UI_info = env.UI_info, text = "競技場", min_x = 0 }) then
                     if player_info.current_map_name_utf8 == "G2_2" then
                         api_UpdateMapObstacles(180)
+                    elseif player_info.current_map_name_utf8 == "G3_17" then
+                        api_UpdateMapObstacles(50)
                     else
                         api_UpdateMapObstacles(100)
                     end
@@ -33268,13 +33270,19 @@ local plot_nodes = {
                                 end
                                 env.end_point = { point_monster.x, point_monster.y }
                             end
-                            if poe2_api.point_distance(monster_info.grid_x, monster_info.grid_y, player_info) < env.min_attack_dis and monster_info.life <= 0 then
-                                env.monster_info = nil
-                            end
                         end
                         if point_monster.x ~= -1 and point_monster.y ~= -1 then
                             env.life_time = nil
                             if poe2_api.point_distance(monster_info.grid_x, monster_info.grid_y, player_info) < env.min_attack_dis then
+                                poe2_api.dbgp("到攻击距离刷新monster_info")
+                                monster_info = away_monster(range_info_sorted, monster_info.id)
+                                env.monster_info = monster_info
+                                poe2_api.printTable(monster_info)
+                                if monster_info.life <= 0 then
+                                    poe2_api.dbgp("[Is_Move]怪物死亡")
+                                    env.monster_info = nil
+                                    return bret.RUNNING
+                                end
                                 if monster_info.hasLineOfSight == true then
                                     env.is_arrive_end = true
                                 else
@@ -39274,6 +39282,9 @@ local plot_nodes = {
                     if poe2_api.table_contains(current_map,{"G3_6_1"}) then
                         poe2_api.dbgp("大号探索范围50")
                         point = api_GetUnexploredArea(50)
+                    elseif current_map == "G3_17" then
+                        poe2_api.dbgp("大号探索范围40")
+                        point = api_GetUnexploredArea(40)
                     else
                         poe2_api.dbgp("大号探索范围70")
                         point = api_GetUnexploredArea(70)
