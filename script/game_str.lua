@@ -185,6 +185,7 @@ local game_str = {
     Contaminated_TWCH = "已汙染",
     Steam_Copy_Login_Request_TWCH = "Steam：複製的登入請求",
     Violate_The_Rules = "此帳號因違反下述狀況，已經被遊戲管理者停權了。",
+    Return_To_The_Login_Screen_TWCH = "回到登入畫面",
     mini_target_ = {"AbyssCrackActive","AbyssPitActive","RuneMarkersActive"},
 
     -- 暗金碑牌
@@ -358,7 +359,7 @@ local game_str = {
     Offering_sacrifices_to_fairies_NAME = "祭祀妖精",
 
     exp_add_valid_objects = {
-        "甕", "壺", "屍體", "巢穴", "籃子", "小雕像", "石塊","鬆動碎石", "瓶子", "盒子", "腐爛木材", "保險箱", "腐爛木材",
+        "甕", "壺", "屍體", "巢穴", "籃子", "小雕像", "石塊","鬆動碎石", "瓶子", "盒子", "腐爛木材", "保險箱", "腐爛木材"
     },
 
     

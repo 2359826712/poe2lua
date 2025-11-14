@@ -15,7 +15,7 @@ local START_Y_max = 100  -- 超大仓库 起始X坐标
 local CELL_WIDTH_max = 22  -- 超大仓库 每个格子宽度
 local CELL_HEIGHT_max = 22  -- 超大仓库 每个格子高度
 local last_record_time = nil  -- 上次记录的时间戳
-local INTERVAL = 10          -- 间隔时间（秒
+local INTERVAL = 10          -- 间隔时间（秒）
 -- ===================== 内部缓存：最后一次成功版本 ======================
 -- key = 规范化后的最终读路径（含盘符/UNC）
 -- val = { data=table, size=number, hash=number }
@@ -25,6 +25,15 @@ _M.runtime = _M.runtime or {
     death_times    = 0,
     error_text     = "",
   }
+
+_M.formatted_output = {
+    ["开图次数"] = 0,
+    ["距离休息剩余"] = nil,
+    ["时区休息区间已到达,即将休息剩余"] = nil,
+    ["正在休息,距离正常运行剩余"] = nil,
+    ["开始休息时间为"] = nil,
+    ["异常提示"] = nil
+}
 
 _M.point_distance = function(x, y, ac)
     -- 检查参数有效性
@@ -8661,6 +8670,82 @@ _M.format_time_diff = function(ms_diff)
     
     -- 格式化为 HH:MM:SS
     return string.format("%02d:%02d:%02d", hours, minutes, remaining_seconds) 
+end
+
+-- 动态状态展示
+_M.dynamic_display = function(text_list)
+    if type(text_list) ~= "table" then
+        api_SetStatusText("")
+        return
+    end
+
+    local function has_value(v)
+        if v == nil then return false end
+        local tv = type(v)
+        if tv == "boolean" then
+            return v == true                    -- 仅 true 显示
+        elseif tv == "string" then
+            return v:match("%S") ~= nil         -- 非空白才显示
+        elseif tv == "table" then
+            return next(v) ~= nil               -- 非空表才显示
+        else
+            return true                         -- number(含0)、userdata、function 等都算有值
+        end
+    end
+
+    local function to_str(v)
+        local tv = type(v)
+        if tv == "boolean" then
+            return v and "true" or "false"
+        elseif tv == "number" then
+            return tostring(v)
+        elseif tv == "string" then
+            return v
+        elseif tv == "table" then
+            return "<table>"                    -- 如需JSON文本可替换为你项目的 json.encode(v)
+        else
+            return tostring(v)
+        end
+    end
+
+    local lines = {}
+
+    if text_list[1] ~= nil then
+        -- 有序数组：每项是 {key, value} 或 { key=..., value=... }
+        for i = 1, #text_list do
+            local item = text_list[i]
+            local k, v
+            if type(item) == "table" then
+                if item[1] ~= nil then
+                    k, v = item[1], item[2]
+                else
+                    k, v = item.key, item.value
+                end
+            end
+            if k ~= nil and has_value(v) then
+                table.insert(lines, string.format("%s:%s", tostring(k), to_str(v)))
+            end
+        end
+    else
+        -- 退化：传的是无序map；无法保证顺序，尽量按 _order 指定
+        local order = rawget(text_list, "_order")
+        if type(order) == "table" then
+            for _, k in ipairs(order) do
+                local v = text_list[k]
+                if has_value(v) then
+                    table.insert(lines, string.format("%s:%s", tostring(k), to_str(v)))
+                end
+            end
+        else
+            for k, v in pairs(text_list) do
+                if k ~= "_order" and has_value(v) then
+                    table.insert(lines, string.format("%s:%s", tostring(k), to_str(v)))
+                end
+            end
+        end
+    end
+
+    api_SetStatusText(table.concat(lines, "\n"))
 end
 -- -- 记录调用时间的函数
 -- _M.record_call_time = function(index,)
