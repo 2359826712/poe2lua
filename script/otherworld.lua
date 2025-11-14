@@ -26581,30 +26581,6 @@ local plot_nodes = {
                         return bret.RUNNING
                     end
                 end
-                local log_path = poe2_api.load_config(json_path)["全局設置"]["大带小设置"]["日志路径"]
-                poe2_api.dbgp("log_path:" .. log_path)
-                if env.delete_log == false or self.delete_log == nil then
-                    poe2_api.dbgp("尝试删除日志文件: " .. log_path)
-                    
-                    -- 检查路径是否有效
-                    if log_path and log_path ~= "" then
-                        -- 使用双引号包裹路径，避免空格或特殊字符问题
-                        local command = 'del /f /q "' .. log_path .. '"'
-                        local success, error_msg = os.execute(command)
-                        
-                        if success then
-                            poe2_api.dbgp("日志文件删除成功")
-                            env.delete_log = true
-                            self.delete_log = true
-                            return bret.RUNNING
-                        else
-                            poe2_api.dbgp("日志文件删除失败: " .. (error_msg or "未知错误"))
-                        end
-                    else
-                        poe2_api.dbgp("日志路径无效或为空")
-                        return bret.RUNNING
-                    end
-                end
                 env.is_set = false
                 env.take_rest = false
                 env.game_window = 0
@@ -31233,6 +31209,14 @@ local plot_nodes = {
             end
             if not self.current_time then
                 self.current_time = 0
+            end
+            if not captain_name or #captain_name == 0 then
+                error("请配置队长名")
+                return bret.RUNNING
+            end
+            if not leader_name or #leader_name == 0 then
+                error("请配置大号名称")
+                return bret.RUNNING
             end
             local num = env.user_config["全局設置"]["大带小设置"]["队伍人数"]
             if team_info_data and #team_info_data == num then
