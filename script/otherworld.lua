@@ -26102,7 +26102,6 @@ local plot_nodes = {
         run = function(self, env)
             poe2_api.print_log("判断游戏窗口")
             local current_time = api_GetTickCount64()
-
             if not env.user_info then
                 local user_info = poe2_api.load_ini(user_info_path)["UserInfo"]
                 env.user_info = user_info
@@ -31379,7 +31378,7 @@ local plot_nodes = {
             end
 
             poe2_api.dbgp("已存储 " .. env.received_mission_count .. " 个队友的任务信息，期望数量: " .. expected_mission_count)
-            
+            poe2_api.printTable(env.stored_missions)
             -- 如果有新消息，打印存储的所有任务信息
             if has_new_message then
                 poe2_api.dbgp("当前存储的所有任务信息:")
@@ -32060,6 +32059,7 @@ local plot_nodes = {
                 if poe2_api.get_team_info(team_info, config, player_info, 1) ~= "大号名称" then
                     poe2_api.dbgp("[Query_Current_Task_Information]有task发送任务信息")
                     if not poe2_api.table_contains(player_info.current_map_name_utf8, { "G1_1" }) and not poe2_api.find_text({ UI_info = env.UI_info, text = "抵達皆伐" }) then
+                        poe2_api.dbgp(api_GetTickCount64() - self.raw_time)
                         if not next(env.raw) or (self.raw_time ~= 0 and api_GetTickCount64() - self.raw_time > 16000) then
                             -- 手动构建JSON字符串
                             local json_text = string.format('{"mission":{"user_name":"%s","map_name":"%s","task_name":"%s","task_index":"%s"}}',
@@ -32073,6 +32073,7 @@ local plot_nodes = {
                                 poe2_api.dbgp("任务信息: " .. task.task_name .. ", 索引: " .. task.index)
                             else
                                 poe2_api.dbgp("发送任务信息到Redis失败")
+                                return bret.RUNNING
                             end
                             -- 更新发送时间戳
                             self.raw_time = api_GetTickCount64()
@@ -35052,6 +35053,7 @@ local plot_nodes = {
                                 api_Sleep(1000)
                                 if teleport_area ~= "G3_town" and not poe2_api.find_text({ UI_info = UI_info, text = task_area_name, click = 0,min_x = 0, refresh = true }) then
                                     api_Sleep(300)
+                                    env.waypoint_page = nil 
                                     poe2_api.click_keyboard("space")
                                     return bret.RUNNING
                                 end
@@ -35100,6 +35102,7 @@ local plot_nodes = {
                         api_Sleep(1000)
                         if not poe2_api.find_text({ UI_info = UI_info, text = task_two_area_name, click = 0, min_x = 0, refresh = true }) then
                             api_Sleep(300)
+                            env.waypoint_page = nil 
                             poe2_api.click_keyboard("space")
                             return bret.RUNNING
                         end
@@ -37153,7 +37156,6 @@ local plot_nodes = {
                             if not poe2_api.find_text({ UI_info = UI_info, text = "壓桿", min_x = 200, click = 2,refresh = true}) then
                                 api_Sleep(5000)
                                 api_UpdateMapObstacles(100)
-                                api_UpdateMapInfo()
                             end
                             return bret.RUNNING
                         else
@@ -37190,7 +37192,6 @@ local plot_nodes = {
                                         if not poe2_api.find_text({ UI_info = UI_info, text = "壓桿", min_x = 200, click = 2,refresh = true}) then
                                             api_Sleep(5000)
                                             api_UpdateMapObstacles(100)
-                                            api_UpdateMapInfo()
                                         end
                                         return bret.RUNNING
                                     end
@@ -38490,6 +38491,7 @@ local plot_nodes = {
             local result = api_FindPath(reachable_point.x, reachable_point.y, target_reachable_point.x, target_reachable_point.y)
             if result and #result > 0 then
                 poe2_api.dbgp("跟随移动获取路径成功")
+                env.get_follow_path_time = 0
                 local coordinates = poe2_api.extract_coordinates(result, 22)
                 env.path_list_follow = coordinates
                 table.remove(coordinates, 1)
@@ -38582,7 +38584,33 @@ local plot_nodes = {
                 self.special_maps = {"G1_6", "G3_2_2", "G3_12"}
                 poe2_api.dbgp(string.format("超时设置: timeout=%dms, threshold=%d", self.timeout, self.movement_threshold))
             end
-
+            -- 执行移动（按时间间隔）
+            if current_time - self.last_move_time >= move_interval * 1000 then
+                poe2_api.dbgp("执行移动检查")
+                if point then
+                    local dis = poe2_api.point_distance(point[1], point[2], player_info)
+                    poe2_api.dbgp(string.format("目标点距离: %.2f, 坐标=(%d,%d)", dis or 0, point[1], point[2]))
+                    
+                    if dis and dis > 70 then
+                        poe2_api.print_log("清路径10101")
+                        poe2_api.dbgp("距离过远，清除路径并寻找再会点")
+                        poe2_api.find_text({ UI_info = env.UI_info, text = "再會", click = 2 })
+                        env.target_point_follow = nil
+                        env.path_list_follow = {}
+                        return bret.RUNNING
+                    end
+                    poe2_api.dbgp("----点击移动----")
+                    if not api_ClickMove(poe2_api.toInt(point[1]), poe2_api.toInt(point[2]), 7) then
+                        env.path_list_follow = {}
+                        env.target_point_follow = nil
+                        poe2_api.time_p("执行移动(RUNNING4) 耗时 -->", api_GetTickCount64() - current_time)
+                        return bret.RUNNING
+                    end
+                    self.last_move_time = current_time
+                else
+                    poe2_api.dbgp("无目标点，无法移动")
+                end
+            end
             if env.roll_time == nil or self.current_time == 0 then
                 poe2_api.dbgp("设置翻滚时间基准")
                 self.current_time = api_GetTickCount64()
@@ -38607,7 +38635,6 @@ local plot_nodes = {
 
             env.roll_time = math.abs(current_time - self.current_time)
             env.exit_time = math.abs(current_time - self.exit_current_time)
-
             if env.roll_time > self.timeout and not player_info.isMoving and player_info.life > 0 then
                 poe2_api.dbgp("移动到远点大号位置模块超时翻滚")
                 
@@ -38656,7 +38683,7 @@ local plot_nodes = {
                     poe2_api.dbgp("未找到符合条件的交互对象")
                     return false
                 end
-                
+                poe2_api.find_text({text = game_str.Monsters_are_imprisoned_by_powerful_essence_TWCH, UI_info = env.UI_info, min_x=200,max_y=750,match=2,max_x=1200,sorted = true, click=2})
                 local target = get_range()
                 if target then
                     poe2_api.dbgp(string.format("与对象交互: %s, 坐标=(%d,%d)", target.name_utf8, target.grid_x, target.grid_y))
@@ -38669,20 +38696,10 @@ local plot_nodes = {
                 else
                     poe2_api.dbgp("没有找到可交互对象，尝试向队长移动")
                 end
-                
-                local leader = check_pos(team_member_3)
-                if leader and env.roll_time < 30*1000 then
-                    local leader_point = poe2_api.move_towards({player_info.grid_x, player_info.grid_y}, {leader.grid_x, leader.grid_y}, 20)
-                    api_ClickMove(poe2_api.toInt(leader_point[1]), poe2_api.toInt(leader_point[2]),  0)
-                    api_Sleep(500)
-                    poe2_api.click_keyboard("space")
-                end
-                if env.roll_time > 30*1000 then
-                    local point = api_FindRandomWalkablePosition(math.floor(player_info.grid_x),math.floor(player_info.grid_y),70)
-                    api_ClickMove(poe2_api.toInt(point.x),poe2_api.toInt(point.y),0)
-                    api_Sleep(500)
-                    poe2_api.click_keyboard("space")
-                end
+                local point = api_FindRandomWalkablePosition(math.floor(player_info.grid_x),math.floor(player_info.grid_y),70)
+                api_ClickMove(poe2_api.toInt(point.x),poe2_api.toInt(point.y),0)
+                api_Sleep(500)
+                poe2_api.click_keyboard("space")
                 env.path_list_follow = {}
                 env.target_point_follow = nil
                 return bret.RUNNING
@@ -38708,34 +38725,6 @@ local plot_nodes = {
             elseif player_info.isMoving or player_info.life == 0 then
                 poe2_api.dbgp("重置退出时间: 移动距离超过阈值或玩家死亡")
                 env.exit_time = nil    
-            end
-
-            -- 执行移动（按时间间隔）
-            if current_time - self.last_move_time >= move_interval * 1000 then
-                poe2_api.dbgp("执行移动检查")
-                if point then
-                    local dis = poe2_api.point_distance(point[1], point[2], player_info)
-                    poe2_api.dbgp(string.format("目标点距离: %.2f, 坐标=(%d,%d)", dis or 0, point[1], point[2]))
-                    
-                    if dis and dis > 70 then
-                        poe2_api.print_log("清路径10101")
-                        poe2_api.dbgp("距离过远，清除路径并寻找再会点")
-                        poe2_api.find_text({ UI_info = env.UI_info, text = "再會", click = 2 })
-                        env.target_point_follow = nil
-                        env.path_list_follow = {}
-                        return bret.RUNNING
-                    end
-                    poe2_api.dbgp("----点击移动----")
-                    if not api_ClickMove(poe2_api.toInt(point[1]), poe2_api.toInt(point[2]), 7) then
-                        env.path_list_follow = {}
-                        env.target_point_follow = nil
-                        poe2_api.time_p("执行移动(RUNNING4) 耗时 -->", api_GetTickCount64() - current_time)
-                        return bret.RUNNING
-                    end
-                    self.last_move_time = current_time
-                else
-                    poe2_api.dbgp("无目标点，无法移动")
-                end
             end
 
             if point then
@@ -38845,7 +38834,7 @@ local plot_nodes = {
                         "G3_2_2","G3_3","G3_6_1","G3_7","G3_12","G3_17",
                 }
                 if poe2_api.table_contains(special_map,current_map) then
-                    if poe2_api.table_contains(current_map,{"G3_2_2","G3_6_1"}) then
+                    if poe2_api.table_contains(current_map,{"G3_6_1"}) then
                         poe2_api.dbgp("大号探索范围50")
                         point = api_GetUnexploredArea(50)
                     else
