@@ -26283,13 +26283,6 @@ local plot_nodes = {
         run = function(self, env)
             poe2_api.print_log("获取用户配置信息...")
             api_SetStatusText()
-            api_RedisSubscribe("三幻神双面龟")
-            while true do
-                success = api_RedisSendText("三幻神双面龟","11111")
-                poe2_api.dbgp(success)
-                api_Sleep(16000)
-                poe2_api.printTable(api_RedisGetData())
-            end
             local start_time = api_GetTickCount64() -- 开始时间
             if not env.user_config then
                 local config = poe2_api.load_config(json_path)
@@ -27610,10 +27603,6 @@ local plot_nodes = {
 
             -- 获取可交互对象
             local function get_range()
-                local valid_objects = {
-                    "甕", "壺", "屍體", "巢穴", "籃子", "小雕像", "石塊",
-                    "鬆動碎石", "瓶子", "盒子", "腐爛木材", "保險箱", "腐爛木材","祕寶"
-                }
                 
                 -- 对范围对象进行排序
                 local sorted_range = poe2_api.get_sorted_list(env.range_info, env.player_info)
@@ -27634,7 +27623,7 @@ local plot_nodes = {
                         tostring(obj.is_selectable)))
                     
                     if obj.name_utf8 and 
-                    poe2_api.table_contains(valid_objects, obj.name_utf8) and
+                    poe2_api.table_contains(game_str.exp_add_valid_objects, obj.name_utf8) and
                     obj.isActive and 
                     obj.is_selectable and
                     obj.grid_x and obj.grid_y then
@@ -39102,11 +39091,6 @@ local plot_nodes = {
                 poe2_api.dbgp("移动到远点大号位置模块超时翻滚")
                 
                 local function get_range()
-                    local valid_objects = {
-                        "甕", "壺", "屍體", "巢穴", "籃子", "小雕像", "石塊",
-                        "鬆動碎石", "瓶子", "盒子", "腐爛木材", "保險箱", "腐爛木材","祕寶"
-                    }
-                    
                     poe2_api.dbgp("开始查找可交互对象")
                     local sorted_range = poe2_api.get_sorted_list(env.range_info, env.player_info)
                     if not sorted_range then
@@ -39126,7 +39110,7 @@ local plot_nodes = {
                             obj.grid_y or 0))
                         
                         if obj.name_utf8 and 
-                        poe2_api.table_contains(valid_objects, obj.name_utf8) and
+                        poe2_api.table_contains(game_str.exp_add_valid_objects, obj.name_utf8) and
                         obj.isActive and 
                         obj.is_selectable and
                         obj.grid_x and obj.grid_y then
@@ -40329,11 +40313,6 @@ local plot_nodes = {
                         return false
                     end
 
-                    local valid_objects = {
-                        "甕", "壺", "屍體", "巢穴", "籃子", "小雕像", "石塊",
-                        "鬆動碎石", "瓶子", "盒子", "腐爛木材", "保險箱", "腐爛木材","祕寶"
-                    }
-
                     -- 对范围对象进行排序
                     local sorted_range = poe2_api.get_sorted_list(range_info, player_info)
                     if not sorted_range then
@@ -40353,7 +40332,7 @@ local plot_nodes = {
                             tostring(obj.is_selectable)))
 
                         if obj.name_utf8 and
-                            poe2_api.table_contains(valid_objects, obj.name_utf8) and
+                            poe2_api.table_contains(game_str.exp_add_valid_objects, obj.name_utf8) and
                             obj.isActive and
                             obj.is_selectable and
                             obj.grid_x and obj.grid_y then
@@ -40370,6 +40349,7 @@ local plot_nodes = {
                     poe2_api.dbgp("未找到符合条件的交互对象")
                     return false
                 end
+                poe2_api.find_text({text = game_str.Monsters_are_imprisoned_by_powerful_essence_TWCH, UI_info = env.UI_info, min_x=200,max_y=750,match=2,max_x=1200,sorted = true, click=2})
                 local target = get_range()
                 if target and next(target) then
                     api_ClickMove(poe2_api.toInt(target.grid_x), poe2_api.toInt(target.grid_y),0)
