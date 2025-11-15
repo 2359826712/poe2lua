@@ -26282,7 +26282,7 @@ local plot_nodes = {
     Get_User_Config_Info = {
         run = function(self, env)
             poe2_api.print_log("获取用户配置信息...")
-            api_SetStatusText()
+            api_SetStatusText("")
             local start_time = api_GetTickCount64() -- 开始时间
             if not env.user_config then
                 local config = poe2_api.load_config(json_path)
@@ -38573,9 +38573,9 @@ local plot_nodes = {
                         else
                             poe2_api.dbgp("无法找到路径")
                             env.not_need_active = true
+                            env.map_result = nil
                             return bret.RUNNING
                         end
-                        
                         ::continue::
                     end
                 end
