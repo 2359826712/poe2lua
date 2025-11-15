@@ -2820,6 +2820,7 @@ _M.get_map = function(params)
         end
 
         if _M.table_contains(map_data.mapPlayModes, "腐化聖域") then
+            -- _M.dbgp("[DEBUG] 地图包含腐化聖域模式")
             local map_level = _M.select_best_map_key({
                 inventory = bag_info,
                 key_level_threshold = key_level_threshold,
@@ -2828,9 +2829,13 @@ _M.get_map = function(params)
                 color = 2,
                 entry_length = 4
             })
-            if not map_level then
+            if not map_level or not_have_stackableCurrency then
+                -- _M.dbgp(
+                --     "[DEBUG] 没有合适的钥匙或不满足货币条件，得分: -1")
                 return -1
             else
+                -- _M.dbgp(
+                --     "[DEBUG] 腐化聖域地图满足条件，得分: 9999")
                 return 9999
             end
         end

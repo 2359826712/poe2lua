@@ -23788,11 +23788,16 @@ local custom_nodes = {
             local map_level = poe2_api.select_best_map_key({inventory = env.bag_info,key_level_threshold=user_map,not_use_map = not_use_map,vall = true})
             if map_level then
                 poe2_api.dbgp("map_update_to-->",4)
-                if (map_level.color > 0 and map_level.fixedSuffixCount >= 4) or (next(env.lack_of_currency) and poe2_api.table_contains(env.lack_of_currency,game_str.Exalted_Orb_TWCH)) then
+                if (map_level.color > 0 and map_level.fixedSuffixCount >= 4)  then
                     env.map_up = false
                     env.entry_length_take_map = false
                     env.the_update_map = nil
                 end
+            end
+            if (next(env.lack_of_currency) and poe2_api.table_contains(env.lack_of_currency,game_str.Exalted_Orb_TWCH)) then
+                env.not_have_stackableCurrency = true
+                poe2_api.time_p("    Is_Update_Map_Key(SUCCESS666)... 耗时 --> ", api_GetTickCount64() - start_time)
+                return bret.SUCCESS
             end
             -- end
             local map_up = env.map_up
