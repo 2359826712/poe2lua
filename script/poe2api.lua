@@ -8752,6 +8752,13 @@ _M.dynamic_display = function(text_list)
 
     api_SetStatusText(table.concat(lines, "\n"))
 end
+_M.ClickMove = function(grid_x, grid_y,model,world_z)
+    if not world_z then
+        api_ClickMove(_M.toInt(grid_x), _M.toInt(grid_y),_M.toInt(model))
+    else
+        api_ClickMove(_M.toInt(grid_x), _M.toInt(grid_y),_M.toInt(model),_M.toInt(world_z))
+    end
+end
 -- -- 记录调用时间的函数
 -- _M.record_call_time = function(index,)
 --     -- local current_time = os.time()

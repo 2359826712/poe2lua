@@ -27314,7 +27314,7 @@ local plot_nodes = {
                         api_Log(string.format("%-25s: %s", field, tostring(value)))
                     end
 
-                    api_ClickMove(item.grid_x, item.grid_y, 0)
+                    poe2_api.ClickMove(item.grid_x, item.grid_y, 0)
                     api_Sleep(1000)
 
                     api_Log("----------------------------------")
@@ -33224,7 +33224,7 @@ local plot_nodes = {
                     poe2_api.dbgp("[Is_Move]门在身边")
                     if poe2_api.find_text({ UI_info = UI_info, text = "門", min_x = 0 }) and door_list[1].is_selectable
                         and not poe2_api.table_contains(player_info.current_map_name_utf8, { "G1_15", "G3_8", "G3_14"}) then
-                        api_ClickMove(door_list[1].grid_x, door_list[1].grid_y, 1)
+                        poe2_api.ClickMove(door_list[1].grid_x, door_list[1].grid_y, 1)
                         reset_navigation_state()
                         return bret.RUNNING
                     end
@@ -33310,7 +33310,7 @@ local plot_nodes = {
                 for _, i in ipairs(range_sorted) do
                     if string.find(i.name_utf8, "神殿") and i.isActive and i.is_selectable then
                         api_Sleep(500)
-                        api_ClickMove(i.grid_x, i.grid_y, 1)
+                        poe2_api.ClickMove(i.grid_x, i.grid_y, 1)
                         api_Sleep(500)
                         return bret.RUNNING
                     end
@@ -38242,7 +38242,7 @@ local plot_nodes = {
                                 if not obj.is_selectable then
                                     local door_toward = poe2_api.move_towards({local_x,local_y},{obj.grid_x,obj.grid_y},40)
                                     if  door_toward and #door_toward > 0 then
-                                        api_ClickMove(door_toward[1],door_toward[2],0)
+                                        poe2_api.ClickMove(door_toward[1],door_toward[2],0)
                                         poe2_api.click_keyboard("space")
                                         api_Sleep(500)
                                         return bret.RUNNING
@@ -38271,7 +38271,7 @@ local plot_nodes = {
                                 if obj.is_selectable then
                                     local door_toward = poe2_api.move_towards({local_x,local_y},{obj.grid_x,obj.grid_y},40)
                                     if  door_toward and #door_toward > 0 then
-                                        api_ClickMove(door_toward[1],door_toward[2],0)
+                                        poe2_api.ClickMove(door_toward[1],door_toward[2],0)
                                         poe2_api.click_keyboard("space")
                                         api_Sleep(500)
                                         return bret.RUNNING
@@ -38298,7 +38298,7 @@ local plot_nodes = {
                                         end
                                         if api_GetTickCount64() - self.time1 > 6*1000 then
                                             local obj_walk_point = api_FindRandomWalkablePosition(obj.grid_x, obj.grid_y,30)
-                                            api_ClickMove(obj_walk_point.x,obj_walk_point.y,0)
+                                            poe2_api.ClickMove(obj_walk_point.x,obj_walk_point.y,0)
                                             poe2_api.click_keyboard("space")
                                             self.time1 = 0
                                         end
@@ -38320,7 +38320,7 @@ local plot_nodes = {
                                     end
                                     if api_GetTickCount64() - self.time1 > 6*1000 then
                                         local obj_walk_point = api_FindRandomWalkablePosition(obj.grid_x, obj.grid_y,30)
-                                        api_ClickMove(obj_walk_point.x,obj_walk_point.y,0)
+                                        poe2_api.ClickMove(obj_walk_point.x,obj_walk_point.y,0)
                                         poe2_api.click_keyboard("space")
                                         self.time1 = 0
                                     end
@@ -38340,7 +38340,7 @@ local plot_nodes = {
                                     end
                                     if api_GetTickCount64() - self.time1 > 6*1000 then
                                         local obj_walk_point = api_FindRandomWalkablePosition(obj.grid_x, obj.grid_y,30)
-                                        api_ClickMove(obj_walk_point.x,obj_walk_point.y,0)
+                                        poe2_api.ClickMove(obj_walk_point.x,obj_walk_point.y,0)
                                         poe2_api.click_keyboard("space")
                                         self.time1 = 0
                                     end
@@ -38360,7 +38360,7 @@ local plot_nodes = {
                                     end
                                     if api_GetTickCount64() - self.time1 > 6*1000 then
                                         local obj_walk_point = api_FindRandomWalkablePosition(obj.grid_x, obj.grid_y,30)
-                                        api_ClickMove(obj_walk_point.x,obj_walk_point.y,0)
+                                        poe2_api.ClickMove(obj_walk_point.x,obj_walk_point.y,0)
                                         poe2_api.click_keyboard("space")
                                         self.time1 = 0
                                     end
@@ -38666,7 +38666,7 @@ local plot_nodes = {
             end
             if api_GetTickCount64() - env.last_click_interaction > 15*1000 then
                 local obj_walk_point = api_FindRandomWalkablePosition(player_info.grid_x, player_info.grid_y,30)
-                api_ClickMove(obj_walk_point.x,obj_walk_point.y,0)
+                poe2_api.ClickMove(obj_walk_point.x,obj_walk_point.y,0)
                 poe2_api.click_keyboard("space")
                 env.last_click_interaction  = 0
                 return bret.RUNNING
@@ -39562,7 +39562,7 @@ local plot_nodes = {
                     { UI_info = env.UI_info, text = "角色", min_x = 0, add_x = 253, click = 2 },
                     { UI_info = env.UI_info, text = "活動", min_x = 0, add_x = 253, click = 2 },
                     { UI_info = env.UI_info, text = "選項", min_x = 0, add_x = 253, click = 2 },
-                    { UI_info = env.UI_info, text = "重置天賦點數", min_x = 0, add_x = 215, click = 2 },
+                    { UI_info = env.UI_info, text = "重置天賦點數", min_x = 0, max_y = 50, add_x = 215, click = 2 },
                     { UI_info = env.UI_info, text = "黯幣", min_x = 0, min_y = 0, max_y = 81, add_x = 673, add_y = 4, click = 2 },
                     { UI_info = env.UI_info, text = "願望清單", min_x = 0, min_y = 0, max_y = 81, add_x = 673, add_y = 4, click = 2 },
 
