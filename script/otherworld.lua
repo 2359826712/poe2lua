@@ -34150,7 +34150,7 @@ local plot_nodes = {
                 poe2_api.dbgp("在G3_12")
                 return bret.RUNNING
             end
-            local count = 3 
+            local count = 10 
             if party_pos(team_member_3) == "" and task_area ~= "G3_12" then
                 if string.find(current_map, "Hideout") then
                     poe2_api.dbgp("在藏身处")
@@ -34168,14 +34168,23 @@ local plot_nodes = {
                 waypoint_name_utf8  = poe2_api.task_area_list_data(task_area)[1][2]
             end
             if waypoint_name_utf8 and (party_pos(team_member_3) ~= player_info.current_map_name_utf8 or (poe2_api.find_text({ UI_info = UI_info, text = waypoint_name_utf8, min_x = 0, min_y = 0, max_x = 195, max_y = 590 })and not check_pos_dis(team_member_3)) ) and not player_info.isInBossBattle then
-                for i = 0, count - 1 do
-                    if not poe2_api.find_text({ UI_info = UI_info, text = "你確定要傳送至此玩家的位置？" }) then
-                        if poe2_api.find_text({ UI_info = UI_info, text = "快行" }) then
+                for i = 1, count do
+                    if not poe2_api.find_text({ UI_info = UI_info, text = "你確定要傳送至此玩家的位置？",refresh = true }) then
+                        if poe2_api.find_text({ UI_info = UI_info, text = "快行",refresh = true }) then
                             poe2_api.click_keyboard("space")
                             return bret.RUNNING
                         end
                         local x, y = poe2_api.get_member_name_according(UI_info, team_member_3)
                         poe2_api.dbgp("x,y",x,y)
+                        if i == 10 then
+                            poe2_api.dbgp("没有发现大号")
+                            api_Sleep(500)
+                            poe2_api.click_keyboard("space")
+                            api_Sleep(500)
+                            poe2_api.find_text({ UI_info = UI_info, text = "取消",min_x = 0,click = 2 })
+                            api_Sleep(500)
+                            return bret.RUNNING
+                        end
                         if y ~= 0 then
                             local rand_x = 14 + math.random(-7, 7)
                             local rand_y = y + 21 + math.random(-7, 7)
@@ -34183,7 +34192,6 @@ local plot_nodes = {
                             api_Sleep(500)
                             api_ClickScreen(poe2_api.toInt(rand_x), poe2_api.toInt(rand_y), 1)
                         end
-                        return bret.RUNNING
                     else
                         api_ClickScreen(916, 467, 0)
                         api_Sleep(500)
@@ -38864,8 +38872,8 @@ local plot_nodes = {
                     env.path_list_follow = {}
                     local player_walk_point = api_FindRandomWalkablePosition(player_info.grid_x, player_info.grid_y, 30)
                     local dis = poe2_api.point_distance(player_walk_point.x, player_walk_point.y, player_info)
+                    api_ClickMove(poe2_api.toInt(player_walk_point.x), poe2_api.toInt(player_walk_point.y) , 7)
                     if dis >= 10 then
-                        api_ClickMove(poe2_api.toInt(player_walk_point.x), poe2_api.toInt(player_walk_point.y) , 0)
                         api_Sleep(200)
                         poe2_api.click_keyboard("space")
                         return bret.RUNNING
