@@ -28420,8 +28420,9 @@ local plot_nodes = {
                     return bret.SUCCESS
                 end
                 if props and next(props) then
-                    if not poe2_api.find_text({text = "背包",UI_info = env.UI_info, min_x = 1020,min_y=32,max_x=1600,max_y=81}) then
+                    if not poe2_api.find_text({text = "背包",UI_info = env.UI_info, min_x = 1020,min_y=32,max_x=1600,max_y=81,refresh = true}) then
                         poe2_api.click_keyboard("i")
+                        api_Sleep(1000)
                         return bret.RUNNING
                     end
                     local point = poe2_api.get_center_position({ props.start_x, props.start_y },
@@ -34150,7 +34151,7 @@ local plot_nodes = {
                 poe2_api.dbgp("在G3_12")
                 return bret.RUNNING
             end
-            local count = 10 
+            local count = 5 
             if party_pos(team_member_3) == "" and task_area ~= "G3_12" then
                 if string.find(current_map, "Hideout") then
                     poe2_api.dbgp("在藏身处")
@@ -34168,6 +34169,9 @@ local plot_nodes = {
                 waypoint_name_utf8  = poe2_api.task_area_list_data(task_area)[1][2]
             end
             if waypoint_name_utf8 and (party_pos(team_member_3) ~= player_info.current_map_name_utf8 or (poe2_api.find_text({ UI_info = UI_info, text = waypoint_name_utf8, min_x = 0, min_y = 0, max_x = 195, max_y = 590 })and not check_pos_dis(team_member_3)) ) and not player_info.isInBossBattle then
+                if not env.click_leader_count then
+                    env.click_leader_count = 0
+                end
                 for i = 1, count do
                     if not poe2_api.find_text({ UI_info = UI_info, text = "你確定要傳送至此玩家的位置？",refresh = true }) then
                         if poe2_api.find_text({ UI_info = UI_info, text = "快行",refresh = true }) then
@@ -34176,26 +34180,35 @@ local plot_nodes = {
                         end
                         local x, y = poe2_api.get_member_name_according(UI_info, team_member_3)
                         poe2_api.dbgp("x,y",x,y)
-                        if i == 10 then
+                        if env.click_leader_count == 5 then
                             poe2_api.dbgp("没有发现大号")
                             api_Sleep(500)
                             poe2_api.click_keyboard("space")
                             api_Sleep(500)
                             poe2_api.find_text({ UI_info = UI_info, text = "取消",min_x = 0,click = 2 })
                             api_Sleep(500)
+                            env.click_leader_count = 0
                             return bret.RUNNING
                         end
                         if y ~= 0 then
                             local rand_x = 14 + math.random(-7, 7)
                             local rand_y = y + 21 + math.random(-7, 7)
-                            api_ClickScreen(poe2_api.toInt(rand_x), poe2_api.toInt(rand_y), 0)
-                            api_Sleep(500)
-                            api_ClickScreen(poe2_api.toInt(rand_x), poe2_api.toInt(rand_y), 1)
+                            if not env.click_leader_times  or env.click_leader_times == 0 then
+                                env.click_leader_times = api_GetTickCount64()
+                            end
+                            if api_GetTickCount64() - env.click_leader_times > 1000 then
+                                api_ClickScreen(poe2_api.toInt(rand_x), poe2_api.toInt(rand_y), 0)
+                                api_Sleep(500)
+                                api_ClickScreen(poe2_api.toInt(rand_x), poe2_api.toInt(rand_y), 1)
+                                env.click_leader_count = env.click_leader_count +1
+                            end
                         end
+                        return bret.RUNNING
                     else
                         api_ClickScreen(916, 467, 0)
                         api_Sleep(500)
                         api_ClickScreen(916, 467, 1)
+                        env.click_leader_times = 0
                         return bret.SUCCESS
                     end
                 end
