@@ -29273,7 +29273,7 @@ local plot_nodes = {
             env.store = false
             env.tower_do = false
             env.storage_complete = false
-            poe2_api.find_text({ text = "再會", UI_info = env.UI_info, click = 2 })
+            poe2_api.find_text({ text = "再會", UI_info = env.UI_info, click = 2 , refresh = true})
             if poe2_api.find_text({ text = { '重鑄台' }, UI_info = env.UI_info, min_x = 0 }) and poe2_api.find_text({ text = '摧毀三個相似的物品，重鑄為一個新的物品', UI_info = env.UI_info, min_x = 0 }) then
                 poe2_api.click_keyboard('space')
                 api_Sleep(500)
@@ -33554,7 +33554,7 @@ local plot_nodes = {
             end
             if is_items() then
                 if poe2_api.find_text({ UI_info = env.UI_info, text = "再會", click = 0}) then
-                    poe2_api.find_text({ UI_info = env.UI_info, text = "再會", click = 2 })
+                    poe2_api.find_text({ UI_info = env.UI_info, text = "再會", click = 2, refresh = true })
                 end
                 poe2_api.dbgp("进入[Traverse_and_check_equipment]遍历周围装备")
                 poe2_api.time_p("[Is_Pick_Up_Task_Props]FAIL",api_GetTickCount64() - current_time)
@@ -33708,7 +33708,7 @@ local plot_nodes = {
                     if string.find(player_info.current_map_name_utf8, "G2_town") then
                         if poe2_api.find_text({ UI_info = env.UI_info, text = "再會",min_x = 0 }) then
                             poe2_api.dbgp("检测到再會按钮，将执行点击操作")
-                            poe2_api.find_text({ UI_info = env.UI_info, text = "再會",min_x = 0, click = 2 })
+                            poe2_api.find_text({ UI_info = env.UI_info, text = "再會",min_x = 0, click = 2, refresh = true })
                             return bret.RUNNING
                         end
                         if not poe2_api.find_text({ UI_info = env.UI_info, text = "快行", refresh = true }) then
@@ -39056,7 +39056,7 @@ local plot_nodes = {
                     if dis and dis > 70 then
                         poe2_api.print_log("清路径10101")
                         poe2_api.dbgp("距离过远，清除路径并寻找再会点")
-                        poe2_api.find_text({ UI_info = env.UI_info, text = "再會", click = 2 })
+                        poe2_api.find_text({ UI_info = env.UI_info, text = "再會", click = 2 , refresh = true})
                         env.target_point_follow = nil
                         env.path_list_follow = {}
                         return bret.RUNNING
@@ -39569,7 +39569,7 @@ local plot_nodes = {
             -- 安全区域特殊处理
             if poe2_api.table_contains(my_game_info.hideout, player_info.current_map_name_utf8) then
                 poe2_api.dbgp("当前位于安全区域")
-                
+                self.once_check = false
                 -- 检测地图启动失败情况
                 if poe2_api.find_text({ UI_info = env.UI_info, text = "啟動失敗。地圖無法進入。" }) then
                     poe2_api.dbgp("检测到地图启动失败提示，设置need_SmallRetreat为true")
@@ -40060,7 +40060,7 @@ local plot_nodes = {
             if not env.is_arrive_end then
                 if poe2_api.find_text({ UI_info = env.UI_info, text = "再會" }) then
                     poe2_api.dbgp("检测到再會按钮，将执行点击操作")
-                    poe2_api.find_text({ UI_info = env.UI_info, text = "再會", click = 2 })
+                    poe2_api.find_text({ UI_info = env.UI_info, text = "再會", click = 2 , refresh = true})
                     return bret.RUNNING
                 end
                 return bret.FAIL
