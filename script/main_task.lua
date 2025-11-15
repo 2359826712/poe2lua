@@ -1660,7 +1660,7 @@ local main_task= {
             index = 267
         },
         ['與瑪寇魯對話，來前往凱吉灣']= {
-            map_name= 'G4_2_1',
+            map_name= 'G4_2_2',
             index = 268
         },
         ['探索凱吉灣']= {
