@@ -38572,10 +38572,11 @@ local plot_nodes = {
                             return bret.SUCCESS
                         else
                             poe2_api.dbgp("无法找到路径")
-                            env.not_need_active = true
                             env.map_result = nil
+                            env.not_need_active = true
                             return bret.RUNNING
                         end
+                        
                         ::continue::
                     end
                 end
@@ -39628,6 +39629,8 @@ local plot_nodes = {
                     poe2_api.dbgp(string.format("物品尺寸: 宽%d, 高%d", width, height))
 
                     if point then
+                        poe2_api.dbgp(string.format("获取到空间点: (%d, %d)", point[1], point[2]))
+
                         if poe2_api.find_text("背包") then
                             poe2_api.dbgp("检测到背包文字，将执行点击操作")
                             api_ClickScreen(point[1], point[2])

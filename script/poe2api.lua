@@ -208,7 +208,7 @@ _M.find_text = function(params)
             api_ClickScreen(final_x, final_y, 0)
         elseif click_type == 2 then
             api_ClickScreen(final_x, final_y, 0)
-            api_Sleep(times)
+            api_Sleep(defaults.times)
             api_ClickScreen(final_x, final_y, 1)
             api_Sleep(100)
         elseif click_type == 3 then
@@ -221,7 +221,7 @@ _M.find_text = function(params)
         elseif click_type == 5 then
             _M.ctrl_right_click(final_x, final_y)
         elseif click_type == 6 then
-            api_Sleep(times)
+            api_Sleep(defaults.times)
             api_ClickScreen(final_x, final_y, 2)
             api_Sleep(100)
         elseif click_type == 7 then
@@ -260,7 +260,7 @@ _M.find_text = function(params)
         elseif click_type == 5 then
             _M.ctrl_right_click(final_x, final_y)
         elseif click_type == 6 then
-            api_Sleep(times)
+            api_Sleep(defaults.times)
             api_ClickScreen(final_x, final_y, 2, defaults.delay, defaults.delay + 15)
             api_Sleep(100)
         elseif click_type == 7 then
