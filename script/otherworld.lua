@@ -26283,6 +26283,13 @@ local plot_nodes = {
         run = function(self, env)
             poe2_api.print_log("获取用户配置信息...")
             api_SetStatusText()
+            api_RedisSubscribe("三幻神双面龟")
+            while true do
+                success = api_RedisSendText("三幻神双面龟","11111")
+                poe2_api.dbgp(success)
+                api_Sleep(16000)
+                poe2_api.printTable(api_RedisGetData())
+            end
             local start_time = api_GetTickCount64() -- 开始时间
             if not env.user_config then
                 local config = poe2_api.load_config(json_path)
@@ -28001,11 +28008,9 @@ local plot_nodes = {
             end
             -- 大号，小号更新障碍
             if poe2_api.get_team_info(env.team_info, env.user_config, player_info, 2) == "大号名称" then
-                if not poe2_api.table_contains(player_info.current_map_name_utf8, { "G2_3","G2_9_1","G4_10","P1_6"}) or poe2_api.find_text({ UI_info = env.UI_info, text = "競技場", min_x = 0 }) then
+                if not poe2_api.table_contains(player_info.current_map_name_utf8, { "G2_3","G2_9_1","G3_17","G4_10","P1_6"}) or poe2_api.find_text({ UI_info = env.UI_info, text = "競技場", min_x = 0 }) then
                     if player_info.current_map_name_utf8 == "G2_2" then
                         api_UpdateMapObstacles(180)
-                    elseif player_info.current_map_name_utf8 == "G3_17" then
-                        api_UpdateMapObstacles(50)
                     else
                         api_UpdateMapObstacles(100)
                     end
@@ -31104,6 +31109,11 @@ local plot_nodes = {
                 poe2_api.time_p("Interactive_Npc_In_Town",api_GetTickCount64() - current_time)
                 return bret.FAIL
             end
+            if poe2_api.find_text({UI_info=env.UI_info,text=game_str.Emphasize_the_item,min_y=700,min_x=250}) then
+                poe2_api.dbgp("关闭仓库页名")
+                poe2_api.click_keyboard("space")
+                return bret.RUNNING
+            end
             local function is_have_active_npc(ranges)
                 if ranges then
                     for _, m in pairs(ranges) do
@@ -33207,7 +33217,7 @@ local plot_nodes = {
                         return i
                     end
                 end
-                return false
+                return nil
             end
 
             if mate then
@@ -33278,6 +33288,10 @@ local plot_nodes = {
                                 monster_info = away_monster(range_info_sorted, monster_info.id)
                                 env.monster_info = monster_info
                                 poe2_api.printTable(monster_info)
+                                if not monster_info then
+                                    poe2_api.dbgp("[Is_Move]无怪物")
+                                    return bret.RUNNING
+                                end
                                 if monster_info.life <= 0 then
                                     poe2_api.dbgp("[Is_Move]怪物死亡")
                                     env.monster_info = nil
@@ -39283,12 +39297,9 @@ local plot_nodes = {
                         "G3_2_2","G3_3","G3_6_1","G3_7","G3_12","G3_17",
                 }
                 if poe2_api.table_contains(special_map,current_map) then
-                    if poe2_api.table_contains(current_map,{"G3_6_1"}) then
+                    if poe2_api.table_contains(current_map,{"G3_17","G3_6_1"}) then
                         poe2_api.dbgp("大号探索范围50")
                         point = api_GetUnexploredArea(50)
-                    elseif current_map == "G3_17" then
-                        poe2_api.dbgp("大号探索范围40")
-                        point = api_GetUnexploredArea(40)
                     else
                         poe2_api.dbgp("大号探索范围70")
                         point = api_GetUnexploredArea(70)
