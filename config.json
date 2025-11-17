@@ -293,14 +293,6 @@
             ]
         }
     },
-    "劇情設置": {
-        "大號名": "小母牛坐宇宙飞船",
-        "日志路径": "D:\\SteamLibrary\\steamapps\\common\\Path of Exile 2\\logs\\Client.txt",
-        "是否启用剧情": false,
-        "職業": "傭兵",
-        "隊伍人數": 3,
-        "隊長名": "yayongbi"
-    },
     "技能設置": {
         "e": {
             "Boss": false,

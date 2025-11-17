@@ -28239,7 +28239,7 @@ local plot_nodes = {
                     if poe2_api.table_contains( player_info.current_map_name_utf8,{"G1_1","G2_1","G3_1"}) then
                         env.back_city = false
                         return bret.RUNNING
-                    end 
+                    end
                     api_ClickScreen(1230, 815, 0)
                     api_Sleep(500)
                     api_ClickScreen(1230, 815, 1)
@@ -35566,11 +35566,11 @@ local plot_nodes = {
                             end
                         end
                     end
-                    if poe2_api.find_text({UI_info = env.UI_info, text = "奧格姆郡，約恆曆", min_x = 0, match = 2}) or 
-                        poe2_api.find_text({UI_info = env.UI_info, text = "七大水域之地", min_x = 0, match = 2}) or 
-                        poe2_api.find_text({UI_info = env.UI_info, text = "奧札爾區域草稿 #", min_x = 0, match = 2}) or 
-                        poe2_api.find_text({UI_info = env.UI_info, text = "古奧札爾草稿", min_x = 0, match = 2}) or
-                        poe2_api.find_text({UI_info = env.UI_info, text = "金司馬區港", min_x = 0, match = 2}) or
+                    if poe2_api.find_text({UI_info = env.UI_info, text = "奧格姆郡，約恆曆", min_x = 0, match = 2, refresh = true}) or 
+                        poe2_api.find_text({UI_info = env.UI_info, text = "七大水域之地", min_x = 0, match = 2, refresh = true}) or 
+                        poe2_api.find_text({UI_info = env.UI_info, text = "奧札爾區域草稿 #", min_x = 0, match = 2, refresh = true}) or 
+                        poe2_api.find_text({UI_info = env.UI_info, text = "古奧札爾草稿", min_x = 0, match = 2, refresh = true}) or
+                        poe2_api.find_text({UI_info = env.UI_info, text = "金司馬區港", min_x = 0, match = 2, refresh = true}) or
                         string.find(teleport_area, "P") then
                         if not poe2_api.find_text({ UI_info = UI_info, text = task_area_name, click = 0, refresh = true }) then
                             if #(poe2_api.task_area_list_data(teleport_area)) < 3 then
@@ -39525,7 +39525,19 @@ local plot_nodes = {
                     return bret.RUNNING
                 end
                 if poe2_api.table_contains(current_map, special_maps_1) then
+                    
+                    -- 按下空格键（可能用于交互或确认）
+                    poe2_api.click_keyboard("space")
+                    api_Sleep(500)
+                    -- 更新地图信息
+                    api_UpdateMapObstacles(50)
+                    api_Sleep(500)
+                    api_UpdateMapInfo()
+                    api_Sleep(500)
+                    api_InitExplorationArea()
+                    api_Sleep(500)
                     api_RestoreOriginalMap()
+                    return bret.RUNNING
                 end
                 if current_map == special_maps_2 then
                     -- 寻找随机可行走位置
