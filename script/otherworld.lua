@@ -28236,6 +28236,10 @@ local plot_nodes = {
                             end
                         end
                     end
+                    if poe2_api.table_contains( player_info.current_map_name_utf8,{"G1_1","G2_1","G3_1"}) then
+                        env.back_city = false
+                        return bret.RUNNING
+                    end 
                     api_ClickScreen(1230, 815, 0)
                     api_Sleep(500)
                     api_ClickScreen(1230, 815, 1)
@@ -35461,6 +35465,7 @@ local plot_nodes = {
             -- 获取地面UI层级
             local function switch_ground()
                 poe2_api.dbgp("获取地面UI层级...")
+                api_Sleep(1000)
                 local controls = poe2_api.get_game_control_by_rect({
                     UI_info = env.UI_info, 
                     min_x = 1525, 
