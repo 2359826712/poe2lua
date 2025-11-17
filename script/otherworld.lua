@@ -38889,8 +38889,8 @@ local plot_nodes = {
                     break
                 end
             end 
-            if point and poe2_api.point_distance(point.grid_x, point.grid_y, player_info) < 70 then
-                poe2_api.dbgp("与队长距离小与80")
+            if point and poe2_api.point_distance(point.grid_x, point.grid_y, player_info) < 60 then
+                poe2_api.dbgp("与队长距离小与60")
                 env.path_list_follow = {}
                 env.end_point_follow = nil
                 env.roll_time = nil
@@ -38967,8 +38967,8 @@ local plot_nodes = {
                     api_Sleep(200)
                     self.current_time = 0
                     return bret.RUNNING
-                elseif poe2_api.point_distance(target.grid_x, target.grid_y, player_info) <= 60 then
-                    poe2_api.dbgp("与队长距离小于60")
+                elseif poe2_api.point_distance(target.grid_x, target.grid_y, player_info) <= 50 then
+                    poe2_api.dbgp("与队长距离小于50")
                     env.path_list_follow = {}
                     if not self.bool then
                         self.bool = true
@@ -38976,8 +38976,8 @@ local plot_nodes = {
                     end
                     self.current_time = 0
                     return bret.RUNNING
-                elseif poe2_api.point_distance(target.grid_x, target.grid_y, player_info) <= 70 then
-                    poe2_api.dbgp("与队长距离小于70")
+                elseif poe2_api.point_distance(target.grid_x, target.grid_y, player_info) <= 60 then
+                    poe2_api.dbgp("与队长距离小于60")
                     self.bool = false
                     self.current_time = 0
                     api_ClickMove(poe2_api.toInt(target.x), poe2_api.toInt(target.y) , 0)
