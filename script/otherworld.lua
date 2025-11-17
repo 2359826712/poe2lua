@@ -34744,6 +34744,9 @@ local plot_nodes = {
                 end
                 local count = 3
                 local waypoint_name_utf8 = poe2_api.task_area_list_data(task_area)[1][2]
+                if task_name == "使用貧脊之地的地圖前往哈拉妮關口所在之處" then
+                    waypoint_name_utf8 = "哈拉妮關口"
+                end
                 if not check_pos_dis(team_member_4) and poe2_api.find_text({ UI_info = UI_info, text = waypoint_name_utf8, min_x = 0, min_y = 0, max_x = 195, max_y = 590 }) then
                     for i = 1, count do
                         if not poe2_api.find_text({ UI_info = UI_info, text = "你確定要傳送至此玩家的位置？" }) then
