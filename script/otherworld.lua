@@ -530,6 +530,172 @@ local custom_nodes = {
             
             -- 判断游戏窗口
             if (not env.game_window or env.game_window == 0) and not env.error_kill then
+                if env.timeing_rest then
+                    poe2_api.dynamic_display(poe2_api.formatted_output)
+                    if not env.timeing_rest_init_windows then
+                        env.timeing_rest_initial = api_GetTickCount64()
+                        env.timeing_rest_init_windows = true
+                    end
+                    local cfg_rest_time = env.take_regular_breaks["休息分鐘"] or 120
+                    if not env.random_timeing_rest_time then
+                        local random_time = math.random(-10, 10)
+                        if random_time + cfg_rest_time <= 0 then
+                            env.random_timeing_rest_time = cfg_rest_time
+                        else
+                            env.random_timeing_rest_time = cfg_rest_time + random_time
+                        end
+                    end
+                    local a = api_GetTickCount64() - env.timeing_rest_initial
+                    if a < (env.random_timeing_rest_time * 60 * 1000) then
+                        -- poe2_api.dbgp("休息中")
+                        local time_rest = poe2_api.format_time_diff((env.random_timeing_rest_time * 60 * 1000) - a)
+                        poe2_api.formatted_output["开图次数"] = env.open_map_count
+                        poe2_api.formatted_output["正在休息,距离正常运行剩余"] = time_rest
+                        poe2_api.formatted_output["距离休息剩余"] = nil
+                        -- env.formatted_output["开始休息时间为:"] = time_zone_rest
+                        -- api_SetStatusText("开图次数:"..(env.open_map_count).."\n正在休息,距离正常运行剩余"..time_rest)
+                        api_Sleep(1000)
+                        return bret.RUNNING
+                    end
+                    env.timeing_rest = false
+                    env.timeing_rest_init_windows = false
+                    env.random_timeing_rest_time = nil
+                    env.timing_rest_init = nil
+                    env.random_time_timing = nil
+                end
+                if env.compulsory_rest then
+                    poe2_api.dynamic_display(poe2_api.formatted_output)
+                    local function in_monday_window(date_list, now)
+                        now = now or os.time()
+                        local t = os.date("*t", now)
+                        local minutes_today = t.hour * 60 + t.min
+                        poe2_api.dbgp("minutes_today",minutes_today)
+    
+                        -- Lua: Sunday=1, Monday=2, ..., Saturday=7
+                        local wname = { [1]="週日", [2]="週一", [3]="週二", [4]="週三", [5]="週四", [6]="週五", [7]="週六" }
+                        local today_name = wname[t.wday]
+                        poe2_api.dbgp(today_name)
+                        local yesterday_name = wname[(t.wday == 1) and 7 or (t.wday - 1)]
+                        poe2_api.dbgp(yesterday_name)
+                        -- 当天 00:00 的时间戳
+                        local today_0 = os.time{ year=t.year, month=t.month, day=t.day, hour=0, min=0, sec=0 }
+                        poe2_api.dbgp(today_0)
+                        local yesterday_0 = today_0 - 24*60*60
+                        poe2_api.dbgp(yesterday_0)
+    
+                        local function check_today_windows(day_name)
+                            local arr = (date_list and date_list[day_name]) or {}
+                            poe2_api.printTable(arr)
+                            for i, win in ipairs(arr) do
+                                local s = math.max(0, tonumber(win.start_min) or 0)
+                                poe2_api.dbgp("s",s)
+                                local e = s + math.max(0, tonumber(win.duration_min) or 0)  -- 可能 > 1440
+                                poe2_api.dbgp("e",e)
+                                if e <= 1440 then
+                                    -- 普通区间：今天 [s, e)
+                                    if minutes_today >= s and minutes_today < e then
+                                        local start_ts = today_0 + s*60
+                                        local end_ts   = today_0 + e*60
+                                        return true, { day_name = day_name, index = i, start_min = s, end_min = e,
+                                                    cross_midnight = false, start_ts = start_ts, end_ts = end_ts }
+                                    end
+                                else
+                                    -- 跨午夜：今天覆盖 [s, 1440)
+                                    if minutes_today >= s and minutes_today < 1440 then
+                                        local start_ts = today_0 + s*60
+                                        local end_ts   = today_0 + 24*60*60  -- 到今日 24:00
+                                        return true, { day_name = day_name, index = i, start_min = s, end_min = e,
+                                                    cross_midnight = true, start_ts = start_ts, end_ts = end_ts }
+                                    end
+                                end
+                            end
+                            return false
+                        end
+    
+                        local function check_yesterday_spill(day_name)
+                            local arr = (date_list and date_list[day_name]) or {}
+                            for i, win in ipairs(arr) do
+                                local s = math.max(0, tonumber(win.start_min) or 0)
+                                local e = s + math.max(0, tonumber(win.duration_min) or 0)
+                                if e > 1440 then
+                                    -- 昨天跨午夜，今日覆盖 [0, e-1440)
+                                    local spill_end = e - 1440
+                                    if minutes_today >= 0 and minutes_today < spill_end then
+                                        local start_ts = yesterday_0 + s*60
+                                        local end_ts   = today_0 + spill_end*60
+                                        return true, { day_name = day_name, index = i, start_min = s, end_min = e,
+                                                    cross_midnight = true, start_ts = start_ts, end_ts = end_ts }
+                                    end
+                                end
+                            end
+                            return false
+                        end
+    
+                        -- 先查“今天起始”的区间
+                        local ok, info = check_today_windows(today_name)
+                        if ok then return true, info end
+    
+                        -- 再查“昨天起始但跨到今天”的区间
+                        ok, info = check_yesterday_spill(yesterday_name)
+                        if ok then return true, info end
+    
+                        return false
+                    end
+                    local is_monday,info = in_monday_window(env.date_list)
+                    if not env.random_time_a then
+                        -- local current_time = api_GetTickCount64()
+                        local a = math.random(1, 10)
+                        env.random_time_a = a
+                        -- env.compulsory_launch_time = current_time + (a * 60 * 1000) 
+                    end
+                    if not is_monday then
+                        poe2_api.dbgp("111111")
+                        if not env.compulsory_launch_time then
+                            local current_time = api_GetTickCount64()
+                            env.compulsory_launch_time = current_time + (env.random_time_a * 60 * 1000)
+                        end
+                        if api_GetTickCount64() < env.compulsory_launch_time then
+                            local time_rest = poe2_api.format_time_diff(env.compulsory_launch_time - api_GetTickCount64())
+                            local time_zone_rest = poe2_api.format_time_diff(env.time_zone_rest * 60 * 1000)
+                            poe2_api.formatted_output["开图次数"] = env.open_map_count
+                            poe2_api.formatted_output["正在休息,距离正常运行剩余"] = time_rest
+                            poe2_api.formatted_output["开始休息时间为"] = time_zone_rest
+                            poe2_api.formatted_output["距离休息剩余"] = nil
+                            -- api_SetStatusText("开图次数:"..(env.open_map_count).."\n正在休息,距离正常运行剩余:"..time_rest.."\n开始休息时间为:"..time_zone_rest)
+                            api_Sleep(1000)
+                            -- env.compulsory_rest = true
+                            return bret.RUNNING
+                        end
+                        env.compulsory_launch_time = nil
+                        env.compulsory_delay_time = nil
+                        env.compulsory_rest = false
+                        env.random_time_a = nil
+                        poe2_api.formatted_output["正在休息,距离正常运行剩余"] = nil
+                        poe2_api.formatted_output["开始休息时间为"] = nil
+                        return bret.RUNNING
+                    else
+                        poe2_api.dbgp("2222222")
+                        local t = os.date("*t", os.time())
+                        local minutes_today = (t.hour * 60 * 60 * 1000) + (t.min * 60 * 1000) + (t.sec * 1000)
+    
+                        local rest_time = (info.end_min * 60 * 1000) - minutes_today
+                        poe2_api.dbgp(info.end_min)
+                        poe2_api.dbgp(minutes_today)
+                        poe2_api.dbgp(rest_time)
+                        poe2_api.dbgp(env.random_time_a)
+                        poe2_api.dbgp(env.time_zone_rest)
+                        local time_rest = poe2_api.format_time_diff(rest_time+(env.random_time_a * 60 * 1000))
+                        local time_zone_rest = poe2_api.format_time_diff(env.time_zone_rest * 60 * 1000)
+                        poe2_api.formatted_output["开图次数"] = env.open_map_count
+                        poe2_api.formatted_output["正在休息,距离正常运行剩余"] = time_rest
+                        poe2_api.formatted_output["开始休息时间为"] = time_zone_rest
+                        poe2_api.formatted_output["时区休息区间已到达,即将休息剩余"] = nil
+                        poe2_api.formatted_output["距离休息剩余"] = nil
+                        -- api_SetStatusText("开图次数:"..(env.open_map_count).."\n正在休息,距离正常运行剩余:"..time_rest.."\n开始休息时间为:"..time_zone_rest)
+                        api_Sleep(1000)
+                        return bret.RUNNING
+                    end
+                end
                 poe2_api.dbgp("窗口不存在==================================================")
                 -- 判断游戏配置文件是否存在
                 local file = io.open(env.config_file, "r")
@@ -582,13 +748,20 @@ local custom_nodes = {
             or env.is_set 
             or env.switching_lines>=120 
             or poe2_api.find_text({text = game_str.the_account_to_be_logged_in, UI_info = env.UI_info})
-            or poe2_api.find_text({text = game_str.Unable_to_deserialise, UI_info = env.UI_info,min_x = 0}) then
+            or poe2_api.find_text({text = game_str.Unable_to_deserialise, UI_info = env.UI_info,min_x = 0})
+            or env.get_rest
+            or env.compulsory_rest
+            or env.timeing_rest
+            then
                 poe2_api.dbgp("error_kill:", env.error_kill)
                 poe2_api.dbgp("speel_ip_number:" , env.speel_ip_number)
                 poe2_api.dbgp("is_set:", env.is_set)
                 poe2_api.dbgp("switching_lines:", env.switching_lines)
                 poe2_api.dbgp("find_test (to be logged in.):", poe2_api.find_text({text = game_str.the_account_to_be_logged_in, UI_info = env.UI_info}))
                 poe2_api.dbgp("find_test (packet with pid):", poe2_api.find_text({text = game_str.Unable_to_deserialise, UI_info = env.UI_info,min_x = 0}))
+                poe2_api.dbgp("get_rest:", env.get_rest)
+                poe2_api.dbgp("compulsory_rest:", env.compulsory_rest)
+                poe2_api.dbgp("timeing_rest:", env.timeing_rest)
                 env.is_game_exe = false
                 env.login_state = nil
                 env.speel_ip_number = 0
@@ -695,22 +868,22 @@ local custom_nodes = {
                         end
                     end
                 end
-                if env.compulsory_rest or env.timeing_rest then 
-                    poe2_api.dbgp(1111)
-                    if poe2_api.table_contains(env.player_info.current_map_name_utf8,my_game_info.hideout) then
-                        if not poe2_api.find_text({UI_info = env.UI_info, text = game_str.Return_To_The_Login_Screen_TWCH, min_x = 740 ,max_x = 860,max_y = 550}) then
-                            poe2_api.dbgp(2222)
-                            poe2_api.click_keyboard("esc")
-                            api_Sleep(1000)
-                            return bret.RUNNING
-                        else
-                            poe2_api.dbgp(3333)
-                            poe2_api.find_text({UI_info = env.UI_info, text = game_str.Return_To_The_Login_Screen_TWCH, min_x = 740 ,max_x = 860,max_y = 550,click = 2})
-                            api_Sleep(1000)
-                            return bret.RUNNING
-                        end
-                    end
-                end
+                -- if env.compulsory_rest or env.timeing_rest then 
+                --     poe2_api.dbgp(1111)
+                --     if poe2_api.table_contains(env.player_info.current_map_name_utf8,my_game_info.hideout) then
+                --         if not poe2_api.find_text({UI_info = env.UI_info, text = game_str.Return_To_The_Login_Screen_TWCH, min_x = 740 ,max_x = 860,max_y = 550}) then
+                --             poe2_api.dbgp(2222)
+                --             poe2_api.click_keyboard("esc")
+                --             api_Sleep(1000)
+                --             return bret.RUNNING
+                --         else
+                --             poe2_api.dbgp(3333)
+                --             poe2_api.find_text({UI_info = env.UI_info, text = game_str.Return_To_The_Login_Screen_TWCH, min_x = 740 ,max_x = 860,max_y = 550,click = 2})
+                --             api_Sleep(1000)
+                --             return bret.RUNNING
+                --         end
+                --     end
+                -- end
                 local is_open = env.take_regular_breaks["啟用"] or false
                 if is_open and not env.timeing_rest then
                     if not env.timing_rest_init then
@@ -849,159 +1022,7 @@ local custom_nodes = {
                 api_Sleep(500)
                 return bret.RUNNING
             end
-            if env.compulsory_rest then
-                local function in_monday_window(date_list, now)
-                    now = now or os.time()
-                    local t = os.date("*t", now)
-                    local minutes_today = t.hour * 60 + t.min
-                    poe2_api.dbgp("minutes_today",minutes_today)
-
-                    -- Lua: Sunday=1, Monday=2, ..., Saturday=7
-                    local wname = { [1]="週日", [2]="週一", [3]="週二", [4]="週三", [5]="週四", [6]="週五", [7]="週六" }
-                    local today_name = wname[t.wday]
-                    poe2_api.dbgp(today_name)
-                    local yesterday_name = wname[(t.wday == 1) and 7 or (t.wday - 1)]
-                    poe2_api.dbgp(yesterday_name)
-                    -- 当天 00:00 的时间戳
-                    local today_0 = os.time{ year=t.year, month=t.month, day=t.day, hour=0, min=0, sec=0 }
-                    poe2_api.dbgp(today_0)
-                    local yesterday_0 = today_0 - 24*60*60
-                    poe2_api.dbgp(yesterday_0)
-
-                    local function check_today_windows(day_name)
-                        local arr = (date_list and date_list[day_name]) or {}
-                        poe2_api.printTable(arr)
-                        for i, win in ipairs(arr) do
-                            local s = math.max(0, tonumber(win.start_min) or 0)
-                            poe2_api.dbgp("s",s)
-                            local e = s + math.max(0, tonumber(win.duration_min) or 0)  -- 可能 > 1440
-                            poe2_api.dbgp("e",e)
-                            if e <= 1440 then
-                                -- 普通区间：今天 [s, e)
-                                if minutes_today >= s and minutes_today < e then
-                                    local start_ts = today_0 + s*60
-                                    local end_ts   = today_0 + e*60
-                                    return true, { day_name = day_name, index = i, start_min = s, end_min = e,
-                                                cross_midnight = false, start_ts = start_ts, end_ts = end_ts }
-                                end
-                            else
-                                -- 跨午夜：今天覆盖 [s, 1440)
-                                if minutes_today >= s and minutes_today < 1440 then
-                                    local start_ts = today_0 + s*60
-                                    local end_ts   = today_0 + 24*60*60  -- 到今日 24:00
-                                    return true, { day_name = day_name, index = i, start_min = s, end_min = e,
-                                                cross_midnight = true, start_ts = start_ts, end_ts = end_ts }
-                                end
-                            end
-                        end
-                        return false
-                    end
-
-                    local function check_yesterday_spill(day_name)
-                        local arr = (date_list and date_list[day_name]) or {}
-                        for i, win in ipairs(arr) do
-                            local s = math.max(0, tonumber(win.start_min) or 0)
-                            local e = s + math.max(0, tonumber(win.duration_min) or 0)
-                            if e > 1440 then
-                                -- 昨天跨午夜，今日覆盖 [0, e-1440)
-                                local spill_end = e - 1440
-                                if minutes_today >= 0 and minutes_today < spill_end then
-                                    local start_ts = yesterday_0 + s*60
-                                    local end_ts   = today_0 + spill_end*60
-                                    return true, { day_name = day_name, index = i, start_min = s, end_min = e,
-                                                cross_midnight = true, start_ts = start_ts, end_ts = end_ts }
-                                end
-                            end
-                        end
-                        return false
-                    end
-
-                    -- 先查“今天起始”的区间
-                    local ok, info = check_today_windows(today_name)
-                    if ok then return true, info end
-
-                    -- 再查“昨天起始但跨到今天”的区间
-                    ok, info = check_yesterday_spill(yesterday_name)
-                    if ok then return true, info end
-
-                    return false
-                end
-                local is_monday,info = in_monday_window(env.date_list)
-                if not env.compulsory_launch_time then
-                    local current_time = api_GetTickCount64()
-                    local a = math.random(1, 10)
-                    env.random_time_a = a
-                    env.compulsory_launch_time = current_time + (a * 60 * 1000) 
-                end
-                if not is_monday then
-                    if api_GetTickCount64() < env.compulsory_launch_time then
-                        local time_rest = poe2_api.format_time_diff(env.compulsory_launch_time - api_GetTickCount64())
-                        local time_zone_rest = poe2_api.format_time_diff(env.time_zone_rest * 60 * 1000)
-                        poe2_api.formatted_output["开图次数"] = env.open_map_count
-                        poe2_api.formatted_output["正在休息,距离正常运行剩余"] = time_rest
-                        poe2_api.formatted_output["开始休息时间为"] = time_zone_rest
-                        -- api_SetStatusText("开图次数:"..(env.open_map_count).."\n正在休息,距离正常运行剩余:"..time_rest.."\n开始休息时间为:"..time_zone_rest)
-                        api_Sleep(1000)
-                        -- env.compulsory_rest = true
-                        return bret.RUNNING
-                    end
-                    env.compulsory_launch_time = nil
-                    env.compulsory_delay_time = nil
-                    env.compulsory_rest = false
-                    poe2_api.formatted_output["正在休息,距离正常运行剩余"] = nil
-                    poe2_api.formatted_output["开始休息时间为"] = nil
-                    return bret.RUNNING
-                else
-                    local t = os.date("*t", os.time())
-                    local minutes_today = (t.hour * 60 * 60 * 1000) + (t.min * 60 * 1000) + (t.sec * 1000)
-
-                    local rest_time = (info.end_min * 60 * 1000) - minutes_today
-                    -- poe2_api.dbgp(info.end_min)
-                    -- poe2_api.dbgp(minutes_today)
-                    -- poe2_api.dbgp(rest_time)
-                    local time_rest = poe2_api.format_time_diff(rest_time+(env.random_time_a * 60 * 1000))
-                    local time_zone_rest = poe2_api.format_time_diff(env.time_zone_rest * 60 * 1000)
-                    poe2_api.formatted_output["开图次数"] = env.open_map_count
-                    poe2_api.formatted_output["正在休息,距离正常运行剩余"] = time_rest
-                    poe2_api.formatted_output["开始休息时间为"] = time_zone_rest
-                    poe2_api.formatted_output["时区休息区间已到达,即将休息剩余"] = nil
-                    -- api_SetStatusText("开图次数:"..(env.open_map_count).."\n正在休息,距离正常运行剩余:"..time_rest.."\n开始休息时间为:"..time_zone_rest)
-                    api_Sleep(1000)
-                    return bret.RUNNING
-                end
-            end
-            if env.timeing_rest then
-                if not env.timeing_rest_init_windows then
-                    env.timeing_rest_initial = api_GetTickCount64()
-                    env.timeing_rest_init_windows = true
-                end
-                local cfg_rest_time = env.take_regular_breaks["休息分鐘"] or 120
-                if not env.random_timeing_rest_time then
-                    local random_time = math.random(-10, 10)
-                    if random_time + cfg_rest_time <= 0 then
-                        env.random_timeing_rest_time = cfg_rest_time
-                    else
-                        env.random_timeing_rest_time = cfg_rest_time + random_time
-                    end
-                end
-                local a = api_GetTickCount64() - env.timeing_rest_initial
-                if a < (env.random_timeing_rest_time * 60 * 1000) then
-                    -- poe2_api.dbgp("休息中")
-                    local time_rest = poe2_api.format_time_diff((env.random_timeing_rest_time * 60 * 1000) - a)
-                    poe2_api.formatted_output["开图次数"] = env.open_map_count
-                    poe2_api.formatted_output["正在休息,距离正常运行剩余"] = time_rest
-                    poe2_api.formatted_output["距离休息剩余"] = nil
-                    -- env.formatted_output["开始休息时间为:"] = time_zone_rest
-                    -- api_SetStatusText("开图次数:"..(env.open_map_count).."\n正在休息,距离正常运行剩余"..time_rest)
-                    api_Sleep(1000)
-                    return bret.RUNNING
-                end
-                env.timeing_rest = false
-                env.timeing_rest_init_windows = false
-                env.random_timeing_rest_time = nil
-                env.timing_rest_init = nil
-                env.random_time_timing = nil
-            end
+            
             if poe2_api.click_text_UI({text = game_str.login_button,UI_info = env.UI_info}) then
                 poe2_api.find_text({text = game_str.log_in,UI_info = env.UI_info,click = 2,times = 500})
                 api_Sleep(1000)
@@ -16149,66 +16170,55 @@ local custom_nodes = {
                 if is_open_fixed_time then
                     local date_list = get_date()
                     if date_list then
-
-
-
-                        -- 判断当前时间是否处于 date_list 指定的任意区间（本地时区）
-                        -- date_list 结构示例：
-                        -- {
-                        --   ["週一"] = { {start_min=720, duration_min=60}, {start_min=300, duration_min=60} },
-                        --   ["週日"] = { {start_min=1439, duration_min=60} },
-                        --   ...
-                        -- }
-                        -- 返回：in_window, info
-                        --   in_window: boolean
-                        --   info: 若为 true，包含 { day_name, index, start_min, end_min, cross_midnight, start_ts, end_ts }
+                        
                         local function in_monday_window(date_list, now)
                             now = now or os.time()
                             local t = os.date("*t", now)
                             local minutes_today = t.hour * 60 + t.min
-                            poe2_api.dbgp("minutes_today",minutes_today)
-
+                            poe2_api.dbgp("minutes_today", minutes_today)
+                        
                             -- Lua: Sunday=1, Monday=2, ..., Saturday=7
                             local wname = { [1]="週日", [2]="週一", [3]="週二", [4]="週三", [5]="週四", [6]="週五", [7]="週六" }
                             local today_name = wname[t.wday]
                             poe2_api.dbgp(today_name)
                             local yesterday_name = wname[(t.wday == 1) and 7 or (t.wday - 1)]
                             poe2_api.dbgp(yesterday_name)
+                        
                             -- 当天 00:00 的时间戳
                             local today_0 = os.time{ year=t.year, month=t.month, day=t.day, hour=0, min=0, sec=0 }
                             poe2_api.dbgp(today_0)
-                            local yesterday_0 = today_0 - 24*60*60
+                            local yesterday_0 = today_0 - 24 * 60 * 60
                             poe2_api.dbgp(yesterday_0)
-
+                        
                             local function check_today_windows(day_name)
                                 local arr = (date_list and date_list[day_name]) or {}
                                 poe2_api.printTable(arr)
                                 for i, win in ipairs(arr) do
                                     local s = math.max(0, tonumber(win.start_min) or 0)
-                                    poe2_api.dbgp("s",s)
+                                    poe2_api.dbgp("s", s)
                                     local e = s + math.max(0, tonumber(win.duration_min) or 0)  -- 可能 > 1440
-                                    poe2_api.dbgp("e",e)
+                                    poe2_api.dbgp("e", e)
                                     if e <= 1440 then
                                         -- 普通区间：今天 [s, e)
                                         if minutes_today >= s and minutes_today < e then
-                                            local start_ts = today_0 + s*60
-                                            local end_ts   = today_0 + e*60
+                                            local start_ts = today_0 + s * 60
+                                            local end_ts   = today_0 + e * 60
                                             return true, { day_name = day_name, index = i, start_min = s, end_min = e,
-                                                        cross_midnight = false, start_ts = start_ts, end_ts = end_ts }
+                                                           cross_midnight = false, start_ts = start_ts, end_ts = end_ts }
                                         end
                                     else
                                         -- 跨午夜：今天覆盖 [s, 1440)
                                         if minutes_today >= s and minutes_today < 1440 then
-                                            local start_ts = today_0 + s*60
-                                            local end_ts   = today_0 + 24*60*60  -- 到今日 24:00
+                                            local start_ts = today_0 + s * 60
+                                            local end_ts   = today_0 + 24 * 60 * 60  -- 到今日 24:00
                                             return true, { day_name = day_name, index = i, start_min = s, end_min = e,
-                                                        cross_midnight = true, start_ts = start_ts, end_ts = end_ts }
+                                                           cross_midnight = true, start_ts = start_ts, end_ts = end_ts }
                                         end
                                     end
                                 end
                                 return false
                             end
-
+                        
                             local function check_yesterday_spill(day_name)
                                 local arr = (date_list and date_list[day_name]) or {}
                                 for i, win in ipairs(arr) do
@@ -16218,25 +16228,56 @@ local custom_nodes = {
                                         -- 昨天跨午夜，今日覆盖 [0, e-1440)
                                         local spill_end = e - 1440
                                         if minutes_today >= 0 and minutes_today < spill_end then
-                                            local start_ts = yesterday_0 + s*60
-                                            local end_ts   = today_0 + spill_end*60
+                                            local start_ts = yesterday_0 + s * 60
+                                            local end_ts   = today_0 + spill_end * 60
                                             return true, { day_name = day_name, index = i, start_min = s, end_min = e,
-                                                        cross_midnight = true, start_ts = start_ts, end_ts = end_ts }
+                                                           cross_midnight = true, start_ts = start_ts, end_ts = end_ts }
                                         end
                                     end
                                 end
                                 return false
                             end
-
+                        
                             -- 先查“今天起始”的区间
                             local ok, info = check_today_windows(today_name)
-                            if ok then return true, info end
-
+                            if ok then
+                                return true, info, 0, nil
+                            end
+                        
                             -- 再查“昨天起始但跨到今天”的区间
                             ok, info = check_yesterday_spill(yesterday_name)
-                            if ok then return true, info end
-
-                            return false
+                            if ok then
+                                return true, info, 0, nil
+                            end
+                        
+                            -- ===== 不在区间：计算距离“下一次休息开始”的剩余时间 =====
+                            -- 向未来搜索 0..7 天，找到最早的下一次 start_ts（含今天稍后开始的窗口）
+                            local next_start_ts, next_day_name, next_index
+                            for d = 0, 7 do
+                                local day0 = today_0 + d * 86400
+                                local wday = os.date("*t", day0).wday
+                                local name = wname[wday]
+                                local arr = (date_list and date_list[name]) or {}
+                                for i, win in ipairs(arr) do
+                                    local s = math.max(0, tonumber(win.start_min) or 0)
+                                    local start_ts = day0 + s * 60
+                                    if start_ts >= now then
+                                        if not next_start_ts or start_ts < next_start_ts then
+                                            next_start_ts = start_ts
+                                            next_day_name = name
+                                            next_index = i
+                                        end
+                                    end
+                                end
+                            end
+                        
+                            if next_start_ts then
+                                local remain = next_start_ts - now
+                                return false, nil, remain, { day_name = next_day_name, index = next_index, start_ts = next_start_ts }
+                            else
+                                -- 配置为空或未来 7 天都没有区间
+                                return false, nil, nil, nil
+                            end
                         end
 
 
@@ -16245,13 +16286,13 @@ local custom_nodes = {
                         -- for k, v in pairs(date_list) do
                         --     table.insert(date_key_kst,k)
                         -- end
-                        local is_monday = in_monday_window(date_list)
+                        local is_monday, info, secs_to_next, next_info = in_monday_window(date_list)
                         poe2_api.dbgp("is_monday",is_monday)
                         if is_monday then
                             if not env.compulsory_delay_time then
                                 local current_time = api_GetTickCount64()
-                                -- local a = math.random(0, 10)
-                                local a = 0
+                                local a = math.random(0, 10)
+                                -- local a = 0
                                 env.compulsory_delay_time_a = a
                                 env.compulsory_delay_time = current_time + (a * 60 * 1000) 
                             end
@@ -16270,9 +16311,23 @@ local custom_nodes = {
                                 poe2_api.formatted_output["时区休息区间已到达,即将休息剩余"] = time_rest
                                 poe2_api.formatted_output["正在休息,距离正常运行剩余"] = nil
                                 poe2_api.formatted_output["开始休息时间为"] = nil
+                                poe2_api.formatted_output["距离休息剩余"] = nil
                                 -- api_SetStatusText("开图次数:"..(env.open_map_count).."\n时区休息区间已到达,即将休息剩余："..time_rest)
                             -- api_Sleep(1000)
                             -- return bret.RUNNING
+                            end
+                        else
+                            if secs_to_next then
+                                local time_rest = poe2_api.format_time_diff(secs_to_next * 1000)
+                                poe2_api.formatted_output["开图次数"] = env.open_map_count
+                                poe2_api.formatted_output["距离休息剩余"] = time_rest
+                                poe2_api.formatted_output["时区休息区间已到达,即将休息剩余"] = nil
+                                -- poe2_api.dbgp(("距离下次休息还有 %d 秒（%s 第%d段，开始于 %s）")
+                                --     :format(secs_to_next,
+                                --             next_info.day_name, next_info.index,
+                                --             os.date("%Y-%m-%d %H:%M:%S", next_info.start_ts)))
+                            else
+                                poe2_api.dbgp("未来 7 天没有配置休息窗口")
                             end
                         end
                     end
