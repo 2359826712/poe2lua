@@ -33635,8 +33635,8 @@ local plot_nodes = {
             local function processItem(item, player_info)
                 env.item_name = item.baseType_utf8
                 env.end_point = { item.grid_x, item.grid_y }
-                if poe2_api.point_distance(item.grid_x, item.grid_y, player_info) < 25 and
-                    (api_HasObstacleBetween(item.grid_x, item.grid_y) or poe2_api.table_contains(item.baseType_utf8 , {"水之精髓","鍛造工具"})) then
+                if api_HasObstacleBetween(item.grid_x, item.grid_y) < 25 and
+                    (poe2_api.point_distance(item.grid_x, item.grid_y, player_info) < 25or poe2_api.table_contains(item.baseType_utf8 , {"水之精髓","鍛造工具"})) then
                     return bret.FAIL
                 end
                 return bret.SUCCESS
