@@ -1595,7 +1595,7 @@ local custom_nodes = {
                     -- if item.name_utf8 == "" then
                     --     goto continue
                     -- end
-                    -- api_Log("==============================")
+                    api_Log("==============================")
                     -- 遍历预定义的属性列表，确保按固定顺序输出
                     -- for _, field in ipairs(itemFields) do
                     --     local value = item[field]
@@ -12399,7 +12399,7 @@ local custom_nodes = {
 
                 -- 按键
                 -- if not self.once_check then
-                -- api_Log("检查是否在主页面11111")
+                api_Log("检查是否在主页面11111")
                 local once_check = {
                     {UI_info = env.UI_info, text = game_str.Selected_TWCH, add_x = 677, min_x = 0, add_y = 10, click = 2},
                     
@@ -12693,7 +12693,7 @@ local custom_nodes = {
 
             -- 按键
             if not self.once_check then
-                -- api_Log("检查是否在主页面11111")
+                api_Log("检查是否在主页面11111")
                 local once_check = {
                     {UI_info = env.UI_info, text = game_str.Selected_TWCH, add_x = 677, min_x = 0, add_y = 10, click = 2},
                     
@@ -34695,7 +34695,7 @@ local plot_nodes = {
                 (me_area ~= task_area and poe2_api.table_contains(task_area, { "G3_12",  "G3_14", "G3_16", "G3_17" })) or 
                 poe2_api.table_contains(task_name, { "回到過去，進入奧札爾"}) or 
                 (poe2_api.table_contains(party_pos(team_member_4), { "G2_1","G4_2_2" }) and not poe2_api.table_contains(interaction_object, "阿杜拉車隊") )) then
-                
+                                
                 poe2_api.dbgp("大号跟随传送")
                 if not poe2_api.find_text({ UI_info = env.UI_info, text = "/clear", min_x = 0 })and not self.bool2 then
                     api_Sleep(1000)
@@ -39526,7 +39526,7 @@ local plot_nodes = {
                     end
                     
                     return bret.RUNNING
-                end
+                end 
                 if poe2_api.table_contains(current_map, special_maps_1) then
                     -- 按下空格键（可能用于交互或确认）
                     poe2_api.click_keyboard("space")
@@ -39633,7 +39633,7 @@ local plot_nodes = {
             end
             -- 按键
             if not self.once_check then
-                -- api_Log("检查是否在主页面11111")
+                api_Log("检查是否在主页面11111")
                 local once_check = {
                     { UI_info = env.UI_info, text = "精選", add_x = 677, min_x = 0, add_y = 10, click = 2 },
                     { UI_info = env.UI_info, text = "角色", min_x = 0, add_x = 253, click = 2 },
