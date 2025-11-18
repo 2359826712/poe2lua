@@ -33635,7 +33635,7 @@ local plot_nodes = {
             local function processItem(item, player_info)
                 env.item_name = item.baseType_utf8
                 env.end_point = { item.grid_x, item.grid_y }
-                if api_HasObstacleBetween(item.grid_x, item.grid_y) < 25 and
+                if api_HasObstacleBetween(item.grid_x, item.grid_y) and
                     (poe2_api.point_distance(item.grid_x, item.grid_y, player_info) < 25or poe2_api.table_contains(item.baseType_utf8 , {"水之精髓","鍛造工具"})) then
                     return bret.FAIL
                 end
@@ -34694,8 +34694,7 @@ local plot_nodes = {
                 (me_area ~= task_area and poe2_api.table_contains(task_area, { "G3_1", "G3_2_2" }) and not party_dis_memember(range_info)) or 
                 (me_area ~= task_area and poe2_api.table_contains(task_area, { "G3_12",  "G3_14", "G3_16", "G3_17" })) or 
                 poe2_api.table_contains(task_name, { "回到過去，進入奧札爾"}) or 
-                (poe2_api.table_contains(party_pos(team_member_4), { "G2_1","G4_2_2" }) and not poe2_api.table_contains(interaction_object, "阿杜拉車隊") )) then
-                                
+                (poe2_api.table_contains(party_pos(team_member_4), { "G2_1","G4_2_2" }) and not poe2_api.table_contains(interaction_object, "阿杜拉車隊") )) then                
                 poe2_api.dbgp("大号跟随传送")
                 if not poe2_api.find_text({ UI_info = env.UI_info, text = "/clear", min_x = 0 })and not self.bool2 then
                     api_Sleep(1000)
