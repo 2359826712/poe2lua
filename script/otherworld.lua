@@ -35600,12 +35600,12 @@ local plot_nodes = {
                                     return bret.RUNNING
                                 end
                                 api_Sleep(300)
-                                if string.find(teleport_area, "own") or poe2_api.table_contains(teleport_area, {"G1_7","G2_1"}) then
+                                if string.find(teleport_area, "own") or poe2_api.table_contains(teleport_area, {"G1_7","G2_1","G2_3"}) then
                                     poe2_api.dbgp("回城镇或者去G1_7")
                                     api_ClickScreen(poe2_api.toInt(waypoint_screen[1]), poe2_api.toInt(waypoint_screen[2]), 1)
                                     return bret.RUNNING
                                 end
-                                if not string.find(teleport_area, "own") and not poe2_api.table_contains(teleport_area, {"G1_7","G2_1"}) and
+                                if not string.find(teleport_area, "own") and not poe2_api.table_contains(teleport_area, {"G1_7","G2_1","G2_3"}) and
                                     not poe2_api.find_text({ UI_info = UI_info, text = "副本管理員", click = 0, refresh = true }) then
                                     poe2_api.ctrl_left_click(waypoint_screen[1],waypoint_screen[2])
                                     api_Sleep(2000)
@@ -35614,7 +35614,7 @@ local plot_nodes = {
                                 poe2_api.find_text({ UI_info = UI_info, text = "新副本", click = 2, min_x = 0, refresh = true })
                                 if point and #point > 0  then
                                     api_ClickScreen(poe2_api.toInt(point[1]), poe2_api.toInt(point[2]), 1)
-                                elseif teleport_area == "G1_7" then
+                                elseif poe2_api.table_contains(teleport_area, {"G1_7","G2_1","G2_3"}) then
                                     api_ClickScreen(poe2_api.toInt(waypoint_screen[1]), poe2_api.toInt(waypoint_screen[2]), 1)
                                 end
                                 return bret.RUNNING

@@ -670,9 +670,16 @@ local main_task= {
             map_name = 'G2_2',
             index = 113
         },
+        ['返回阿杜拉車隊，並與札卡交談'] = {
+            map_name = 'G2_town',
+            grid_x = 384,
+            grid_y = 247,
+            interaction_object = {'札卡', '驅散沙戮風暴'},
+            index = 114
+        },
         ['哈拉妮關口'] = {
             map_name = 'G2_3',
-            index = 114
+            index = 115
         },
         ['沿著叛徒之路向上，抵達古老關口頂端'] = {
             map_name = 'G2_3',
@@ -682,7 +689,7 @@ local main_task= {
                 'PerennialHumanActive',
                 'PerennialHumanInactive',
             },
-            index = 115
+            index = 116
         },
         ['想辦法和阿薩拉一起開啟古老關口'] = {
             map_name = 'G2_3',
@@ -692,7 +699,7 @@ local main_task= {
                 'PerennialHumanActive',
                 'PerennialHumanInactive',
             },
-            index = 116
+            index = 117
         },
         ['一路殺向第二道關口並開啟它'] = {
             map_name = 'G2_3',
@@ -702,7 +709,7 @@ local main_task= {
                 'PerennialHumanActive',
                 'PerennialHumanInactive',
             },
-            index = 117
+            index = 118
         },
         ['一路殺向第三道關口並開啟它'] = {
             map_name = 'G2_3',
@@ -712,7 +719,7 @@ local main_task= {
                 'PerennialHumanActive',
                 'PerennialHumanInactive',
             },
-            index = 118
+            index = 119
         },
         ['殺出一條向前的路'] = {
             map_name = 'G2_3',
@@ -722,7 +729,7 @@ local main_task= {
                 'PerennialHumanActive',
                 'PerennialHumanInactive',
             },
-            index = 119
+            index = 120
         },
         ['幫助阿薩拉擊殺法里登的腐化首領'] = {
             map_name = 'G2_3',
@@ -732,20 +739,13 @@ local main_task= {
                 'PerennialHumanActive',
                 'PerennialHumanInactive',
             },
-            index = 120
+            index = 121
         },
         ['協助阿薩拉殺死法里登的腐化首領'] = {
             map_name = 'G2_town',
             grid_x = 573,
             grid_y = 272,
             interaction_object = {'絲克瑪．阿薩拉'},
-            index = 121
-        },
-        ['返回阿杜拉車隊，並與札卡交談'] = {
-            map_name = 'G2_town',
-            grid_x = 384,
-            grid_y = 247,
-            interaction_object = {'札卡', '驅散沙戮風暴'},
             index = 122
         },
         ['返回車隊，與札卡交談'] = {
