@@ -28987,20 +28987,20 @@ local plot_nodes = {
                                         
                                         if get_cfg_entry(item_entry) then
                                             local a = false
-                                            if b.category_utf8 == game_str.TowerAugmentation then
-                                                if get_cfg_entry_tower() then
-                                                    if env.plaque_upgrade then
-                                                        if b.color == 0 or (b.color == 1 and b.fixedSuffixCount<2) or b.not_identified then
-                                                            env.tower_do = true
-                                                            break
-                                                        end
-                                                    -- else
-                                                    --     a = true
-                                                    end
-                                                end
-                                            else
-                                                a = false
-                                            end
+                                            -- if b.category_utf8 == game_str.TowerAugmentation then
+                                            --     if get_cfg_entry_tower() then
+                                            --         if env.plaque_upgrade then
+                                            --             if b.color == 0 or (b.color == 1 and b.fixedSuffixCount<2) or b.not_identified then
+                                            --                 env.tower_do = true
+                                            --                 break
+                                            --             end
+                                            --         -- else
+                                            --         --     a = true
+                                            --         end
+                                            --     end
+                                            -- else
+                                            --     a = false
+                                            -- end
                                             if not a then
                                                 if poe2_api.table_contains(b.category_utf8,my_game_info.equip_type) and not b.not_identified then
                                                     local suffixes = api_GetObjectSuffix(b.mods_obj)
@@ -29013,15 +29013,15 @@ local plot_nodes = {
                                         end
                                         
                                     end
-                                    if b.category_utf8 == game_str.TowerAugmentation then
-                                        if plaque_optimal(b) and env.plaque_upgrade then
-                                            if b.color == 0 or (b.color == 1 and b.fixedSuffixCount<2) or b.not_identified then
-                                                -- poe2_api.dbgp("qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq")
-                                                env.tower_do = true
-                                                break
-                                            end
-                                        end
-                                    end
+                                    -- if b.category_utf8 == game_str.TowerAugmentation then
+                                    --     if plaque_optimal(b) and env.plaque_upgrade then
+                                    --         if b.color == 0 or (b.color == 1 and b.fixedSuffixCount<2) or b.not_identified then
+                                    --             -- poe2_api.dbgp("qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq")
+                                    --             env.tower_do = true
+                                    --             break
+                                    --         end
+                                    --     end
+                                    -- end
                                     -- if poe2_api.table_contains(b.category_utf8,my_game_info.equip_type) and not b.not_identified then
                                     --     local suffixes = api_GetObjectSuffix(b.mods_obj)
                                     --     if suffixes and next(suffixes) and not poe2_api.filter_item(b,suffixes,config["物品過濾"]) then
@@ -29152,20 +29152,20 @@ local plot_nodes = {
                                         
                                         if get_cfg_entry(item_entry) then
                                             local a = false
-                                            if b.category_utf8 == game_str.TowerAugmentation then
-                                                if get_cfg_entry_tower() then
-                                                    if env.plaque_upgrade then
-                                                        if b.color == 0 or (b.color == 1 and b.fixedSuffixCount<2) or b.not_identified then
-                                                            env.tower_do = true
-                                                            break
-                                                        end
-                                                    -- else
-                                                    --     a = true
-                                                    end
-                                                end
-                                            else
-                                                a = false
-                                            end
+                                            -- if b.category_utf8 == game_str.TowerAugmentation then
+                                            --     if get_cfg_entry_tower() then
+                                            --         if env.plaque_upgrade then
+                                            --             if b.color == 0 or (b.color == 1 and b.fixedSuffixCount<2) or b.not_identified then
+                                            --                 env.tower_do = true
+                                            --                 break
+                                            --             end
+                                            --         -- else
+                                            --         --     a = true
+                                            --         end
+                                            --     end
+                                            -- else
+                                            --     a = false
+                                            -- end
                                             if not a then
                                                 if poe2_api.table_contains(b.category_utf8,my_game_info.equip_type) and not b.not_identified then
                                                     local suffixes = api_GetObjectSuffix(b.mods_obj)
@@ -29180,17 +29180,17 @@ local plot_nodes = {
                                         
                                     end
                                     -- poe2_api.dbgp("qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq")
-                                    if b.category_utf8 == game_str.TowerAugmentation then
-                                        -- poe2_api.dbgp("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa")
-                                        if plaque_optimal(b)  and env.plaque_upgrade then
-                                            -- poe2_api.dbgp("bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb")
-                                            if b.color == 0 or (b.color == 1 and b.fixedSuffixCount<2) or b.not_identified then
-                                                -- poe2_api.dbgp("cccccccccccccccccccccccccccc")
-                                                env.tower_do = true
-                                                break
-                                            end
-                                        end
-                                    end
+                                    -- if b.category_utf8 == game_str.TowerAugmentation then
+                                    --     -- poe2_api.dbgp("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa")
+                                    --     if plaque_optimal(b)  and env.plaque_upgrade then
+                                    --         -- poe2_api.dbgp("bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb")
+                                    --         if b.color == 0 or (b.color == 1 and b.fixedSuffixCount<2) or b.not_identified then
+                                    --             -- poe2_api.dbgp("cccccccccccccccccccccccccccc")
+                                    --             env.tower_do = true
+                                    --             break
+                                    --         end
+                                    --     end
+                                    -- end
                                     -- if poe2_api.table_contains(b.category_utf8,my_game_info.equip_type) and not b.not_identified then
                                     --     local suffixes = api_GetObjectSuffix(b.mods_obj)
                                     --     if suffixes and next(suffixes) and not poe2_api.filter_item(b,suffixes,config["物品過濾"]) then
@@ -29309,12 +29309,12 @@ local plot_nodes = {
             local store = get_store_item(bag_store_info,unique_storage_pages,public_warehouse_pages,map_ys_level_min)
             
             if not store then
-                if env.tower_do then
-                    env.store = true
-                    -- api_Sleep(10000)
-                    poe2_api.time_p("是否存储物品（RUNNING333）... 耗时 --> ", api_GetTickCount64() - start_time)
-                    return bret.RUNNING
-                end
+                -- if env.tower_do then
+                --     env.store = true
+                --     -- api_Sleep(10000)
+                --     poe2_api.time_p("是否存储物品（RUNNING333）... 耗时 --> ", api_GetTickCount64() - start_time)
+                --     return bret.RUNNING
+                -- end
                 if poe2_api.find_text({ UI_info = env.UI_info, text = "強調物品", min_y = 700, min_x = 250 }) then
                     poe2_api.click_keyboard('space')
                     api_Sleep(500)
@@ -39525,7 +39525,6 @@ local plot_nodes = {
                     return bret.RUNNING
                 end
                 if poe2_api.table_contains(current_map, special_maps_1) then
-                    
                     -- 按下空格键（可能用于交互或确认）
                     poe2_api.click_keyboard("space")
                     api_Sleep(500)
