@@ -32524,7 +32524,7 @@ local plot_nodes = {
                     poe2_api.dbgp("[Query_Current_Task_Information]返回車隊，與芮蘇討論封閉的古老關口")
                     env.map_name = "G2_town"
                     env.interaction_object = { "芮蘇" }
-                elseif poe2_api.table_contains(player_info.current_map_name_utf8, {  "G2_9_2" }) then
+                elseif poe2_api.table_contains(player_info.current_map_name_utf8, {  "G2_9_2" }) and not poe2_api.Waypoint_is_open("G2_12_1",api_UpdateTeleportationPoint()) then
                     poe2_api.dbgp("[Query_Current_Task_Information]前往戴斯哈尖塔")
                     local sister = poe2_api.get_sorted_obj("卡洛翰的姐妹", range_info, player_info)
                     if ((task.boss_name and poe2_api.table_contains('憎惡者．賈嫚拉', task.boss_name))) or not mini_map_obj('SacredSpiresShrineLandmarkInactive') or (sister and #sister > 0 and sister[1].stateMachineList and sister[1].stateMachineList.active == 0) then
