@@ -20,6 +20,7 @@ local script_dir = api_GetExecutablePath()
 -- api_Log(script_dir)
 local json_path = script_dir .."\\config.json"
 local skills_path = script_dir .."\\skills.json"
+local ItemFilter_path = script_dir .."\\ItemFilter.json"
 local user_info_path = script_dir .."\\config.ini"
 local json = require 'script.lualib.json'
 
@@ -98,15 +99,15 @@ local custom_nodes = {
             end
 
             if not env.user_config then
-                local config = nil
+                local config = poe2_api.load_config(json_path)
                 -- local 
                 local skills_config = poe2_api.load_config(skills_path)
                 local user_info = poe2_api.load_ini(user_info_path)["UserInfo"]
                 -- poe2_api.dbgp(type(user_info["share_config_enable"]))
                 -- poe2_api.dbgp(user_info["share_config_path"])
-                if user_info["share_config_enable"] and tonumber(user_info["share_config_enable"]) == 1 and user_info["share_config_path"] and user_info["share_config_path"] ~= "" then
+                if user_info["share_item_filter_enable"] and tonumber(user_info["share_item_filter_enable"]) == 1 and user_info["share_item_filter_path"] and user_info["share_item_filter_path"] ~= "" then
                     -- error("共享config")
-                    local share_config_path = "[["..user_info["share_config_path"].."\\config.json".."]]"
+                    ItemFilter_path = "[["..user_info["share_item_filter_path"].."\\ItemFilter.json".."]]"
                     -- local share_config_path = poe2_api.unwrap(share_config_path)
                     -- poe2_api.map_share_once(poe2_api.unwrap(share_config_path), "Z:")
                     -- poe2_api.dbgp(share_config_path)
@@ -115,14 +116,23 @@ local custom_nodes = {
                     -- poe2_api.map_share_once([[\\DESKTOP-P2RBUQP\behavior3lua-master]], "Z:", "DESKTOP-P2RBUQP\\你的用户名", "你的密码", false)
                     -- local shared_cfg = [[Z:\config.json]]
                     -- local shared_cfg = [[Z:\config.json]]
-                    poe2_api.dbgp("共享配置")
-                    config = poe2_api.load_config1(share_config_path)
-                    if not config or not next(config) then
-                        error("共享路径下没有config.json文件")
+                    env.ItemFilter_info = poe2_api.load_config1(ItemFilter_path)
+                    if not env.ItemFilter_info or not next(env.ItemFilter_info) then
+                        error("共享路径下没有ItemFilter.json文件")
                     end
+                    poe2_api.dbgp("共享文件")
                 else
-                    poe2_api.dbgp("本地配置")
-                    config = poe2_api.load_config(json_path)
+                    -- por
+                    local ItemFilter_info = poe2_api.load_config(ItemFilter_path)
+                    if ItemFilter_info then
+                        poe2_api.dbgp("本地文件22")
+                        env.ItemFilter_info = ItemFilter_info
+                    else
+                        poe2_api.dbgp("本地文件111")
+                        env.ItemFilter_info = config["物品過濾"]
+                    end
+                    poe2_api.dbgp("本地文件")
+                    -- config = poe2_api.load_config(json_path)
                 end
                 -- 玩法優先級
                 local map_priority = config["刷圖設置"]["玩法優先級"]
@@ -190,7 +200,7 @@ local custom_nodes = {
                     result = {"祭祀碑牌","先行者碑牌","總督的先行者碑牌","裂痕碑牌","譫妄碑牌"}
                 end
                 env.stone_order = result
-                local item_filters = config["物品過濾"] or {}  -- 获取物品过滤配置数组
+                local item_filters = env.ItemFilter_info or {}  -- 获取物品过滤配置数组
                 -- 两种独立的分类表
                 local item_config_by_type = {}      -- 按【類型】分类
                 local item_config_by_base_type = {} -- 按【基礎類型名】分类
@@ -831,7 +841,7 @@ local custom_nodes = {
                     env.last_exp_value = env.player_info.currentExperience
                     env.last_exp_value_move = env.player_info.currentExperience
                 end
-                if env.user_info["share_config_enable"] and tonumber(env.user_info["share_config_enable"]) == 1 and env.user_info["share_config_path"] and env.user_info["share_config_path"] ~= "" then
+                if env.user_info["share_item_filter_enable"] and tonumber(env.user_info["share_item_filter_enable"]) == 1 and env.user_info["share_item_filter_path"] and env.user_info["share_item_filter_path"] ~= "" then
                     env.user_config = nil
                 end
                 poe2_api.dbgp("已重置所有经验监控状态") 
@@ -3449,7 +3459,7 @@ local custom_nodes = {
             -- 获取物品配置信息
             local function get_items_config_info()
                 poe2_api.dbgp("开始解析物品过滤配置...")
-                local item_configs = config["物品過濾"] or {}
+                local item_configs = env.ItemFilter_info or {}
                 local processed_configs = {}
                 
                 for i, cfg in ipairs(item_configs) do
@@ -3698,7 +3708,7 @@ local custom_nodes = {
                                 end
                                 if cfg["物品詞綴"] and next(cfg["物品詞綴"]) then
                                     if get_cfg_entry(cfg["物品詞綴"]) then
-                                        if not poe2_api.filter_item(item, suffixes, config["物品過濾"] or {}) then
+                                        if not poe2_api.filter_item(item, suffixes, env.ItemFilter_info or {}) then
                                             poe2_api.dbgp("词缀不符合要求，标记为分解")
                                             return true
                                         end
@@ -4463,7 +4473,7 @@ local custom_nodes = {
                 return bret.SUCCESS
             end
             -- poe2_api.dbgp("888888888")
-            local items_info = poe2_api.get_items_config_info(env.user_config)
+            local items_info = poe2_api.get_items_config_info(env.ItemFilter_info)
             -- poe2_api.dbgp("9999999")
             local missing_plaque = get_missing_plaque()
             -- poe2_api.dbgp("101010101")
@@ -4957,7 +4967,7 @@ local custom_nodes = {
             --     -- return res
             -- end
             
-            local items_info = poe2_api.get_items_config_info(config)
+            local items_info = poe2_api.get_items_config_info(env.ItemFilter_info)
             local index = 0
             local warehouse_type_interactive = env.warehouse_type_interactive
             local godown_info = nil
@@ -6025,7 +6035,7 @@ local custom_nodes = {
             -- # 仓库类型
             local pages = {}
             if env.warehouse_type == game_str.Warehouse then
-                local items_info = poe2_api.get_items_config_info(config)
+                local items_info = poe2_api.get_items_config_info(env.ItemFilter_info)
                 local unique_storage_pages = {}
                 for _, item in ipairs(items_info) do
                     if item["類型"] == game_str.Refine and item['存倉頁名'] and not item["不撿"] and item["基礎類型名"] == "全部物品" and not item["工會倉庫"] then
@@ -6043,7 +6053,7 @@ local custom_nodes = {
                     pages = api_GetRepositoryPages(0)
                 end
             elseif env.warehouse_type == "工會倉庫" then
-                local items_info = poe2_api.get_items_config_info(config)
+                local items_info = poe2_api.get_items_config_info(env.ItemFilter_info)
                 local unique_storage_pages = {}
                 for _, item in ipairs(items_info) do
                     if item["類型"] == game_str.Refine and item['存倉頁名'] and not item["不撿"] and item["基礎類型名"] == "全部物品" and item["工會倉庫"] then
@@ -6468,7 +6478,7 @@ local custom_nodes = {
             local not_use_map = env.not_use_map
             local user_map = env.user_map
             local priority_map = env.priority_map
-            local items_info = poe2_api.get_items_config_info(config)
+            local items_info = poe2_api.get_items_config_info(env.ItemFilter_info)
             env.tower_do = false
             
             -- 判断两个键值对表是否相等
@@ -6940,7 +6950,7 @@ local custom_nodes = {
                                             if not a then
                                                 if poe2_api.table_contains(b.category_utf8,my_game_info.equip_type) and not b.not_identified then
                                                     local suffixes = api_GetObjectSuffix(b.mods_obj)
-                                                    if suffixes and next(suffixes) and not poe2_api.filter_item(b,suffixes,config["物品過濾"]) then
+                                                    if suffixes and next(suffixes) and not poe2_api.filter_item(b,suffixes,env.ItemFilter_info) then
                                                         break
                                                     end
                                                 end
@@ -7106,7 +7116,7 @@ local custom_nodes = {
                                             if not a then
                                                 if poe2_api.table_contains(b.category_utf8,my_game_info.equip_type) and not b.not_identified then
                                                     local suffixes = api_GetObjectSuffix(b.mods_obj)
-                                                    if suffixes and next(suffixes) and not poe2_api.filter_item(b,suffixes,config["物品過濾"]) then
+                                                    if suffixes and next(suffixes) and not poe2_api.filter_item(b,suffixes,env.ItemFilter_info) then
                                                         break
                                                     end
                                                 end
@@ -7206,7 +7216,7 @@ local custom_nodes = {
                 return bret.SUCCESS
             end
 
-            local items_info = poe2_api.get_items_config_info(config)
+            local items_info = poe2_api.get_items_config_info(env.ItemFilter_info)
             local unique_storage_pages = {}
             for _, v in ipairs(items_info) do
                 if v['存倉頁名'] and v['存倉頁名'] ~= "" and not v['工會倉庫'] and not v["不撿"] then
@@ -7461,7 +7471,7 @@ local custom_nodes = {
                 end
                 return false
             end
-            local items_info = poe2_api.get_items_config_info(config)
+            local items_info = poe2_api.get_items_config_info(env.ItemFilter_info)
             
             local page = {}
             local index = 0
@@ -8820,7 +8830,7 @@ local custom_nodes = {
 
             -- 获取所有地图仓库页配置
             local storage_pages = {}
-            for _, item in ipairs(poe2_api.get_items_config_info(config)) do
+            for _, item in ipairs(poe2_api.get_items_config_info(env.ItemFilter_info)) do
                 if item["類型"] and item["類型"] == game_str.Map_Key_CH and item["存倉頁名"] then
                     table.insert(storage_pages, {
                         name = item["存倉頁名"],
@@ -9531,7 +9541,7 @@ local custom_nodes = {
             local player_info = env.player_info
             local bag_info = env.bag_info
            
-            local processed_configs = poe2_api.get_items_config_info(config)
+            local processed_configs = poe2_api.get_items_config_info(env.ItemFilter_info)
             local Attachments = api_Getinventorys(0xd,0)
             -- 背包和附着物为空
             if (not bag_info or not next(bag_info)) and (not Attachments or not next(Attachments)) then
@@ -9670,7 +9680,7 @@ local custom_nodes = {
                                         if not suffixes or #suffixes == 0 then
                                             return {item}
                                         end
-                                        if not poe2_api.filter_item(item,suffixes,config["物品過濾"]) then
+                                        if not poe2_api.filter_item(item,suffixes,env.ItemFilter_info) then
                                             if is_decompose and type(is_decompose)~="table" then
                                                 if item.color == 3 and poe2_api.table_contains(item.category_utf8,my_game_info.equip_type) then
                                                     return false
@@ -10620,7 +10630,7 @@ local custom_nodes = {
                                              and not item.not_identified then
                                                 local suffixes = api_GetObjectSuffix(item.mods_obj)
                                                 if suffixes and next(suffixes) then
-                                                    if not poe2_api.filter_item(item,suffixes,config["物品過濾"]) then
+                                                    if not poe2_api.filter_item(item,suffixes,env.ItemFilter_info) then
                                                         poe2_api.dbgp("词缀不符合*******************************************")
                                                         break
                                                     end
@@ -10729,7 +10739,7 @@ local custom_nodes = {
                                                      and not item.not_identified then
                                                         local suffixes = api_GetObjectSuffix(item.mods_obj)
                                                         if suffixes and next(suffixes) then
-                                                            if not poe2_api.filter_item(item,suffixes,config["物品過濾"]) then
+                                                            if not poe2_api.filter_item(item,suffixes,env.ItemFilter_info) then
                                                                 poe2_api.dbgp("词缀不符合*******************************************")
                                                                 break
                                                             end
@@ -10891,7 +10901,7 @@ local custom_nodes = {
                 poe2_api.time_p("无物品可捡1(SUCCESS1)... 耗时 -->", api_GetTickCount64() - current_time )
                 return bret.SUCCESS
             end
-            local processed_configs = poe2_api.get_items_config_info(config)
+            local processed_configs = poe2_api.get_items_config_info(env.ItemFilter_info)
             if not need_item then
                 if not get_item(env.range_items,processed_configs) then
                     poe2_api.dbgp("无物品可捡2")
@@ -17473,7 +17483,7 @@ local custom_nodes = {
             poe2_api.dbgp("env.currency_name" , env.currency_name)
             -- api_Sleep(1000000)
             local config = env.user_config
-            local item_config = poe2_api.get_items_config_info(config)
+            local item_config = poe2_api.get_items_config_info(env.ItemFilter_info)
             local page = nil
             local type_ck = false -- false 为个仓  true 为公仓
             local map_object = env.strengthened_map_obj
@@ -17890,7 +17900,7 @@ local custom_nodes = {
             poe2_api.dbgp("开始处理移动逻辑...")
             local function get_items_config_info()
                 local config = env.user_config
-                local item_filters = config["物品過濾"] or {}
+                local item_filters = env.ItemFilter_info or {}
                 local processed_configs = {}
                 
                 for _, cfg in ipairs(item_filters) do
@@ -23477,7 +23487,7 @@ local custom_nodes = {
             env.strengthened_map_obj = max_map
             
             if text then
-                local items_info = poe2_api.get_items_config_info(config1)
+                local items_info = poe2_api.get_items_config_info(env.ItemFilter_info)
                 local is_text = nil
                 for _,item in ipairs(items_info) do
                     if item["類型"] == "通貨" and item['存倉頁名'] and not item["不撿"] and poe2_api.table_contains(item['基礎類型名'],text) then
@@ -23788,7 +23798,7 @@ local custom_nodes = {
             end
             
             if text then
-                local items_info = poe2_api.get_items_config_info(config)
+                local items_info = poe2_api.get_items_config_info(env.ItemFilter_info)
                 local is_text = nil
                 for _,item in ipairs(items_info) do
                     if item["類型"] == "通貨" and item['存倉頁名'] and not item["不撿"] and poe2_api.table_contains(item['基礎類型名'],text) then
@@ -23843,7 +23853,7 @@ local custom_nodes = {
             local map_level = poe2_api.select_best_map_key({inventory = env.bag_info,key_level_threshold=user_map,not_use_map = not_use_map,vall = true})
             if map_level then
                 poe2_api.dbgp("map_update_to-->",4)
-                if (map_level.color > 0 and map_level.fixedSuffixCount >= 4)  then
+                if (map_level.color > 0 and map_level.fixedSuffixCount >= 4) then
                     env.map_up = false
                     env.entry_length_take_map = false
                     env.the_update_map = nil
@@ -23892,7 +23902,7 @@ local custom_nodes = {
                 return bret.SUCCESS
             end
             local config = env.user_config
-            local items_info = poe2_api.get_items_config_info(config)
+            local items_info = poe2_api.get_items_config_info(env.ItemFilter_info)
             local is_text = nil
             for _,item in ipairs(items_info) do
                 if item["類型"] == "通貨" and item['存倉頁名'] and not item["不撿"] and poe2_api.table_contains(item['基礎類型名'],game_str.Exalted_Orb_TWCH) then
@@ -25069,7 +25079,7 @@ local custom_nodes = {
             -- end
             
             if text then
-                local items_info = poe2_api.get_items_config_info(config)
+                local items_info = poe2_api.get_items_config_info(env.ItemFilter_info)
                 local is_text = nil
                 for _,item in ipairs(items_info) do
                     if item["類型"] == "通貨" and item['存倉頁名'] and not item["不撿"] and poe2_api.table_contains(item['基礎類型名'],text) then
@@ -25133,7 +25143,7 @@ local custom_nodes = {
             -- local range_info = env.range_info
             local player_info = env.player_info
             local bag_info = env.bag_info
-            local processed_configs = poe2_api.get_items_config_info(config)
+            local processed_configs = poe2_api.get_items_config_info(env.ItemFilter_info)
             -- 是否需要丢弃
             local function get_not_item(items)
                 local function is_props(bag)
@@ -25228,7 +25238,7 @@ local custom_nodes = {
                                         -- if not suffixes or #suffixes == 0 then
                                         --     return {item}
                                         -- end
-                                        if not poe2_api.filter_item(item,suffixes,config["物品過濾"]) then
+                                        if not poe2_api.filter_item(item,suffixes,env.ItemFilter_info) then
                                             if is_decompose and type(is_decompose)~="table" then
                                                 if item.color == 3 and poe2_api.table_contains(item.category_utf8,my_game_info.equip_type) then
                                                     return false
@@ -25583,7 +25593,7 @@ local custom_nodes = {
                 return bret.SUCCESS
             end
             local config = env.user_config
-            local items_info = poe2_api.get_items_config_info(config)
+            local items_info = poe2_api.get_items_config_info(env.ItemFilter_info)
             for _,v in ipairs(items_info) do
                 if string.find(v["基礎類型名"],item) and v["類型"] == "通貨" and not v["不撿"] and v["存倉頁名"] and v["存倉頁名"] ~= "" then
                     if v["工會倉庫"] then
@@ -25702,7 +25712,7 @@ local custom_nodes = {
             -- poe2_api.dbgp("env.get_reserved_items" , env.get_reserved_items)
             -- api_Sleep(1000000)
             local config = env.user_config
-            local item_config = poe2_api.get_items_config_info(config)
+            local item_config = poe2_api.get_items_config_info(env.ItemFilter_info)
             local page = env.reserved_items_page
             local type_ck = false -- false 为个仓  true 为公仓
             local map_object = env.strengthened_map_obj
@@ -26348,6 +26358,36 @@ local plot_nodes = {
                 local config = poe2_api.load_config(json_path)
                 local skills_config = poe2_api.load_config(skills_path)
                 local user_info = poe2_api.load_ini(user_info_path)["UserInfo"]
+                if user_info["share_item_filter_enable"] and tonumber(user_info["share_item_filter_enable"]) == 1 and user_info["share_item_filter_path"] and user_info["share_item_filter_path"] ~= "" then
+                    -- error("共享config")
+                    ItemFilter_path = "[["..user_info["share_item_filter_path"].."\\ItemFilter.json".."]]"
+                    -- local share_config_path = poe2_api.unwrap(share_config_path)
+                    -- poe2_api.map_share_once(poe2_api.unwrap(share_config_path), "Z:")
+                    -- poe2_api.dbgp(share_config_path)
+                    -- local a = poe2_api.load_config1(share_config_path)
+                    -- poe2_api.dbgp(a)
+                    -- poe2_api.map_share_once([[\\DESKTOP-P2RBUQP\behavior3lua-master]], "Z:", "DESKTOP-P2RBUQP\\你的用户名", "你的密码", false)
+                    -- local shared_cfg = [[Z:\config.json]]
+                    -- local shared_cfg = [[Z:\config.json]]
+                    
+                    env.ItemFilter_info = poe2_api.load_config1(ItemFilter_path)
+                    if not env.ItemFilter_info or not next(env.ItemFilter_info) then
+                        error("共享路径下没有ItemFilter.json文件")
+                    end
+                    poe2_api.dbgp("共享文件")
+                else
+                    -- por
+                    local ItemFilter_info = poe2_api.load_config(ItemFilter_path)
+                    if ItemFilter_info then
+                        poe2_api.dbgp("本地文件22")
+                        env.ItemFilter_info = ItemFilter_info
+                    else
+                        poe2_api.dbgp("本地文件111")
+                        env.ItemFilter_info = config["物品過濾"]
+                    end
+                    poe2_api.dbgp("本地文件")
+                    -- config = poe2_api.load_config(json_path)
+                end
                 -- 玩法優先級
                 local map_priority = config["刷圖設置"]["玩法優先級"]
                 local map_sorted_items_sort = poe2_api.sort_map_by_key(map_priority)
@@ -26384,7 +26424,7 @@ local plot_nodes = {
                     result = {"祭祀碑牌","先行者碑牌","總督的先行者碑牌","裂痕碑牌","譫妄碑牌"}
                 end
                 env.stone_order = result
-                local item_filters = config["物品過濾"] or {}  -- 获取物品过滤配置数组
+                local item_filters = env.ItemFilter_info or {}  -- 获取物品过滤配置数组
                 -- 两种独立的分类表
                 local item_config_by_type = {}      -- 按【類型】分类
                 local item_config_by_base_type = {} -- 按【基礎類型名】分类
@@ -28513,7 +28553,7 @@ local plot_nodes = {
             local user_map = env.user_map
             local priority_map = env.priority_map
             local player_info = env.player_info
-            local items_info = poe2_api.get_items_config_info(config)
+            local items_info = poe2_api.get_items_config_info(env.ItemFilter_info)
             local current_map = api_GetTickCount64()
             -- 不在城区
             if not string.match(player_info.current_map_name_utf8, "own") then
@@ -29004,7 +29044,7 @@ local plot_nodes = {
                                             if not a then
                                                 if poe2_api.table_contains(b.category_utf8,my_game_info.equip_type) and not b.not_identified then
                                                     local suffixes = api_GetObjectSuffix(b.mods_obj)
-                                                    if suffixes and next(suffixes) and not poe2_api.filter_item(b,suffixes,config["物品過濾"]) then
+                                                    if suffixes and next(suffixes) and not poe2_api.filter_item(b,suffixes,env.ItemFilter_info) then
                                                         break
                                                     end
                                                 end
@@ -29169,7 +29209,7 @@ local plot_nodes = {
                                             if not a then
                                                 if poe2_api.table_contains(b.category_utf8,my_game_info.equip_type) and not b.not_identified then
                                                     local suffixes = api_GetObjectSuffix(b.mods_obj)
-                                                    if suffixes and next(suffixes) and not poe2_api.filter_item(b,suffixes,config["物品過濾"]) then
+                                                    if suffixes and next(suffixes) and not poe2_api.filter_item(b,suffixes,env.ItemFilter_info) then
                                                         break
                                                     end
                                                 end
@@ -29266,7 +29306,7 @@ local plot_nodes = {
                 poe2_api.time_p("是否存储物品（SUCCESS5）... 耗时 --> ", api_GetTickCount64() - start_time)
                 return bret.SUCCESS
             end
-            local items_info = poe2_api.get_items_config_info(config)
+            local items_info = poe2_api.get_items_config_info(env.ItemFilter_info)
             local unique_storage_pages = {}
             for _, v in ipairs(items_info) do
                 if v['存倉頁名'] and v['存倉頁名'] ~= "" and not v['工會倉庫'] and not v["不撿"] then
@@ -29469,7 +29509,7 @@ local plot_nodes = {
                 end
                 return false
             end
-            local items_info = poe2_api.get_items_config_info(config)
+            local items_info = poe2_api.get_items_config_info(env.ItemFilter_info)
 
             local page = {}
             local index = 0
@@ -29743,7 +29783,7 @@ local plot_nodes = {
             local player_info = env.player_info
             local bag_info = env.bag_info
            
-            local processed_configs = poe2_api.get_items_config_info(config)
+            local processed_configs = poe2_api.get_items_config_info(env.ItemFilter_info)
             local Attachments = api_Getinventorys(0xd,0)
             -- 背包和附着物为空
             if (not bag_info or not next(bag_info)) and (not Attachments or not next(Attachments)) then
@@ -29798,7 +29838,7 @@ local plot_nodes = {
                                 if not suffixes or #suffixes == 0 then
                                     return {item}
                                 end
-                                if not poe2_api.filter_item(item,suffixes,config["物品過濾"]) then
+                                if not poe2_api.filter_item(item,suffixes,env.ItemFilter_info) then
                                     if is_decompose and type(is_decompose)~="table" then
                                         if item.color == 3 and poe2_api.table_contains(item.category_utf8,my_game_info.equip_type) then
                                             return false
@@ -30629,7 +30669,7 @@ local plot_nodes = {
                                              and not item.not_identified then
                                                 local suffixes = api_GetObjectSuffix(item.mods_obj)
                                                 if suffixes and next(suffixes) then
-                                                    if not poe2_api.filter_item(item,suffixes,config["物品過濾"]) then
+                                                    if not poe2_api.filter_item(item,suffixes,env.ItemFilter_info) then
                                                         poe2_api.dbgp("词缀不符合*******************************************")
                                                         break
                                                     end
@@ -30698,7 +30738,7 @@ local plot_nodes = {
                 poe2_api.time_p("无物品可捡1(SUCCESS1)... 耗时 -->", api_GetTickCount64() - current_time )
                 return bret.SUCCESS
             end
-            local processed_configs = poe2_api.get_items_config_info(config)
+            local processed_configs = poe2_api.get_items_config_info(env.ItemFilter_info)
             if not need_item then
                 if not get_item(env.range_items,processed_configs) then
                     poe2_api.dbgp("无物品可捡2")
@@ -33635,8 +33675,8 @@ local plot_nodes = {
             local function processItem(item, player_info)
                 env.item_name = item.baseType_utf8
                 env.end_point = { item.grid_x, item.grid_y }
-                if api_HasObstacleBetween(item.grid_x, item.grid_y) and
-                    (poe2_api.point_distance(item.grid_x, item.grid_y, player_info) < 25or poe2_api.table_contains(item.baseType_utf8 , {"水之精髓","鍛造工具"})) then
+                if poe2_api.point_distance(item.grid_x, item.grid_y, player_info) < 25 and
+                    (api_HasObstacleBetween(item.grid_x, item.grid_y) or poe2_api.table_contains(item.baseType_utf8 , {"鍛造工具"})) then
                     return bret.FAIL
                 end
                 return bret.SUCCESS
@@ -34371,12 +34411,14 @@ local plot_nodes = {
                 end
                 local ladder = get_range_pos("樓梯")
                 if check_pos_dis("崛起之王．賈嫚拉") == nil and string.find(current_map, "G2_3") then
+                    poe2_api.dbgp("没有崛起之王．賈嫚拉")
                     return bret.SUCCESS
                 elseif poe2_api.find_text({ UI_info = UI_info, text = "樓梯", min_x = 0 }) and poe2_api.find_text({ UI_info = UI_info, text = "記錄點", min_x = 0}) then
                     self.louti = ladder[3]
                     return bret.SUCCESS
                 elseif not next_level() and ladder then
                     if self.louti ==  ladder[3] then
+                        poe2_api.dbgp("樓梯id相同")
                         return bret.SUCCESS
                     end
                     poe2_api.dbgp("点击楼梯")
@@ -34394,6 +34436,7 @@ local plot_nodes = {
                     return bret.RUNNING
                 end
             end
+            self.louti = nil
             poe2_api.time_p("=== '[Click_Leader_To_Teleport] ===",api_GetTickCount64() - current_time)
             return bret.SUCCESS
         end
@@ -35103,6 +35146,7 @@ local plot_nodes = {
                         return bret.RUNNING
                     end
                     if not check_pos_dis("崛起之王．賈嫚拉") and string.find(me_area, "G2_3$") then
+                        poe2_api.dbgp("没有崛起之王．賈嫚拉")
                         env.is_arrive_end = true
                         return bret.SUCCESS
                     elseif poe2_api.find_text({ UI_info = UI_info, text = "樓梯", min_x = 0 }) and poe2_api.find_text({ UI_info = UI_info, text = "記錄點", min_x = 0}) then
@@ -35137,6 +35181,7 @@ local plot_nodes = {
                         return bret.RUNNING
                     end
                 end
+                self.louti_id = nil
                 poe2_api.time_p("Is_Telepor3",(api_GetTickCount64() - current_time))
                 env.not_move = true
                 return bret.SUCCESS
@@ -35678,6 +35723,12 @@ local plot_nodes = {
             local items = env.bag_info
             local current_time = api_GetTickCount64()
             if player_info.current_map_name_utf8 == "G1_1" then
+                if poe2_api.find_text({UI_info = env.UI_info, text = "按下 <N>{<normal>{1}} 來使用生命藥劑。", min_x = 0}) then
+                    api_Sleep(500)
+                    poe2_api.click_keyboard("1")
+                    api_Sleep(500)
+                    return bret.RUNNING
+                end
                 poe2_api.dbgp('全部技能信息')
                 env.allskill_info = api_GetAllSkill()
                 poe2_api.dbgp('获取可选技能控件')
@@ -36200,8 +36251,10 @@ local plot_nodes = {
 
             -- 检查背包文本
             if not poe2_api.find_text({text = "背包",UI_info = env.UI_info, min_x = 1020,min_y=32,max_x=1600,max_y=81}) then
+                api_Sleep(500)
                 poe2_api.dbgp("未找到背包文本，按下I键打开背包")
                 poe2_api.click_keyboard("i")
+                api_Sleep(500)
                 return bret.RUNNING
             else
                 poe2_api.dbgp("已找到背包文本")

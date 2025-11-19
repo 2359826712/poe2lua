@@ -547,7 +547,7 @@ local main_task= {
         },
         ['和札卡交談'] = {
             map_name = 'G2_1',
-            interaction_object = {'札卡', '阿杜拉車隊'},
+            interaction_object = {'札卡'},
             interaction_object_map_name = {'札卡'},
             index = 92
         },

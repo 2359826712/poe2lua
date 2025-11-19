@@ -2844,8 +2844,24 @@ _M.get_map = function(params)
                 return -1
             end
             if _M.table_contains(map_data.name_cn_utf8, {game_str.MapUniqueParadise_TWCH, game_str.MapUniqueLake_TWCH, game_str.MapUniqueWildwood_TWCH, game_str.MapUniqueSelenite_TWCH, game_str.MapUniqueMegalith_TWCH}) then
-                return 9999
+                -- _M.dbgp("[DEBUG] 是純净樂園，得分: 9999")
+                local map_level = _M.select_best_map_key({
+                    inventory = bag_info,
+                    key_level_threshold = key_level_threshold,
+                    not_use_map = not_use_map,
+                    priority_map = priority_map,
+                    min_level = 11
+                })
+                if map_level then
+                    map_level = _M.extract_key_level(map_level.baseType_utf8)
+                    if map_level and map_level < 11 then
+                        return -1
+                    else
+                        return 9999
+                    end
+                end
             end
+            -- _M.dbgp("[DEBUG] 不是純净樂園，得分: -1")
             return -1
         end
         if not_enter_map and
@@ -6683,7 +6699,7 @@ end
 
 -- 读取配置文件中物品过滤，并优化
 _M.get_items_config_info = function(config)
-    local item_congif_list = config["物品過濾"]
+    local item_congif_list = config
     local processed_configs = {}
     
     for _, v in ipairs(item_congif_list) do
