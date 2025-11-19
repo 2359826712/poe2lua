@@ -35183,7 +35183,7 @@ local plot_nodes = {
                         return bret.RUNNING
                     end
                 end
-                if not poe2_api.table_contains(current_map, { "G1_15", "G2_3"}) then
+                if not poe2_api.table_contains(me_area, { "G1_15", "G2_3"}) then
                     self.louti_id = nil
                 end
                 poe2_api.time_p("Is_Telepor3",(api_GetTickCount64() - current_time))
