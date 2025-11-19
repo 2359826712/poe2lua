@@ -24681,7 +24681,7 @@ local custom_nodes = {
                 local items = get_not_map()
                 local click_counter = 0
                 local player_info = env.player_info 
-                if items and not poe2_api.table_contains({items.name_utf8}, not_enter_map) and not poe2_api.table_contains({items.name_utf8}, my_game_info.hideout) then
+                if items and not poe2_api.table_contains({items.name_utf8}, env.not_enter_map) and not poe2_api.table_contains({items.name_utf8}, my_game_info.hideout) and poe2_api.table_contains(env.player_info.current_map_name_utf8,my_game_info.hideout) then
                     return bret.FAIL
                 end
             end
@@ -24710,7 +24710,7 @@ local custom_nodes = {
                 local rand_x = 14 + math.random(-7, 7)
                 local rand_y = leader_teleport_point[2] + 21 + math.random(-7, 7)
                 api_ClickScreen(poe2_api.toInt(rand_x), poe2_api.toInt(rand_y), 1)
-                api_Sleep(1500)
+                api_Sleep(5000)
                 return bret.RUNNING
             end
             -- end
@@ -28005,7 +28005,7 @@ local plot_nodes = {
             end
             
             -- 检查是否在安全区域
-            if poe2_api.table_contains(my_game_info.hideout, player.current_map_name_utf8) or 
+            if poe2_api.table_contains(my_game_info.city_hideout, player.current_map_name_utf8) or 
             string.find(player.current_map_name_utf8, "own") then
                 poe2_api.dbgp("在安全区域，跳过检查")
                 return bret.SUCCESS
@@ -29791,7 +29791,7 @@ local plot_nodes = {
                 poe2_api.time_p("物品丢弃（SUCCESS1）... 耗时 --> ", api_GetTickCount64() - start_time)
                 return bret.SUCCESS 
             end
-            if poe2_api.table_contains(player_info.current_map_name_utf8,my_game_info.hideout) or player_info.current_map_name_utf8 == "G1_1" then
+            if poe2_api.table_contains(player_info.current_map_name_utf8,my_game_info.city_hideout) or player_info.current_map_name_utf8 == "G1_1" then
                 poe2_api.dbgp("在城镇不丢弃")
                 return bret.SUCCESS     
             end
@@ -30128,7 +30128,7 @@ local plot_nodes = {
                 player_info.current_map_name_utf8 or "未知", 
                 tostring(player_info.isInDangerArea)))
             
-            if poe2_api.table_contains(player_info.current_map_name_utf8, my_game_info.hideout) then
+            if poe2_api.table_contains(player_info.current_map_name_utf8, my_game_info.city_hideout) then
                 return bret.SUCCESS
             end
 
@@ -30535,7 +30535,7 @@ local plot_nodes = {
             end
 
             if (poe2_api.is_have_mos({range_info = env.range_info, player_info = player_info}) and 
-                (poe2_api.table_contains(my_game_info.hideout_CH, player_info.current_map_name_utf8) or 
+                (poe2_api.table_contains(my_game_info.city_hideout_CH, player_info.current_map_name_utf8) or 
                 string.find(player_info.current_map_name_utf8, "own"))) then
                 poe2_api.dbgp("警告: 安全区域发现怪物，暂停鉴定")
                 return bret.SUCCESS
@@ -30856,7 +30856,7 @@ local plot_nodes = {
                     if not point and not player_info.isInBossBattle then
                         poe2_api.dbgp("背包空间不足，回城")
                         for _, i in ipairs(env.range_info) do
-                            if i.name_utf8 ~= "" and i.type == 5 and poe2_api.table_contains(i.name_utf8,my_game_info.hideout_CH) then
+                            if i.name_utf8 ~= "" and i.type == 5 and poe2_api.table_contains(i.name_utf8,my_game_info.city_hideout_CH) then
                                 local dis = poe2_api.point_distance(i.grid_x, i.grid_y, player_info)
                                 if dis and dis < 25 then
                                     poe2_api.find_text({text = i.name_utf8,UI_info = env.UI_info,min_x=0,max_x= 1350,click=2})
@@ -30887,7 +30887,7 @@ local plot_nodes = {
                     end
                     local bool = false
                     for _, i in ipairs(env.range_info) do
-                        if i.name_utf8 ~= "" and i.type == 5 and poe2_api.table_contains(i.name_utf8,my_game_info.hideout_CH) then
+                        if i.name_utf8 ~= "" and i.type == 5 and poe2_api.table_contains(i.name_utf8,my_game_info.city_hideout_CH) then
                             local dis = poe2_api.point_distance(i.grid_x, i.grid_y, need_item)
                             if dis and dis < 25 then
                                 bool = true
@@ -30898,7 +30898,7 @@ local plot_nodes = {
                     poe2_api.dbgp("是否在隐藏点: "..tostring(bool))
                     if bool then
                         for _, v in ipairs(env.range_info) do
-                            if v.name_utf8 ~= "" and v.type == 5 and poe2_api.table_contains(v.name_utf8,my_game_info.hideout_CH) then
+                            if v.name_utf8 ~= "" and v.type == 5 and poe2_api.table_contains(v.name_utf8,my_game_info.city_hideout_CH) then
                                 local dis = poe2_api.point_distance(v.grid_x, v.grid_y, player_info)
                                 if dis and dis < 25 then
                                     local point = api_FindRandomWalkablePosition(math.floor(player_info.grid_x),math.floor(player_info.grid_y),70)
@@ -30980,7 +30980,7 @@ local plot_nodes = {
                     end
                     local bool = false
                     for _, i in ipairs(env.range_info) do
-                        if i.name_utf8 ~= "" and i.type == 5 and poe2_api.table_contains(i.name_utf8,my_game_info.hideout_CH) then
+                        if i.name_utf8 ~= "" and i.type == 5 and poe2_api.table_contains(i.name_utf8,my_game_info.city_hideout_CH) then
                             local dis = poe2_api.point_distance(i.grid_x, i.grid_y, need_item)
                             if dis and dis < 25 then
                                 bool = true
@@ -30990,7 +30990,7 @@ local plot_nodes = {
                     end
                     if bool then
                         for _, v in ipairs(env.range_info) do
-                            if v.name_utf8 ~= "" and v.type == 5 and poe2_api.table_contains(v.name_utf8,my_game_info.hideout_CH) then
+                            if v.name_utf8 ~= "" and v.type == 5 and poe2_api.table_contains(v.name_utf8,my_game_info.city_hideout_CH) then
                                 local dis = poe2_api.point_distance(v.grid_x, v.grid_y, player_info)
                                 if dis and dis < 30 then
                                     local point = api_FindRandomWalkablePosition(math.floor(player_info.grid_x),math.floor(player_info.grid_y),70)
@@ -39399,7 +39399,7 @@ local plot_nodes = {
                 poe2_api.dbgp("检测到boss")
                 return bret.RUNNING
             end
-            if poe2_api.table_contains(current_map,my_game_info.hideout) then
+            if poe2_api.table_contains(current_map,my_game_info.city_hideout) then
                 poe2_api.dbgp("在城镇")
                 return bret.RUNNING
             end
@@ -39711,7 +39711,7 @@ local plot_nodes = {
             end
 
             -- 安全区域特殊处理
-            if poe2_api.table_contains(my_game_info.hideout, player_info.current_map_name_utf8) then
+            if poe2_api.table_contains(my_game_info.city_hideout, player_info.current_map_name_utf8) then
                 poe2_api.dbgp("当前位于安全区域")
                 self.once_check = false
                 -- 检测地图启动失败情况
@@ -39932,7 +39932,7 @@ local plot_nodes = {
 
                 poe2_api.dbgp("点击交互对象")
                 
-                if poe2_api.table_contains(my_game_info.hideout, player_info.current_map_name_utf8) then
+                if poe2_api.table_contains(my_game_info.city_hideout, player_info.current_map_name_utf8) then
                     api_Sleep(1500)
                 end
                 poe2_api.dbgp("111111111")
@@ -39959,7 +39959,7 @@ local plot_nodes = {
                     -- end
                 end
                 poe2_api.dbgp("33333333333")
-                if poe2_api.table_contains(my_game_info.hideout, player_info.current_map_name_utf8) and target_obj.name_utf8 ~= game_str.Transfer_point_CH and not map_obj then
+                if poe2_api.table_contains(my_game_info.city_hideout, player_info.current_map_name_utf8) and target_obj.name_utf8 ~= game_str.Transfer_point_CH and not map_obj then
                     poe2_api.find_text({UI_info = env.UI_info, text = interactive_object, click = 2, refresh = true})
                     api_Sleep(100)
                     return bret.RUNNING

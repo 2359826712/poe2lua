@@ -180,7 +180,7 @@ local my_game_info = {
         "皆伐營地", "阿杜拉車隊", "高地神塔營地",
         "城鎮傳送門","金司馬區","庇護所","卡里市集","林間空地"
     },
-    hideout_CH = {
+    city_hideout_CH = {
         "高地神塔庇護所", "藏身處：運河", "藏身處：神殿",
         "藏身處：石灰岩", "藏身處：殞落", "藏身處：無畏隊",
         "藏身處：扭曲", "藏身處：瓦斯提里競技場",
@@ -188,11 +188,26 @@ local my_game_info = {
         "高地神塔營地","城鎮傳送門","藏身處：海岸線","藏身處：眾神高原",
         "靈魂之井"
     },
-    hideout = {
+    city_hideout = {
         "G_Endgame_Town", "HideoutFelled", "HideoutShrine", "HideoutLimestone",
         "HideoutCanal", "HideoutDreadnought", "HideoutTwisted",
         "HideoutRacetrack", "HideoutBeaconOfSalvation", "G1_town", "G2_town",
         "G3_town", "G4_town", "P1_Town", "P2_Town","P3_Town","HideoutShoreline","HideoutSummit",
+        "Abyss_Hub"
+    },
+    hideout_CH = {
+        "高地神塔庇護所", "藏身處：運河", "藏身處：神殿",
+        "藏身處：石灰岩", "藏身處：殞落", "藏身處：無畏隊",
+        "藏身處：扭曲", "藏身處：瓦斯提里競技場",
+        "藏身處：救贖烽塔","阿杜拉車隊",
+        "高地神塔營地","藏身處：海岸線","藏身處：眾神高原",
+        "靈魂之井"
+    },
+    hideout = {
+        "G_Endgame_Town", "HideoutFelled", "HideoutShrine", "HideoutLimestone",
+        "HideoutCanal", "HideoutDreadnought", "HideoutTwisted",
+        "HideoutRacetrack", "HideoutBeaconOfSalvation", "G2_town",
+        "HideoutShoreline","HideoutSummit",
         "Abyss_Hub"
     },
 
