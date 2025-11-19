@@ -1772,7 +1772,7 @@ local custom_nodes = {
                 end
             end  
             poe2_api.dbgp("完成")
-            if not env.is_invitation and poe2_api.find_text({UI_info = env.UI_info, text = game_str.Private_message, add_x = 265, min_x = 0, max_x = 400, click = 2}) then
+            if not env.is_invitation and poe2_api.find_text({UI_info = env.UI_info, text = game_str.Private_message, add_x = 265, min_x = 0, max_x = 900, click = 2}) then
                 api_Sleep(1000)
                 return bret.RUNNING
             end
@@ -12397,7 +12397,7 @@ local custom_nodes = {
                     end
                 end
 
-                if poe2_api.find_text({UI_info = env.UI_info, text = game_str.Private_message, add_x = 265, min_x = 0, max_x = 400, click = 2}) then
+                if poe2_api.find_text({UI_info = env.UI_info, text = game_str.Private_message, add_x = 265, min_x = 0, max_x = 900, click = 2}) then
                     return bret.RUNNING
                 end
 
@@ -12691,7 +12691,7 @@ local custom_nodes = {
                 end
             end
 
-            if poe2_api.find_text({UI_info = env.UI_info, text = game_str.Private_message, add_x = 265, min_x = 0, max_x = 400, click = 2}) then
+            if poe2_api.find_text({UI_info = env.UI_info, text = game_str.Private_message, add_x = 265, min_x = 0, max_x = 900, click = 2}) then
                 return bret.RUNNING
             end
 
@@ -26179,7 +26179,7 @@ local custom_nodes = {
                     end
                     local not_team_name = not_team()
                     if not_team_name then
-                        if not poe2_api.find_text({UI_info = env.UI_info, text = game_str.Private_message, min_x = 0, max_x = 400}) then
+                        if not poe2_api.find_text({UI_info = env.UI_info, text = game_str.Private_message, min_x = 0, max_x = 900}) then
                             poe2_api.click_keyboard("enter")
                             api_Sleep(500)
                             -- self.invitation_time = api_GetTickCount64()
@@ -26196,7 +26196,7 @@ local custom_nodes = {
                     for _,name in ipairs(env.team_member_list) do
                         if not poe2_api.table_contains(name,env.invited_team_members) then
                             if not is_agree(name) then
-                                if not poe2_api.find_text({UI_info = env.UI_info, text = game_str.Private_message, min_x = 0, max_x = 400}) then
+                                if not poe2_api.find_text({UI_info = env.UI_info, text = game_str.Private_message, min_x = 0, max_x = 900}) then
                                     poe2_api.click_keyboard("enter")
                                     api_Sleep(1000)
                                     -- self.invitation_time = api_GetTickCount64()
@@ -26219,7 +26219,7 @@ local custom_nodes = {
                 else
                     for _,name in ipairs(env.team_member_list) do
                         if not poe2_api.table_contains(name,env.invited_team_members) then
-                            if not poe2_api.find_text({UI_info = env.UI_info, text = game_str.Private_message, min_x = 0, max_x = 400}) then
+                            if not poe2_api.find_text({UI_info = env.UI_info, text = game_str.Private_message, min_x = 0, max_x = 900}) then
                                 poe2_api.click_keyboard("enter")
                                 api_Sleep(1000)
                                 -- self.invitation_time = api_GetTickCount64()
@@ -26286,7 +26286,7 @@ local custom_nodes = {
                 local bool1 = get_captain(env.leader_name)
                 if bool1 then
                     poe2_api.dbgp("不是目标队伍，退队")
-                    if not poe2_api.find_text({UI_info = env.UI_info, text = game_str.Private_message, min_x = 0, max_x = 400}) then
+                    if not poe2_api.find_text({UI_info = env.UI_info, text = game_str.Private_message, min_x = 0, max_x = 900}) then
                         poe2_api.click_keyboard("enter")
                         api_Sleep(500)
                         -- self.invitation_time = api_GetTickCount64()
@@ -34436,7 +34436,9 @@ local plot_nodes = {
                     return bret.RUNNING
                 end
             end
-            self.louti = nil
+            if not poe2_api.table_contains(current_map, { "G1_15", "G2_3"}) then
+                self.louti = nil
+            end
             poe2_api.time_p("=== '[Click_Leader_To_Teleport] ===",api_GetTickCount64() - current_time)
             return bret.SUCCESS
         end
@@ -35181,7 +35183,9 @@ local plot_nodes = {
                         return bret.RUNNING
                     end
                 end
-                self.louti_id = nil
+                if not poe2_api.table_contains(current_map, { "G1_15", "G2_3"}) then
+                    self.louti_id = nil
+                end
                 poe2_api.time_p("Is_Telepor3",(api_GetTickCount64() - current_time))
                 env.not_move = true
                 return bret.SUCCESS
