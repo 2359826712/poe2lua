@@ -781,6 +781,15 @@ local custom_nodes = {
                 local pid = api_EnumProcess(process_name)
                 
                 if pid and next(pid) and pid[1]~=0 then
+                    local lock = poe2_api.get_game_control_by_rect({UI_info = env.UI_info,min_x = 1543,min_y = 4,max_x = 1589,max_y = 52})
+                    if lock and next(lock) then
+                        api_ClickScreen(poe2_api.toInt((lock[1].left+lock[1].right)/2),poe2_api.toInt((lock[1].top+lock[1].bottom)/2) , 1)
+                        api_Sleep(2000)
+                        if lock[1].name_utf8 == "exit_button" then
+                            env.error_kill = false
+                        end
+                        return bret.RUNNING
+                    end
                     if not poe2_api.find_text({UI_info = env.UI_info, text = game_str.Leave_the_game,min_x = 750 ,max_x = 840,max_y = 550}) then
                         poe2_api.click_keyboard("esc")
                         api_Sleep(1000)
@@ -3153,7 +3162,7 @@ local custom_nodes = {
                         
                         if poe2_api.find_text({UI_info = env.UI_info, text = game_str.backpack,min_x = 1020,min_y=32,max_x=1600,max_y=78}) then
                             poe2_api.dbgp("检测到背包文字，将执行点击操作")
-                            api_ClickScreen(point[1], point[2])
+                            api_ClickScreen(point[1], point[2],0)
                             api_Sleep(100)
                             api_ClickScreen(point[1], point[2],1)
                             api_Sleep(500)
@@ -8089,7 +8098,7 @@ local custom_nodes = {
             for _, v in ipairs(map_config) do
                 table.insert(tiers,v["階級"])
             end
-            local map = api_GetInventoryItemsInRect(238,215,563,508)
+            local map = api_GetInventoryItemsInRect(poe2_api.toInt(238),poe2_api.toInt(215),poe2_api.toInt(563),poe2_api.toInt(508))
             poe2_api.printTable(map)
             -- api_Sleep(1000000)
             if map and next(map) then
@@ -8494,7 +8503,7 @@ local custom_nodes = {
                             }) 
                             api_Sleep(1000)
                             -- 获取仓库物品
-                            local items = api_GetInventoryItemsInRect(5, 95, 545, 640)
+                            local items = api_GetInventoryItemsInRect(poe2_api.toInt(5), poe2_api.toInt(95), poe2_api.toInt(545), poe2_api.toInt(640))
                             if poe2_api.ctrl_left_click_interface_items(env.special_map_type, items) then
                                 if is_guid then
                                     api_Sleep(1000)
@@ -8533,7 +8542,7 @@ local custom_nodes = {
                             }) 
                             api_Sleep(1000)
                             -- 获取仓库物品
-                            local items = api_GetInventoryItemsInRect(5, 95, 545, 640)
+                            local items = api_GetInventoryItemsInRect(poe2_api.toInt(5), poe2_api.toInt(95), poe2_api.toInt(545), poe2_api.toInt(640))
                             if poe2_api.ctrl_left_click_interface_items(env.special_map_type, items) then
                                 if is_guid then
                                     api_Sleep(1000)
@@ -9146,7 +9155,7 @@ local custom_nodes = {
                                     api_Sleep(1000)
                                     -- poe2_api.dbgp("==================================")
                                     
-                                    map_table = api_GetInventoryItemsInRect(15,268,545,640)
+                                    map_table = api_GetInventoryItemsInRect(poe2_api.toInt(15),poe2_api.toInt(268),poe2_api.toInt(545),poe2_api.toInt(640))
                                     -- poe2_api.printTable(map_table)
                                     -- poe2_api.dbgp("==================================")
                                     
@@ -9220,7 +9229,7 @@ local custom_nodes = {
                                             api_ClickScreen(k, 269, 1)
                                             api_Sleep(1000)
     
-                                            map_table = api_GetInventoryItemsInRect(15,268,545,640)
+                                            map_table = api_GetInventoryItemsInRect(poe2_api.toInt(15),poe2_api.toInt(268),poe2_api.toInt(545),poe2_api.toInt(640))
                                             -- poe2_api.printTable(map_table)
                                             -- poe2_api.dbgp("==================================")
                                             
@@ -10676,6 +10685,9 @@ local custom_nodes = {
                                 break
                             end
                             if is_pick_up_mandatory_retention(item) then
+                                if env.pick_up_timeout and next(env.pick_up_timeout) and poe2_api.table_contains(item.id,env.pick_up_timeout) then
+                                    break
+                                end
                                 env.interactive = item
                                 env.need_item = item
                                 return true
@@ -12609,7 +12621,7 @@ local custom_nodes = {
                         
                         if poe2_api.find_text({UI_info = env.UI_info, text = game_str.backpack,min_x = 1020,min_y=32,max_x=1600,max_y=78}) then
                             poe2_api.dbgp("检测到背包文字，将执行点击操作")
-                            api_ClickScreen(point[1], point[2])
+                            api_ClickScreen(point[1], point[2],0)
                             api_Sleep(100)
                             api_ClickScreen(point[1], point[2],1)
                             api_Sleep(500)
@@ -15191,7 +15203,7 @@ local custom_nodes = {
                                             --    )
                                             --    api_Sleep(500)
                                             --end
-                                            local items = api_GetInventoryItemsInRect(center_x - 210,center_y - 290,center_x + 160,center_y + 20)
+                                            local items = api_GetInventoryItemsInRect(poe2_api.toInt(center_x - 210),poe2_api.toInt(center_y - 290),poe2_api.toInt(center_x + 160),poe2_api.toInt(center_y + 20))
                                             local map_item = nil
                                             for i,v in ipairs(items) do 
                                                 if v.baseType_utf8 == map_level.baseType_utf8 and v.category_utf8 == map_level.category_utf8 and v.not_identified == map_level.not_identified and v.fixedSuffixCount == map_level.fixedSuffixCount and v.color == map_level.color then
@@ -15367,7 +15379,7 @@ local custom_nodes = {
                                         local max_x = a[3] + 70
                                         local max_y = a[2] - 9
                                         
-                                        local map = api_GetInventoryItemsInRect(min_x, min_y, max_x, max_y)
+                                        local map = api_GetInventoryItemsInRect(poe2_api.toInt(min_x), poe2_api.toInt(min_y), poe2_api.toInt(max_x), poe2_api.toInt(max_y))
                                         
                                         -- 按照 x 坐标排序
                                         table.sort(map, function(a, b)
@@ -16900,7 +16912,7 @@ local custom_nodes = {
                                 if not poe2_api.table_contains(player_info.current_map_name_utf8,my_game_info.PRIORITY_MAPS) or (poe2_api.table_contains(player_info.current_map_name_utf8,my_game_info.PRIORITY_MAPS) and not poe2_api.find_text({text = game_str.Map_completed_TWCH})) then
                                     if not is_Delirium_completed(item) then
                                         poe2_api.dbgp("小地图对象中迷雾镜子----------------------------2")
-                                        api_UpdateMapObstacles(env.radius * 2)
+                                        api_UpdateMapObstacles(poe2_api.toInt(env.radius * 2))
                                         env.minimap_info = item
                                         env.end_point = {item.grid_x, item.grid_y}
                                         return true
@@ -17203,7 +17215,7 @@ local custom_nodes = {
 
             -- if current_time - self.last_action_time >= self.action_interval then
             if current_time - self.last_action_time >= 10 then
-                point = api_GetUnexploredArea(env.radius)
+                point = api_GetUnexploredArea(poe2_api.toInt(env.radius))
                 if player_info.current_map_name_utf8 == game_str.Abyss_Pinnacle_MDANA then
                     local function return_to_town_judgment()
                         local num = 0
@@ -17428,7 +17440,7 @@ local custom_nodes = {
                         -- api_Sleep(1500)
                         poe2_api.dbgp("重置地图信息")
                         api_RestoreOriginalMap()
-                        api_UpdateMapObstacles(env.radius * 2)
+                        api_UpdateMapObstacles(poe2_api.toInt(env.radius * 2))
                         self.false_times = self.false_times + 4000
                         env.false_times = (env.false_times or 0) + 1
                         self.last_action_time = current_time + 4000
@@ -17607,7 +17619,7 @@ local custom_nodes = {
                         if poe2_api.table_contains(precut_page.type,{0,1}) then
                             point = poe2_api.get_center_position_store({item.start_x,item.start_y},{item.end_x,item.end_y})
                         elseif precut_page.type == 3 then
-                            local item_list = api_GetInventoryItemsInRect(17,109,536,626)
+                            local item_list = api_GetInventoryItemsInRect(poe2_api.toInt(17),poe2_api.toInt(109),poe2_api.toInt(536),poe2_api.toInt(626))
                             local function get_item_point()
                                 for _,v in ipairs(item_list) do
                                     if v.baseType_utf8 == item.baseType_utf8 then
@@ -17697,7 +17709,7 @@ local custom_nodes = {
                                 return false
                             end
                         end
-                        local item_list = api_GetInventoryItemsInRect(17,109,536,626)
+                        local item_list = api_GetInventoryItemsInRect(poe2_api.toInt(17),poe2_api.toInt(109),poe2_api.toInt(536),poe2_api.toInt(626))
                         local function get_item_point()
                             for _,v in ipairs(item_list) do
                                 if v.baseType_utf8 == item.baseType_utf8 then
@@ -24532,7 +24544,7 @@ local custom_nodes = {
                     end
                     poe2_api.dbgp("----点击移动---- 耗时 -->", api_GetTickCount64() - start_time)
                     if not string.find(player_info.current_map_name_utf8,game_str.Claimable_EN) and not string.find(player_info.current_map_name_utf8,game_str.Delirium_) then
-                        api_SetExplorationArea(env.radius)
+                        api_SetExplorationArea(poe2_api.toInt(env.radius))
                     end
 
                     self.last_move_time = current_time
@@ -24688,6 +24700,12 @@ local custom_nodes = {
 
             if poe2_api.find_text({UI_info = env.UI_info, text = game_str.Return_to_the_surface_TWCH,min_x = 0,min_y = 0,add_x = -50, click = 2}) then
                 api_Sleep(1000)
+                return bret.RUNNING
+            end
+            if poe2_api.find_text({UI_info = env.UI_info, text = "社交", min_x = 0, min_y = 32, max_x = 381, max_y = 78}) then
+                poe2_api.click_keyboard("j")
+                api_Sleep(1000)
+                -- poe2_api.time_p("Team", api_GetTickCount64() - current_time)
                 return bret.RUNNING
             end
 
@@ -25836,7 +25854,7 @@ local custom_nodes = {
                         if poe2_api.table_contains(precut_page.type,{0,1}) then
                             point = poe2_api.get_center_position_store({item.start_x,item.start_y},{item.end_x,item.end_y})
                         elseif precut_page.type == 3 then
-                            local item_list = api_GetInventoryItemsInRect(17,109,536,626)
+                            local item_list = api_GetInventoryItemsInRect(poe2_api.toInt(17),poe2_api.toInt(109),poe2_api.toInt(536),poe2_api.toInt(626))
                             local function get_item_point()
                                 for _,v in ipairs(item_list) do
                                     if v.baseType_utf8 == item.baseType_utf8 then
@@ -25926,7 +25944,7 @@ local custom_nodes = {
                                 return false
                             end
                         end
-                        local item_list = api_GetInventoryItemsInRect(17,109,536,626)
+                        local item_list = api_GetInventoryItemsInRect(poe2_api.toInt(17),poe2_api.toInt(109),poe2_api.toInt(536),poe2_api.toInt(626))
                         local function get_item_point()
                             for _,v in ipairs(item_list) do
                                 if v.baseType_utf8 == item.baseType_utf8 then
@@ -26748,6 +26766,15 @@ local plot_nodes = {
                 local pid = api_EnumProcess(process_name)
 
                 if pid and next(pid) and pid[1] ~= 0 then
+                    local lock = poe2_api.get_game_control_by_rect({UI_info = env.UI_info,min_x = 1543,min_y = 4,max_x = 1589,max_y = 52})
+                    if lock and next(lock) then
+                        api_ClickScreen(poe2_api.toInt((lock[1].left+lock[1].right)/2),poe2_api.toInt((lock[1].top+lock[1].bottom)/2) , 1)
+                        api_Sleep(2000)
+                        if lock[1].name_utf8 == "exit_button" then
+                            env.error_kill = false
+                        end
+                        return bret.RUNNING
+                    end
                     -- api_SetWindowState(env.game_window, 13)
                     if not poe2_api.find_text({UI_info = env.UI_info, text = game_str.Leave_the_game,min_x = 750 ,max_x = 840,max_y = 550}) then
                         poe2_api.click_keyboard("esc")
@@ -38800,6 +38827,10 @@ local plot_nodes = {
             if team_member_2 == "大号名称" and poe2_api.table_contains("黑衣幽魂", interaction_object) then
                 return bret.RUNNING
             end
+            if team_member_2 == "大号名称" and poe2_api.table_contains("馬提奇", interaction_object) then
+                env.is_not_ui = true
+                return bret.RUNNING
+            end
             if team_member_2 == "小號名" and poe2_api.table_contains(interaction_object[1],{"石陣祭壇"}) then
                 env.is_not_ui = true
                 return bret.RUNNING
@@ -39784,7 +39815,7 @@ local plot_nodes = {
 
                         if poe2_api.find_text("背包") then
                             poe2_api.dbgp("检测到背包文字，将执行点击操作")
-                            api_ClickScreen(point[1], point[2])
+                            api_ClickScreen(point[1], point[2],0)
                             api_Sleep(100)
                             api_ClickScreen(point[1], point[2], 1)
                             api_Sleep(500)
