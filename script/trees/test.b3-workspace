@@ -57,6 +57,10 @@
       "desc": ""
     },
     {
+      "path": "shout_level_2.json",
+      "desc": ""
+    },
+    {
       "path": "story_complete.json",
       "desc": ""
     }
