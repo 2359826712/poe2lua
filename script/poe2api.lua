@@ -7317,175 +7317,154 @@ _M.items_not_identified = function(bag_info)
     return not_identified_items  -- 返回未鉴定物品名称列表
 end
 
--- 获取空格位置（动态参数版本）
--- 参数表 fields:
---   width: 物品宽（必须）
---   height: 物品高（必须）
---   w: 容器排(默认5)
---   h: 容器列(默认12)
---   click: 是否点击(默认0)
---   gox: 容器左上角坐标x(默认1059)
---   goy: 容器左上角坐标y(默认492)
---   grid_x: 格子宽(默认43.81)
---   grid_y: 格子高(默认43.81)
---   index: 背包查询参数(默认1)
---   info: 可选背包信息(默认nil)
---   ret_number: false: 返回空间数量(默认fasle)
+-- 获取空格位置（动态参数版，已统一索引/越界保护/点击）
+-- params:
+--   width,height : 物品占用的格子宽高（必填，单位=格）
+--   w,h          : 容器列数/行数，默认 12 列 x 5 行（注意：w=列、h=行）
+--   click        : 是否点击 1/0，默认 0
+--   gox,goy      : 容器左上角像素坐标，默认 1059, 492
+--   grid_x,y     : 每格像素宽高，默认 43.81, 43.81
+--   index        : 背包查询参数，默认 1（api_Getinventorys(index,0)）
+--   info         : 传已缓存的背包信息（可选，nil 则自己读取）
+--   ret_number   : true 返回空闲格数量，否则返回点击结果/坐标，默认 false
 _M.get_space_point = function(params)
-    -- 参数校验和默认值设置
-    assert(params.width and params.height, "必须提供width和height参数")
-    
-    local width = params.width
-    local height = params.height
-    local w = params.w or 5
-    local h = params.h or 12
-    local click = params.click or 0
-    local gox = params.gox or 1059
-    local goy = params.goy or 492
-    local grid_x = params.grid_x or 43.81
-    local grid_y = params.grid_y or 43.81
-    local index = params.index or 1
-    local info = params.info or nil
+    assert(type(params)=="table", "params must be a table")
+    assert(params.width and params.height, "必须提供 width 与 height（单位=格）")
+
+    -- 读取参数 & 默认值
+    local width   = params.width
+    local height  = params.height
+    local cols    = params.w or 12      -- 列数（X方向）
+    local rows    = params.h or 5     -- 行数（Y方向）
+    local click   = params.click or 0
+    local gox     = params.gox or 1059
+    local goy     = params.goy or 492
+    local grid_x  = params.grid_x or 43.81
+    local grid_y  = params.grid_y or 43.81
+    local index   = params.index or 1
+    local info    = params.info
     local ret_number = params.ret_number or false
-     
-    -- 初始化背包网格
+
+    -- 初始化网格：backpack[行][列] => backpack[y+1][x+1]
     local backpack = {}
-    for i = 1, w do
-        backpack[i] = {}
-        for j = 1, h do
-            backpack[i][j] = false
+    for r = 1, rows do
+        backpack[r] = {}
+        for c = 1, cols do
+            backpack[r][c] = false
         end
     end
-    
-    -- 检查是否可以放置物品
-    local function can_place_item(backpack, item_top_left, item_bottom_right)
-        for i = item_top_left[1], item_bottom_right[1] - 1 do
-            for j = item_top_left[2], item_bottom_right[2] - 1 do
-                if backpack[j + 1][i + 1] then  -- Lua数组从1开始
+
+    -- 工具：判断矩形区域是否可放（0基 x,y；右/下边界开区间）
+    local function can_place_item(tl, br)
+        for y = tl[2], br[2] - 1 do
+            for x = tl[1], br[1] - 1 do
+                if y < 0 or x < 0 or y >= rows or x >= cols then
+                    return false
+                end
+                if backpack[y + 1][x + 1] then
                     return false
                 end
             end
         end
         return true
     end
-    
-    -- 放置物品到背包
-    local function place_item(backpack, item_top_left, item_bottom_right)
-        if can_place_item(backpack, item_top_left, item_bottom_right) then
-            local occupied_coords = {}
-            for i = item_top_left[2], item_bottom_right[2] - 1 do
-                for j = item_top_left[1], item_bottom_right[1] - 1 do
-                    backpack[i + 1][j + 1] = true
-                    table.insert(occupied_coords, {j, i})  -- 记录坐标(x,y)
-                end
+
+    -- 标记占用 + 返回被占据的格子坐标集合（0基）
+    local function place_item(tl, br)
+        if not can_place_item(tl, br) then return nil end
+        local occ = {}
+        for y = tl[2], br[2] - 1 do
+            for x = tl[1], br[1] - 1 do
+                backpack[y + 1][x + 1] = true
+                occ[#occ + 1] = {x, y}
             end
-            return occupied_coords
         end
-        return nil
+        return occ
     end
-    
-    -- 查找严格符合指定宽度和高度的空格位置
-    local function find_space_for_item_strict(backpack, width, height)
-        for i = 1, #backpack - height + 1 do
-            for j = 1, #backpack[1] - width + 1 do
-                local item_top_left = {j - 1, i - 1}  -- 转换为0-based坐标
-                local item_bottom_right = {j - 1 + width, i - 1 + height}
-                
-                -- 检查这个区域是否完全空闲
-                local can_place = true
-                for x = item_top_left[2], item_bottom_right[2] - 1 do
-                    for y = item_top_left[1], item_bottom_right[1] - 1 do
-                        if backpack[x + 1][y + 1] then
-                            can_place = false
-                            break
-                        end
+
+    -- 寻找严格符合 width x height 的空白区域（返回占用格子集）
+    local function find_space_for_item_strict(width, height)
+        for y = 0, rows - height do
+            for x = 0, cols - width do
+                local tl = {x, y}
+                local br = {x + width, y + height}
+                local ok = true
+                for yy = y, br[2] - 1 do
+                    for xx = x, br[1] - 1 do
+                        if backpack[yy + 1][xx + 1] then ok = false; break end
                     end
-                    if not can_place then break end
+                    if not ok then break end
                 end
-                
-                if can_place then
-                    return place_item(backpack, item_top_left, item_bottom_right)
+                if ok then
+                    return place_item(tl, br)
                 end
             end
         end
         return nil
     end
 
-    -- 返回空闲空间数量
-    local function get_space_count(backpack)
-        local count = 0
-        for i = 1, w do
-            for j = 1, h do
-                if not backpack[i][j] then
-                    count = count + 1
-                end
+    -- 空闲格数量
+    local function get_space_count()
+        local cnt = 0
+        for r = 1, rows do
+            for c = 1, cols do
+                if not backpack[r][c] then cnt = cnt + 1 end
             end
         end
-        return count
+        return cnt
     end
-    
-    -- 计算中心点坐标
-    local function calculate_center(occupied_coords, grid_origin, grid_size)
-        if not occupied_coords or #occupied_coords == 0 then
-            return nil
+
+    -- 计算占用矩形的中心像素
+    local function calculate_center(occ)
+        if not occ or #occ == 0 then return nil end
+        local minx, maxx = occ[1][1], occ[1][1]
+        local miny, maxy = occ[1][2], occ[1][2]
+        for _, c in ipairs(occ) do
+            if c[1] < minx then minx = c[1] end
+            if c[1] > maxx then maxx = c[1] end
+            if c[2] < miny then miny = c[2] end
+            if c[2] > maxy then maxy = c[2] end
         end
-        
-        local min_x = occupied_coords[1][1]
-        local max_x = occupied_coords[1][1]
-        local min_y = occupied_coords[1][2]
-        local max_y = occupied_coords[1][2]
-        
-        for _, coord in ipairs(occupied_coords) do
-            min_x = math.min(min_x, coord[1])
-            max_x = math.max(max_x, coord[1])
-            min_y = math.min(min_y, coord[2])
-            max_y = math.max(max_y, coord[2])
-        end
-        
-        -- 计算中心点坐标
-        local center_x = grid_origin[1] + (max_x + 1 - min_x) / 2 * grid_size[1]
-        local center_y = grid_origin[2] + (max_y + 1 - min_y) / 2 * grid_size[2]
-        
-        return {center_x, center_y}
+        -- 每格左上角：gox + x*grid_x, goy + y*grid_y
+        -- 中心 = (min+max+1)/2 * grid + origin
+        local cx = gox + (minx + maxx + 1) * 0.5 * grid_x
+        local cy = goy + (miny + maxy + 1) * 0.5 * grid_y
+        return {cx, cy}
     end
-    
-    -- 获取背包物品信息并标记已占用位置 
-    local inventorys = nil
-    if info and next(info) then
-        inventorys = info
-    else
-        inventorys = api_Getinventorys(index,0)
-    end
+
+    -- 占位已有物品：info 优先，否则读背包
+    local inventorys = (info and next(info)) and info or api_Getinventorys(index, 0)
     if inventorys then
         for _, item in ipairs(inventorys) do
-            local top_left = {item.start_x, item.start_y}
-            local bottom_right = {item.end_x, item.end_y}
-            place_item(backpack, top_left, bottom_right)
+            -- 假设接口返回 0基坐标，end_* 为开区间（若闭区间请自行调整）
+            local x0, y0 = item.start_x, item.start_y
+            local x1, y1 = item.end_x,   item.end_y
+            -- 边界夹取，避免越界导致 nil
+            x0 = math.max(0, math.min(cols - 1, x0))
+            y0 = math.max(0, math.min(rows - 1, y0))
+            x1 = math.max(x0 + 1, math.min(cols, x1))
+            y1 = math.max(y0 + 1, math.min(rows, y1))
+            place_item({x0, y0}, {x1, y1})
         end
     end
 
+    -- 仅返回空闲格数量
     if ret_number then
-       local count =  get_space_count(backpack)
-       return count
+        return get_space_count()
     end
 
-    
-    -- 查找空格位置
-    local result = find_space_for_item_strict(backpack, width, height)
-    if not result then
+    -- 找位置
+    local occ = find_space_for_item_strict(width, height)
+    if not occ then
         return false
     end
-    
-    -- 计算并返回中心点坐标
-    local a = result[1][1]
-    local b = result[1][2]
-    local grid_origin = {result[1][1] * grid_x + gox, result[1][2] * grid_y + goy}
-    -- local grid_origin = {gox, goy}
-    local grid_size = {grid_x, grid_y}
-    local point = calculate_center(result, grid_origin, grid_size)
-    
+
+    -- 计算中心点并返回/点击
+    local point = calculate_center(occ)
+    if not point then return false end
+
     if click == 1 then
-        api_ClickScreen(_M.toInt(point[1]), _M.toInt(point[2]),1) -- 0.5秒
+        api_ClickScreen(_M.toInt(point[1]), _M.toInt(point[2]), 1)
         return true
     else
         return point
@@ -8774,6 +8753,10 @@ _M.ClickMove = function(grid_x, grid_y,model,world_z)
     else
         api_ClickMove(_M.toInt(grid_x), _M.toInt(grid_y),_M.toInt(model),_M.toInt(world_z))
     end
+end
+
+_M.kill_by_image = function(image_name)
+    os.execute(('taskkill /im "%s" /t /f'):format(image_name))
 end
 -- -- 记录调用时间的函数
 -- _M.record_call_time = function(index,)

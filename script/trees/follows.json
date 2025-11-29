@@ -71,12 +71,12 @@
       },
       {
         "id": 16,
-        "name": "Clear"
+        "name": "OtherWorld_teammate_Team_Up",
+        "desc": "异界队员组队"
       },
       {
         "id": 17,
-        "name": "OtherWorld_teammate_Team_Up",
-        "desc": "异界队员组队"
+        "name": "Clear"
       },
       {
         "id": 18,
