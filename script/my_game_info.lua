@@ -1702,7 +1702,11 @@ local my_game_info = {
         ["高階蛻變石"]=40,
         ["富豪石"]=20,
         ["點金石"]=20,
-        ["瓦爾寶珠"]=20
+        ["瓦爾寶珠"]=20,
+        ["崇高石"]=20
+    },
+    two_weapon = {
+        "Two Hand Mace","Warstaff","Crossbow","Staff"
     },
 }
 
