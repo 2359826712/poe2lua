@@ -1,6 +1,3 @@
-local package_path = api_GetExecutablePath()
-local script_dir = package_path:match("(.*[/\\])") .. "script\\"
-
 local behavior_tree = require 'script.lualib.behavior3.behavior_tree'
 local bret = require 'script.lualib.behavior3.behavior_ret'
 

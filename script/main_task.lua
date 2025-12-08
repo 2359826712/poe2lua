@@ -572,7 +572,7 @@ local main_task= {
             index = 96
         },
         ['探索莫頓挖石場'] = {
-            map_name = 'G2_10_2',
+            map_name = 'G2_10_1',
             interaction_object = {'莫頓礦坑'},
             interaction_object_map_name = {'G2_10_2'},
             index = 97
@@ -783,7 +783,7 @@ local main_task= {
             index = 128
         },
         ['找出埋在黃沙之下的凱斯城入口'] = {
-            map_name = 'G2_4_3',
+            map_name = 'G2_4_2',
             interaction_object = {'掩埋神殿', '門'},
             interaction_object_map_name = {'G2_4_3'},
             index = 129
@@ -844,7 +844,7 @@ local main_task= {
             index = 139
         },
         ['在乳齒象惡地尋找骨坑入口'] = {
-            map_name = 'G2_5_2',
+            map_name = 'G2_5_1',
             interaction_object = {'骨坑'},
             interaction_object_map_name = {'G2_5_2'},
             index = 140
