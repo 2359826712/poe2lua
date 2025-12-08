@@ -8758,6 +8758,136 @@ end
 _M.kill_by_image = function(image_name)
     os.execute(('taskkill /im "%s" /t /f'):format(image_name))
 end
+-- 获取当前使用账号信息
+_M.get_account_info=function(account_path)
+    local file = io.open(account_path, "r")
+    if not file then
+        _M.dbgp("无法打开文件: " .. account_path)
+        return nil
+    end
+
+    local account_info = {}
+    for line in file:lines() do
+        table.insert(account_info, line)
+    end
+    file:close()
+
+    if #account_info < 1 then
+        _M.dbgp("账号信息为空")
+        return nil
+    end
+
+    local current_account = {}
+    for item in string.gmatch(account_info[1], "[^|]+") do
+        if item ~= "" then
+            table.insert(current_account, item)
+        end
+    end
+
+    if #current_account ~= 2 then
+        _M.dbgp("请确保账号信息配置格式：账号|密码")
+        return nil
+    end
+
+    return current_account
+end
+-- 删除账号文本中已完成账号
+_M.delete_completed_account = function(path)
+    -- 读取文件的所有行
+    local file = io.open(path, "r")
+    if not file then
+        _M.dbgp("无法打开文件: " .. path)
+        return
+    end
+
+    local lines = {}
+    for line in file:lines() do
+        table.insert(lines, line)
+    end
+    file:close()
+
+    -- 删除第一行
+    if #lines > 0 then
+        table.remove(lines, 1)
+    end
+
+    -- 将剩余的行写回文件
+    file = io.open(path, "w")
+    if not file then
+        _M.dbgp("无法写入文件: " .. path)
+        return
+    end
+
+    for _, line in ipairs(lines) do
+        file:write(line .. "\n")
+    end
+    file:close()
+end
+-- 获取喊话信息
+_M.get_shouting_info = function(shouting_path)
+    local file = io.open(shouting_path, "r", "utf-8")
+    if not file then
+        _M.dbgp("无法打开喊话文件")
+        return nil
+    end
+
+    local shouting_info = {}
+    for line in file:lines() do
+        table.insert(shouting_info, line)
+    end
+    file:close()
+
+    if #shouting_info < 1 then
+        _M.dbgp("喊话文件信息为空")
+        return nil
+    end
+
+    local shouting = table.concat(shouting_info, ""):gsub("%s+", "")
+    return shouting
+end
+
+-- 保存完成账号信息
+_M.save_completed_account = function(account_path,complete_path, index)
+    index = index or 1  -- 默认值为 1
+    local log_list = {"完成", "疑似封号", "封号", "账号密码错误", "steam验证失败", "账号别处登入"}
+
+    -- 检查文件是否为空
+    local file = io.open(account_path, "r")
+    if not file then
+        _M.dbgp("无法打开账号文件: " .. account_path)
+        return
+    end
+
+    local lines = {}
+    for line in file:lines() do
+        table.insert(lines, line)
+    end
+    file:close()
+
+    if #lines == 0 then
+        _M.dbgp("账号文件为空")
+        return
+    end
+
+    local line = lines[1]:gsub("\n$", "")  -- 只读取第一行并去掉换行符
+
+    -- 确保 index 有效
+    if index < 0 or index >= #log_list then
+        _M.dbgp("无效的索引")
+        return
+    end
+
+    -- 写入完成信息
+    file = io.open(complete_path, "a")
+    if not file then
+        _M.dbgp("无法打开完成文件: " .. complete_path)
+        return
+    end
+
+    local timestamp = os.date("%Y-%m-%d %H:%M:%S")  -- 获取当前时间戳
+    file:write(string.format("%s : %s %s\n", timestamp, line, log_list[index + 1]))  -- Lua 索引从 1 开始
+    file:close()
+end
 -- -- 记录调用时间的函数
 -- _M.record_call_time = function(index,)
 --     -- local current_time = os.time()

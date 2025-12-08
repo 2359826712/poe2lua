@@ -1,7 +1,8 @@
 -- package.path = package.path .. ';./path/to/module/?.lua'
-
 -- api_Log(package)
 -- 每次加载时清除 otherworld 模块的缓存
+local socket = require("socket")
+print("LuaSocket version: " .. socket._VERSION)
 api_Log("清除 otherworld 模块的缓存")
 package.loaded['script/otherworld'] = nil
 package.loaded['script/poe2api'] = nil
