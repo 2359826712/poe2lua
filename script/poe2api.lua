@@ -16,6 +16,7 @@ local CELL_WIDTH_max = 22  -- 超大仓库 每个格子宽度
 local CELL_HEIGHT_max = 22  -- 超大仓库 每个格子高度
 local last_record_time = nil  -- 上次记录的时间戳
 local INTERVAL = 10          -- 间隔时间（秒）
+local server_url = "http://127.0.0.1:9097"
 -- ===================== 内部缓存：最后一次成功版本 ======================
 -- key = 规范化后的最终读路径（含盘符/UNC）
 -- val = { data=table, size=number, hash=number }
@@ -6116,6 +6117,20 @@ _M.paste_text1 = function(text)
     api_Sleep(200)
     _M.click_keyboard("ctrl", 2)
 end
+-- 粘贴输入防屏蔽文本
+_M.paste_text_Generate = function(str,text)
+    api_GenerateAntiCensorText(str,text)
+    api_Sleep(200)
+    _M.click_keyboard("ctrl", 1)
+    api_Sleep(200)
+    _M.click_keyboard("a", 0)
+    api_Sleep(200)
+    _M.click_keyboard("backspace")
+    api_Sleep(200)
+    _M.click_keyboard("v", 0)
+    api_Sleep(200)
+    _M.click_keyboard("ctrl", 2)
+end
 
 -- 按键输入文本
 _M.key_board_input_text = function(text)
@@ -8896,7 +8911,72 @@ end
 --     return recorded
 -- end
 
+_M.send_post_request= function(endpoint, data)
+    local json_data = json.encode(data)
+    local request_url = server_url .. endpoint
 
 
+    local response_text = api_HttpPostString(request_url, json_data)
+    local status_code = (response_text ~= "" and 200 or 0)
+
+    local response = {}
+    local success, result = pcall(json.decode, response_text)
+    if success then
+        response = result
+    else
+        response = { raw_text = response_text, parse_error = result }
+    end
+
+
+    return status_code, response
+end
+-- 1. 创建新游戏
+_M.create_new_game =function(game_name)
+    local data = { game_name = game_name }
+    local status_code, response = _M.send_post_request("/createNewGame", data)
+    
+    return status_code, response
+end
+
+-- 2. 插入数据
+_M.insert_data  = function(game_name, account,password, region, sub_region, status,in_use)
+    local data = {
+        game_name = game_name,
+        account = account,
+        password = password,
+        region = region,
+        sub_region = sub_region,
+        status = status,
+        in_use = in_use
+    }
+    local status_code, response = _M.send_post_request("/insert", data)
+
+    return status_code, response
+end
+
+-- 3. 查询数据
+_M.query_data = function(game_name, online_duration, talk_channel, cnt)
+    local data = {
+        game_name = game_name,
+        online_duration = online_duration or 1,  -- 在线时长不能为0
+        talk_channel = talk_channel or 0,
+        cnt = cnt or 100
+    }
+    local status_code, response = _M.send_post_request("/query", data)
+
+    
+    return status_code, response
+end
+
+-- 4. 清除聊天通道
+_M.clear_talk_channel = function(game_name, talk_channel)
+    local data = {
+        game_name = game_name,
+        talk_channel = talk_channel
+    }
+    local status_code, response = _M.send_post_request("/clearTalkChannel", data)
+    
+    return status_code, response
+end
 
 return _M

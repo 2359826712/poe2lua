@@ -22,7 +22,10 @@ while true do
     i = i + 1
     -- 记录开始时间（毫秒）
     local start_time = api_GetTickCount64()  -- 转换为 ms
-
+    
+    -- local result = api_GenerateAntiCensorText("mmoeld")
+    -- print("result -- > "..result)
+    -- poe2api.paste_text(result)
     -- api_RestoreOriginalMap()
     -- api_UpdateMapObstacles(100)
     -- point = api_GetUnexploredArea(120)

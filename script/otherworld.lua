@@ -35,9 +35,6 @@ local file = io.open(json_path, "r") -- 打开文件
 local content = file:read("*a") -- 读取全部内容 
 file:close()
 local config = json.decode(content)
--- poe2_api.dbgp(game_str.tab_list_button)
--- poe2_api.dbgp("========================")
-
 -- 自定义节点实现
 local plot_nodes = {
     -- 获取用户配置信息
@@ -315,8 +312,9 @@ local plot_nodes = {
             --     api_Sleep(100)
             --     return bret.RUNNING
             -- end
-
-            return bret.SUCCESS
+            poe2_api.paste_text_Generate("Low-priced commodity gear, please enter.%s","mmoeld")
+            return bret.RUNNING
+            -- return bret.SUCCESS
         end
     },
 

@@ -642,4 +642,15 @@ lua.set_function(
 --   @return table 消息数组；每项为 { channel = string, message = string }
 -- 说明：非阻塞拉取当前队列中的所有消息；若无新消息返回空数组。
 
-
+-- // 防屏蔽文本生成
+-- api_GenerateAntiCensorText("Low-priced commodity gear, please enter.%s" , "mmoeld")
+-- lua.set_function(DECRYPT_WIDE_TO_UTF8(L"api_GenerateAntiCensorText"), [&lua](std::string content) -> std::string {
+--     std::wstring wcontent;
+--     UtilUTF8ToUnicode(content, wcontent);
+--     std::wstring wresult = TextObfuscatorUtils::GenerateAntiCensorText(wcontent);
+--     std::string result;
+--     UtilUnicodeToUTF8(wresult, result);
+--     UtilSetClipboardText(result);
+--     return result;
+--     return 0;
+--     });
