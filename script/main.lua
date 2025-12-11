@@ -10,22 +10,21 @@ package.loaded['json'] = nil
 local package_path = api_GetExecutablePath()
 local script_dir = package_path:match("(.*[/\\])") .. "script/"
 -- api_Log("脚本目录: " .. script_dir)
-math.randomseed(os.time())
+
 local otherworld = require 'script/otherworld'
 local poe2api = require 'script/poe2api'
 local json = require 'script.lualib.json'
+
 -- 创建行为树
 local bt = otherworld.create()
 -- api_Log("版号: V 09.15.01")
 i = 0
 while true do
     i = i + 1
+    
     -- 记录开始时间（毫秒）
     local start_time = api_GetTickCount64()  -- 转换为 ms
-    
-    -- local result = api_GenerateAntiCensorText("mmoeld")
-    -- print("result -- > "..result)
-    -- poe2api.paste_text(result)
+
     -- api_RestoreOriginalMap()
     -- api_UpdateMapObstacles(100)
     -- point = api_GetUnexploredArea(120)

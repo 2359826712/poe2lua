@@ -1,6 +1,3 @@
-local package_path = api_GetExecutablePath()
-local script_dir = package_path:match("(.*[/\\])") .. "script\\"
-
 local behavior_tree = require 'script.lualib.behavior3.behavior_tree'
 local bret = require 'script.lualib.behavior3.behavior_ret'
 
@@ -16,6 +13,7 @@ local my_game_info = require 'script\\my_game_info'
 local game_str = require 'script\\game_str'
 local main_task = require 'script\\main_task'
 
+
 local script_dir = api_GetExecutablePath()
 -- api_Log(script_dir)
 local json_path = script_dir .."\\config.json"
@@ -26,12 +24,20 @@ local account_path = script_dir .. "\\Account.txt"
 local complete_path = script_dir .. "\\Complete.txt"
 local shouting_path = script_dir .. "\\Shouting.txt"
 local json = require 'script.lualib.json'
+
+
+
 local poe2_api = require "script\\poe2api"
+local json = require 'script.lualib.json'
 
 local file = io.open(json_path, "r") -- 打开文件
+-- if not file then error("Failed to open config file: " .. path) end
 local content = file:read("*a") -- 读取全部内容 
 file:close()
 local config = json.decode(content)
+-- poe2_api.dbgp(game_str.tab_list_button)
+-- poe2_api.dbgp("========================")
+
 -- 自定义节点实现
 local plot_nodes = {
     -- 获取用户配置信息
@@ -46,48 +52,20 @@ local plot_nodes = {
                 local user_info = poe2_api.load_ini(user_info_path)["UserInfo"]
                 if user_info["share_item_filter_enable"] and tonumber(user_info["share_item_filter_enable"]) == 1 and user_info["share_item_filter_path"] and user_info["share_item_filter_path"] ~= "" then
                     -- error("共享config")
-                    poe2_api.dbgp(user_info["share_item_filter_path"])
                     ItemFilter_path = "[["..user_info["share_item_filter_path"].."\\ItemFilter.json".."]]"
-                    local function join_unc(base, filename)
-                        base = tostring(base)
-                        if base:sub(-1) == "\\" then
-                            return base .. filename
-                        else
-                            return base .. "\\" .. filename
-                        end
-                    end
-                    local base = user_info["share_item_filter_path"]          -- 期望: \\192.168.20.33\file_sharing
-                    local path = join_unc(base, "ggc.txt")  
-                    local function read_lines_trim(path, skip_blank)
-                        local lines = {}
-                        if not path then return lines end
-                        local p = tostring(path):gsub("^%s+", ""):gsub("%s+$", "")
-                        p = p:gsub("^%[%[", ""):gsub("%]%]$", "")
-                        local f, err = io.open(p, "r")
-                        if not f then
-                            poe2_api.dbgp("open_failed:" .. tostring(err))
-                            poe2_api.dbgp(p)
-                            return lines
-                        end
-                        for line in f:lines() do
-                            line = line:gsub("^%s+", ""):gsub("%s+$", "")
-                            if not skip_blank or line ~= "" then
-                                table.insert(lines, line)
-                            end
-                        end
-                        f:close()
-                        return lines
-                    end
+                    -- local share_config_path = poe2_api.unwrap(share_config_path)
+                    -- poe2_api.map_share_once(poe2_api.unwrap(share_config_path), "Z:")
+                    -- poe2_api.dbgp(share_config_path)
+                    -- local a = poe2_api.load_config1(share_config_path)
+                    -- poe2_api.dbgp(a)
+                    -- poe2_api.map_share_once([[\\DESKTOP-P2RBUQP\behavior3lua-master]], "Z:", "DESKTOP-P2RBUQP\\你的用户名", "你的密码", false)
+                    -- local shared_cfg = [[Z:\config.json]]
+                    -- local shared_cfg = [[Z:\config.json]]
                     
-                    -- 读取共享路径（UNC），用长字符串避免转义
-                    -- local shared_path = [[\\192.168.20.33\file_sharing\ggc.txt]]
-                    local lines = read_lines_trim(path, true)
-                    local ggc_text = {}
-                    -- 使用示例：打印每一行
-                    for i, v in ipairs(lines) do
-                        table.insert(ggc_text,v)
+                    env.ItemFilter_info = poe2_api.load_config1(ItemFilter_path)
+                    if not env.ItemFilter_info or not next(env.ItemFilter_info) then
+                        error("共享路径下没有ItemFilter.json文件")
                     end
-                    env.ggc_text = ggc_text
                     poe2_api.dbgp("共享文件")
                 else
                     -- por
@@ -331,6 +309,13 @@ local plot_nodes = {
                 end
             end
             poe2_api.time_p("Get_User_Config_Info... 耗时 --> ", api_GetTickCount64() - start_time)
+
+            -- while true do
+            --     Actors:Update() 
+            --     api_Sleep(100)
+            --     return bret.RUNNING
+            -- end
+
             return bret.SUCCESS
         end
     },
@@ -367,51 +352,39 @@ local plot_nodes = {
                 env.hwrd_time = os.time()
                 poe2_api.dbgp("------------------")
                 poe2_api.dbgp("hwrd_time2:" .. env.hwrd_time)
+                -- api_Sleep(5000)
+                -- elapsed_ms = (api_GetTickCount64()) - start_time
+                -- poe2_api.dbgp("获取窗口句柄:"..string.format( elapsed_ms))
             end
 
 
             -- 判断游戏窗口
             if (not env.game_window or env.game_window == 0) and not env.error_kill then
                 poe2_api.dbgp("窗口不存在==================================================")
+                -- 判断游戏配置文件是否存在
+                -- local file = io.open(env.config_file, "r")
+                -- if file then
+                --     file:close()
+                --     if poe2_api.check_NCStorageLocalData_config(env.config_dir) then
+                --         poe2_api.print_log("游戏配置文件异常,替换配置文件")
+                --         poe2_api.set_NCStorageLocalData_config(env.config_file)
+                --         poe2_api.time_p("判断游戏窗口(RUNNING)... 耗时 --> ", api_GetTickCount64() - current_time)
+                --         return bret.RUNNING
+                --     end
+                -- end
                 env.is_set = false
                 env.take_rest = false
                 env.game_window = 0
                 env.hwrd_time = 0
+                -- error("窗口不存在=")
+                -- api_Sleep(5000)
+                -- elapsed_ms = (api_GetTickCount64()) - start_time
+                -- poe2_api.dbgp("判断游戏窗口:"..string.format( elapsed_ms))
                 poe2_api.time_p("判断游戏窗口(FAIL)... 耗时 --> ", api_GetTickCount64() - current_time)
                 return bret.FAIL
             end
             poe2_api.time_p("判断游戏窗口(SUCCESS)... 耗时 --> ", api_GetTickCount64() - current_time)
             return bret.SUCCESS
-        end
-    },
-    -- 切换ip
-    Is_Accelerator={
-        run = function(self, env)
-            poe2_api.print_log("切换加速器ip")
-            local process_name ="XianNiu.exe"
-            local pid = api_EnumProcess(process_name)
-            local xianniu_game_window = api_FindWindowByProcess("", "鲜牛网游加速器", process_name, 0)
-            local left, top, right, bottom = api_GetWindowRect(xianniu_game_window)
-            if not env.xianniu_ip then
-                self.count = 0
-                env.xianniu_ip = true
-            end
-            if pid and next(pid) and pid[1] ~= 0 and self.count < 2  then
-                api_SetWindowState(xianniu_game_window, 8)
-                api_Sleep(1000)
-                poe2_api.dbgp("left:" .. left .. " top:" .. top .. " right:" .. right .. " bottom:" .. bottom)
-                api_ClickScreen(poe2_api.toInt(left + 745),poe2_api.toInt(top + 250) , 0)
-                api_Sleep(500)
-                api_ClickScreen(poe2_api.toInt(left + 745),poe2_api.toInt(top + 250) , 1)
-                api_Sleep(500)
-                api_ClickScreen(poe2_api.toInt(left + 465),poe2_api.toInt(top + 405) , 0)
-                api_Sleep(500)
-                api_ClickScreen(poe2_api.toInt(left + 465),poe2_api.toInt(top + 405) , 1)
-                api_SetWindowState(xianniu_game_window, 9)
-                self.count = self.count + 1
-                return bret.RUNNING
-            end
-            return bret.FAIL
         end
     },
 
@@ -431,6 +404,45 @@ local plot_nodes = {
             local process_name = string.find(game_path:lower(), "steam.exe") and "PathOfExileSteam.exe" or
                 "PathOfExile.exe"
 
+            if env.account_state then
+                poe2_api.dbgp("env.account_state:" .. env.account_state)
+                local pid = api_EnumProcess(process_name)
+                if env.account_state == 1 then
+                    poe2_api.dbgp("完成")
+                    poe2_api.save_completed_account(account_path,complete_path,1)
+                elseif env.account_state == 2 then
+                    poe2_api.dbgp("疑似封号")
+                    poe2_api.save_completed_account(account_path,complete_path,2)
+                elseif env.account_state == 3 then
+                    poe2_api.dbgp("封号")
+                    poe2_api.save_completed_account(account_path,complete_path,3)
+                elseif env.account_state == 4 then
+                    poe2_api.dbgp("账号密码错误")
+                    poe2_api.save_completed_account(account_path,complete_path,4)
+                elseif env.account_state == 5 then
+                    poe2_api.dbgp("steam验证失败")
+                    poe2_api.save_completed_account(account_path,complete_path,5)
+                elseif env.account_state == 6 then
+                    poe2_api.dbgp("账号别处登入")
+                    poe2_api.save_completed_account(account_path,complete_path,6)
+                end
+                poe2_api.delete_completed_account(account_path)
+                env.is_game_exe = false
+                env.login_state = nil
+                env.speel_ip_number = 0
+                env.switching_lines = 0
+                env.account_state = nil
+                env.time_out = 0
+                env.error_kill = false
+                env.hwrd_time = 0
+                if pid and next(pid) and pid[1]~=0 then
+                    api_SetWindowState(env.game_window, 13)
+                    env.game_window = 0
+                    -- poe2_api.terminate_process(pid)
+                    api_Sleep(10000)
+                    return bret.RUNNING
+                end
+            end
             if env.time_out == 0 then
                 env.time_out = os.time()
             end
@@ -440,8 +452,7 @@ local plot_nodes = {
                 or env.is_set
                 or env.switching_lines >= 120
                 or poe2_api.find_text({ text = "This operation requires the account to be logged in.", UI_info = env.UI_info })
-                or poe2_api.find_text({ text = "> 已斷線: Unable to deserialise packet with pid", UI_info = env.UI_info, min_x = 0 })
-                or env.is_ban then
+                or poe2_api.find_text({ text = "> 已斷線: Unable to deserialise packet with pid", UI_info = env.UI_info, min_x = 0 }) then
                 poe2_api.dbgp("error_kill:", env.error_kill)
                 poe2_api.dbgp("speel_ip_number:", env.speel_ip_number)
                 poe2_api.dbgp("is_set:", env.is_set)
@@ -461,7 +472,7 @@ local plot_nodes = {
                 env.account_state = nil
                 env.time_out = 0
                 env.error_kill = false
-                env.xianniu_ip = nil
+                
                 env.hwrd_time = 0
                 local pid = api_EnumProcess(process_name)
 
@@ -472,7 +483,6 @@ local plot_nodes = {
                         api_Sleep(2000)
                         if lock[1].name_utf8 == "exit_button" then
                             env.error_kill = false
-                            env.is_ban = false
                         end
                         return bret.RUNNING
                     end
@@ -489,12 +499,11 @@ local plot_nodes = {
                     if #ui_info ~=0 and poe2_api.find_text({UI_info = env.UI_info, text = game_str.Leave_the_game,min_x = 750 ,max_x = 840,max_y = 550}) then
                         return bret.RUNNING
                     end
-                    env.is_ban = false
                     env.game_window = 0
                     api_Sleep(10000)
                     return bret.RUNNING
                 end
-                env.is_ban = false
+
                 -- error("关闭游戏===============")
                 -- api_Sleep(5000)
                 poe2_api.time_p("关闭游戏(RUNNING)... 耗时 --> ", api_GetTickCount64() - start_time)
@@ -528,7 +537,6 @@ local plot_nodes = {
                 env.is_timeout_exit = false
                 env.roll_time = nil
                 env.exit_time = nil
-                env.xianniu_ip = nil
                 -- self.reset_states()
                 local current_time = api_GetTickCount64()
                 env.last_exception_time_move = 0.0
@@ -555,7 +563,7 @@ local plot_nodes = {
                 local player_info = env.player_info
                 env.kill_process = true
                 env.switching_lines = 0
-                env.xianniu_ip = nil
+
                 if poe2_api.find_text({ UI_info = env.UI_info, text = "你無法在遊戲暫停時使用該道具。", min_x = 0 }) and not self.bool1 then
                     self.bool1 = true
                     poe2_api.click_keyboard("space")
@@ -580,27 +588,18 @@ local plot_nodes = {
                 error("服务器维护中,已停止运行")
             end
             if poe2_api.find_text({ text = "Your account has been banned by an administrator.", UI_info = env.UI_info }) then
-                if env.account_info and next(env.account_info) then
-                    local status_code = poe2_api.update_data_game({game_name = "steam_account",account=env.account_info[1],status = 2})
-                end
-                env.is_ban = true
-                -- env.account_state = 3
+                env.account_state = 3
                 poe2_api.dbgp("封号!!!")
-
                 return bret.RUNNING
             end
             if poe2_api.find_text({text = game_str.Violate_The_Rules,UI_info = env.UI_info,match = 2}) then
-                -- env.account_state = 3
-                if env.account_info and next(env.account_info) then
-                    local status_code = poe2_api.update_data_game({game_name = "steam_account",account=env.account_info[1],status = 2})
-                end
-                env.is_ban = true
+                env.account_state = 3
                 poe2_api.dbgp("封号!!!")
                 return bret.RUNNING
             end
             if poe2_api.find_text({ text = "登入錯誤", UI_info = env.UI_info }) then
                 poe2_api.dbgp("账号或者密码错误")
-                -- env.account_state = 4
+                env.account_state = 4
                 return bret.RUNNING
             end
             if poe2_api.find_text({ text = { "此帳號已被鎖定，請至信箱確認解鎖郵件中的解鎖碼並在此輸入。", "重新寄送解鎖信" }, UI_info = env.UI_info, min_x = 0 }) then
@@ -637,7 +636,7 @@ local plot_nodes = {
                 or poe2_api.find_text({ text = "若要使用 Steam 登入，你必須先建立一個 Steam 的《流亡黯道》帳號。", UI_info = env.UI_info, min_x = 0 }) then
                 poe2_api.find_text({ text = "帳號名稱", UI_info = env.UI_info, min_x = 0, add_x = 161, click = 2 })
                 api_Sleep(500)
-                local text = "www_mmoeld_com"
+                local text = poe2_api.generate_random_string(math.random(8, 10))
 
                 poe2_api.paste_text(text)
                 api_Sleep(500)
@@ -935,37 +934,8 @@ local plot_nodes = {
                 return bret.RUNNING
             end
             if env.login_state == "输入帳號" then
-                
-                if not env.account_info then
-                    local status_code, response = poe2_api.query_data_game("steam_account", 0, false)
-                    
-                    if status_code == 200 then
-                        local data = response.data
-                        local names = nil
-                        if type(data) == "table" and next(data) then
-                            names = {data.account,data.password}
-                        end
-                        if not names then
-                            poe2_api.dbgp("数据库暂无账号可用")
-                            api_Sleep(1000)
-                            return bret.RUNNING
-                        end
-                        env.account_info = names
-                        return bret.RUNNING
-                        -- print(json.encode(names))
-                        -- poe2_api.printTable(names)
-                        -- api_Sleep(5000)
-                    else
-                        poe2_api.dbgp("查询数据失败,尝试重新查询")
-                        api_Sleep(1000)
-                        return bret.RUNNING
-                    end
-                end 
-                -- poe2_api.dbgp(env.account_info)
-                -- api_Sleep(4000)
-                -- local info = poe2_api.split_string(env.account_info,"|")
-                -- local account = info[1]
-                -- local password = info[2]
+                local account = poe2_api.get_account_info(account_path)[1]
+                local password = poe2_api.get_account_info(account_path)[2]
                 -- local steam_login_hwnd = api_FindWindow("Chrome_RenderWidgetHostHWND","Chrome Legacy Window",0)
                 local steam_login_hwnd = api_FindWindow("SDL_app", "登录 Steam",0)
                 -- poe2_api.dbgp("111:",steam_login_hwnd)
@@ -978,11 +948,11 @@ local plot_nodes = {
                     local left, top, right, bottom = api_GetWindowRect(steam_login_hwnd)
                     api_ClickScreen(poe2_api.toInt(left + 345),poe2_api.toInt(top + 140) , 1)
                     api_Sleep(1000)
-                    poe2_api.paste_text(env.account_info[1])
+                    poe2_api.paste_text(account)
                     api_Sleep(1000)
                     api_ClickScreen(poe2_api.toInt(left + 345), poe2_api.toInt(top + 206) , 1)
                     api_Sleep(1000)
-                    poe2_api.paste_text(env.account_info[2])
+                    poe2_api.paste_text(password)
                     api_Sleep(1000)
                     poe2_api.click_keyboard("enter",0)     
                     env.login_state = "等待steam主窗口"
@@ -1001,13 +971,9 @@ local plot_nodes = {
             end
             if env.login_state == "等待steam主窗口" then
                 poe2_api.print_log("等待steam主窗口")
-                -- local steam_login_hwnd = api_FindWindowByProcess("","Steam","steamwebhelper.exe",0)
                 local steam_login_hwnd = api_FindWindowByProcess("","Steam","steamwebhelper.exe",0)
                 if steam_login_hwnd and steam_login_hwnd ~= 0 then
                     env.login_state = "等待游戏窗口"
-                    poe2_api.dbgp(steam_login_hwnd)
-                    poe2_api.dbgp(env.login_state)
-                    api_Sleep(10000)
                     self.last_time = os.time()
                     return bret.RUNNING
                 end
@@ -1022,17 +988,9 @@ local plot_nodes = {
             end
             if env.login_state == "等待游戏窗口" then
                 poe2_api.print_log("等待steam游戏窗口")
-                if os.time() - self.last_time > 30 then
+                if os.time() - self.last_time > 120 then
                     poe2_api.print_log("等待steam游戏窗口超时")
-                    print(env.account_info[1])
-                    local status_code = poe2_api.update_data_game({game_name = "steam_account",account=env.account_info[1],status = 2})
-                    if status_code ~= 200 then
-                        poe2_api.dbgp("修改数据失败,重新插入")
-                        api_Sleep(2000)
-                        return bret.RUNNING
-                    end
                     env.login_state = nil
-                    env.account_info = nil
                     self.last_time = 0
                     return bret.RUNNING
                 end
@@ -1053,7 +1011,13 @@ local plot_nodes = {
                 api_Sleep(4000)
                 return bret.RUNNING
             end
+            -- for _,k in ipairs(env.UI_info) do
+            --     if k.text_utf8 ~= "" then
+            --         poe2_api.dbgp(k.text_utf8)
+            --     end
+            -- end
             poe2_api.time_p("Get_UI_Info... 耗时 --> ", api_GetTickCount64() - start_time)
+            -- api_Sleep(4000)
             return bret.SUCCESS
         end
     },
@@ -1086,6 +1050,7 @@ local plot_nodes = {
                 end
                 poe2_api.time_p("    获取周围对象信息... 耗时 --> ", api_GetTickCount64() - range_info_start_time)
             end
+            -- api_GetMinimapActorInfo() - 获取小地图周围对象信息
             local current_map_info_start_time = api_GetTickCount64()
             env.current_map_info = api_GetMinimapActorInfo()
             if not env.current_map_info then
@@ -1277,40 +1242,25 @@ local plot_nodes = {
     -- 2级喊话
     Level_2_shouting = {
         run = function(self, env)
-            poe2_api.print_log("2级喊话...")
-            local start_time = api_GetTickCount64() -- 开始时间
-            if env.player_info.level >= 2 then
-                poe2_api.dbgp("2级喊话...")
-                -- local text = poe2_api.get_shouting_info(shouting_path)
-                -- if text then
-                -- local function rand_insert_placeholder(msg)
-                --     local base = msg:gsub("%%s", "")
-                --     math.randomseed(api_GetTickCount64())
-                --     local pos = math.random(0, #base)
-                --     return base:sub(1, pos) .. "%s" .. base:sub(pos + 1)
-                -- end
-                if not poe2_api.find_text({UI_info = env.UI_info, text = game_str.Private_message, min_x = 0, max_x = 900}) then
-                    poe2_api.click_keyboard("enter")
-                    api_Sleep(1000)
-                    -- self.invitation_time = api_GetTickCount64()
-                    return bret.RUNNING
-                end
-                -- api_Sleep(500)
-                -- local base_msg = "Low-priced commodity gear, please enter.%s"
-                local base_msg = env.ggc_text[1]
-                -- local rand_msg = rand_insert_placeholder(base_msg)
-                -- print(rand_msg)
-                poe2_api.paste_text_Generate(base_msg, env.ggc_text[2])
-                api_Sleep(500)
-                poe2_api.click_keyboard("enter")
-                -- else
-                --     error("没 有 配 置 喊 话 信 息! ! !")
-                -- end
-                env.is_timeout_exit = true
-                api_Sleep(500)
-                return bret.RUNNING
-            end
-            poe2_api.dbgp(11111111111)
+            -- poe2_api.print_log("2级喊话...")
+            -- local start_time = api_GetTickCount64() -- 开始时间
+            -- if env.player_info.level >= 2 then
+            --     poe2_api.dbgp("2级喊话...")
+            --     local text = poe2_api.get_shouting_info(shouting_path)
+            --     if text then
+            --         poe2_api.click_keyboard("enter")
+            --         api_Sleep(500)
+            --         poe2_api.paste_text(text)
+            --         api_Sleep(500)
+            --         poe2_api.click_keyboard("enter")
+            --     else
+            --         error("没 有 配 置 喊 话 信 息! ! !")
+            --     end
+            --     env.is_timeout_exit = true
+            --     api_Sleep(500)
+            --     return bret.RUNNING
+            -- end
+            -- poe2_api.dbgp(11111111111)
             return bret.SUCCESS
         end
     },
@@ -14296,216 +14246,11 @@ local plot_nodes = {
             end
         end
     },
-
-    -- Id采集
     Id_Collect = {
-        run = function(self, env)
-            poe2_api.print_log("Id采集")
-            if not env.Id_collect or not self.Id_collect then
-                local status_code, response = poe2_api.create_new_game("poe2")
-                if status_code == 200 then
-                    poe2_api.dbgp("创建服务器数据表成功")
-                else
-                    poe2_api.dbgp("创建服务器数据表失败,尝试重新创建")
-                    poe2_api.dbgp("状态码:", status_code)
-                    if not self.create_number then
-                        self.create_number = 0
-                    end
-                    if self.create_number >= 10 then
-                        error("多次创建服务器数据表失败")
-                    end
-                    self.create_number = self.create_number + 1
-                    api_Sleep(1000)
-                    return bret.RUNNING
-                end
-                self.create_number = 0
-                env.Id_collect = true
-                self.Id_collect = true
-                -- api_Sleep(5000)
-                return bret.RUNNING
-            end
-            local range_info = env.range_info
-            local ui_info = env.UI_info
-            -- 采集周围玩家信息
-            local name_list = {}
-            if range_info and next(range_info) then
-                for _, v in ipairs(env.range_info) do
-                    if v.type == 0 and v.name_utf8 ~= env.player_info.name_utf8 then
-                        table.insert(name_list,v.name_utf8)
-                    end
-                end
-            end
-
-            if #ui_info > 0 then
-                for _, v in ipairs(env.UI_info) do
-                    if (string.find(v.text_utf8,"#") or string.find(v.text_utf8,"$")) and string.find(v.text_utf8,":") then
-                        local result = v.text_utf8:match("[#$](.-):")
-                        if result then
-                            if not poe2_api.table_contains(name_list,result) then
-                                table.insert(name_list,result)
-                            end
-                        end
-                    end
-                end
-            end
-            
-            self.id_last_ts = self.id_last_ts or {}
-            local now = api_GetTickCount64()
-            local filtered = {}
-            for _, v in ipairs(name_list) do
-                local last = self.id_last_ts[v]
-                if not last or (now - last) >= 3600000 then
-                    table.insert(filtered, v)
-                end
-            end
-            name_list = filtered
-            if not next(name_list) then
-                poe2_api.dbgp("本次未采集到新的玩家Id")
-            else
-                poe2_api.printTable(name_list)
-                for _, v in ipairs(name_list) do
-                    local status_code = poe2_api.insert_data("poe2", v, "1", "1", 50)
-                    if status_code == 200 then
-                        self.id_last_ts[v] = now
-                    end
-                end
-            end
-            
-            -- api_Sleep(3000)
-            return bret.RUNNING
+        run = function(self,env)
+            return bret.SUCCESS
         end
     },
-
-    -- 密语喊话
-    Whispered_Shout = {
-        run = function(self, env)
-            poe2_api.print_log("密语喊话")
-            -- local function clear_talk_channel(game_name, talk_channel)
-            --     local data = {
-            --         game_name = game_name,
-            --         talk_channel = talk_channel
-            --     }
-            --     local status_code, response = send_post_request("/clearTalkChannel", data)
-                
-            --     print("=== 清除聊天通道 ===")
-            --     print("状态码:", status_code)
-            --     print("响应:", json.encode(response))
-            --     print()
-                
-            --     return status_code, response
-            -- end
-            -- clear_talk_channel("poe2",1)
-            -- api_Sleep(5000)
-            if env.Id_list and next(env.Id_list) then
-                
-            else
-                local status_code, response = poe2_api.query_data("poe2", 100, 1, 1)
-                if status_code == 200 then
-                    local data = response and response.data
-                    local names = {}
-                    if type(data) == "table" then
-                        for _, item in ipairs(data) do
-                            if item and item.account then
-                                table.insert(names, item.account)
-                            end
-                        end
-                    end
-                    if next(names) then
-                        env.Id_list = names
-                        return bret.RUNNING
-                    else
-                        poe2_api.dbgp("暂无角色Id可用")
-                        api_Sleep(1000)
-                        return bret.RUNNING
-                    end
-                    -- print(json.encode(names))
-                    -- poe2_api.printTable(names)
-                    -- api_Sleep(5000)
-                else
-                    poe2_api.dbgp("查询数据失败,尝试重新查询")
-                    api_Sleep(1000)
-                    return bret.RUNNING
-                end
-            end
-            
-            
-            -- name_json_info = 
-            -- print("响应:", json.encode(response))
-            return bret.RUNNING
-        end
-    },
-
-
-    -- 账号采集 
-    Account_Collect = {
-        run = function(self, env)
-            poe2_api.print_log("账号采集")
-            if not env.account_collect_init or not self.account_collect_init then
-                local status_code, response = poe2_api.create_new_game_acc("steam_account")
-                if status_code == 200 then
-                    poe2_api.dbgp("创建服务器账号表成功")
-                else
-                    poe2_api.dbgp("创建服务器数据表失败,尝试重新创建")
-                    poe2_api.dbgp("状态码:", status_code)
-                    if not self.create_number then
-                        self.create_number = 0
-                    end
-                    if self.create_number >= 10 then
-                        error("多次创建服务器数据表失败")
-                    end
-                    self.create_number = self.create_number + 1
-                    api_Sleep(1000)
-                    return bret.RUNNING
-                end
-                self.create_number = 0
-                env.account_collect_init = true
-                self.account_collect_init = true
-                -- api_Sleep(5000)
-                return bret.RUNNING
-            end
-            if not env.first_account_info then
-                local f = io.open(account_path, "r")
-                if not f then
-                    poe2_api.dbgp("文件无法打开")
-                    return bret.RUNNING 
-                end
-                local first = f:read("*l")
-                local rest = f:read("*a") or ""
-                env.rest = rest
-                f:close()
-                if not first or first == "" then
-                    error("已无账号需要采集，停止脚本") 
-                    return bret.RUNNING 
-                end
-                local line = first:gsub("^%s+", ""):gsub("%s+$", "")
-                env.first_account_info = line
-                poe2_api.dbgp(line)
-                -- api_Sleep(5000)
-                return bret.RUNNING
-            else
-                local account_info = poe2_api.split_string(env.first_account_info,"|")
-                local status_code = poe2_api.insert_data_game("steam_account",account_info[1],account_info[2],"1","1",0,false)
-                if status_code == 200 then
-                    local wf = io.open(account_path, "w")
-                    wf:write(env.rest)
-                    wf:close()
-                    env.rest = nil
-                    env.first_account_info = nil
-                    poe2_api.dbgp("插入完成")
-                    -- api_Sleep(5000)
-                else
-                    poe2_api.dbgp("账号插入失败")
-
-                end
-            end
-            
-            
-            -- env.current_account_line = env.first_account_info
-            return bret.RUNNING
-        end
-    },
-
-
 
 }
 
@@ -14514,6 +14259,8 @@ for k, v in pairs(base_nodes) do all_nodes[k] = v end
 local plot_config = config["全局設置"]["大带小设置"] or false
 if plot_config and plot_config["启动大带小"] then
     for k, v in pairs(plot_nodes) do all_nodes[k] = v end
+else
+    for k, v in pairs(custom_nodes) do all_nodes[k] = v end
 end
 
 
@@ -14823,7 +14570,6 @@ local env_params = {
     invited_team_members = {},  -- 已邀请
     initial_brushing_pictures_frequency = 0,  -- 休息初始刷图次数
     liquid_emotion_list = {}, --配置中的所有涂油
-    Id_list = {}, -- ID列表
 }
 
 -- 导出模块接口 

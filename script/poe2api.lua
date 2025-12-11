@@ -16,7 +16,8 @@ local CELL_WIDTH_max = 22  -- 超大仓库 每个格子宽度
 local CELL_HEIGHT_max = 22  -- 超大仓库 每个格子高度
 local last_record_time = nil  -- 上次记录的时间戳
 local INTERVAL = 10          -- 间隔时间（秒）
-local server_url = "http://127.0.0.1:9097"
+local server_url = "http://192.168.20.81:9096"
+local server_url_account = "http://192.168.20.81:9097"
 -- ===================== 内部缓存：最后一次成功版本 ======================
 -- key = 规范化后的最终读路径（含盘符/UNC）
 -- val = { data=table, size=number, hash=number }
@@ -6117,20 +6118,7 @@ _M.paste_text1 = function(text)
     api_Sleep(200)
     _M.click_keyboard("ctrl", 2)
 end
--- 粘贴输入防屏蔽文本
-_M.paste_text_Generate = function(str,text)
-    api_GenerateAntiCensorText(str,text)
-    api_Sleep(200)
-    _M.click_keyboard("ctrl", 1)
-    api_Sleep(200)
-    _M.click_keyboard("a", 0)
-    api_Sleep(200)
-    _M.click_keyboard("backspace")
-    api_Sleep(200)
-    _M.click_keyboard("v", 0)
-    api_Sleep(200)
-    _M.click_keyboard("ctrl", 2)
-end
+
 
 -- 按键输入文本
 _M.key_board_input_text = function(text)
@@ -8910,7 +8898,6 @@ end
     
 --     return recorded
 -- end
-
 _M.send_post_request= function(endpoint, data)
     local json_data = json.encode(data)
     local request_url = server_url .. endpoint
@@ -8939,15 +8926,13 @@ _M.create_new_game =function(game_name)
 end
 
 -- 2. 插入数据
-_M.insert_data  = function(game_name, account,password, region, sub_region, status,in_use)
+_M.insert_data  = function(game_name, account, b_zone, s_zone, rating)
     local data = {
         game_name = game_name,
         account = account,
-        password = password,
-        region = region,
-        sub_region = sub_region,
-        status = status,
-        in_use = in_use
+        b_zone = b_zone,
+        s_zone = s_zone,
+        rating = rating
     }
     local status_code, response = _M.send_post_request("/insert", data)
 
@@ -8978,5 +8963,113 @@ _M.clear_talk_channel = function(game_name, talk_channel)
     
     return status_code, response
 end
+
+--账号数据库post请求
+_M.send_post_request_account = function(endpoint, data)
+    local json_data = json and json.encode and json.encode(data) or "{}"
+    local request_url = server_url_account .. endpoint
+    local response_text = api_HttpPostString(request_url, json_data)
+    local status_code = (response_text ~= "" and 200 or 0)
+    local response = {}
+    if json and json.decode then
+        local success, result = pcall(json.decode, response_text)
+        if success then
+        response = result
+        else
+        response = { raw_text = response_text, parse_error = result }
+        end
+    else
+        response = { raw_text = response_text, parse_error = "json module not available" }
+    end
+    return status_code, response
+end
+
+-- 创建表    账号数据库
+_M.create_new_game_acc = function(game_name)
+    return _M.send_post_request_account("/createNewGame", { game_name = game_name })
+end
+
+-- 插入数据    账号数据库
+-- status  0： 未封号  1：封号  2：账号异常 
+_M.insert_data_game = function(game_name, account, password, b_zone, s_zone, status, in_use)
+-- local function insert_data(game_name, account, password, b_zone, s_zone, status, in_use)
+    local data = {
+      game_name = game_name,  -- 表明
+      account   = account,  -- 账号
+      password  = password,  -- 密码
+      b_zone    = b_zone,  -- 大区
+      s_zone    = s_zone,  -- 小区
+      status    = status,  -- 账号状态
+      in_use    = in_use  -- 是否正在使用
+    }
+    local status_code, response = _M.send_post_request_account("/insert", data)
+    -- print("=== 插入数据 ===")
+    _M.dbgp("状态码:", status_code)
+    -- print("响应:", json and json.encode and json.encode(response) or tostring(response))
+    -- print()
+    return status_code, response
+end
+
+-- 查询数据    账号数据库
+_M.query_data_game = function(game_name, status, in_use)
+    local data = {
+      game_name = game_name,
+      status    = status,
+      in_use    = in_use,
+      
+    }
+    local status_code, response = _M.send_post_request_account("/query", data)
+    -- print("=== 查询数据 ===")
+    _M.dbgp("状态码:", status_code)
+    print("响应:", json and json.encode and json.encode(response) or tostring(response))
+    -- print()
+    return status_code, response
+end
+
+-- 修改数据    账号数据库
+_M.update_data_game = function(info)
+    local data = {
+      game_name = info.game_name ,
+      account   = info.account,
+      status    = info.status,
+    }
+    local status_code, response = _M.send_post_request_account("/update", data)
+    -- print("=== 更新数据 ===")
+    _M.dbgp("状态码:", status_code)
+    -- print("响应:", json and json.encode and json.encode(response) or tostring(response))
+    -- print()
+    return status_code, response
+end
+
+-- 删除数据  账号数据库
+_M.delete_data_game = function(game_name, account)
+    local data = {
+      game_name = game_name,
+      account   = account
+    }
+    local status_code, response = _M.send_post_request_account("/delete", data)
+    -- print("=== 删除数据 ===")
+    _M.dbgp("状态码:", status_code)
+    -- print("响应:", json and json.encode and json.encode(response) or tostring(response))
+    -- print()
+    return status_code, response
+  end
+
+-- 粘贴输入防屏蔽文本
+_M.paste_text_Generate = function(str,text)
+    api_GenerateAntiCensorText(str,text)
+    api_Sleep(200)
+    _M.click_keyboard("ctrl", 1)
+    api_Sleep(200)
+    _M.click_keyboard("a", 0)
+    api_Sleep(200)
+    _M.click_keyboard("backspace")
+    api_Sleep(200)
+    _M.click_keyboard("v", 0)
+    api_Sleep(200)
+    _M.click_keyboard("ctrl", 2)
+end
+
+
 
 return _M
