@@ -631,8 +631,7 @@ local plot_nodes = {
                 or poe2_api.find_text({ text = "若要使用 Steam 登入，你必須先建立一個 Steam 的《流亡黯道》帳號。", UI_info = env.UI_info, min_x = 0 }) then
                 poe2_api.find_text({ text = "帳號名稱", UI_info = env.UI_info, min_x = 0, add_x = 161, click = 2 })
                 api_Sleep(500)
-                local text = poe2_api.generate_random_string(math.random(8, 10))
-
+                local text = "www_mmoeld_com"
                 poe2_api.paste_text(text)
                 api_Sleep(500)
                 poe2_api.find_text({ text = "帳號名稱", UI_info = env.UI_info, min_x = 0, add_x = 110, add_y = 53, click = 2 })
