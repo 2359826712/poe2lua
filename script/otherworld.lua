@@ -31,7 +31,6 @@ local poe2_api = require "script\\poe2api"
 local json = require 'script.lualib.json'
 
 local file = io.open(json_path, "r") -- 打开文件
--- if not file then error("Failed to open config file: " .. path) end
 local content = file:read("*a") -- 读取全部内容 
 file:close()
 local config = json.decode(content)
@@ -50,14 +49,6 @@ local plot_nodes = {
                 if user_info["share_item_filter_enable"] and tonumber(user_info["share_item_filter_enable"]) == 1 and user_info["share_item_filter_path"] and user_info["share_item_filter_path"] ~= "" then
                     -- error("共享config")
                     ItemFilter_path = "[["..user_info["share_item_filter_path"].."\\ItemFilter.json".."]]"
-                    -- local share_config_path = poe2_api.unwrap(share_config_path)
-                    -- poe2_api.map_share_once(poe2_api.unwrap(share_config_path), "Z:")
-                    -- poe2_api.dbgp(share_config_path)
-                    -- local a = poe2_api.load_config1(share_config_path)
-                    -- poe2_api.dbgp(a)
-                    -- poe2_api.map_share_once([[\\DESKTOP-P2RBUQP\behavior3lua-master]], "Z:", "DESKTOP-P2RBUQP\\你的用户名", "你的密码", false)
-                    -- local shared_cfg = [[Z:\config.json]]
-                    -- local shared_cfg = [[Z:\config.json]]
                     
                     env.ItemFilter_info = poe2_api.load_config1(ItemFilter_path)
                     if not env.ItemFilter_info or not next(env.ItemFilter_info) then
@@ -306,14 +297,6 @@ local plot_nodes = {
                 end
             end
             poe2_api.time_p("Get_User_Config_Info... 耗时 --> ", api_GetTickCount64() - start_time)
-
-            -- while true do
-            --     Actors:Update() 
-            --     api_Sleep(100)
-            --     return bret.RUNNING
-            -- end
-            -- poe2_api.paste_text_Generate("Low-priced commodity gear, please enter.%s","mmoeld")
-            -- return bret.RUNNING
             return bret.SUCCESS
         end
     },
@@ -350,34 +333,16 @@ local plot_nodes = {
                 env.hwrd_time = os.time()
                 poe2_api.dbgp("------------------")
                 poe2_api.dbgp("hwrd_time2:" .. env.hwrd_time)
-                -- api_Sleep(5000)
-                -- elapsed_ms = (api_GetTickCount64()) - start_time
-                -- poe2_api.dbgp("获取窗口句柄:"..string.format( elapsed_ms))
             end
 
 
             -- 判断游戏窗口
             if (not env.game_window or env.game_window == 0) and not env.error_kill then
                 poe2_api.dbgp("窗口不存在==================================================")
-                -- 判断游戏配置文件是否存在
-                -- local file = io.open(env.config_file, "r")
-                -- if file then
-                --     file:close()
-                --     if poe2_api.check_NCStorageLocalData_config(env.config_dir) then
-                --         poe2_api.print_log("游戏配置文件异常,替换配置文件")
-                --         poe2_api.set_NCStorageLocalData_config(env.config_file)
-                --         poe2_api.time_p("判断游戏窗口(RUNNING)... 耗时 --> ", api_GetTickCount64() - current_time)
-                --         return bret.RUNNING
-                --     end
-                -- end
                 env.is_set = false
                 env.take_rest = false
                 env.game_window = 0
                 env.hwrd_time = 0
-                -- error("窗口不存在=")
-                -- api_Sleep(5000)
-                -- elapsed_ms = (api_GetTickCount64()) - start_time
-                -- poe2_api.dbgp("判断游戏窗口:"..string.format( elapsed_ms))
                 poe2_api.time_p("判断游戏窗口(FAIL)... 耗时 --> ", api_GetTickCount64() - current_time)
                 return bret.FAIL
             end
