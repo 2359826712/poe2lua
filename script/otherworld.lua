@@ -312,9 +312,9 @@ local plot_nodes = {
             --     api_Sleep(100)
             --     return bret.RUNNING
             -- end
-            poe2_api.paste_text_Generate("Low-priced commodity gear, please enter.%s","mmoeld")
-            return bret.RUNNING
-            -- return bret.SUCCESS
+            -- poe2_api.paste_text_Generate("Low-priced commodity gear, please enter.%s","mmoeld")
+            -- return bret.RUNNING
+            return bret.SUCCESS
         end
     },
 
