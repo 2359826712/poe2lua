@@ -430,8 +430,8 @@ local plot_nodes = {
                 poe2_api.time_p("判断游戏窗口(FAIL)... 耗时 --> ", api_GetTickCount64() - current_time)
                 return bret.FAIL
             end
-            poe2_api.time_p("判断游戏窗口(SUCCESS)... 耗时 --> ", api_GetTickCount64() - current_time)
             env.xianniu_ip = nil
+            poe2_api.time_p("判断游戏窗口(SUCCESS)... 耗时 --> ", api_GetTickCount64() - current_time)
             return bret.SUCCESS
         end
     },
@@ -632,9 +632,10 @@ local plot_nodes = {
             end
             if poe2_api.find_text({ text = "Your account has been banned by an administrator.", UI_info = env.UI_info }) then
                 if env.account_info and next(env.account_info) then
-                    local status_code = poe2_api.update_data_game({game_name = "steam_account",account=env.account_info[1],status = 2})
+                    local status_code = poe2_api.update_data_game({game_name = "steam_account",account=env.account_info[1],status = 1})
                 end
                 env.is_ban = true
+                -- poe2_api.find_text({ text = "確定", UI_info = env.UI_info, min_x = 0, click = 2 })
                 -- env.account_state = 3
                 poe2_api.dbgp("封号!!!")
 
@@ -643,9 +644,10 @@ local plot_nodes = {
             if poe2_api.find_text({text = game_str.Violate_The_Rules,UI_info = env.UI_info,match = 2}) then
                 -- env.account_state = 3
                 if env.account_info and next(env.account_info) then
-                    local status_code = poe2_api.update_data_game({game_name = "steam_account",account=env.account_info[1],status = 2})
+                    local status_code = poe2_api.update_data_game({game_name = "steam_account",account=env.account_info[1],status = 1})
                 end
                 env.is_ban = true
+                -- poe2_api.find_text({ text = "確定", UI_info = env.UI_info, min_x = 0, click = 2 })
                 poe2_api.dbgp("封号!!!")
                 return bret.RUNNING
             end
@@ -1087,6 +1089,7 @@ local plot_nodes = {
                     env.login_state = nil
                     env.account_info = nil
                     self.last_time = 0
+                    
                     return bret.RUNNING
                 end
                 api_Sleep(2000)
