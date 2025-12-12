@@ -6119,7 +6119,6 @@ _M.paste_text1 = function(text)
     _M.click_keyboard("ctrl", 2)
 end
 
-
 -- 按键输入文本
 _M.key_board_input_text = function(text)
     _M.click_keyboard("ctrl", 1)

@@ -15,7 +15,6 @@ local base_nodes = require 'script.lualib.behavior3.sample_process'
 local my_game_info = require 'script\\my_game_info'
 local game_str = require 'script\\game_str'
 local main_task = require 'script\\main_task'
-
 local script_dir = api_GetExecutablePath()
 -- api_Log(script_dir)
 local json_path = script_dir .."\\config.json"
@@ -27,8 +26,10 @@ local complete_path = script_dir .. "\\Complete.txt"
 local shouting_path = script_dir .. "\\Shouting.txt"
 local json = require 'script.lualib.json'
 local poe2_api = require "script\\poe2api"
+-- local json = require 'script.lualib.json'
 
 local file = io.open(json_path, "r") -- 打开文件
+-- if not file then error("Failed to open config file: " .. path) end
 local content = file:read("*a") -- 读取全部内容 
 file:close()
 local config = json.decode(content)
@@ -40,6 +41,7 @@ local plot_nodes = {
             poe2_api.print_log("获取用户配置信息...")
             api_SetStatusText("")
             local start_time = api_GetTickCount64() -- 开始时间
+            env.user_config = nil
             if not env.user_config then
                 local config = poe2_api.load_config(json_path)
                 local skills_config = poe2_api.load_config(skills_path)
@@ -57,7 +59,9 @@ local plot_nodes = {
                         end
                     end
                     local base = user_info["share_item_filter_path"]          -- 期望: \\192.168.20.33\file_sharing
-                    local path = join_unc(base, "ggc.txt")  
+                    local path = join_unc(base, "ggc.txt")
+                    local shount_method = join_unc(base, "shouting_method.txt")
+                    local trade_rhetoric = join_unc(base, "trade_rhetoric.txt")
                     local function read_lines_trim(path, skip_blank)
                         local lines = {}
                         if not path then return lines end
@@ -78,16 +82,43 @@ local plot_nodes = {
                         f:close()
                         return lines
                     end
+
+                    -- 读取文件第一行并清理格式
+                    local function read_first_line_trimmed(file_path)
+                        local file = io.open(file_path, "r")
+                        if not file then
+                            return nil, "无法打开文件: " .. file_path
+                        end
+                        
+                        local first_line = file:read("*l")  -- 读取第一行
+                        file:close()
+                        
+                        if not first_line then
+                            return nil, "文件为空"
+                        end
+                        
+                        -- 去除前后空格和换行符
+                        first_line = first_line:gsub("^%s+", ""):gsub("%s+$", ""):gsub("[\r\n]", "")
+                        return first_line
+                    end
                     
                     -- 读取共享路径（UNC），用长字符串避免转义
                     -- local shared_path = [[\\192.168.20.33\file_sharing\ggc.txt]]
                     local lines = read_lines_trim(path, true)
+                    local a = read_lines_trim(shount_method,true)[1]
+                    local time_interval = read_lines_trim(shount_method,true)[2]
+                    local rhetoric = read_lines_trim(trade_rhetoric,true)
+                    poe2_api.dbgp(type(a))
                     local ggc_text = {}
                     -- 使用示例：打印每一行
-                    for i, v in ipairs(lines) do
-                        table.insert(ggc_text,v)
-                    end
-                    env.ggc_text = ggc_text
+                    -- for i, v in ipairs(lines) do
+                    --     -- print(v)
+                    --     table.insert(ggc_text,v)
+                    -- end
+                    env.ggc_text = lines
+                    env.shouting_method = a
+                    env.time_interval = time_interval
+                    env.trade_rhetoric = rhetoric
                     poe2_api.dbgp("共享文件")
                 else
                     -- por
@@ -331,6 +362,7 @@ local plot_nodes = {
                 end
             end
             poe2_api.time_p("Get_User_Config_Info... 耗时 --> ", api_GetTickCount64() - start_time)
+
             return bret.SUCCESS
         end
     },
@@ -367,20 +399,39 @@ local plot_nodes = {
                 env.hwrd_time = os.time()
                 poe2_api.dbgp("------------------")
                 poe2_api.dbgp("hwrd_time2:" .. env.hwrd_time)
+                -- api_Sleep(5000)
+                -- elapsed_ms = (api_GetTickCount64()) - start_time
+                -- poe2_api.dbgp("获取窗口句柄:"..string.format( elapsed_ms))
             end
 
 
             -- 判断游戏窗口
             if (not env.game_window or env.game_window == 0) and not env.error_kill then
                 poe2_api.dbgp("窗口不存在==================================================")
+                -- 判断游戏配置文件是否存在
+                -- local file = io.open(env.config_file, "r")
+                -- if file then
+                --     file:close()
+                --     if poe2_api.check_NCStorageLocalData_config(env.config_dir) then
+                --         poe2_api.print_log("游戏配置文件异常,替换配置文件")
+                --         poe2_api.set_NCStorageLocalData_config(env.config_file)
+                --         poe2_api.time_p("判断游戏窗口(RUNNING)... 耗时 --> ", api_GetTickCount64() - current_time)
+                --         return bret.RUNNING
+                --     end
+                -- end
                 env.is_set = false
                 env.take_rest = false
                 env.game_window = 0
                 env.hwrd_time = 0
+                -- error("窗口不存在=")
+                -- api_Sleep(5000)
+                -- elapsed_ms = (api_GetTickCount64()) - start_time
+                -- poe2_api.dbgp("判断游戏窗口:"..string.format( elapsed_ms))
                 poe2_api.time_p("判断游戏窗口(FAIL)... 耗时 --> ", api_GetTickCount64() - current_time)
                 return bret.FAIL
             end
             poe2_api.time_p("判断游戏窗口(SUCCESS)... 耗时 --> ", api_GetTickCount64() - current_time)
+            env.xianniu_ip = nil
             return bret.SUCCESS
         end
     },
@@ -461,11 +512,11 @@ local plot_nodes = {
                 env.account_state = nil
                 env.time_out = 0
                 env.error_kill = false
-                env.xianniu_ip = nil
                 env.hwrd_time = 0
                 local pid = api_EnumProcess(process_name)
 
                 if pid and next(pid) and pid[1] ~= 0 then
+                    api_SetWindowState(env.game_window, 13)
                     local lock = poe2_api.get_game_control_by_rect({UI_info = env.UI_info,min_x = 1543,min_y = 4,max_x = 1589,max_y = 52})
                     if lock and next(lock) then
                         api_ClickScreen(poe2_api.toInt((lock[1].left+lock[1].right)/2),poe2_api.toInt((lock[1].top+lock[1].bottom)/2) , 1)
@@ -1024,6 +1075,8 @@ local plot_nodes = {
                 poe2_api.print_log("等待steam游戏窗口")
                 if os.time() - self.last_time > 30 then
                     poe2_api.print_log("等待steam游戏窗口超时")
+                    -- local info = poe2_api.split_string(env.account_info,"|")
+                    -- local account = info[1]
                     print(env.account_info[1])
                     local status_code = poe2_api.update_data_game({game_name = "steam_account",account=env.account_info[1],status = 2})
                     if status_code ~= 200 then
@@ -1053,7 +1106,13 @@ local plot_nodes = {
                 api_Sleep(4000)
                 return bret.RUNNING
             end
+            -- for _,k in ipairs(env.UI_info) do
+            --     if k.text_utf8 ~= "" then
+            --         poe2_api.dbgp(k.text_utf8)
+            --     end
+            -- end
             poe2_api.time_p("Get_UI_Info... 耗时 --> ", api_GetTickCount64() - start_time)
+            -- api_Sleep(4000)
             return bret.SUCCESS
         end
     },
@@ -1086,6 +1145,9 @@ local plot_nodes = {
                 end
                 poe2_api.time_p("    获取周围对象信息... 耗时 --> ", api_GetTickCount64() - range_info_start_time)
             end
+            -- poe2_api.printTable(env.range_info)
+            
+            -- api_GetMinimapActorInfo() - 获取小地图周围对象信息
             local current_map_info_start_time = api_GetTickCount64()
             env.current_map_info = api_GetMinimapActorInfo()
             if not env.current_map_info then
@@ -1279,7 +1341,7 @@ local plot_nodes = {
         run = function(self, env)
             poe2_api.print_log("2级喊话...")
             local start_time = api_GetTickCount64() -- 开始时间
-            if env.player_info.level >= 2 then
+            if env.player_info.level >= 2 and env.shouting_method == "0" then
                 poe2_api.dbgp("2级喊话...")
                 -- local text = poe2_api.get_shouting_info(shouting_path)
                 -- if text then
@@ -1301,17 +1363,51 @@ local plot_nodes = {
                 -- local rand_msg = rand_insert_placeholder(base_msg)
                 -- print(rand_msg)
                 poe2_api.paste_text_Generate(base_msg, env.ggc_text[2])
+
                 api_Sleep(500)
                 poe2_api.click_keyboard("enter")
                 -- else
                 --     error("没 有 配 置 喊 话 信 息! ! !")
                 -- end
                 env.is_timeout_exit = true
-                api_Sleep(500)
+                api_Sleep(10000)
                 return bret.RUNNING
             end
             poe2_api.dbgp(11111111111)
             return bret.SUCCESS
+        end
+    },
+
+    --交易频道，喊话
+    Trade_Channel_shouting = {
+        run = function(self, env)
+            poe2_api.print_log("交易频道喊话...")
+            if env.shouting_method ~= "1" then
+                return bret.SUCCESS
+            end
+            -- env.trade_rhetoric
+            poe2_api.click_keyboard("enter")
+            api_Sleep(500)
+            -- if not poe2_api.find_text({UI_info = env.UI_info, text = game_str.Private_message, min_x = 0, max_x = 900}) then
+            --     poe2_api.click_keyboard("enter")
+            --     api_Sleep(1000)
+            --     -- self.invitation_time = api_GetTickCount64()
+            --     return bret.RUNNING
+            -- end
+            -- api_Sleep(500)
+            local ran = math.random(1,#env.trade_rhetoric)
+            -- local base_msg = "Low-priced commodity gear, please enter.%s"
+            -- local base_msg = env.ggc_text[1]
+            -- local rand_msg = rand_insert_placeholder(base_msg)
+            -- print(rand_msg)
+            poe2_api.paste_text1("$"..env.trade_rhetoric[ran])
+
+            api_Sleep(500)
+            poe2_api.click_keyboard("enter")
+            
+            api_Sleep((env.time_interval*1000))
+            return bret.RUNNING
+            -- env.time_interval
         end
     },
 
@@ -12649,8 +12745,8 @@ local plot_nodes = {
     -- 是否与隊長距离过远
     Is_Far_Away_From_Capital = {
         run = function(self, env)
-            poe2_api.dbgp("是否与大号距离过远模块开始执行...")
-            poe2_api.print_log("是否与大号距离过远模块开始执行...")
+            poe2_api.dbgp("是否与队长距离过远模块开始执行...")
+            poe2_api.print_log("是否与队长距离过远模块开始执行...")
             local player_info = env.player_info
             local range_info = env.range_info
             local team_member_3 = poe2_api.get_team_info(env.team_info,env.user_config,player_info,3)
@@ -12662,14 +12758,14 @@ local plot_nodes = {
                 end
             end 
             if point and poe2_api.point_distance(point.grid_x, point.grid_y, player_info) < 60 then
-                poe2_api.dbgp("与大号距离小与60")
+                poe2_api.dbgp("与队长距离小与60")
                 env.path_list_follow = {}
                 env.end_point_follow = nil
                 env.roll_time = nil
                 env.exit_time = nil
                 return bret.SUCCESS
             else
-                poe2_api.dbgp("与大号距离过远")
+                poe2_api.dbgp("与队长距离过远")
                 return bret.FAIL
             end
         end
@@ -12717,7 +12813,7 @@ local plot_nodes = {
             local target = check_pos(team_member_3)
             if target then
                 if poe2_api.point_distance(target.grid_x, target.grid_y, player_info) <= 25 then
-                    poe2_api.dbgp("与大号距离小于25")
+                    poe2_api.dbgp("与队长距离小于25")
                     env.path_list_follow = {}
                     local player_walk_point = api_FindRandomWalkablePosition(player_info.grid_x, player_info.grid_y, 30)
                     local dis = poe2_api.point_distance(player_walk_point.x, player_walk_point.y, player_info)
@@ -12731,7 +12827,7 @@ local plot_nodes = {
                     self.current_time = 0
                     return bret.RUNNING
                 elseif poe2_api.point_distance(target.grid_x, target.grid_y, player_info) <= 30 then
-                    poe2_api.dbgp("与大号距离小于30")
+                    poe2_api.dbgp("与队长距离小于30")
                     env.path_list_follow = {}
                     local safe_point = api_GetSafeAreaLocation(env.player_info.grid_x, env.player_info.grid_y, 60, 10, 0, 0.5)
                     api_ClickMove(poe2_api.toInt(safe_point.x), poe2_api.toInt(safe_point.y) , 7)
@@ -12740,7 +12836,7 @@ local plot_nodes = {
                     self.current_time = 0
                     return bret.RUNNING
                 elseif poe2_api.point_distance(target.grid_x, target.grid_y, player_info) <= 50 then
-                    poe2_api.dbgp("与大号距离小于50")
+                    poe2_api.dbgp("与队长距离小于50")
                     env.path_list_follow = {}
                     if not self.bool then
                         self.bool = true
@@ -12749,7 +12845,7 @@ local plot_nodes = {
                     self.current_time = 0
                     return bret.RUNNING
                 elseif poe2_api.point_distance(target.grid_x, target.grid_y, player_info) <= 60 then
-                    poe2_api.dbgp("与大号距离小于60")
+                    poe2_api.dbgp("与队长距离小于60")
                     self.bool = false
                     self.current_time = 0
                     api_ClickMove(poe2_api.toInt(target.x), poe2_api.toInt(target.y) , 0)
@@ -14301,6 +14397,9 @@ local plot_nodes = {
     Id_Collect = {
         run = function(self, env)
             poe2_api.print_log("Id采集")
+            if env.shouting_method ~= "2" then
+                return bret.SUCCESS
+            end 
             if not env.Id_collect or not self.Id_collect then
                 local status_code, response = poe2_api.create_new_game("poe2")
                 if status_code == 200 then
@@ -14380,6 +14479,9 @@ local plot_nodes = {
     Whispered_Shout = {
         run = function(self, env)
             poe2_api.print_log("密语喊话")
+            if env.shouting_method ~= "4" then
+                return bret.SUCCESS
+            end
             -- local function clear_talk_channel(game_name, talk_channel)
             --     local data = {
             --         game_name = game_name,
@@ -14440,6 +14542,9 @@ local plot_nodes = {
     Account_Collect = {
         run = function(self, env)
             poe2_api.print_log("账号采集")
+            if env.shouting_method ~= "3" then
+                return bret.SUCCESS
+            end
             if not env.account_collect_init or not self.account_collect_init then
                 local status_code, response = poe2_api.create_new_game_acc("steam_account")
                 if status_code == 200 then
@@ -14514,6 +14619,8 @@ for k, v in pairs(base_nodes) do all_nodes[k] = v end
 local plot_config = config["全局設置"]["大带小设置"] or false
 if plot_config and plot_config["启动大带小"] then
     for k, v in pairs(plot_nodes) do all_nodes[k] = v end
+-- else
+--     for k, v in pairs(custom_nodes) do all_nodes[k] = v end
 end
 
 
