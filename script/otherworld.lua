@@ -1075,7 +1075,7 @@ local plot_nodes = {
             end
             if env.login_state == "等待游戏窗口" then
                 poe2_api.print_log("等待steam游戏窗口")
-                if os.time() - self.last_time > 30 then
+                if os.time() - self.last_time > 180 then
                     poe2_api.print_log("等待steam游戏窗口超时")
                     -- local info = poe2_api.split_string(env.account_info,"|")
                     -- local account = info[1]
@@ -1089,7 +1089,7 @@ local plot_nodes = {
                     env.login_state = nil
                     env.account_info = nil
                     self.last_time = 0
-                    
+
                     return bret.RUNNING
                 end
                 api_Sleep(2000)
