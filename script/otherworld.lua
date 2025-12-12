@@ -6551,9 +6551,9 @@ local plot_nodes = {
                 end
                 if player_info.level < 2 or player_info.current_map_name_utf8 == "G1_1" then
                     poe2_api.dbgp("[Query_Current_Task_Information]新手剧情")
-                    env.task_name = "與受傷的居民交談"
-                    env.map_name = "G1_1"
-                    env.interaction_object = { "受傷的男人" }
+                    -- env.task_name = "與受傷的居民交談"
+                    -- env.map_name = "G1_1"
+                    -- env.interaction_object = { "受傷的男人" }
                     poe2_api.dbgp("[Query_Current_Task_Information]SUCCESS1")
                     poe2_api.time_p("[Query_Current_Task_Information]",(api_GetTickCount64() - current_time))
                     return bret.SUCCESS
@@ -11349,6 +11349,19 @@ local plot_nodes = {
                 return bret.SUCCESS
             end
             if me_area == "G1_1" then
+                if poe2_api.find_text({ UI_info = env.UI_info, text = "受傷的男人",min_x =450,refresh =true }) then
+                    env.end_point = nil
+                    env.is_arrive_end = false
+                    env.path_list = {}
+                    if self.last_click_time == 0 then
+                        self.last_click_time = api_GetTickCount64()
+                    end
+                    if api_GetTickCount64() - self.last_click_time > self.click_cooldown then
+                        poe2_api.find_text({ UI_info = env.UI_info, text = "受傷的男人",min_x = 0, click = 2,refresh =true })
+                        self.last_click_time = 0
+                    end
+                    return bret.RUNNING
+                end
                 if poe2_api.find_text({ UI_info = env.UI_info, text = "大箱子",min_x = 0}) then
                     env.end_point = nil
                     env.is_arrive_end = false
