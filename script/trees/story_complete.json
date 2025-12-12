@@ -43,20 +43,21 @@
       },
       {
         "id": 10,
-        "name": "Trade_Channel_shouting"
-      },
-      {
-        "id": 11,
         "name": "Get_UI_Info"
       },
       {
-        "id": 12,
+        "id": 11,
         "name": "Join_Game"
       },
       {
-        "id": 13,
+        "id": 12,
         "name": "Get_Info",
         "desc": "获取信息"
+      },
+      {
+        "id": 13,
+        "name": "Trade_Channel_shouting",
+        "desc": "交易采集"
       },
       {
         "id": 14,

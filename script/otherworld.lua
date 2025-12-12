@@ -765,6 +765,7 @@ local plot_nodes = {
             if poe2_api.find_text({ text = "開始遊戲", UI_info = env.UI_info })
                 and not creat_new_role then
                 poe2_api.find_text({ text = "開始遊戲", UI_info = env.UI_info, click = 2 })
+                env.Trade_Channel_shouting_complete = false
                 api_Sleep(1000)
                 return bret.RUNNING
             else
@@ -1382,7 +1383,7 @@ local plot_nodes = {
     },
 
     --交易频道，喊话
-    Trade_Channel_shouting = {
+    Trade_Channel_shouting1 = {
         run = function(self, env)
             poe2_api.print_log("交易频道喊话...")
             if env.shouting_method ~= "1" then
@@ -1413,6 +1414,187 @@ local plot_nodes = {
             -- env.time_interval
         end
     },
+
+    --交易频道，喊话
+    Trade_Channel_shouting2 = {
+        run = function(self, env)
+            poe2_api.print_log("交易频道喊话...")
+            if env.shouting_method ~= "1" then
+                return bret.SUCCESS
+            end
+            if env.Trade_Channel_shouting_complete then
+                if not poe2_api.find_text({UI_info = env.UI_info, text = game_str.Leave_the_game, min_x = 0}) then
+                    poe2_api.click_keyboard("esc")
+                    api_Sleep(1000)
+                    return bret.RUNNING
+                end
+                if poe2_api.find_text({UI_info = env.UI_info, text = game_str.back_to_select, min_x = 0}) then
+                    poe2_api.find_text({UI_info = env.UI_info, text = game_str.back_to_select, min_x = 0,click = 2})
+                    api_Sleep(1000)
+                    return bret.RUNNING
+                end
+
+            end
+            -- env.trade_rhetoric
+            poe2_api.click_keyboard("enter")
+            api_Sleep(500)
+            -- if not poe2_api.find_text({UI_info = env.UI_info, text = game_str.Private_message, min_x = 0, max_x = 900}) then
+            --     poe2_api.click_keyboard("enter")
+            --     api_Sleep(1000)
+            --     -- self.invitation_time = api_GetTickCount64()
+            --     return bret.RUNNING
+            -- end
+            -- api_Sleep(500)
+            local ran = math.random(1,#env.trade_rhetoric)
+            -- local base_msg = "Low-priced commodity gear, please enter.%s"
+            -- local base_msg = env.ggc_text[1]
+            -- local rand_msg = rand_insert_placeholder(base_msg)
+            -- print(rand_msg)
+            poe2_api.paste_text1("$"..env.trade_rhetoric[ran])
+
+            api_Sleep(500)
+            poe2_api.click_keyboard("enter")
+            
+            api_Sleep((env.time_interval*1000))
+            env.Trade_Channel_shouting_complete = true
+            return bret.RUNNING
+            -- env.time_interval
+        end
+    },
+
+    --交易频道，喊话
+    Trade_Channel_shouting = {
+        run = function(self, env)
+            poe2_api.print_log("交易频道喊话、采集id...")
+            if env.shouting_method ~= "1" then
+                return bret.SUCCESS
+            end
+            if env.Trade_Channel_shouting_complete then
+                if not poe2_api.find_text({UI_info = env.UI_info, text = game_str.Leave_the_game, min_x = 0}) then
+                    poe2_api.click_keyboard("esc")
+                    api_Sleep(1000)
+                    return bret.RUNNING
+                end
+                if poe2_api.find_text({UI_info = env.UI_info, text = game_str.back_to_select, min_x = 0}) then
+                    poe2_api.find_text({UI_info = env.UI_info, text = game_str.back_to_select, min_x = 0,click = 2})
+                    api_Sleep(1000)
+                    return bret.RUNNING
+                end
+
+            end
+
+            if not env.Id_collect or not self.Id_collect then
+                local status_code, response = poe2_api.create_new_game("poe2")
+                if status_code == 200 then
+                    poe2_api.dbgp("创建服务器数据表成功")
+                else
+                    poe2_api.dbgp("创建服务器数据表失败,尝试重新创建")
+                    poe2_api.dbgp("状态码:", status_code)
+                    if not self.create_number then
+                        self.create_number = 0
+                    end
+                    if self.create_number >= 10 then
+                        error("多次创建服务器数据表失败")
+                    end
+                    self.create_number = self.create_number + 1
+                    api_Sleep(1000)
+                    return bret.RUNNING
+                end
+                self.create_number = 0
+                env.Id_collect = true
+                self.Id_collect = true
+                -- api_Sleep(5000)
+                return bret.RUNNING
+            end
+            local range_info = env.range_info
+            local ui_info = env.UI_info
+            -- 采集周围玩家信息
+            local name_list = {}
+            if range_info and next(range_info) then
+                for _, v in ipairs(env.range_info) do
+                    if v.type == 0 and v.name_utf8 ~= env.player_info.name_utf8 then
+                        table.insert(name_list,v.name_utf8)
+                    end
+                end
+            end
+
+            if #ui_info > 0 then
+                for _, v in ipairs(env.UI_info) do
+                    if (string.find(v.text_utf8,"#") or string.find(v.text_utf8,"$")) and string.find(v.text_utf8,":") then
+                        local result = v.text_utf8:match("[#$](.-):")
+                        if result then
+                            if not poe2_api.table_contains(name_list,result) then
+                                table.insert(name_list,result)
+                            end
+                        end
+                    end
+                end
+            end
+            
+            self.id_last_ts = self.id_last_ts or {}
+            local now = api_GetTickCount64()
+            local filtered = {}
+            for _, v in ipairs(name_list) do
+                local last = self.id_last_ts[v]
+                if not last or (now - last) >= 3600000 then
+                    table.insert(filtered, v)
+                end
+            end
+            name_list = filtered
+            if not next(name_list) then
+                poe2_api.dbgp("本次未采集到新的玩家Id")
+            else
+                poe2_api.printTable(name_list)
+                for _, v in ipairs(name_list) do
+                    local status_code = poe2_api.insert_data("poe2", v, "1", "1", 50)
+                    if status_code == 200 then
+                        self.id_last_ts[v] = now
+                    end
+                end
+            end
+
+            if env.Trade_Channel_shouting_time then
+                if api_GetTickCount64() - env.Trade_Channel_shouting_time < env.time_interval*1000 then
+                    poe2_api.dbgp("距离上次喊话还未到时间")
+                    return bret.RUNNING
+                end
+                env.Trade_Channel_shouting_time = nil
+                env.Trade_Channel_shouting_complete = true
+                return bret.RUNNING
+            end
+
+
+
+            -- env.trade_rhetoric
+            -- poe2_api.click_keyboard("enter")
+            -- api_Sleep(500)
+            if not poe2_api.find_text({UI_info = env.UI_info, text = game_str.Private_message, min_x = 0, max_x = 900}) then
+                poe2_api.click_keyboard("enter")
+                api_Sleep(1000)
+                -- self.invitation_time = api_GetTickCount64()
+                return bret.RUNNING
+            end
+            -- api_Sleep(500)
+            local ran = math.random(1,#env.trade_rhetoric)
+            -- local base_msg = "Low-priced commodity gear, please enter.%s"
+            -- local base_msg = env.ggc_text[1]
+            -- local rand_msg = rand_insert_placeholder(base_msg)
+            -- print(rand_msg)
+            poe2_api.paste_text1("$"..env.trade_rhetoric[ran])
+
+            api_Sleep(500)
+            poe2_api.click_keyboard("enter")
+            env.Trade_Channel_shouting_time = api_GetTickCount64()
+            -- api_Sleep((env.time_interval*1000))
+            
+            return bret.RUNNING
+            -- env.time_interval
+        end
+    },
+
+    
+    
+
 
     -- 休息控制
     RestController = {
