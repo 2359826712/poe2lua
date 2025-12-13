@@ -17,7 +17,7 @@ local CELL_HEIGHT_max = 22  -- 超大仓库 每个格子高度
 local last_record_time = nil  -- 上次记录的时间戳
 local INTERVAL = 10          -- 间隔时间（秒）
 local server_url = "http://192.168.20.81:9096"
-local server_url_account = "http://127.0.0.1:9097"
+local server_url_account = "http://192.168.20.81:9097"
 -- ===================== 内部缓存：最后一次成功版本 ======================
 -- key = 规范化后的最终读路径（含盘符/UNC）
 -- val = { data=table, size=number, hash=number }
