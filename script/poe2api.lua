@@ -17,7 +17,7 @@ local CELL_HEIGHT_max = 22  -- 超大仓库 每个格子高度
 local last_record_time = nil  -- 上次记录的时间戳
 local INTERVAL = 10          -- 间隔时间（秒）
 local server_url = "http://192.168.20.81:9096"
-local server_url_account = "http://192.168.20.81:9097"
+local server_url_account = "http://127.0.0.1:9097"
 -- ===================== 内部缓存：最后一次成功版本 ======================
 -- key = 规范化后的最终读路径（含盘符/UNC）
 -- val = { data=table, size=number, hash=number }
@@ -8990,7 +8990,7 @@ end
 
 -- 插入数据    账号数据库
 -- status  0： 未封号  1：封号  2：账号异常 
-_M.insert_data_game = function(game_name, account, password, b_zone, s_zone, status, in_use)
+_M.insert_data_game = function(game_name, account, password, b_zone, s_zone, status, in_use,level,computer_number)
 -- local function insert_data(game_name, account, password, b_zone, s_zone, status, in_use)
     local data = {
       game_name = game_name,  -- 表明
@@ -8998,6 +8998,8 @@ _M.insert_data_game = function(game_name, account, password, b_zone, s_zone, sta
       password  = password,  -- 密码
       b_zone    = b_zone,  -- 大区
       s_zone    = s_zone,  -- 小区
+      level    = level,
+      computer_number    = computer_number,
       status    = status,  -- 账号状态
       in_use    = in_use  -- 是否正在使用
     }
@@ -9010,12 +9012,13 @@ _M.insert_data_game = function(game_name, account, password, b_zone, s_zone, sta
 end
 
 -- 查询数据    账号数据库
-_M.query_data_game = function(game_name, status, in_use)
+_M.query_data_game = function(info)
     local data = {
-      game_name = game_name,
-      status    = status,
-      in_use    = in_use,
-      
+      game_name = info.game_name,
+      status    = info.status,
+      in_use    = info.in_use,
+      level    = info.level,
+      computer_number    = info.computer_number
     }
     local status_code, response = _M.send_post_request_account("/query", data)
     -- print("=== 查询数据 ===")
@@ -9031,6 +9034,8 @@ _M.update_data_game = function(info)
       game_name = info.game_name ,
       account   = info.account,
       status    = info.status,
+      level    = info.level,
+      computer_number    = info.computer_number
     }
     local status_code, response = _M.send_post_request_account("/update", data)
     -- print("=== 更新数据 ===")
@@ -9070,5 +9075,14 @@ _M.paste_text_Generate = function(str,text)
 end
 
 
+_M.get_local_ip = function()
+    local p = io.popen("ipconfig", "r")
+    if not p then return nil end
+    local s = p:read("*a")
+    p:close()
+    local ip = s:match("IPv4 地址[^%d]*(%d+%.%d+%.%d+%.%d+)") or s:match("IPv4 Address[^%d]*(%d+%.%d+%.%d+%.%d+)") or s:match("IP Address[^%d]*(%d+%.%d+%.%d+%.%d+)")
+    if ip == "127.0.0.1" then return nil end
+    return ip
+end
 
 return _M

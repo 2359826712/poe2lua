@@ -33,6 +33,11 @@ local file = io.open(json_path, "r") -- 打开文件
 local content = file:read("*a") -- 读取全部内容 
 file:close()
 local config = json.decode(content)
+-- poe2_api.insert_data_game("test_acc","11112","2565","1","2",1,false,"s","d")
+-- poe2_api.query_data_game({game_name="test_acc",account="11112",status = 0})
+-- poe2_api.update_data_game({game_name="test_acc",account="11112",level = "2"})
+-- poe2_api.create_new_game_acc("steam_account")
+-- api_Sleep(5000)
 -- 自定义节点实现
 local plot_nodes = {
     -- 获取用户配置信息
@@ -996,29 +1001,42 @@ local plot_nodes = {
             if env.login_state == "输入帳號" then
                 
                 if not env.account_info then
-                    local status_code, response = poe2_api.query_data_game("steam_account", 0, false)
-                    
-                    if status_code == 200 then
-                        local data = response.data
-                        local names = nil
-                        if type(data) == "table" and next(data) then
-                            names = {data.account,data.password}
+                    local local_ip = poe2_api.get_local_ip()
+                    local names = nil
+                    if local_ip then
+                       
+                        local status_code1, response1 = poe2_api.query_data_game({game_name = "steam_account", status = 0, computer_number = local_ip})
+                        if status_code1 == 200 and type(response1) == "table" then
+                            local data1 = response1.data
+                            if type(data1) == "table" and data1.computer_number == nil then
+                                poe2_api.create_new_game("steam_account")
+                            end
+                            if type(data1) == "table" and next(data1) and data1.account and data1.password then
+                                names = {data1.account, data1.password}
+                            end
                         end
-                        if not names then
-                            poe2_api.dbgp("数据库暂无账号可用")
-                            api_Sleep(1000)
-                            return bret.RUNNING
+                    end
+                    if not names then
+                        local status_code2, response2 = poe2_api.query_data_game({game_name = "steam_account", status = 0, in_use = "false"})
+                        if status_code2 == 200 and type(response2) == "table" then
+                            local data2 = response2.data
+                            if type(data2) == "table" and data2.computer_number == nil then
+                                poe2_api.create_new_game("steam_account")
+                            end
+                            if type(data2) == "table" and next(data2) and data2.account and data2.password then
+                                if local_ip then
+                                    poe2_api.update_data_game({game_name = "steam_account", account = data2.account, computer_number = local_ip, in_use = "true"})
+                                end
+                                names = {data2.account, data2.password}
+                            end
                         end
-                        env.account_info = names
-                        return bret.RUNNING
-                        -- print(json.encode(names))
-                        -- poe2_api.printTable(names)
-                        -- api_Sleep(5000)
-                    else
-                        poe2_api.dbgp("查询数据失败,尝试重新查询")
+                    end
+                    if not names then
                         api_Sleep(1000)
                         return bret.RUNNING
                     end
+                    env.account_info = names
+                    return bret.RUNNING
                 end 
                 -- poe2_api.dbgp(env.account_info)
                 -- api_Sleep(4000)
@@ -1093,7 +1111,6 @@ local plot_nodes = {
                         return bret.RUNNING
                     end
                     env.login_state = nil
-                    env.account_info = nil
                     self.last_time = 0
 
                     return bret.RUNNING
