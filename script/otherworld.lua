@@ -33,11 +33,6 @@ local file = io.open(json_path, "r") -- 打开文件
 local content = file:read("*a") -- 读取全部内容 
 file:close()
 local config = json.decode(content)
--- poe2_api.insert_data_game("test_acc","11112","2565","1","2",1,false,"s","d")
--- poe2_api.query_data_game({game_name="test_acc",account="11112",status = 0})
--- poe2_api.update_data_game({game_name="test_acc",account="11112",level = "2"})
--- poe2_api.create_new_game_acc("steam_account")
--- api_Sleep(5000)
 -- 自定义节点实现
 local plot_nodes = {
     -- 获取用户配置信息
@@ -46,7 +41,8 @@ local plot_nodes = {
             poe2_api.print_log("获取用户配置信息...")
             api_SetStatusText("")
             local start_time = api_GetTickCount64() -- 开始时间
-            env.user_config = nil
+
+            -- env.user_config = nil
             if not env.user_config then
                 local config = poe2_api.load_config(json_path)
                 local skills_config = poe2_api.load_config(skills_path)
@@ -370,6 +366,83 @@ local plot_nodes = {
                     }
                 end
             end
+            if not env.cfg_item_time or api_GetTickCount64() - env.cfg_item_time > 1000 * 60 then
+                local user_info = poe2_api.load_ini(user_info_path)["UserInfo"]-- env.cfg_item = {}
+                if user_info["share_item_filter_enable"] and tonumber(user_info["share_item_filter_enable"]) == 1 and user_info["share_item_filter_path"] and user_info["share_item_filter_path"] ~= "" then
+                    local function join_unc(base, filename)
+                        base = tostring(base)
+                        if base:sub(-1) == "\\" then
+                            return base .. filename
+                        else
+                            return base .. "\\" .. filename
+                        end
+                    end
+                    local base = user_info["share_item_filter_path"]          -- 期望: \\192.168.20.33\file_sharing
+                    local path = join_unc(base, "ggc.txt")
+                    local shount_method = join_unc(base, "shouting_method.txt")
+                    local trade_rhetoric = join_unc(base, "trade_rhetoric.txt")
+                    local function read_lines_trim(path, skip_blank)
+                        local lines = {}
+                        if not path then return lines end
+                        local p = tostring(path):gsub("^%s+", ""):gsub("%s+$", "")
+                        p = p:gsub("^%[%[", ""):gsub("%]%]$", "")
+                        local f, err = io.open(p, "r")
+                        if not f then
+                            poe2_api.dbgp("open_failed:" .. tostring(err))
+                            poe2_api.dbgp(p)
+                            return lines
+                        end
+                        for line in f:lines() do
+                            line = line:gsub("^%s+", ""):gsub("%s+$", "")
+                            if not skip_blank or line ~= "" then
+                                table.insert(lines, line)
+                            end
+                        end
+                        f:close()
+                        return lines
+                    end
+
+                    -- 读取文件第一行并清理格式
+                    local function read_first_line_trimmed(file_path)
+                        local file = io.open(file_path, "r")
+                        if not file then
+                            return nil, "无法打开文件: " .. file_path
+                        end
+                        
+                        local first_line = file:read("*l")  -- 读取第一行
+                        file:close()
+                        
+                        if not first_line then
+                            return nil, "文件为空"
+                        end
+                        
+                        -- 去除前后空格和换行符
+                        first_line = first_line:gsub("^%s+", ""):gsub("%s+$", ""):gsub("[\r\n]", "")
+                        return first_line
+                    end
+                    
+                    -- 读取共享路径（UNC），用长字符串避免转义
+                    -- local shared_path = [[\\192.168.20.33\file_sharing\ggc.txt]]
+                    local lines = read_lines_trim(path, true)
+                    local a = read_lines_trim(shount_method,true)[1]
+                    local time_interval = read_lines_trim(shount_method,true)[2]
+                    local rhetoric = read_lines_trim(trade_rhetoric,true)
+                    poe2_api.dbgp(type(a))
+                    local ggc_text = {}
+                    -- 使用示例：打印每一行
+                    -- for i, v in ipairs(lines) do
+                    --     -- print(v)
+                    --     table.insert(ggc_text,v)
+                    -- end
+                    env.ggc_text = lines
+                    env.shouting_method = a
+                    env.time_interval = time_interval
+                    env.trade_rhetoric = rhetoric
+                    env.cfg_item_time = api_GetTickCount64()
+                end 
+
+            end
+            
             poe2_api.time_p("Get_User_Config_Info... 耗时 --> ", api_GetTickCount64() - start_time)
 
             return bret.SUCCESS
@@ -1009,7 +1082,7 @@ local plot_nodes = {
                         if status_code1 == 200 and type(response1) == "table" then
                             local data1 = response1.data
                             if type(data1) == "table" and data1.computer_number == nil then
-                                poe2_api.create_new_game("steam_account")
+                                poe2_api.create_new_game_acc("steam_account")
                             end
                             if type(data1) == "table" and next(data1) and data1.account and data1.password then
                                 names = {data1.account, data1.password}
@@ -1021,7 +1094,7 @@ local plot_nodes = {
                         if status_code2 == 200 and type(response2) == "table" then
                             local data2 = response2.data
                             if type(data2) == "table" and data2.computer_number == nil then
-                                poe2_api.create_new_game("steam_account")
+                                poe2_api.create_new_game_acc("steam_account")
                             end
                             if type(data2) == "table" and next(data2) and data2.account and data2.password then
                                 if local_ip then
@@ -1032,6 +1105,7 @@ local plot_nodes = {
                         end
                     end
                     if not names then
+                        poe2_api.dbgp("数据库无可用账号")
                         api_Sleep(1000)
                         return bret.RUNNING
                     end
@@ -1388,7 +1462,7 @@ local plot_nodes = {
                 local base_msg = env.ggc_text[1]
                 -- local rand_msg = rand_insert_placeholder(base_msg)
                 -- print(rand_msg)
-                poe2_api.paste_text_Generate(base_msg, env.ggc_text[2])
+                poe2_api.paste_text_Generate("#"..base_msg.." %s", env.ggc_text[2])
 
                 api_Sleep(500)
                 poe2_api.click_keyboard("enter")
@@ -1489,6 +1563,9 @@ local plot_nodes = {
         run = function(self, env)
             poe2_api.print_log("交易频道喊话、采集id...")
             if env.shouting_method ~= "1" then
+                return bret.SUCCESS
+            end
+            if env.player_info.level < 2 then
                 return bret.SUCCESS
             end
             if env.Trade_Channel_shouting_complete then
@@ -14703,8 +14780,33 @@ local plot_nodes = {
     Whispered_Shout = {
         run = function(self, env)
             poe2_api.print_log("密语喊话")
-            if env.shouting_method ~= "4" then
+            if env.shouting_method ~= "4" or env.player_info.level < 2 then
                 return bret.SUCCESS
+            end
+            if env.miyvyq_time then
+                    if api_GetTickCount64() - env.miyvyq_time < env.time_interval*1000 then
+                        poe2_api.dbgp("距离上次喊话还未到时间")
+                        return bret.RUNNING
+                    end
+                    -- env.miyvjs  = true
+                    env.miyvyq_time = nil
+                    -- env.Trade_Channel_shouting_complete = true
+                    return bret.RUNNING
+                end
+            if env.miyvjs then
+                if not poe2_api.find_text({UI_info = env.UI_info, text = game_str.Private_message, min_x = 0, max_x = 900}) then
+                    poe2_api.click_keyboard("enter")
+                    api_Sleep(1000)
+                    -- self.invitation_time = api_GetTickCount64()
+                    return bret.RUNNING
+                end
+                poe2_api.paste_text1("/friend "..env.Id_list[1])
+                api_Sleep(1000)
+                poe2_api.click_keyboard("enter")
+                api_Sleep(1000)
+                env.miyvjs = false
+                table.remove(env.Id_list,1)
+                env.miyvyq_time = api_GetTickCount64()
             end
             -- local function clear_talk_channel(game_name, talk_channel)
             --     local data = {
@@ -14723,7 +14825,37 @@ local plot_nodes = {
             -- clear_talk_channel("poe2",1)
             -- api_Sleep(5000)
             if env.Id_list and next(env.Id_list) then
-                
+                if env.Trade_Channel_shouting_time then
+                    if api_GetTickCount64() - env.Trade_Channel_shouting_time < env.time_interval*1000 then
+                        poe2_api.dbgp("距离上次喊话还未到时间")
+                        return bret.RUNNING
+                    end
+                    env.miyvjs  = true
+                    env.Trade_Channel_shouting_time = nil
+                    env.Trade_Channel_shouting_complete = true
+                    return bret.RUNNING
+                end
+                -- env.trade_rhetoric
+                -- poe2_api.click_keyboard("enter")
+                -- api_Sleep(500)
+                if not poe2_api.find_text({UI_info = env.UI_info, text = game_str.Private_message, min_x = 0, max_x = 900}) then
+                    poe2_api.click_keyboard("enter")
+                    api_Sleep(1000)
+                    -- self.invitation_time = api_GetTickCount64()
+                    return bret.RUNNING
+                end
+                -- api_Sleep(500)
+                math.randomseed(math.floor(api_GetTickCount64() % 2147483647))
+                local ran = math.random(1,#env.trade_rhetoric)
+                -- local base_msg = "Low-priced commodity gear, please enter.%s"
+                -- local base_msg = env.ggc_text[1]
+                -- local rand_msg = rand_insert_placeholder(base_msg)
+                -- print(rand_msg)
+                poe2_api.paste_text1("@"..env.Id_list[1].." "..env.trade_rhetoric[ran])
+                api_Sleep(500)
+                poe2_api.click_keyboard("enter")
+                env.Trade_Channel_shouting_time = api_GetTickCount64()
+                return bret.RUNNING
             else
                 local status_code, response = poe2_api.query_data("poe2", 100, 1, 1)
                 if status_code == 200 then
