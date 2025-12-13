@@ -119,6 +119,10 @@ local plot_nodes = {
                     env.shouting_method = a
                     env.time_interval = time_interval
                     env.trade_rhetoric = rhetoric
+                    local ItemFilter_info = poe2_api.load_config1(ItemFilter_path)
+                    if ItemFilter_info then
+                        env.ItemFilter_info = ItemFilter_info
+                    end
                     poe2_api.dbgp("共享文件")
                 else
                     -- por
@@ -430,6 +434,7 @@ local plot_nodes = {
                 poe2_api.time_p("判断游戏窗口(FAIL)... 耗时 --> ", api_GetTickCount64() - current_time)
                 return bret.FAIL
             end
+            env.login_state = nil
             env.xianniu_ip = nil
             poe2_api.time_p("判断游戏窗口(SUCCESS)... 耗时 --> ", api_GetTickCount64() - current_time)
             return bret.SUCCESS
@@ -1575,6 +1580,7 @@ local plot_nodes = {
                 return bret.RUNNING
             end
             -- api_Sleep(500)
+            math.randomseed(math.floor(api_GetTickCount64() % 2147483647))
             local ran = math.random(1,#env.trade_rhetoric)
             -- local base_msg = "Low-priced commodity gear, please enter.%s"
             -- local base_msg = env.ggc_text[1]
@@ -6284,6 +6290,9 @@ local plot_nodes = {
                 self.raw_time = 0
                 self.update = {}
                 self.mas = nil
+            end
+            if env.shouting_method == "0" then
+                return bret.SUCCESS
             end
             local range_info = env.range_info
             local player_info = env.player_info
