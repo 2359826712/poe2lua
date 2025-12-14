@@ -11828,6 +11828,7 @@ local plot_nodes = {
             if team_member_2 == "大号名称" and string.find(me_area, "own") and me_area ~= "G3_town" then
                 return bret.SUCCESS
             end
+            
             if me_area == "G1_1" then
                 if poe2_api.find_text({ UI_info = env.UI_info, text = "受傷的男人",min_x =450,max_x = 1420,refresh =true }) then
                     env.end_point = nil
