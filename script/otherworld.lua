@@ -15218,7 +15218,7 @@ local plot_nodes = {
             if self.click_Friend_number and self.click_Friend_number >= 15 then
                 poe2_api.dbgp("点击好友次数超过15次")
                 if env.click_Friend_zdy then
-                    local ation = poe2_api.find_text({UI_info = env.UI_info, text = "離線", min_x = 235, max_x = 250,match = 2,position = 2})
+                    local ation = poe2_api.find_text({UI_info = env.UI_info, text = "離線", min_x = 220, max_x = 250,match = 2,position = 2})
                     local id_ation = poe2_api.find_text({UI_info = env.UI_info, text = "HunterManAR",min_x = 140, man_x = 180, match = 2,position = 2})
                     poe2_api.dbgp(ation)
                     poe2_api.dbgp(id_ation)
@@ -15284,54 +15284,83 @@ local plot_nodes = {
                     return bret.RUNNING
                 end
             end
-            if env.click_Friend then
-                local ation = poe2_api.find_text({UI_info = env.UI_info, text = "離線", min_x = 235, max_x = 250,match = 2,position = 2})
-                local id_ation = poe2_api.find_text({UI_info = env.UI_info, text = env.Id_list[1],min_x = 140, man_x = 180, match = 2,position = 2})
-                poe2_api.dbgp(ation)
-                poe2_api.dbgp(id_ation)
-                poe2_api.dbgp(env.Id_list[1])
-                if id_ation then
-                    if id_ation.top > ation.top then
-                        if not poe2_api.find_text({UI_info = env.UI_info, text = "你確定要從好友名單中將", man_x = 180, match = 2}) then
-                            poe2_api.dbgp("点击删除添加好友")
-                            poe2_api.find_text({UI_info = env.UI_info, text = env.Id_list[1],min_x = 140,  man_x = 180, match = 2,click = 7})
-                            api_Sleep(1500)
-                            poe2_api.find_text({UI_info = env.UI_info, text = env.Id_list[1],min_x = 140,  man_x = 180, match = 2,click = 2,add_x = 150,add_y = 200})
-                            api_Sleep(1000)
-                            return bret.RUNNING
-                        else
-                            -- poe2_api.find_text({UI_info = env.UI_info, text = "是", min_x = 930, click = 2})
-                            api_ClickScreen(915,467,1)
-                            -- poe2_api.find_text({UI_info = env.UI_info, text = "你確定要從好友名單中將", man_x = 180, match = 2,click = 2})
-                            api_Sleep(1000)
-                            self.click_Friend_number = self.click_Friend_number + 1
-                            return bret.RUNNING
-                        end
-                    else
-                        if not poe2_api.find_text({UI_info = env.UI_info, text = "你確定要從好友名單中將", man_x = 180, match = 2}) then
-                            poe2_api.dbgp("点击删除添加好友")
-                            poe2_api.find_text({UI_info = env.UI_info, text = env.Id_list[1],min_x = 0,  man_x = 180, match = 2,click = 7})
-                            api_Sleep(1500)
-                            poe2_api.find_text({UI_info = env.UI_info, text = env.Id_list[1],min_x = 0,  man_x = 180, match = 2,click = 2,add_x = 150,add_y = 215})
-                            api_Sleep(1000)
-                            return bret.RUNNING
-                        else
-                            
-                            api_ClickScreen(915,467,1)
-                            -- poe2_api.find_text({UI_info = env.UI_info, text = "是", min_x = 930, click = 2})
-                            
-                            api_Sleep(1000)
-                            return bret.RUNNING
-                        end
-
-                    end
+            local ation = poe2_api.find_text({UI_info = env.UI_info, text = "#", min_x = 0, max_x = 530,max_y= 600,match = 2,position = 2})
+            if ation then
+                if not poe2_api.find_text({UI_info = env.UI_info, text = "你確定要從好友名單中將", man_x = 180, match = 2}) then
+                    poe2_api.dbgp("点击删除添加好友")
+                    poe2_api.find_text({UI_info = env.UI_info, text = ation.text_utf8,min_x = 0,  man_x = 0, match = 2,click = 7})
+                    api_Sleep(1500)
+                    local x,y  = ((ation.left + ation.right)/2),((ation.top + ation.bottom)/2)
+                    api_ClickScreen(x+150,y+210,1)
+                    api_Sleep(1500)
+                    poe2_api.find_text({UI_info = env.UI_info, text = ation.text_utf8,min_x = 0,  man_x = 0, match = 2,click = 7})
+                    api_Sleep(1500)
+                    api_ClickScreen(x+150,y+50,1)
+                    api_Sleep(1500)
+                    -- 
+                    -- api_Sleep(1500)
+                    -- poe2_api.find_text({UI_info = env.UI_info, text = env.Id_list[1],min_x = 140,  man_x = 180, match = 2,click = 2,add_x = 150,add_y = 200})
+                    -- api_Sleep(1000)
+                    -- poe2_api.find_text({UI_info = env.UI_info, text = env.Id_list[1],min_x = 140,  man_x = 180, match = 2,click = 2,add_x = 150,add_y = 50})
+                    return bret.RUNNING
                 else
-                    env.click_Friend = false
-                    table.remove(env.Id_list,1)
+                    -- poe2_api.find_text({UI_info = env.UI_info, text = "是", min_x = 930, click = 2})
+                    api_ClickScreen(915,467,1)
+                    -- poe2_api.find_text({UI_info = env.UI_info, text = "你確定要從好友名單中將", man_x = 180, match = 2,click = 2})
+                    api_Sleep(1000)
+                    -- self.click_Friend_number = self.click_Friend_number + 1
                     return bret.RUNNING
                 end
-                return bret.RUNNING
             end
+
+            -- if env.click_Friend then
+            --     local ation = poe2_api.find_text({UI_info = env.UI_info, text = "離線", min_x = 220, max_x = 250,match = 2,position = 2})
+            --     local id_ation = poe2_api.find_text({UI_info = env.UI_info, text = env.Id_list[1],min_x = 140, man_x = 180, match = 2,position = 2})
+            --     poe2_api.dbgp(ation)
+            --     poe2_api.dbgp(id_ation)
+            --     poe2_api.dbgp(env.Id_list[1])
+            --     if id_ation then
+            --         if id_ation.top > ation.top then
+            --             if not poe2_api.find_text({UI_info = env.UI_info, text = "你確定要從好友名單中將", man_x = 180, match = 2}) then
+            --                 poe2_api.dbgp("点击删除添加好友")
+            --                 poe2_api.find_text({UI_info = env.UI_info, text = env.Id_list[1],min_x = 140,  man_x = 180, match = 2,click = 7})
+            --                 api_Sleep(1500)
+            --                 poe2_api.find_text({UI_info = env.UI_info, text = env.Id_list[1],min_x = 140,  man_x = 180, match = 2,click = 2,add_x = 150,add_y = 200})
+            --                 api_Sleep(1000)
+            --                 return bret.RUNNING
+            --             else
+            --                 -- poe2_api.find_text({UI_info = env.UI_info, text = "是", min_x = 930, click = 2})
+            --                 api_ClickScreen(915,467,1)
+            --                 -- poe2_api.find_text({UI_info = env.UI_info, text = "你確定要從好友名單中將", man_x = 180, match = 2,click = 2})
+            --                 api_Sleep(1000)
+            --                 self.click_Friend_number = self.click_Friend_number + 1
+            --                 return bret.RUNNING
+            --             end
+            --         else
+            --             if not poe2_api.find_text({UI_info = env.UI_info, text = "你確定要從好友名單中將", man_x = 180, match = 2}) then
+            --                 poe2_api.dbgp("点击删除添加好友")
+            --                 poe2_api.find_text({UI_info = env.UI_info, text = env.Id_list[1],min_x = 0,  man_x = 180, match = 2,click = 7})
+            --                 api_Sleep(1500)
+            --                 poe2_api.find_text({UI_info = env.UI_info, text = env.Id_list[1],min_x = 0,  man_x = 180, match = 2,click = 2,add_x = 150,add_y = 215})
+            --                 api_Sleep(1000)
+            --                 return bret.RUNNING
+            --             else
+                            
+            --                 api_ClickScreen(915,467,1)
+            --                 -- poe2_api.find_text({UI_info = env.UI_info, text = "是", min_x = 930, click = 2})
+                            
+            --                 api_Sleep(1000)
+            --                 return bret.RUNNING
+            --             end
+
+            --         end
+            --     else
+            --         env.click_Friend = false
+            --         table.remove(env.Id_list,1)
+            --         return bret.RUNNING
+            --     end
+            --     return bret.RUNNING
+            -- end
             if env.Id_list and next(env.Id_list) then
                 if not poe2_api.find_text({UI_info = env.UI_info, text = game_str.Social_TWCH, min_x = 0, max_x = 900}) then
                     poe2_api.click_keyboard("j")
@@ -15355,7 +15384,7 @@ local plot_nodes = {
                     end
                     self.click_Friend_number = self.click_Friend_number + 1
                     
-                    -- table.remove(env.Id_list,1)
+                    table.remove(env.Id_list,1)
                     return bret.RUNNING
                 end
             else
