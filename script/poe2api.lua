@@ -9035,7 +9035,8 @@ _M.update_data_game = function(info)
       account   = info.account,
       status    = info.status,
       level    = info.level,
-      computer_number    = info.computer_number
+      computer_number    = info.computer_number,
+      in_use = info.in_use
     }
     local status_code, response = _M.send_post_request_account("/update", data)
     -- print("=== 更新数据 ===")

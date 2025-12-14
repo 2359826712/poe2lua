@@ -512,7 +512,7 @@ local plot_nodes = {
                 poe2_api.time_p("判断游戏窗口(FAIL)... 耗时 --> ", api_GetTickCount64() - current_time)
                 return bret.FAIL
             end
-            env.login_state = nil
+            -- env.login_state = nil
             env.xianniu_ip = nil
             poe2_api.time_p("判断游戏窗口(SUCCESS)... 耗时 --> ", api_GetTickCount64() - current_time)
             return bret.SUCCESS
@@ -568,13 +568,28 @@ local plot_nodes = {
             if env.time_out == 0 then
                 env.time_out = os.time()
             end
+            if poe2_api.find_text({ text = "> 已斷線: Unable to deserialise packet with pid", UI_info = env.UI_info, min_x = 0 ,match = 2}) then
+                if env.Disconnected_number == nil then
+                    env.Disconnected_number = 0
+                end
+                env.Disconnected_number = env.Disconnected_number + 1
+                if env.Disconnected_number < 15 then
+                    api_Sleep(2000)
+                    return bret.RUNNING
+                end
+                if env.account_info and next(env.account_info) then
+                    local status_code = poe2_api.update_data_game({game_name = "steam_account",account=env.account_info[1],status = 1})
+                end
+                env.account_info = nil
+            end
             -- 判断是否关闭游戏
             if env.speel_ip_number >= 50
                 or env.error_kill
                 or env.is_set
                 or env.switching_lines >= 120
                 or poe2_api.find_text({ text = "This operation requires the account to be logged in.", UI_info = env.UI_info })
-                or poe2_api.find_text({ text = "> 已斷線: Unable to deserialise packet with pid", UI_info = env.UI_info, min_x = 0 })
+                -- or poe2_api.find_text({ text = "> 已斷線: Unable to deserialise packet with pid", UI_info = env.UI_info, min_x = 0 ,match = 2})
+                or (env.Disconnected_number and env.Disconnected_number >= 15)
                 or env.is_ban then
                 poe2_api.dbgp("error_kill:", env.error_kill)
                 poe2_api.dbgp("speel_ip_number:", env.speel_ip_number)
@@ -586,8 +601,9 @@ local plot_nodes = {
                         UI_info = env
                             .UI_info
                     }))
-                poe2_api.dbgp("find_test (packet with pid):",
-                    poe2_api.find_text({ text = "> 已斷線: Unable to deserialise packet with pid", UI_info = env.UI_info, min_x = 0 }))
+                poe2_api.dbgp("Disconnected_number:", env.Disconnected_number)
+                -- poe2_api.dbgp("find_test (packet with pid):",
+                --     poe2_api.find_text({ text = "> 已斷線: Unable to deserialise packet with pid", UI_info = env.UI_info, min_x = 0 ,match = 2}))
                 env.is_game_exe = false
                 env.login_state = nil
                 env.speel_ip_number = 0
@@ -596,6 +612,9 @@ local plot_nodes = {
                 env.time_out = 0
                 env.error_kill = false
                 env.hwrd_time = 0
+                env.is_ban = false
+                env.ip_blocked_number = 0 
+                env.Disconnected_number = nil
                 local pid = api_EnumProcess(process_name)
 
                 if pid and next(pid) and pid[1] ~= 0 then
@@ -714,24 +733,70 @@ local plot_nodes = {
                 error("服务器维护中,已停止运行")
             end
             if poe2_api.find_text({ text = "Your account has been banned by an administrator.", UI_info = env.UI_info }) then
-                if env.account_info and next(env.account_info) then
-                    local status_code = poe2_api.update_data_game({game_name = "steam_account",account=env.account_info[1],status = 1})
+                if env.ip_blocked_number == 0 then
+                    env.ip_blocked_number = env.ip_blocked_number + 1
                 end
-                env.is_ban = true
-                -- poe2_api.find_text({ text = "確定", UI_info = env.UI_info, min_x = 0, click = 2 })
+                if env.ip_blocked_number > 15 then
+                    if env.account_info and next(env.account_info) then
+                        local status_code = poe2_api.update_data_game({game_name = "steam_account",account=env.account_info[1],status = 1})
+                    end
+                    env.is_ban = true
+                    env.account_info = nil
+                    env.number_last_time = 0
+                    env.ip_blocked_number = 0
+                    -- poe2_api.find_text({ text = "確定", UI_info = env.UI_info, min_x = 0, click = 2 })
+                    poe2_api.dbgp("封号!!!1")
+                end
+                poe2_api.dbgp("你的账号已被封禁尝试点击")
+                poe2_api.find_text({ text = "確定", UI_info = env.UI_info, min_x = 0, click = 2 })
                 -- env.account_state = 3
-                poe2_api.dbgp("封号!!!")
+                env.ip_blocked_number = env.ip_blocked_number + 1
+                api_Sleep(2000)
 
                 return bret.RUNNING
             end
             if poe2_api.find_text({text = game_str.Violate_The_Rules,UI_info = env.UI_info,match = 2}) then
-                -- env.account_state = 3
-                if env.account_info and next(env.account_info) then
-                    local status_code = poe2_api.update_data_game({game_name = "steam_account",account=env.account_info[1],status = 1})
+                if env.ip_blocked_number == 0 then
+                    env.ip_blocked_number = env.ip_blocked_number + 1
                 end
-                env.is_ban = true
-                -- poe2_api.find_text({ text = "確定", UI_info = env.UI_info, min_x = 0, click = 2 })
-                poe2_api.dbgp("封号!!!")
+                if env.ip_blocked_number > 15 then
+                    if env.account_info and next(env.account_info) then
+                        local status_code = poe2_api.update_data_game({game_name = "steam_account",account=env.account_info[1],status = 1})
+                    end
+                    env.is_ban = true
+                    env.account_info = nil
+                    env.number_last_time = 0
+                    env.ip_blocked_number = 0
+                    -- poe2_api.find_text({ text = "確定", UI_info = env.UI_info, min_x = 0, click = 2 })
+                    poe2_api.dbgp("封号!!!2")
+                end
+                poe2_api.dbgp("违法规定")
+                poe2_api.find_text({ text = "確定", UI_info = env.UI_info, min_x = 0, click = 2 })
+                -- env.account_state = 3
+                env.ip_blocked_number = env.ip_blocked_number + 1
+                api_Sleep(2000)
+                return bret.RUNNING
+            end
+            if poe2_api.find_text({text = game_str.IP_blocked_CH,UI_info = env.UI_info,match = 2}) then
+                if env.ip_blocked_number == 0 then
+                    env.ip_blocked_number = env.ip_blocked_number + 1
+                end
+                if env.ip_blocked_number > 15 then
+                    if env.account_info and next(env.account_info) then
+                        local status_code = poe2_api.update_data_game({game_name = "steam_account",account=env.account_info[1],status = 1})
+                    end
+                    env.is_ban = true
+                    env.account_info = nil
+                    env.number_last_time = 0
+                    env.ip_blocked_number = 0
+                    -- poe2_api.find_text({ text = "確定", UI_info = env.UI_info, min_x = 0, click = 2 })
+                    poe2_api.dbgp("封号!!!3")
+                end
+                poe2_api.dbgp("IP被封禁尝试点击")
+                poe2_api.find_text({ text = "確定", UI_info = env.UI_info, min_x = 0, click = 2 })
+                -- env.account_state = 3
+                env.ip_blocked_number = env.ip_blocked_number + 1
+                api_Sleep(2000)
                 return bret.RUNNING
             end
             if poe2_api.find_text({ text = "登入錯誤", UI_info = env.UI_info }) then
@@ -1171,9 +1236,30 @@ local plot_nodes = {
                 api_Sleep(2000)
                 return bret.RUNNING
             end
+            if env.login_state == "尝试重新启动游戏" then
+                
+                local steam_pid = api_EnumProcess("steam.exe")
+                if not steam_pid or not next(steam_pid) or steam_pid[1] == 0 then
+                    local start_cmd = string.format('start "" "%s" -applaunch %d', game_path, 2694490)
+                    poe2_api.exec_cmd(start_cmd)
+                    poe2_api.dbgp("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
+                    api_Sleep(5000)
+                    env.login_state = "等待登录窗口"
+                    self.last_time = os.time()
+                    return bret.RUNNING
+                else
+                    local start_cmd = 'start "" "steam://rungameid/2694490"'
+                    poe2_api.exec_cmd(start_cmd)
+                    poe2_api.dbgp("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
+                    api_Sleep(5000)
+                    env.login_state = "等待游戏窗口"
+                    self.last_time = os.time()
+                    return bret.RUNNING
+                end
+            end
             if env.login_state == "等待游戏窗口" then
                 poe2_api.print_log("等待steam游戏窗口")
-                if os.time() - self.last_time > 180 then
+                if env.number_last_time >= 3 then
                     poe2_api.print_log("等待steam游戏窗口超时")
                     -- local info = poe2_api.split_string(env.account_info,"|")
                     -- local account = info[1]
@@ -1186,9 +1272,18 @@ local plot_nodes = {
                     end
                     env.login_state = nil
                     self.last_time = 0
-
+                    env.number_last_time = 0
+                    env.account_info = nil
                     return bret.RUNNING
                 end
+                if os.time() - self.last_time > 60 then
+                    env.number_last_time = env.number_last_time + 1
+                    -- env.last_timeout = true
+                    self.last_time = os.time()
+                    env.login_state = "尝试重新启动游戏"
+                    api_Sleep(8000)
+                end
+                    
                 api_Sleep(2000)
                 return bret.RUNNING
             end
@@ -3977,7 +4072,6 @@ local plot_nodes = {
             -- local range_info = env.range_info
             local player_info = env.player_info
             local bag_info = env.bag_info
-           
             local processed_configs = poe2_api.get_items_config_info(env.ItemFilter_info)
             local Attachments = api_Getinventorys(0xd,0)
             -- 背包和附着物为空
@@ -6377,6 +6471,9 @@ local plot_nodes = {
     Query_Current_Task_Information = {
         run = function(self, env)
             poe2_api.print_log("小号查询任务信息")
+            if env.shouting_method ~= "6" then
+                return bret.SUCCESS
+            end
             local current_time = api_GetTickCount64()
             poe2_api.dbgp("[Query_Current_Task_Information]小号查询任务信息")
             if self.raw_time == nil then
@@ -14700,7 +14797,25 @@ local plot_nodes = {
             poe2_api.print_log("Id采集")
             if env.shouting_method ~= "2" then
                 return bret.SUCCESS
-            end 
+            end
+            
+            if not env.not_move then
+                env.not_move = api_GetTickCount64()
+            end
+            if env.not_move and api_GetTickCount64() - env.not_move > 30000 then
+                if not poe2_api.find_text({UI_info = env.UI_info, text = game_str.Private_message, min_x = 0, max_x = 900}) then
+                    poe2_api.click_keyboard("space")
+                    api_Sleep(1000)
+                    env.not_move = api_GetTickCount64()
+                    return bret.RUNNING
+                else
+                    poe2_api.click_keyboard("enter")
+                    api_Sleep(1000)
+                    -- self.invitation_time = api_GetTickCount64()
+                    return bret.RUNNING
+                end
+                
+            end
             if not env.Id_collect or not self.Id_collect then
                 local status_code, response = poe2_api.create_new_game("poe2")
                 if status_code == 200 then
@@ -14780,6 +14895,77 @@ local plot_nodes = {
     Whispered_Shout = {
         run = function(self, env)
             poe2_api.print_log("密语喊话")
+            local function ChatWithAI(content, api_key, opts)
+                opts = opts or {}
+                local url = "https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions"  -- 阿里云百炼兼容接口 :contentReference[oaicite:8]{index=8}
+                local token = api_key or os.getenv("DASHSCOPE_API_KEY") or "PUT_YOUR_KEY_HERE"
+
+
+                local headers = {
+                    ["Authorization"] = "Bearer " .. token,
+                    ["Content-Type"] = "application/json"
+                }
+
+
+                local system_prompt = table.concat({
+                    "You write ONE single-sentence in-game chat line in English.",
+                    "Core message must stay the same:",
+                    "I have cheap Path of Exile 2 items/merch;",
+                    "ask players to check the bottom-right party invite box for my IGN/account name to browse my stock.",
+                    "No URLs, no website words, no emojis.",
+                    "Return ONLY the sentence."
+                }, " ")
+
+
+                local body = {
+                    model = opts.model or "qwen-plus",
+                    temperature = opts.temperature or 0.9,          -- 随机性 :contentReference[oaicite:9]{index=9}
+                    top_p = opts.top_p or 0.9,                      -- 核采样 :contentReference[oaicite:10]{index=10}
+                    presence_penalty = opts.presence_penalty or 0.1, -- 轻微即可 :contentReference[oaicite:11]{index=11}
+                    frequency_penalty = opts.frequency_penalty or 0.6,-- 降低重复 :contentReference[oaicite:12]{index=12}
+                    max_tokens = opts.max_tokens or 60,             -- 控制长度 :contentReference[oaicite:13]{index=13}
+                    stop = opts.stop or { "\n" },                   -- 强制一句话 :contentReference[oaicite:14]{index=14}
+                    messages = {
+                        { role = "system", content = system_prompt },
+                        { role = "user", content = content }
+                    }
+                }
+
+
+                local response = api_HttpPostString(url, json.encode(body), 3, 60, headers)
+                if response and response ~= "" then
+                    local data = json.decode(response)
+                    if data and data.choices and data.choices[1] and data.choices[1].message then
+                        return data.choices[1].message.content
+                    end
+                end
+                return nil
+            end
+
+
+            -- 封装成生成对话函数
+            local function GenerateSalesContent()
+                -- 你只需要把 content 写成“核心信息”，别写“防屏蔽/绕过”
+                local content = table.concat({
+                "Write ONE English in-game chat sentence.",
+                "Must include these points:",
+                "- Cheap Path of Exile 2 items.",
+                "- Tell players to check the bottom-right party invite box for my account name OR my Social note.",
+                "- Invite them to browse my stock.",
+                "One sentence only."
+                }, "\n")
+
+
+                local api_key = "sk-633452977958469fa9e93187087e25b4"
+                local opts = { temperature = 0.9, top_p = 0.9, frequency_penalty = 0.7 }
+                
+                local reply = ChatWithAI(content, api_key, opts)
+                if reply then
+                    poe2_api.dbgp("AI回复: " .. reply)
+                    return reply
+                end
+                return nil
+            end
             if env.shouting_method ~= "4" or env.player_info.level < 2 then
                 return bret.SUCCESS
             end
@@ -14846,12 +15032,14 @@ local plot_nodes = {
                 end
                 -- api_Sleep(500)
                 math.randomseed(math.floor(api_GetTickCount64() % 2147483647))
-                local ran = math.random(1,#env.trade_rhetoric)
+                -- local ran = math.random(1,#env.trade_rhetoric)
                 -- local base_msg = "Low-priced commodity gear, please enter.%s"
                 -- local base_msg = env.ggc_text[1]
                 -- local rand_msg = rand_insert_placeholder(base_msg)
                 -- print(rand_msg)
-                poe2_api.paste_text1("@"..env.Id_list[1].." "..env.trade_rhetoric[ran])
+                local text_ggc =  GenerateSalesContent()
+
+                poe2_api.paste_text1("@"..env.Id_list[1].." "..text_ggc)
                 api_Sleep(500)
                 poe2_api.click_keyboard("enter")
                 env.Trade_Channel_shouting_time = api_GetTickCount64()
@@ -15287,6 +15475,8 @@ local env_params = {
     initial_brushing_pictures_frequency = 0,  -- 休息初始刷图次数
     liquid_emotion_list = {}, --配置中的所有涂油
     Id_list = {}, -- ID列表
+    number_last_time = 0, -- 等待游戏窗口次数
+    ip_blocked_number = 0,  -- ip封禁尝试次数
 }
 
 -- 导出模块接口 
