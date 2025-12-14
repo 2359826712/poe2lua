@@ -9086,4 +9086,79 @@ _M.get_local_ip = function()
     return ip
 end
 
+_M.text_random = function(text)
+    
+    local function ChatWithAI(content, api_key, opts)
+        opts = opts or {}
+        local url = "https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions"  -- 阿里云百炼兼容接口 :contentReference[oaicite:8]{index=8}
+        local token = api_key or os.getenv("DASHSCOPE_API_KEY") or "PUT_YOUR_KEY_HERE"
+
+
+        local headers = {
+            ["Authorization"] = "Bearer " .. token,
+            ["Content-Type"] = "application/json"
+        }
+
+
+        local system_prompt = table.concat({
+            "You write ONE single-sentence in-game chat line in English.",
+            "Core message must stay the same:",
+            "I have cheap Path of Exile 2 items/merch;",
+            "ask players to check the bottom-right party invite box for my IGN/account name to browse my stock.",
+            "No URLs, no website words, no emojis.",
+            "Return ONLY the sentence."
+        }, " ")
+
+
+        local body = {
+            model = opts.model or "qwen-plus",
+            temperature = opts.temperature or 0.9,          -- 随机性 :contentReference[oaicite:9]{index=9}
+            top_p = opts.top_p or 0.9,                      -- 核采样 :contentReference[oaicite:10]{index=10}
+            presence_penalty = opts.presence_penalty or 0.1, -- 轻微即可 :contentReference[oaicite:11]{index=11}
+            frequency_penalty = opts.frequency_penalty or 0.6,-- 降低重复 :contentReference[oaicite:12]{index=12}
+            max_tokens = opts.max_tokens or 60,             -- 控制长度 :contentReference[oaicite:13]{index=13}
+            stop = opts.stop or { "\n" },                   -- 强制一句话 :contentReference[oaicite:14]{index=14}
+            messages = {
+                { role = "system", content = system_prompt },
+                { role = "user", content = content }
+            }
+        }
+
+
+        local response = api_HttpPostString(url, json.encode(body), 3, 60, headers)
+        if response and response ~= "" then
+            local data = json.decode(response)
+            if data and data.choices and data.choices[1] and data.choices[1].message then
+                return data.choices[1].message.content
+            end
+        end
+        return nil
+    end
+
+
+    -- 封装成生成对话函数
+    local function GenerateSalesContent()
+        -- 你只需要把 content 写成“核心信息”，别写“防屏蔽/绕过”
+        local content = table.concat({
+        "Write ONE English in-game chat sentence.",
+        "Must include these points:",
+        "- Cheap Path of Exile 2 items.",
+        "- Tell players to check the bottom-right party invite box for my account name OR my Social note.",
+        "- Invite them to browse my stock.",
+        "One sentence only."
+        }, "\n")
+
+
+        local api_key = "sk-633452977958469fa9e93187087e25b4"
+        local opts = { temperature = 0.9, top_p = 0.9, frequency_penalty = 0.7 }
+        
+        local reply = ChatWithAI(content, api_key, opts)
+        if reply then
+            api_Log("AI回复: " .. reply)
+            return reply
+        end
+        return nil
+    end
+end
+
 return _M

@@ -187,7 +187,9 @@ local game_str = {
     Violate_The_Rules = "此帳號因違反下述狀況，已經被遊戲管理者停權了。",
     Return_To_The_Login_Screen_TWCH = "回到登入畫面",
     mini_target_ = {"AbyssCrackActive","AbyssPitActive","RuneMarkersActive"},
-
+    This_alliance_entrance_has_been_closed = "此聯盟入口已經關閉。",
+    Friend_invitation = "好友邀請：",
+    Friend = "好友",
     -- 暗金碑牌
     Great_Plan_TWCH = "偉大計劃",
 

@@ -33,6 +33,8 @@ local file = io.open(json_path, "r") -- 打开文件
 local content = file:read("*a") -- 读取全部内容 
 file:close()
 local config = json.decode(content)
+-- poe2_api.paste_text_Generate("$".." %s","WWW.MMOELD.COM")
+-- api_Sleep(5000)
 -- 自定义节点实现
 local plot_nodes = {
     -- 获取用户配置信息
@@ -799,6 +801,12 @@ local plot_nodes = {
                 api_Sleep(2000)
                 return bret.RUNNING
             end
+            if poe2_api.find_text({ text = game_str.This_alliance_entrance_has_been_closed, UI_info = env.UI_info }) then
+                -- env.speel_ip_number = env.speel_ip_number + 1
+                poe2_api.find_text({ text = "確定", UI_info = env.UI_info, min_x = 0, click = 2 })
+                api_Sleep(1000)
+                return bret.RUNNING
+            end
             if poe2_api.find_text({ text = "登入錯誤", UI_info = env.UI_info }) then
                 poe2_api.dbgp("账号或者密码错误")
                 -- env.account_state = 4
@@ -838,7 +846,7 @@ local plot_nodes = {
                 or poe2_api.find_text({ text = "若要使用 Steam 登入，你必須先建立一個 Steam 的《流亡黯道》帳號。", UI_info = env.UI_info, min_x = 0 }) then
                 poe2_api.find_text({ text = "帳號名稱", UI_info = env.UI_info, min_x = 0, add_x = 161, click = 2 })
                 api_Sleep(500)
-                local text = "www_mmoeld_com"
+                local text = "WWW_MMOELD_COM"
 
                 poe2_api.paste_text(text)
                 api_Sleep(500)
@@ -1538,6 +1546,71 @@ local plot_nodes = {
             local start_time = api_GetTickCount64() -- 开始时间
             if env.player_info.level >= 2 and env.shouting_method == "0" then
                 poe2_api.dbgp("2级喊话...")
+                local function ChatWithAI(content, api_key, opts)
+                    opts = opts or {}
+                    local url = "https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions"  -- 阿里云百炼兼容接口 :contentReference[oaicite:8]{index=8}
+                    local token = api_key or os.getenv("DASHSCOPE_API_KEY") or "PUT_YOUR_KEY_HERE"
+
+
+                    local headers = {
+                        ["Authorization"] = "Bearer " .. token,
+                        ["Content-Type"] = "application/json"
+                    }
+
+
+                    local system_prompt = table.concat({
+                        "You write ONE single-sentence in-game chat line in English.",
+                        "Core message: Prices here are very cheap.",
+                        "No URLs, no website words, no emojis.",
+                        "Return ONLY the sentence."
+                    }, " ")
+
+
+                    local body = {
+                        model = opts.model or "qwen-plus",
+                        temperature = opts.temperature or 0.9,          -- 随机性 :contentReference[oaicite:9]{index=9}
+                        top_p = opts.top_p or 0.9,                      -- 核采样 :contentReference[oaicite:10]{index=10}
+                        presence_penalty = opts.presence_penalty or 0.1, -- 轻微即可 :contentReference[oaicite:11]{index=11}
+                        frequency_penalty = opts.frequency_penalty or 0.6,-- 降低重复 :contentReference[oaicite:12]{index=12}
+                        max_tokens = opts.max_tokens or 60,             -- 控制长度 :contentReference[oaicite:13]{index=13}
+                        stop = opts.stop or { "\n" },                   -- 强制一句话 :contentReference[oaicite:14]{index=14}
+                        messages = {
+                            { role = "system", content = system_prompt },
+                            { role = "user", content = content }
+                        }
+                    }
+
+
+                    local response = api_HttpPostString(url, json.encode(body), 3, 60, headers)
+                    if response and response ~= "" then
+                        local data = json.decode(response)
+                        if data and data.choices and data.choices[1] and data.choices[1].message then
+                            return data.choices[1].message.content
+                        end
+                    end
+                    return nil
+                end
+
+
+                -- 封装成生成对话函数
+                local function GenerateSalesContent()
+                    -- 你只需要把 content 写成“核心信息”，别写“防屏蔽/绕过”
+                    local content = "Write ONE English in-game chat sentence that says there are new goodies here."
+
+
+                    local api_key = "sk-633452977958469fa9e93187087e25b4"
+                    local opts = { temperature = 0.9, top_p = 0.9, frequency_penalty = 0.7 }
+                    
+                    local reply = ChatWithAI(content, api_key, opts)
+                    if reply then
+                        poe2_api.dbgp("AI回复: " .. reply)
+                        return reply
+                    end
+                    return nil
+                end
+                local a = GenerateSalesContent()
+                -- poe2_api.dbgp(a)
+                -- api_Sleep(5000)
                 -- local text = poe2_api.get_shouting_info(shouting_path)
                 -- if text then
                 -- local function rand_insert_placeholder(msg)
@@ -1555,9 +1628,32 @@ local plot_nodes = {
                 -- api_Sleep(500)
                 -- local base_msg = "Low-priced commodity gear, please enter.%s"
                 local base_msg = env.ggc_text[1]
-                -- local rand_msg = rand_insert_placeholder(base_msg)
-                -- print(rand_msg)
-                poe2_api.paste_text_Generate("#"..base_msg.." %s", env.ggc_text[2])
+                local function randomize_case_spaces(s)
+                    local out = {}
+                    math.randomseed(math.floor(api_GetTickCount64() % 2147483647))
+                    for i = 1, #s do
+                        local ch = s:sub(i, i)
+                        if ch:match("%a") then
+                            if math.random() < 0.5 then
+                                ch = ch:upper()
+                            else
+                                ch = ch:lower()
+                            end
+                        end
+                        table.insert(out, ch)
+                        if i < #s then
+                            local need_space = math.random()
+                            if need_space > 0.5 then
+                                local count_rand = math.random()
+                                local space_count = (count_rand < 0.33 and 1) or (count_rand < 0.66 and 2) or 3
+                                table.insert(out, string.rep(" ", space_count))
+                            end
+                        end
+                    end
+                    return table.concat(out)
+                end
+                local transformed = randomize_case_spaces(env.ggc_text[2])
+                poe2_api.paste_text1("#"..transformed.."....."..a)
 
                 api_Sleep(500)
                 poe2_api.click_keyboard("enter")
@@ -1590,15 +1686,16 @@ local plot_nodes = {
             --     return bret.RUNNING
             -- end
             -- api_Sleep(500)
-            local ran = math.random(1,#env.trade_rhetoric)
+            -- local ran = math.random(1,#env.trade_rhetoric)
             -- local base_msg = "Low-priced commodity gear, please enter.%s"
             -- local base_msg = env.ggc_text[1]
             -- local rand_msg = rand_insert_placeholder(base_msg)
             -- print(rand_msg)
-            poe2_api.paste_text1("$"..env.trade_rhetoric[ran])
+            -- poe2_api.paste_text1("$"..env.trade_rhetoric[ran])
+            poe2_api.paste_text_Generate("$".." %s","WWW.MMOELD.COM")
 
             api_Sleep(500)
-            poe2_api.click_keyboard("enter")
+            -- poe2_api.click_keyboard("enter")
             
             api_Sleep((env.time_interval*1000))
             return bret.RUNNING
@@ -1769,13 +1866,13 @@ local plot_nodes = {
                 return bret.RUNNING
             end
             -- api_Sleep(500)
-            math.randomseed(math.floor(api_GetTickCount64() % 2147483647))
-            local ran = math.random(1,#env.trade_rhetoric)
+            -- math.randomseed(math.floor(api_GetTickCount64() % 2147483647))
+            -- local ran = math.random(1,#env.trade_rhetoric)
             -- local base_msg = "Low-priced commodity gear, please enter.%s"
             -- local base_msg = env.ggc_text[1]
             -- local rand_msg = rand_insert_placeholder(base_msg)
             -- print(rand_msg)
-            poe2_api.paste_text1("$"..env.trade_rhetoric[ran])
+            -- poe2_api.paste_text1("$"..env.trade_rhetoric[ran])
 
             api_Sleep(500)
             poe2_api.click_keyboard("enter")
@@ -4072,6 +4169,7 @@ local plot_nodes = {
             -- local range_info = env.range_info
             local player_info = env.player_info
             local bag_info = env.bag_info
+           
             local processed_configs = poe2_api.get_items_config_info(env.ItemFilter_info)
             local Attachments = api_Getinventorys(0xd,0)
             -- 背包和附着物为空
@@ -14909,9 +15007,7 @@ local plot_nodes = {
 
                 local system_prompt = table.concat({
                     "You write ONE single-sentence in-game chat line in English.",
-                    "Core message must stay the same:",
-                    "I have cheap Path of Exile 2 items/merch;",
-                    "ask players to check the bottom-right party invite box for my IGN/account name to browse my stock.",
+                    "Core message: There are new goodies here.",
                     "No URLs, no website words, no emojis.",
                     "Return ONLY the sentence."
                 }, " ")
@@ -14946,14 +15042,7 @@ local plot_nodes = {
             -- 封装成生成对话函数
             local function GenerateSalesContent()
                 -- 你只需要把 content 写成“核心信息”，别写“防屏蔽/绕过”
-                local content = table.concat({
-                "Write ONE English in-game chat sentence.",
-                "Must include these points:",
-                "- Cheap Path of Exile 2 items.",
-                "- Tell players to check the bottom-right party invite box for my account name OR my Social note.",
-                "- Invite them to browse my stock.",
-                "One sentence only."
-                }, "\n")
+                local content = "Write ONE English in-game chat sentence that says prices here are very cheap."
 
 
                 local api_key = "sk-633452977958469fa9e93187087e25b4"
@@ -15078,6 +15167,66 @@ local plot_nodes = {
             -- name_json_info = 
             -- print("响应:", json.encode(response))
             return bret.RUNNING
+        end
+    },
+
+    --主动添加好友
+    Add_Friend = {
+        run = function(self, env)
+            poe2_api.print_log("主动添加好友")
+            if env.shouting_method ~= "5" then
+                return bret.SUCCESS
+            end
+            if env.Id_list and next(env.Id_list) then
+                if not poe2_api.find_text({UI_info = env.UI_info, text = game_str.Social_TWCH, min_x = 0, max_x = 900}) then
+                    poe2_api.click_keyboard("j")
+                    api_Sleep(2000)
+                    return bret.RUNNING
+                end 
+                if not poe2_api.find_text({UI_info = env.UI_info, text = game_str.Friend_invitation, min_x = 0, max_x = 900}) then
+                    poe2_api.find_text({UI_info = env.UI_info, text = game_str.Friend, min_x = 149, max_x = 155,min_y = 135,max_y = 140,click = 2})
+                    api_Sleep(2000)
+                    return bret.RUNNING
+                end
+                if poe2_api.find_text({UI_info = env.UI_info, text = game_str.Friend_invitation, min_x = 0, max_x = 900,add_x = 50,click = 2}) then
+                    api_Sleep(1000)
+                    poe2_api.paste_text1(env.Id_list[1])
+                    api_Sleep(1000)
+                    poe2_api.click_keyboard("enter")
+                    api_Sleep(1000)
+                    table.remove(env.Id_list,1)
+                    return bret.RUNNING
+                end
+            else
+                local status_code, response = poe2_api.query_data("poe2", 100, 1, 1)
+                if status_code == 200 then
+                    local data = response and response.data
+                    local names = {}
+                    if type(data) == "table" then
+                        for _, item in ipairs(data) do
+                            if item and item.account then
+                                table.insert(names, item.account)
+                            end
+                        end
+                    end
+                    if next(names) then
+                        env.Id_list = names
+                        return bret.RUNNING
+                    else
+                        poe2_api.dbgp("暂无角色Id可用")
+                        api_Sleep(1000)
+                        return bret.RUNNING
+                    end
+                    -- print(json.encode(names))
+                    -- poe2_api.printTable(names)
+                    -- api_Sleep(5000)
+                else
+                    poe2_api.dbgp("查询数据失败,尝试重新查询")
+                    api_Sleep(1000)
+                    return bret.RUNNING
+                end
+            end
+            
         end
     },
 
