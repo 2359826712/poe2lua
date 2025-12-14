@@ -11829,7 +11829,7 @@ local plot_nodes = {
                 return bret.SUCCESS
             end
             if me_area == "G1_1" then
-                if poe2_api.find_text({ UI_info = env.UI_info, text = "受傷的男人",min_x =450,refresh =true }) then
+                if poe2_api.find_text({ UI_info = env.UI_info, text = "受傷的男人",min_x =450,max_x = 1420,refresh =true  }) then
                     env.end_point = nil
                     env.is_arrive_end = false
                     env.path_list = {}
@@ -11842,7 +11842,7 @@ local plot_nodes = {
                     end
                     return bret.RUNNING
                 end
-                if poe2_api.find_text({ UI_info = env.UI_info, text = "大箱子",min_x = 0}) then
+                if poe2_api.find_text({ UI_info = env.UI_info, text = "大箱子",min_x = 450,max_x = 1420}) then
                     env.end_point = nil
                     env.is_arrive_end = false
                     env.path_list = {}
