@@ -6656,6 +6656,7 @@ end
 -- @param max_x number 搜索区域最大X坐标(默认1600)
 -- @param max_y number 搜索区域最大Y坐标(默认900)
 -- @return boolean 是否找到并处理了指定文本的UI元素
+-- @ index number 判断是否需要判断文本
 _M.click_text_UI = function(options)
     -- 默认参数
     local config = {
@@ -6668,8 +6669,27 @@ _M.click_text_UI = function(options)
        index = options.index or 0,         -- 可选，默认 0
        ret_data = options.ret_data or false, -- 可选，默认 false
        refresh = options.refresh or false,
-       UI_info = options.UI_info or nil
+       UI_info = options.UI_info or nil,
+    --    index = options.index or 0
    }
+    local fixed_text = {
+        "life_orb",
+        "pages_container",
+        "collapsable_frame",
+        "content_frame",
+        "top_frame",
+        "toggle_button",
+        "collapsable_frame",
+        "content_frame",
+        "top_frame",
+        "toggle_button",
+        "collapsable_frame",
+        "content_frame",
+        "top_frame",
+        "toggle_button",
+        "buttons_container",
+        "fade_bar",
+    }
    
     if config.refresh or not config.UI_info then
         _M.print_log("defaults.refresh\n")
@@ -6680,9 +6700,10 @@ _M.click_text_UI = function(options)
     end
 
     if config.UI_info then
+        local text_list = {}
         for _, value in ipairs(config.UI_info) do
             -- _M.print_log(value.name_utf8)
-            if value.name_utf8 == config.text then
+            if value.name_utf8 == config.text and config.index == 0 then
                 local x = (value.left + value.right) / 2
                 local y = (value.top + value.bottom) / 2
                 if config.click == 1 then
@@ -6693,7 +6714,14 @@ _M.click_text_UI = function(options)
                     return value
                 end
                 return true
+            elseif config.index == 1 then
+                if value.name_utf8 ~= "" and not _M.table_contains(value.name_utf8,fixed_text) and value.left>= config.min_x and value.left<= config.max_x and value.top>= config.min_y and value.top<= config.max_y then
+                    table.insert(text_list, value.name_utf8)
+                end
             end
+        end
+        if config.index == 1 then
+            return text_list
         end
     end
    return false
@@ -8408,308 +8436,246 @@ _M.generate_random_string = function( length)
     return result
 end
 -- 随机生成获取角色名称
--- _M.get_name_text = function()
---     local list_of_names = {
---         "John",
---         "George",
---         "Thomas",
---         "Taylor",
---         "Kendrick",
---         "Nicki",
---         "Dua",
---         "Selena",
---         "Lady",
---         "Miley",
---         "Jennifer",
---         "Kanye",
---         "Cardi",
---         "The",
---         "Shawn",
---         "Rihanna",
---         "Justin",
---         "Demi",
---         "Jennifer",
---         "Swift",
---         "Lamar",
---         "Minaj",
---         "Lipa",
---         "Gomez",
---         "Gaga",
---         "Cyrus",
---         "Lopez",
---         "West",
---         "Kendrick",
---         "Weeknd",
---         "Mendes",
---         "Lady",
---         "Bieber",
---         "Lovato",
---         "Hudson",
---         "George",
---         "Jennifer",
---         "Drake",
---         "Travis",
---         "Harry",
---         "Adele",
---         "Katy",
---         "Selena",
---         "Marc",
---         "John",
---         "Drake",
---         "Lamar",
---         "Nicki",
---         "Dua",
---         "Selena",
---         "Gaga",
---         "Miley",
---         "Jennifer",
---         "Washington",
---         "Washington",
---         "Bryson",
---         "Scott",
---         "Styles",
---         "Bruno",
---         "Perry",
---         "Gomez",
---         "Anthony",
---         "Legend",
---         "Kendrick",
---         "Drake",
---         "Minaj",
---         "Lipa",
---         "Gomez",
---         "Katy",
---         "Cyrus",
---         "Lopez",
---         "Thomas",
---         "Bill",
---         "Knowles",
---         "Ariana",
---         "Tiller",
---         "Khalid",
---         "Camila",
---         "Mars",
---         "Taylor",
---         "Ariana",
---         "Shakira",
---         "Mary",
---         "The",
---         "Lamar",
---         "Bryson",
---         "Travis",
---         "Harry",
---         "Adele",
---         "Perry",
---         "Selena",
---         "Marc",
---         "John",
---         "Jay",
---         "Grande",
---         "Cardi",
---         "The",
---         "Cabello",
---         "Rihanna",
---         "Swift",
---         "Grande",
---         "Jennifer",
---         "Tiller",
---         "Scott",
---         "Styles",
---         "Bruno",
---         "Taylor",
---         "Gomez",
---         "Anthony",
---         "Legend",
---         "Jennifer",
---         "Weeknd",
---         "Shawn",
---         "Justin",
---         "Demi",
---         "Hudson",
---         "Blige",
---         "Khalid",
---         "Camila",
---         "Mars",
---         "Swift",
---         "Ariana",
---         "Shakira",
---         "Mary",
---         "Kanye",
---         "Mendes",
---         "Bieber",
---         "Lovato",
---         "Jay",
---         "Cabello",
---         "Grande",
---         "Knowles",
---         "Blige",
---         "West",
---         "Bill",
---         "Abraham",
---         "Mark",
---         "Michael",
---         "Tom",
---         "Robert",
---         "Brad",
---         "Will",
---         "Lin",
---         "Wale",
---         "Lincoln",
---         "Edison",
---         "Zuckerberg",
---         "Jordan",
---         "Hanks",
---         "Pitt",
---         "Smith",
---         "Manuel",
---         "Dre",
---         "Kelly",
---         "Kennedy",
---         "Bush",
---         "Henry",
---         "Warren",
---         "Serena",
---         "Meryl",
---         "Niro",
---         "Denzel",
---         "Miranda",
---         "Snoop",
---         "Tupac",
---         "Martin",
---         "Barack",
---         "Ford",
---         "Buffett",
---         "Williams",
---         "Streep",
---         "Morgan",
---         "Aniston",
---         "Beyoncé",
---         "Sheeran",
---         "Dogg",
---         "Shakur",
---         "Luther",
---         "Obama",
---         "Elon",
---         "LeBron",
---         "Leonardo",
---         "Freeman",
---         "Matt",
---         "Viola",
---         "Ice",
---         "Jefferson",
---         "King",
---         "Donald",
---         "Gates",
---         "Musk",
---         "James",
---         "DiCaprio",
---         "Johnny",
---         "Damon",
---         "Davis",
---         "Cube",
---         "Notorious",
---         "Franklin",
---         "Trump",
---         "Steve",
---         "Jeff",
---         "Kobe",
---         "Depp",
---         "Scarlett",
---         "Octavia",
---         "Billie",
---         "Eminem",
---         "BIG",
---         "Cole",
---         "Ronald",
---         "Joe",
---         "Jobs",
---         "Bezos",
---         "Bryant",
---         "Lawrence",
---         "Angelina",
---         "Johansson",
---         "Spencer",
---         "Eilish",
---         "Roosevelt",
---         "Reagan",
---         "Biden",
---         "Jolie",
---         "Clinton"
---     }
---     local sj = _M.generate_random_string(math.random(1, 3))
---     local index = math.random(1, 3)
---     local name_text
-
---     if index == 1 then
---         name_text = sj .. list_of_names[math.random(1, #list_of_names)] .. list_of_names[math.random(1, #list_of_names)]
---     elseif index == 2 then
---         name_text = list_of_names[math.random(1, #list_of_names)] .. sj .. list_of_names[math.random(1, #list_of_names)]
---     elseif index == 3 then
---         name_text = list_of_names[math.random(1, #list_of_names)] .. list_of_names[math.random(1, #list_of_names)] .. sj
---     end
---     return name_text
--- end
-
 _M.get_name_text = function()
-    local function randomCase(str)
-        local result = ""
-        for i = 1, #str do
-            local c = str:sub(i, i)
-            if math.random() < 0.5 then
-                c = c:upper()
-            else
-                c = c:lower()
-            end
-            result = result .. c
-        end
-        return result
+    local list_of_names = {
+        "John",
+        "George",
+        "Thomas",
+        "Taylor",
+        "Kendrick",
+        "Nicki",
+        "Dua",
+        "Selena",
+        "Lady",
+        "Miley",
+        "Jennifer",
+        "Kanye",
+        "Cardi",
+        "The",
+        "Shawn",
+        "Rihanna",
+        "Justin",
+        "Demi",
+        "Jennifer",
+        "Swift",
+        "Lamar",
+        "Minaj",
+        "Lipa",
+        "Gomez",
+        "Gaga",
+        "Cyrus",
+        "Lopez",
+        "West",
+        "Kendrick",
+        "Weeknd",
+        "Mendes",
+        "Lady",
+        "Bieber",
+        "Lovato",
+        "Hudson",
+        "George",
+        "Jennifer",
+        "Drake",
+        "Travis",
+        "Harry",
+        "Adele",
+        "Katy",
+        "Selena",
+        "Marc",
+        "John",
+        "Drake",
+        "Lamar",
+        "Nicki",
+        "Dua",
+        "Selena",
+        "Gaga",
+        "Miley",
+        "Jennifer",
+        "Washington",
+        "Washington",
+        "Bryson",
+        "Scott",
+        "Styles",
+        "Bruno",
+        "Perry",
+        "Gomez",
+        "Anthony",
+        "Legend",
+        "Kendrick",
+        "Drake",
+        "Minaj",
+        "Lipa",
+        "Gomez",
+        "Katy",
+        "Cyrus",
+        "Lopez",
+        "Thomas",
+        "Bill",
+        "Knowles",
+        "Ariana",
+        "Tiller",
+        "Khalid",
+        "Camila",
+        "Mars",
+        "Taylor",
+        "Ariana",
+        "Shakira",
+        "Mary",
+        "The",
+        "Lamar",
+        "Bryson",
+        "Travis",
+        "Harry",
+        "Adele",
+        "Perry",
+        "Selena",
+        "Marc",
+        "John",
+        "Jay",
+        "Grande",
+        "Cardi",
+        "The",
+        "Cabello",
+        "Rihanna",
+        "Swift",
+        "Grande",
+        "Jennifer",
+        "Tiller",
+        "Scott",
+        "Styles",
+        "Bruno",
+        "Taylor",
+        "Gomez",
+        "Anthony",
+        "Legend",
+        "Jennifer",
+        "Weeknd",
+        "Shawn",
+        "Justin",
+        "Demi",
+        "Hudson",
+        "Blige",
+        "Khalid",
+        "Camila",
+        "Mars",
+        "Swift",
+        "Ariana",
+        "Shakira",
+        "Mary",
+        "Kanye",
+        "Mendes",
+        "Bieber",
+        "Lovato",
+        "Jay",
+        "Cabello",
+        "Grande",
+        "Knowles",
+        "Blige",
+        "West",
+        "Bill",
+        "Abraham",
+        "Mark",
+        "Michael",
+        "Tom",
+        "Robert",
+        "Brad",
+        "Will",
+        "Lin",
+        "Wale",
+        "Lincoln",
+        "Edison",
+        "Zuckerberg",
+        "Jordan",
+        "Hanks",
+        "Pitt",
+        "Smith",
+        "Manuel",
+        "Dre",
+        "Kelly",
+        "Kennedy",
+        "Bush",
+        "Henry",
+        "Warren",
+        "Serena",
+        "Meryl",
+        "Niro",
+        "Denzel",
+        "Miranda",
+        "Snoop",
+        "Tupac",
+        "Martin",
+        "Barack",
+        "Ford",
+        "Buffett",
+        "Williams",
+        "Streep",
+        "Morgan",
+        "Aniston",
+        "Beyoncé",
+        "Sheeran",
+        "Dogg",
+        "Shakur",
+        "Luther",
+        "Obama",
+        "Elon",
+        "LeBron",
+        "Leonardo",
+        "Freeman",
+        "Matt",
+        "Viola",
+        "Ice",
+        "Jefferson",
+        "King",
+        "Donald",
+        "Gates",
+        "Musk",
+        "James",
+        "DiCaprio",
+        "Johnny",
+        "Damon",
+        "Davis",
+        "Cube",
+        "Notorious",
+        "Franklin",
+        "Trump",
+        "Steve",
+        "Jeff",
+        "Kobe",
+        "Depp",
+        "Scarlett",
+        "Octavia",
+        "Billie",
+        "Eminem",
+        "BIG",
+        "Cole",
+        "Ronald",
+        "Joe",
+        "Jobs",
+        "Bezos",
+        "Bryant",
+        "Lawrence",
+        "Angelina",
+        "Johansson",
+        "Spencer",
+        "Eilish",
+        "Roosevelt",
+        "Reagan",
+        "Biden",
+        "Jolie",
+        "Clinton"
+    }
+    local sj = _M.generate_random_string(math.random(1, 3))
+    local index = math.random(1, 3)
+    local name_text
+
+    if index == 1 then
+        name_text = sj .. list_of_names[math.random(1, #list_of_names)] .. list_of_names[math.random(1, #list_of_names)]
+    elseif index == 2 then
+        name_text = list_of_names[math.random(1, #list_of_names)] .. sj .. list_of_names[math.random(1, #list_of_names)]
+    elseif index == 3 then
+        name_text = list_of_names[math.random(1, #list_of_names)] .. list_of_names[math.random(1, #list_of_names)] .. sj
     end
-
-    local function randomLetter()
-        -- 生成随机字母（A-Z 或 a-z）
-        if math.random() < 0.5 then
-            return string.char(math.random(65, 90))  -- A-Z
-        else
-            return string.char(math.random(97, 122)) -- a-z
-        end
-    end
-
-    local function generateString()
-        -- 1. 生成随机大小写的三个关键词
-        -- local divine = randomCase("Divine_orb")  -- 如 "dIVine" 或 "DIVINE"
-        -- local url = randomCase("url")        -- 如 "Url" 或 "URL"
-        -- local cheap = randomCase("cheap")    -- 如 "CheAP" 或 "CHEAP"
-        -- local divine = "Divine"
-        -- local url = "discount"
-        -- local cheap = "url_top"
-
-        
-        -- 2. 用下划线连接核心部分
-        -- local core = divine .. "_" .. url .. "_" .. cheap
-        local core = "bestprice_fullstock"
-        
-        -- 3. 计算可追加的随机字母数量（总长度 ≤ 23）
-        local remaining = 23 - #core - 1  -- 减去1是为了预留结尾的__
-        if remaining > 0 then
-            -- 生成随机字母并追加到核心部分后面，用_连接
-            local randomPart = ""
-            for _ = 1, remaining do
-                randomPart = randomPart .. randomLetter()
-            end
-            core = core .. "_" .. randomPart
-        end
-        
-        -- 4. 确保总长度 ≤ 23（防止计算误差）
-        return core:sub(1, 23)
-    end
-
-    -- 设置随机种子
-    return generateString()
-
-    -- 测试生成5个示例
-    -- for i = 1, 5 do
-    --     print(generateString())
-    -- end
+    return name_text
 end
 
 
